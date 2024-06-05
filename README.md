@@ -265,9 +265,9 @@ Instead of using the DeepL API, you can define a custom translator callback that
 # /site/config/config.php
 return [
     'johannschopplich.content-translator' => [
-        'translateFn' => function (string $text, string|null $sourceLanguageCode, string $targetLanguageCode): string {
+        'translateFn' => function (string $text, string $targetLanguageCode, string|null $sourceLanguageCode,): string {
             // Your custom translation logic
-            return myCustomTranslateFunction($text, $sourceLanguageCode, $targetLanguageCode);
+            return myCustomTranslateFunction($text, $targetLanguageCode, $sourceLanguageCode);
         }
     ]
 ];
