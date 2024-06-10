@@ -1,0 +1,8 @@
+name: Structure
+icon: checklist
+fields:
+  structure:
+    type: structure
+    fields:
+      text:
+        type: text

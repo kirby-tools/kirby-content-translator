@@ -1,4 +1,5 @@
 <script>
+import slugify from "@sindresorhus/slugify";
 import {
   computed,
   onBeforeUnmount,
@@ -10,6 +11,7 @@ import {
 import { section } from "kirbyuse/props";
 import { TRANSLATION_API_ROUTE } from "../constants";
 import { useTranslation } from "../composables/translation";
+import { useLicense } from "../composables/license";
 
 const propsDefinition = {
   ...section,
@@ -25,17 +27,18 @@ const props = defineProps(propsDefinition);
 
 const panel = usePanel();
 const store = useStore();
-const { recursiveTranslateContent } = useTranslation();
+const { translateContent } = useTranslation();
+const { isLocalhost, validateLicense } = useLicense();
+const isOnline = navigator.onLine;
 
 // Section props
 const label = ref();
 const confirm = ref(true);
-const syncableFields = ref([]);
-const translatableFields = ref([]);
-const translatableStructureFields = ref([]);
-const translatableObjectFields = ref([]);
-const translatableBlocks = ref([]);
+const fieldTypes = ref([]);
+const includeFields = ref([]);
+const excludeFields = ref([]);
 const translateTitle = ref(false);
+const translateSlug = ref(false);
 
 // Section computed
 const fields = ref();
@@ -43,18 +46,12 @@ const config = ref();
 
 // Generic data
 const defaultLanguageData = ref({});
+const hasValidLicense = ref();
 
 // Static data
 const defaultLanguage = panel.languages.find((language) => language.default);
 
 const currentContent = computed(() => store.getters["content/values"]());
-const translatableContent = computed(() =>
-  Object.fromEntries(
-    Object.entries(currentContent.value).filter(([key]) =>
-      translatableFields.value.includes(key),
-    ),
-  ),
-);
 
 (async () => {
   const { load } = useSection();
@@ -65,21 +62,23 @@ const translatableContent = computed(() =>
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
   confirm.value = response.confirm ?? response.config.confirm ?? true;
-  syncableFields.value =
-    response.syncableFields ?? response.config.syncableFields ?? [];
-  translatableFields.value =
-    response.translatableFields ?? response.config.translatableFields ?? [];
-  translatableStructureFields.value =
-    response.translatableStructureFields ??
-    response.config.translatableStructureFields ??
-    [];
-  translatableObjectFields.value =
-    response.translatableObjectFields ??
-    response.config.translatableObjectFields ??
-    [];
-  translatableBlocks.value =
-    response.translatableBlocks ?? response.config.translatableBlocks ?? [];
+  fieldTypes.value = response.fieldTypes ??
+    response.config.fieldTypes ?? [
+      "blocks",
+      "layout",
+      "list",
+      "object",
+      "structure",
+      "text",
+      "textarea",
+      "writer",
+    ];
+  includeFields.value =
+    response.includeFields ?? response.config.includeFields ?? undefined;
+  excludeFields.value =
+    response.excludeFields ?? response.config.excludeFields ?? undefined;
   translateTitle.value = response.title ?? response.config.title ?? false;
+  translateSlug.value = response.slug ?? response.config.slug ?? false;
   fields.value = response.fields ?? {};
   config.value = response.config ?? {};
 
@@ -87,6 +86,10 @@ const translatableContent = computed(() =>
   panel.events.on("model.update", updateModelDefaultLanguageData);
   panel.events.on("page.changeTitle", updateModelDefaultLanguageData);
   updateModelDefaultLanguageData();
+
+  if (isOnline) {
+    hasValidLicense.value = await validateLicense(config.value.licenseKey);
+  }
 })();
 
 onBeforeUnmount(() => {
@@ -111,8 +114,15 @@ async function syncModelContent(language) {
   }
 
   const syncableContent = Object.fromEntries(
-    Object.entries(content).filter(([key]) =>
-      syncableFields.value.includes(key),
+    Object.entries(content).filter(
+      ([key]) =>
+        fieldTypes.value.includes(fields.value[key]?.type) &&
+        (includeFields.value !== undefined
+          ? includeFields.value.includes(key)
+          : true) &&
+        (excludeFields.value !== undefined
+          ? !excludeFields.value.includes(key)
+          : true),
     ),
   );
 
@@ -122,26 +132,32 @@ async function syncModelContent(language) {
 
   if (translateTitle.value) {
     await panel.api.patch(`${panel.view.path}/title`, { title });
+  }
+  if (translateSlug.value) {
+    const slug = slugify(title);
+    await panel.api.patch(`${panel.view.path}/slug`, { slug });
+  }
+  if (translateTitle.value || translateSlug.value) {
     await panel.view.reload();
   }
 
   panel.notification.success(
-    panel.t("johannschopplich.content-translator.notification.synced"),
+    panel.t("johannschopplich.content-translator.notification.imported"),
   );
 }
 
 async function translateModelContent(targetLanguage, sourceLanguage) {
   panel.view.isLoading = true;
 
-  const clone = JSON.parse(JSON.stringify(translatableContent.value));
+  const clone = JSON.parse(JSON.stringify(currentContent.value));
   try {
-    await recursiveTranslateContent(clone, {
+    await translateContent(clone, {
       sourceLanguage: sourceLanguage?.code,
       targetLanguage: targetLanguage.code,
+      fieldTypes: fieldTypes.value,
+      includeFields: includeFields.value,
+      excludeFields: excludeFields.value,
       fields: fields.value,
-      translatableStructureFields: translatableStructureFields.value,
-      translatableObjectFields: translatableObjectFields.value,
-      translatableBlocks: translatableBlocks.value,
     });
   } catch (error) {
     console.error(error);
@@ -154,15 +170,19 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
     store.dispatch("content/update", [key, value]);
   }
 
-  if (translateTitle.value) {
+  if (translateTitle.value || translateSlug.value) {
     const { text } = await panel.api.post(TRANSLATION_API_ROUTE, {
       sourceLanguage: sourceLanguage?.code,
       targetLanguage: targetLanguage.code,
       text: panel.view.title,
     });
-    await panel.api.patch(`${panel.view.path}/title`, {
-      title: text,
-    });
+    if (translateTitle.value) {
+      await panel.api.patch(`${panel.view.path}/title`, { title: text });
+    }
+    if (translateSlug.value) {
+      const slug = slugify(text);
+      await panel.api.patch(`${panel.view.path}/slug`, { slug });
+    }
     // Reload will also end loading state
     await panel.view.reload();
   } else {
@@ -205,7 +225,7 @@ function openModal(text, callback) {
 
 <template>
   <k-section v-if="config" :label="label">
-    <k-box v-if="!panel.multilang" theme="info">
+    <k-box v-if="!panel.multilang" theme="empty">
       <k-text>
         This section requires multi-language support to be enabled.
       </k-text>
@@ -221,26 +241,19 @@ function openModal(text, callback) {
         configuration.
       </k-text>
     </k-box>
-    <k-box v-else-if="!translatableFields.length" theme="info">
-      <k-text>
-        You have to define at least one translatable field for the
-        <code>translatableFields</code> blueprint or in your Kirby
-        configuration.
-      </k-text>
-    </k-box>
     <k-box v-else-if="config.allowDefaultLanguageOverwrite" theme="none">
       <k-button-group layout="collapsed">
         <k-button
           v-for="language in panel.languages.filter(
             (language) => language.code !== panel.language.code,
           )"
-          v-show="syncableFields.length"
           :key="language.code"
+          icon="import"
           size="sm"
           variant="filled"
           @click="
             openModal(
-              panel.t('johannschopplich.content-translator.dialog.syncFrom', {
+              panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
               () => syncModelContent(language),
@@ -279,20 +292,20 @@ function openModal(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-show="syncableFields.length"
             :disabled="panel.language.default"
+            icon="import"
             size="sm"
             variant="filled"
             @click="
               openModal(
-                panel.t('johannschopplich.content-translator.dialog.sync', {
+                panel.t('johannschopplich.content-translator.dialog.import', {
                   language: defaultLanguage.name,
                 }),
                 () => syncModelContent(),
               )
             "
           >
-            {{ panel.t("johannschopplich.content-translator.sync") }}
+            {{ panel.t("johannschopplich.content-translator.import") }}
           </k-button>
           <k-button
             :disabled="panel.language.default"
@@ -332,5 +345,30 @@ function openModal(text, callback) {
         "
       />
     </template>
+
+    <k-box
+      v-show="hasValidLicense === false"
+      class="k-box-license kct-mt-1"
+      :theme="isLocalhost ? 'empty' : 'love'"
+      :icon="!isLocalhost ? 'key' : undefined"
+    >
+      <k-text>
+        <p
+          v-html="
+            panel.t(
+              isLocalhost
+                ? 'johannschopplich.content-translator.license.localhost'
+                : 'johannschopplich.content-translator.license.invalid',
+            )
+          "
+        />
+      </k-text>
+    </k-box>
   </k-section>
 </template>
+
+<style scoped>
+.k-box-license .k-text {
+  --link-color: var(--color-text);
+}
+</style>

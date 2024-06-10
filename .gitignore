@@ -5,6 +5,12 @@
 /node_modules
 /vendor
 
+# Build files
+# /assets
+/index.dev.mjs
+# /index.js
+# /index.css
+
 # Playground files
 .env
 .license
@@ -16,7 +22,7 @@
 # Cache and temporary files
 /.cache
 /.php-cs-fixer.cache
-/.phpunit.result.cache
+/.phpunit.*
 /index.dev.mjs
 /tests/coverage
 /tests/*/tmp

@@ -11,5 +11,5 @@ return [
     'translations' => [
 
     ],
-    'url' => NULL
+    'url' => null
 ];
