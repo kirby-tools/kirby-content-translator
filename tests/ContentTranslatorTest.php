@@ -68,8 +68,8 @@ final class ContentTranslatorTest extends TestCase
             'options' => [
                 'debug' => true,
                 'johannschopplich.content-translator' => [
-                    'translateFn' => function (string $text, string $targetLanguageCode, string|null $sourceLanguageCode): string {
-                        return md5($targetLanguageCode . $text);
+                    'translateFn' => function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
+                        return md5($toLanguageCode . $text);
                     }
                 ]
             ]
@@ -95,7 +95,7 @@ final class ContentTranslatorTest extends TestCase
         $page = $this->app('de')->page('home')->clone();
 
         $translator = new Translator($page);
-        $translator->synchronizeContent('en', 'de');
+        $translator->synchronizeContent('de', 'en');
         $page = $translator->model();
 
         $this->assertSame('Untranslated', $page->content('de')->get('untranslated')->value());

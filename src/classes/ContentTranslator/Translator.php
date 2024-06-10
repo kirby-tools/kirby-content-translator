@@ -8,7 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
-use Kirby\Data\Json;
+use Kirby\Data\Data;
 use Kirby\Form\Form;
 use Kirby\Toolkit\A;
 
@@ -84,9 +84,9 @@ final class Translator
         return $fields;
     }
 
-    public function synchronizeContent(string $fromLanguageCode, string $toLanguageCode): void
+    public function synchronizeContent(string $toLanguageCode, string $fromLanguageCode): void
     {
-        $this->kirby->impersonate('kirby', function () use ($fromLanguageCode, $toLanguageCode) {
+        $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
             $content = [];
 
             foreach ($this->fields as $field => $props) {
@@ -103,10 +103,10 @@ final class Translator
         });
     }
 
-    public function translateContent(string $contentLanguageCode, string $targetLanguageCode): void
+    public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
-        $this->targetLanguage = $targetLanguageCode;
-        $this->sourceLanguage = $contentLanguageCode;
+        $this->targetLanguage = $toLanguageCode;
+        $this->sourceLanguage = $fromLanguageCode;
 
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
@@ -117,13 +117,13 @@ final class Translator
         });
     }
 
-    public function translateTitle(string $contentLanguageCode, string $targetLanguageCode): void
+    public function translateTitle(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $targetLanguageCode) {
+        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $translatedTitle = $this->translateText(
                 $this->model->content($contentLanguageCode)->get('title')->value(),
-                $targetLanguageCode,
-                $contentLanguageCode
+                $toLanguageCode,
+                $fromLanguageCode
             );
             $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
         });
@@ -134,7 +134,7 @@ final class Translator
         return $this->model;
     }
 
-    private function handleTranslation(array &$obj, array $fields): array
+    private function handleTranslation(array &$obj, array $fields, $isRecursive = false): array
     {
         foreach ($obj as $key => $value) {
             if (empty($value)) {
@@ -155,36 +155,42 @@ final class Translator
                 continue;
             }
 
-            // Parse blocks encoded as JSON
-            if ($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') {
-                $obj[$key] = Json::decode($value);
+            // Parse JSON-encoded fields
+            if (($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') && is_string($obj[$key])) {
+                $obj[$key] = Data::decode($obj[$key], 'json');
+            }
+
+            // Parse YAML-encoded fields
+            // Note: Nested fields are not YAML-encoded, that's why we need to check if the field is a string
+            elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object') && is_string($obj[$key])) {
+                $obj[$key] = Data::decode($obj[$key], 'yaml');
             }
 
             // Handle text-like fields
             if (in_array($fields[$key]['type'], ['list', 'text', 'textarea', 'writer'], true)) {
-                $obj[$key] = $this->translateText($value, $this->targetLanguage, $this->sourceLanguage);
+                $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
 
             // Handle structure fields
-            elseif ($fields[$key]['type'] === 'structure' && is_array($value)) {
-                foreach ($value as &$item) {
-                    $this->handleTranslation($item, $fields[$key]['fields']);
+            elseif ($fields[$key]['type'] === 'structure' && is_array($obj[$key])) {
+                foreach ($obj[$key] as &$item) {
+                    $this->handleTranslation($item, $fields[$key]['fields'], true);
                 }
             }
 
             // Handle object fields
-            elseif ($fields[$key]['type'] === 'object' && A::isAssociative($value)) {
-                $this->handleTranslation($value, $fields[$key]['fields']);
+            elseif ($fields[$key]['type'] === 'object' && A::isAssociative($obj[$key])) {
+                $this->handleTranslation($obj[$key], $fields[$key]['fields'], true);
             }
 
             // Handle layout fields
-            elseif ($fields[$key]['type'] === 'layout' && is_array($value)) {
-                foreach ($value as &$layout) {
+            elseif ($fields[$key]['type'] === 'layout' && is_array($obj[$key])) {
+                foreach ($obj[$key] as &$layout) {
                     foreach ($layout['columns'] as &$column) {
                         foreach ($column['blocks'] as &$block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                                 $blockFields = $this->reduceFieldsFromTabs($fields[$key]['fieldsets'], $block);
-                                $this->handleTranslation($block['content'], $blockFields);
+                                $this->handleTranslation($block['content'], $blockFields, true);
                             }
                         }
                     }
@@ -192,18 +198,25 @@ final class Translator
             }
 
             // Handle block fields
-            elseif ($fields[$key]['type'] === 'blocks' && is_array($value)) {
-                foreach ($value as &$block) {
+            elseif ($fields[$key]['type'] === 'blocks' && is_array($obj[$key])) {
+                foreach ($obj[$key] as &$block) {
                     if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                         $blockFields = $this->reduceFieldsFromTabs($fields[$key]['fieldsets'], $block);
-                        $this->handleTranslation($block['content'], $blockFields);
+                        $this->handleTranslation($block['content'], $blockFields, true);
                     }
                 }
             }
 
-            // Encode blocks as JSON
+            // Encode fields back to JSON
             if ($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') {
-                $obj[$key] = Json::encode($obj[$key]);
+                $obj[$key] = Data::encode($obj[$key], 'json');
+            }
+
+            if (!$isRecursive) {
+                // Encode fields back to YAML
+                if ($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object') {
+                    $obj[$key] = Data::encode($obj[$key], 'yaml');
+                }
             }
         }
 
