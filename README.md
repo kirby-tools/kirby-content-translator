@@ -24,9 +24,9 @@ To get started, please refer to the [documentation](https://kirby.tools/docs/con
 
 We are committed to support you if you have any questions or issues with Kirby Content Translator. There are several ways to get support:
 
-- **GitHub Discussions**: Join the community and engage in discussions on our [GitHub Discussions page](https://github.com/kirby.tools/kirby-content-translator/discussions).
+- **GitHub Discussions**: Join the community and engage in discussions on our [GitHub Discussions page](https://github.com/kirby-tools/kirby-content-translator/discussions).
 - **Email Support**: You can ask questions and seek assistance by emailing us at [hello@kirby.tools](mailto:hello@kirby.tools). Please use the GitHub discussions if you have a general question or comment about Kirby Content Translator.
-- **GitHub Issues**: For reporting bugs or requesting new features, please use the [GitHub Issues page](https://github.com/kirby.tools/kirby-content-translator/issues).
+- **GitHub Issues**: For reporting bugs or requesting new features, please use the [GitHub Issues page](https://github.com/kirby-tools/kirby-content-translator/issues).
 
 We encourage you to use the resources above to connect with us and other users of Kirby Content Translator.
 
@@ -40,7 +40,7 @@ For the sake of reproducible bug reports, please include the following informati
 
 ## Feedback
 
-We value your feedback and ideas for improving Kirby Content Translator. If you have any suggestions, please feel free to reach out to us via email or preferably by creating a new discussion on our [GitHub Discussions page](https://github.com/kirby.tools/kirby-content-translator/discussions).
+We value your feedback and ideas for improving Kirby Content Translator. If you have any suggestions, please feel free to reach out to us via email or preferably by creating a new discussion on our [GitHub Discussions page](https://github.com/kirby-tools/kirby-content-translator/discussions).
 
 ## License
 
