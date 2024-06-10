@@ -5,4 +5,4 @@ fields:
     type: structure
     fields:
       text:
-        type: text
+        type: textarea

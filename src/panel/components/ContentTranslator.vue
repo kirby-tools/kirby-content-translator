@@ -87,7 +87,8 @@ const currentContent = computed(() => store.getters["content/values"]());
   panel.events.on("page.changeTitle", updateModelDefaultLanguageData);
   updateModelDefaultLanguageData();
 
-  if (isOnline) {
+  // eslint-disable-next-line no-undef
+  if (!__PLAYGROUND__ && isOnline) {
     hasValidLicense.value = await validateLicense(config.value.licenseKey);
   }
 })();
@@ -348,7 +349,7 @@ function openModal(text, callback) {
 
     <k-box
       v-show="hasValidLicense === false"
-      class="k-box-license kct-mt-1"
+      class="k-box-license kct-mt-3"
       :theme="isLocalhost ? 'empty' : 'love'"
       :icon="!isLocalhost ? 'key' : undefined"
     >
@@ -356,9 +357,9 @@ function openModal(text, callback) {
         <p
           v-html="
             panel.t(
-              isLocalhost
-                ? 'johannschopplich.content-translator.license.localhost'
-                : 'johannschopplich.content-translator.license.invalid',
+              `johannschopplich.content-translator.license.${
+                isLocalhost ? 'localhost' : 'invalid'
+              }`,
             )
           "
         />
