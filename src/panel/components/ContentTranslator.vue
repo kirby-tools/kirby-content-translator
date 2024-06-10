@@ -117,10 +117,10 @@ async function syncModelContent(language) {
     Object.entries(content).filter(
       ([key]) =>
         fieldTypes.value.includes(fields.value[key]?.type) &&
-        (includeFields.value !== undefined
+        (includeFields.value?.length
           ? includeFields.value.includes(key)
           : true) &&
-        (excludeFields.value !== undefined
+        (excludeFields.value?.length
           ? !excludeFields.value.includes(key)
           : true),
     ),
