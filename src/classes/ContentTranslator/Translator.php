@@ -161,7 +161,6 @@ final class Translator
             }
 
             // Parse YAML-encoded fields
-            // Note: Nested fields are not YAML-encoded, that's why we need to check if the field is a string
             elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object') && is_string($obj[$key])) {
                 $obj[$key] = Data::decode($obj[$key], 'yaml');
             }

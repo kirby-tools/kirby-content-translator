@@ -15,12 +15,17 @@ columns:
         fields:
           text:
             type: textarea
+          structure02:
+            type: structure
+            fields:
+              text:
+                type: textarea
       object01:
         type: object
         fields:
           text:
             type: textarea
-          structure02:
+          structure03:
             type: structure
             fields:
               text:
