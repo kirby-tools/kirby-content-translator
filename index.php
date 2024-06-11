@@ -44,3 +44,10 @@ if (!function_exists('translator')) {
         return new \JohannSchopplich\ContentTranslator\Translator($model, $options);
     }
 }
+
+if (!function_exists('translate')) {
+    function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    {
+        return \JohannSchopplich\ContentTranslator\Translator::translateText($text, $targetLanguage, $sourceLanguage);
+    }
+}

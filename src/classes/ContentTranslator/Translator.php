@@ -52,6 +52,10 @@ final class Translator
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
+        if (empty($text)) {
+            return '';
+        }
+
         $kirby = App::instance();
         $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
 
