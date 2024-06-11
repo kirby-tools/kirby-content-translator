@@ -34,6 +34,7 @@ const isOnline = navigator.onLine;
 // Section props
 const label = ref();
 const confirm = ref(true);
+const importable = ref(true);
 const fieldTypes = ref([]);
 const includeFields = ref([]);
 const excludeFields = ref([]);
@@ -61,7 +62,8 @@ const currentContent = computed(() => store.getters["content/values"]());
   });
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
-  confirm.value = response.confirm ?? response.config.confirm ?? true;
+  confirm.value = response.confirm ?? response.config.confirm;
+  importable.value = response.import ?? response.config.import;
   fieldTypes.value = response.fieldTypes ??
     response.config.fieldTypes ?? [
       "blocks",
@@ -77,8 +79,8 @@ const currentContent = computed(() => store.getters["content/values"]());
     response.includeFields ?? response.config.includeFields ?? undefined;
   excludeFields.value =
     response.excludeFields ?? response.config.excludeFields ?? undefined;
-  translateTitle.value = response.title ?? response.config.title ?? false;
-  translateSlug.value = response.slug ?? response.config.slug ?? false;
+  translateTitle.value = response.title ?? response.config.title;
+  translateSlug.value = response.slug ?? response.config.slug;
   fields.value = response.fields ?? {};
   config.value = response.config ?? {};
 
@@ -89,7 +91,7 @@ const currentContent = computed(() => store.getters["content/values"]());
 
   // eslint-disable-next-line no-undef
   if (!__PLAYGROUND__ && isOnline) {
-    hasValidLicense.value = await validateLicense(config.value.licenseKey);
+    hasValidLicense.value = await validateLicense(config.value.license);
   }
 })();
 
@@ -248,6 +250,7 @@ function openModal(text, callback) {
           v-for="language in panel.languages.filter(
             (language) => language.code !== panel.language.code,
           )"
+          v-show="importable"
           :key="language.code"
           icon="import"
           size="sm"
@@ -293,6 +296,7 @@ function openModal(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
+            v-show="importable"
             :disabled="panel.language.default"
             icon="import"
             size="sm"

@@ -7,7 +7,8 @@ return [
     'content-translator' => [
         'props' => [
             'label' => fn ($label = null) => I18n::translate($label, $label),
-            'confirm' => fn ($confirm = true) => $confirm,
+            'confirm' => fn ($confirm = true) => $confirm === true,
+            'import' => fn ($import = true) => $import === true,
             'fieldTypes' => function ($fieldTypes = null) {
                 if (is_array($fieldTypes)) {
                     return array_map('strtolower', $fieldTypes);
@@ -29,8 +30,8 @@ return [
 
                 return $excludeFields;
             },
-            'title' => fn ($title = false) => $title,
-            'slug' => fn ($slug = false) => $slug
+            'title' => fn ($title = false) => $title === true,
+            'slug' => fn ($slug = false) => $slug === true
         ],
         'computed' => [
             'fields' => function () {
