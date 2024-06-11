@@ -34,7 +34,8 @@ const isOnline = navigator.onLine;
 // Section props
 const label = ref();
 const confirm = ref(true);
-const importable = ref(true);
+const allowImport = ref(true);
+const importFrom = ref();
 const fieldTypes = ref([]);
 const includeFields = ref([]);
 const excludeFields = ref([]);
@@ -63,7 +64,8 @@ const currentContent = computed(() => store.getters["content/values"]());
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
   confirm.value = response.confirm ?? response.config.confirm;
-  importable.value = response.import ?? response.config.import;
+  allowImport.value = response.import ?? response.config.import;
+  importFrom.value = response.importFrom ?? response.config.importFrom;
   fieldTypes.value = response.fieldTypes ??
     response.config.fieldTypes ?? [
       "blocks",
@@ -244,13 +246,13 @@ function openModal(text, callback) {
         configuration.
       </k-text>
     </k-box>
-    <k-box v-else-if="config.allowDefaultLanguageOverwrite" theme="none">
+    <k-box v-else-if="importFrom === 'all'" theme="none">
       <k-button-group layout="collapsed">
         <k-button
           v-for="language in panel.languages.filter(
             (language) => language.code !== panel.language.code,
           )"
-          v-show="importable"
+          v-show="allowImport"
           :key="language.code"
           icon="import"
           size="sm"
@@ -296,7 +298,7 @@ function openModal(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-show="importable"
+            v-show="allowImport"
             :disabled="panel.language.default"
             icon="import"
             size="sm"

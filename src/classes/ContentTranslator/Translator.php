@@ -6,6 +6,7 @@ namespace JohannSchopplich\ContentTranslator;
 
 use Kirby\Cms\App;
 use Kirby\Cms\File;
+use Kirby\Cms\ModelWithContent;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
 use Kirby\Data\Data;
@@ -62,7 +63,7 @@ final class Translator
         return $deepL->translate($text, $targetLanguage, $sourceLanguage);
     }
 
-    public static function resolveModelFields(Site|Page $model): array
+    public static function resolveModelFields(ModelWithContent $model): array
     {
         $fields = $model->blueprint()->fields();
         $lang = $model->kirby()->languageCode();
