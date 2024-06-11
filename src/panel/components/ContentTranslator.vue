@@ -78,9 +78,9 @@ const currentContent = computed(() => store.getters["content/values"]());
       "writer",
     ];
   includeFields.value =
-    response.includeFields ?? response.config.includeFields ?? undefined;
+    response.includeFields ?? response.config.includeFields ?? [];
   excludeFields.value =
-    response.excludeFields ?? response.config.excludeFields ?? undefined;
+    response.excludeFields ?? response.config.excludeFields ?? [];
   translateTitle.value = response.title ?? response.config.title;
   translateSlug.value = response.slug ?? response.config.slug;
   fields.value = response.fields ?? {};
@@ -93,7 +93,7 @@ const currentContent = computed(() => store.getters["content/values"]());
 
   // eslint-disable-next-line no-undef
   if (!__PLAYGROUND__ && isOnline) {
-    hasValidLicense.value = await validateLicense(config.value.license);
+    hasValidLicense.value = await validateLicense(config.value.licenseKey);
   }
 })();
 
@@ -122,10 +122,10 @@ async function syncModelContent(language) {
     Object.entries(content).filter(
       ([key]) =>
         fieldTypes.value.includes(fields.value[key]?.type) &&
-        (includeFields.value?.length
+        (includeFields.value.length
           ? includeFields.value.includes(key)
           : true) &&
-        (excludeFields.value?.length
+        (excludeFields.value.length
           ? !excludeFields.value.includes(key)
           : true),
     ),
@@ -246,7 +246,7 @@ function openModal(text, callback) {
         configuration.
       </k-text>
     </k-box>
-    <k-box v-else-if="importFrom === 'all'" theme="none">
+    <k-box v-else-if="allowImport && importFrom === 'all'" theme="none">
       <k-button-group layout="collapsed">
         <k-button
           v-for="language in panel.languages.filter(
