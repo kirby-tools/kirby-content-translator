@@ -244,30 +244,34 @@ function openModal(text, callback) {
     </k-box>
     <k-box v-else-if="allowImport && importFrom === 'all'" theme="none">
       <k-button-group layout="collapsed">
-        <k-button
-          v-for="language in panel.languages.filter(
-            (language) => language.code !== panel.language.code,
-          )"
-          v-show="allowImport"
-          :key="language.code"
-          icon="import"
-          size="sm"
-          variant="filled"
-          @click="
-            openModal(
-              panel.t('johannschopplich.content-translator.dialog.importFrom', {
-                language: language.name,
-              }),
-              () => syncModelContent(language),
-            )
-          "
-        >
-          {{
-            panel.t("johannschopplich.content-translator.importFrom", {
-              language: language.code.toUpperCase(),
-            })
-          }}
-        </k-button>
+        <template v-if="allowImport">
+          <k-button
+            v-for="language in panel.languages.filter(
+              (language) => language.code !== panel.language.code,
+            )"
+            :key="language.code"
+            icon="import"
+            size="sm"
+            variant="filled"
+            @click="
+              openModal(
+                panel.t(
+                  'johannschopplich.content-translator.dialog.importFrom',
+                  {
+                    language: language.name,
+                  },
+                ),
+                () => syncModelContent(language),
+              )
+            "
+          >
+            {{
+              panel.t("johannschopplich.content-translator.importFrom", {
+                language: language.code.toUpperCase(),
+              })
+            }}
+          </k-button>
+        </template>
         <k-button
           icon="translate"
           size="sm"
@@ -294,7 +298,7 @@ function openModal(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-show="allowImport"
+            v-if="allowImport"
             :disabled="panel.language.default"
             icon="import"
             size="sm"
