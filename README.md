@@ -4,17 +4,17 @@
 
 Why spend hours manually translating content field by field when you can automate the process with Kirby Content Translator? This plugin allows you to translate the entire content of any page with a single click. It supports all fields, including nested structures, objects, blocks, and more. You can also automatically import content from the primary language into secondary languages. Kirby Content Translator is the ultimate tool for translating content in Kirby CMS.
 
-With a single click in the Kirby panel, an editor can save time translating a page into another language by
+With a single click in the Kirby panel, an editor can save time translating a page into another language by:
 
-1. First, importing content from the primary language to the currently active language (optional).
-2. Then, translating the content of the page into the currently active language.
+1. Copying content from the primary language to the currently active language.
+2. Then, recursively translating the imported content (which is still in the primary language) into the currently active language.
 
-This plugin is the evolution of the now deprecated [Kirby Content Translator v1](https://github.com/johannschopplich/kirby-content-translator) plugin. While you can still use the first version of the plugin, it will no longer receive updates or support. We recommend upgrading to the new Kirby Content Translator (Pro) plugin to benefit from the latest features and improvements.
+This plugin is the evolution of the now deprecated [Kirby Content Translator v1](https://github.com/johannschopplich/kirby-content-translator) plugin. While you can still use the first version of the plugin, it will no longer receive updates or support. We recommend upgrading to the new Kirby Content Translator (Pro) plugin to benefit from the latest features and improvements, such as better support for nested fields and the PHP API.
 
 ## Features
 
 - 🥟 One-click translation of content in the Panel
-- ↩️ One-click content import from primary language to secondary languages
+- ↩️ One-click content duplication from primary language to secondary languages
 - 🤿 Recursive translation of nested structures, objects, blocks, etc.
 - 👩‍🔧 Programmatic API for developers – integrate content translation in CLI commands and all your custom workflows
 - 🌾 Supports `blocks`, `layout`, `list`, `object`, `structure`, `text`, `textarea`, `writer` fields
