@@ -18,6 +18,7 @@ return [
         'johannschopplich.content-translator.license.localhost.activate' => 'Or activate now.',
         'johannschopplich.content-translator.license.buy' => '<a href="https://kirby.tools/content-translator" target="_blank">Buy a license</a>',
         'johannschopplich.content-translator.license.activate' => 'Activate',
+        'johannschopplich.content-translator.license.activated' => 'Plugin activated'
     ],
     'de' => [
         'johannschopplich.content-translator.label' => 'Content-Übersetzer',
@@ -35,7 +36,8 @@ return [
         'johannschopplich.content-translator.license.localhost.buy' => 'Teste das Plugin lokal und <a href="https://kirby.tools/content-translator" target="_blank">kaufe eine Lizenz</a>, wenn du das Projekt veröffentlichst.',
         'johannschopplich.content-translator.license.localhost.activate' => 'Oder aktiviere jetzt.',
         'johannschopplich.content-translator.license.buy' => '<a href="https://kirby.tools/content-translator" target="_blank">Lizenz kaufen</a>',
-        'johannschopplich.content-translator.license.activate' => 'Aktivieren'
+        'johannschopplich.content-translator.license.activate' => 'Aktivieren',
+        'johannschopplich.content-translator.license.activated' => 'Plugin aktiviert'
     ],
     'fr' => [
         'johannschopplich.content-translator.label' => 'Traducteur de contenu',
@@ -53,6 +55,7 @@ return [
         'johannschopplich.content-translator.license.localhost.buy' => 'Testez le plugin localement et <a href="https://kirby.tools/content-translator" target="_blank">achetez une licence</a> lorsque vous publiez le projet.',
         'johannschopplich.content-translator.license.localhost.activate' => 'Ou activez maintenant.',
         'johannschopplich.content-translator.license.buy' => '<a href="https://kirby.tools/content-translator" target="_blank">Acheter une licence</a>',
-        'johannschopplich.content-translator.license.activate' => 'Activer'
+        'johannschopplich.content-translator.license.activate' => 'Activer',
+        'johannschopplich.content-translator.license.activated' => 'Plugin activé'
     ]
 ];

@@ -65,7 +65,10 @@ export function useLicense() {
           }
 
           panel.dialog.close();
-          panel.view.reload();
+          await panel.view.reload();
+          panel.notification.success(
+            panel.t("johannschopplich.content-translator.license.activated"),
+          );
         },
       },
     });
