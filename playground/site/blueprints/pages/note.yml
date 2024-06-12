@@ -1,0 +1,15 @@
+title: Note
+
+columns:
+  - width: 2/3
+    fields:
+      text:
+        type: blocks
+
+  - width: 1/3
+    sections:
+      contentTranslator:
+        type: content-translator
+        label: Content Translator
+        title: true
+        # slug: true

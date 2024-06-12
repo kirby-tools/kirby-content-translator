@@ -2,11 +2,7 @@ Title: Notes
 
 ----
 
-Blocks01: 
-
-----
-
-Object01: 
+Text: 
 
 ----
 

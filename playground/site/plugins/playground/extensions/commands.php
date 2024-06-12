@@ -23,7 +23,7 @@ return [
 
             $siteChildren = $kirby->site()->children();
             $input = $cli->radio(
-                'Which page should be copied?',
+                'Which page content should be duplicated?',
                 $siteChildren->pluck('title')
             );
             $response = $input->prompt();
@@ -56,7 +56,7 @@ return [
 
             $siteChildren = $kirby->site()->children();
             $input = $cli->radio(
-                'Which page should be copied and translated?',
+                'Which page should be translated?',
                 $siteChildren->pluck('title')
             );
             $response = $input->prompt();
@@ -69,6 +69,44 @@ return [
             $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
 
             $cli->success('Successfully translated ' . $page->id());
+        }
+    ],
+    'playground:translateChildren' => [
+        'description' => 'Translates the content of all children of a specific page.',
+        'args' => [
+            'language' => [
+                'description' => 'The target language to translate the content to.',
+                'defaultValue' => 'de'
+            ]
+        ],
+        'command' => static function (CLI $cli): void {
+            $kirby = $cli->kirby();
+            $defaultLanguage = $kirby->defaultLanguage()->code();
+            $targetLanguage = $cli->arg('language');
+
+            if (!$kirby->multilang()) {
+                $cli->error('Multi-language support is required');
+                return;
+            }
+
+            $siteChildren = $kirby->site()->children();
+            $input = $cli->radio(
+                'Which page should be copied and translated?',
+                $siteChildren->pluck('title')
+            );
+            $response = $input->prompt();
+            $cli->success('Selected parent page: ' . $response);
+
+            $page = $siteChildren->findBy('title', $response);
+
+            foreach ($page->children() as $child) {
+                $translator = $child->translator();
+                $translator->copyContent($targetLanguage, $defaultLanguage);
+                $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
+                $cli->success('Successfully translated ' . $child->id());
+            }
+
+            $cli->success('Successfully translated all ' . $page->id() . ' children');
         }
     ]
 ];
