@@ -28,27 +28,26 @@ const props = defineProps(propsDefinition);
 const panel = usePanel();
 const store = useStore();
 const { translateContent } = useTranslation();
-const { isLocalhost, validateLicense } = useLicense();
-const isOnline = navigator.onLine;
+const { isLocalhost, openLicenseModal } = useLicense();
 
 // Section props
 const label = ref();
-const confirm = ref(true);
 const allowImport = ref(true);
 const importFrom = ref();
+const translateTitle = ref(false);
+const translateSlug = ref(false);
+const confirm = ref(true);
 const fieldTypes = ref([]);
 const includeFields = ref([]);
 const excludeFields = ref([]);
-const translateTitle = ref(false);
-const translateSlug = ref(false);
 
 // Section computed
 const fields = ref();
 const config = ref();
+const license = ref();
 
 // Generic data
 const defaultLanguageData = ref({});
-const hasValidLicense = ref();
 
 // Static data
 const defaultLanguage = panel.languages.find((language) => language.default);
@@ -63,9 +62,11 @@ const currentContent = computed(() => store.getters["content/values"]());
   });
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
-  confirm.value = response.confirm ?? response.config.confirm;
   allowImport.value = response.import ?? response.config.import;
   importFrom.value = response.importFrom ?? response.config.importFrom;
+  translateTitle.value = response.title ?? response.config.title;
+  translateSlug.value = response.slug ?? response.config.slug;
+  confirm.value = response.confirm ?? response.config.confirm;
   fieldTypes.value = response.fieldTypes ??
     response.config.fieldTypes ?? [
       "blocks",
@@ -81,20 +82,14 @@ const currentContent = computed(() => store.getters["content/values"]());
     response.includeFields ?? response.config.includeFields ?? [];
   excludeFields.value =
     response.excludeFields ?? response.config.excludeFields ?? [];
-  translateTitle.value = response.title ?? response.config.title;
-  translateSlug.value = response.slug ?? response.config.slug;
   fields.value = response.fields ?? {};
   config.value = response.config ?? {};
+  license.value = response.license;
 
   // Re-fetch default content whenever the page gets saved
   panel.events.on("model.update", updateModelDefaultLanguageData);
   panel.events.on("page.changeTitle", updateModelDefaultLanguageData);
   updateModelDefaultLanguageData();
-
-  // eslint-disable-next-line no-undef
-  if (!__PLAYGROUND__ && isOnline) {
-    hasValidLicense.value = await validateLicense(config.value.licenseKey);
-  }
 })();
 
 onBeforeUnmount(() => {
@@ -354,28 +349,47 @@ function openModal(text, callback) {
     </template>
 
     <k-box
-      v-show="hasValidLicense === false"
+      v-show="license === false"
       class="k-box-license kct-mt-3"
       :theme="isLocalhost ? 'empty' : 'love'"
       :icon="!isLocalhost ? 'key' : undefined"
+      :style="{
+        '--link-color': 'var(--color-text)',
+      }"
     >
       <k-text>
-        <p
-          v-html="
-            panel.t(
-              `johannschopplich.content-translator.license.${
-                isLocalhost ? 'localhost' : 'invalid'
-              }`,
-            )
-          "
-        />
+        <p v-if="isLocalhost">
+          <span
+            v-html="
+              panel.t(
+                'johannschopplich.content-translator.license.localhost.buy',
+              )
+            "
+          />
+          (<span
+            class="k-link kct-cursor-pointer"
+            @click="openLicenseModal"
+            v-html="
+              panel.t(
+                'johannschopplich.content-translator.license.localhost.activate',
+              )
+            "
+          />)
+        </p>
+        <p v-else>
+          <span
+            v-html="panel.t('johannschopplich.content-translator.license.buy')"
+          />
+          &
+          <span
+            class="k-link kct-cursor-pointer"
+            @click="openLicenseModal"
+            v-html="
+              panel.t('johannschopplich.content-translator.license.activate')
+            "
+          />
+        </p>
       </k-text>
     </k-box>
   </k-section>
 </template>
-
-<style scoped>
-.k-box-license .k-text {
-  --link-color: var(--color-text);
-}
-</style>

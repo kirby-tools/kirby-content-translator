@@ -8,8 +8,9 @@ use Kirby\Cms\Site;
 use Kirby\Filesystem\F;
 
 F::loadClasses([
+    'JohannSchopplich\\ContentTranslator\\DeepL' => 'src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\Translator' => 'src/classes/ContentTranslator/Translator.php',
-    'JohannSchopplich\\ContentTranslator\\DeepL' => 'src/classes/ContentTranslator/DeepL.php'
+    'JohannSchopplich\\ContentTranslator\\Licenses' => 'src/classes/ContentTranslator/Licenses.php'
 ], __DIR__);
 
 // Validate Kirby version

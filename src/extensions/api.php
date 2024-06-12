@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\Licenses;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;
@@ -22,6 +23,26 @@ return [
                 $text = Translator::translateText($text, $targetLanguage, $sourceLanguage);
 
                 return compact('text');
+            }
+        ],
+        [
+            'pattern' => '__content-translator__/register',
+            'method' => 'POST',
+            'action' => function () use ($kirby) {
+                $request = $kirby->request();
+                $email = $request->get('email');
+                $orderId = $request->get('orderId');
+
+                if (!$email || !$orderId) {
+                    throw new BadMethodCallException('Missing license registration parameters "email" or "orderId"');
+                }
+
+                $licenses = Licenses::read();
+                $licenses->register($email, $orderId);
+
+                return [
+                    'ok' => true
+                ];
             }
         ]
     ]

@@ -89,7 +89,7 @@ final class Translator
         return $fields;
     }
 
-    public function synchronizeContent(string $toLanguageCode, string $fromLanguageCode): void
+    public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
     {
         $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
             $content = [];

@@ -63,7 +63,7 @@ final class DeepL
 
     public function instance(): DeepL
     {
-        return self::$instance ??= new self();
+        return static::$instance ??= new static();
     }
 
     public function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
@@ -71,7 +71,7 @@ final class DeepL
         if (!empty($sourceLanguage)) {
             $sourceLanguage = strtoupper($sourceLanguage);
 
-            if (!in_array($sourceLanguage, self::SUPPORTED_SOURCE_LANGUAGES, true)) {
+            if (!in_array($sourceLanguage, static::SUPPORTED_SOURCE_LANGUAGES, true)) {
                 $sourceLanguage = null;
             }
         }
@@ -101,6 +101,6 @@ final class DeepL
     private function resolveApiUrl(): string
     {
         $hasFreeAccount = str_ends_with($this->apiKey, ':fx');
-        return $hasFreeAccount ? self::API_URL_FREE : self::API_URL_PRO;
+        return $hasFreeAccount ? static::API_URL_FREE : static::API_URL_PRO;
     }
 }

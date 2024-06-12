@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\Licenses;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Toolkit\I18n;
 
@@ -45,7 +46,7 @@ return [
                 return Translator::resolveModelFields($this->model);
             },
             'config' => function () {
-                /** @var \Kirby\Cms\App $kirby */
+                /** @var \Kirby\Cms\App */
                 $kirby = $this->kirby();
                 $config = $kirby->option('johannschopplich.content-translator', []);
 
@@ -59,7 +60,11 @@ return [
                 $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
 
                 return $config;
-            }
+            },
+            'license' => function () {
+                $licenses = Licenses::read();
+                return $licenses->isRegistered(Licenses::PACKAGE_NAME);
+            },
         ]
     ]
 ];

@@ -1,65 +1,85 @@
-import { destr } from "destr";
-import { ofetch } from "ofetch";
-import { STORAGE_KEY_PREFIX } from "../constants";
+import { useApi, usePanel } from "kirbyuse";
 
-const LICENSE_STORAGE_KEY = `${STORAGE_KEY_PREFIX}license`;
-const LICENSE_EXPIRY_DURATION = 1000 * 60 * 60 * 24 * 30; // 30 days
-const $repo = ofetch.create({
-  baseURL: "https://repo.kirby.tools/api",
-});
+const REGISTER_API_PATH = "__content-translator__/register";
 
 export function useLicense() {
+  const panel = usePanel();
+  const api = useApi();
   const isLocalhost = _isLocalhost();
 
-  const validateLicense = async (licenseKey) => {
-    if (!licenseKey) return false;
-
-    const storedLicense = destr(localStorage.getItem(LICENSE_STORAGE_KEY));
-
-    // Periodically check if the license is valid
-    if (storedLicense) {
-      const { licenseKey: storedKey, expiresAt } = storedLicense;
-
-      if (storedKey === licenseKey && expiresAt > Date.now() && !isLocalhost) {
-        return true;
-      } else {
-        localStorage.removeItem(LICENSE_STORAGE_KEY);
-      }
+  const register = async (email, orderId) => {
+    if (!email || !orderId) {
+      throw new Error("Email and order ID are required");
     }
 
-    try {
-      const license = await $repo("licenses/validate", {
-        query: { key: licenseKey },
-      });
-
-      localStorage.setItem(
-        LICENSE_STORAGE_KEY,
-        JSON.stringify({
-          ...license,
-          order: undefined,
-          expiresAt: Date.now() + LICENSE_EXPIRY_DURATION,
-        }),
-      );
-
-      return true;
-    } catch (error) {
-      console.error(error);
-      return false;
+    const response = await api.post(REGISTER_API_PATH, { email, orderId });
+    if (!response?.ok) {
+      throw new Error("Registration failed");
     }
+
+    return true;
+  };
+
+  const openLicenseModal = () => {
+    panel.dialog.open({
+      component: "k-form-dialog",
+      props: {
+        submitButton: {
+          icon: "check",
+          theme: "love",
+          text: panel.t("johannschopplich.content-translator.license.activate"),
+        },
+        fields: {
+          info: {
+            type: "info",
+            text: panel.t(
+              "johannschopplich.content-translator.license.modal.info",
+            ),
+          },
+          email: {
+            label: panel.t("email"),
+            type: "email",
+          },
+          orderId: {
+            label: "Order ID",
+            type: "text",
+            help: panel.t(
+              "johannschopplich.content-translator.license.modal.help.orderId",
+            ),
+          },
+        },
+      },
+      on: {
+        submit: async (event) => {
+          const { email, orderId } = event;
+          if (!email || !orderId) {
+            panel.notification.error("Email and order ID are required");
+            return;
+          }
+
+          try {
+            await register(email, Number(orderId));
+          } catch (error) {
+            panel.notification.error(error.message);
+            return;
+          }
+
+          panel.dialog.close();
+          panel.view.reload();
+        },
+      },
+    });
   };
 
   return {
     isLocalhost,
-    validateLicense,
+    openLicenseModal,
   };
 }
 
 function _isLocalhost() {
   const { hostname } = window.location;
-
-  // Check for localhost and 127.0.0.1 (IPv4) or ::1 (IPv6)
-  const isLocalhost =
-    hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+  const isLocalhost = ["localhost", "127.0.0.1", "::1"].includes(hostname);
   const isTestDomain = hostname.endsWith(".test");
 
   return isLocalhost || isTestDomain;

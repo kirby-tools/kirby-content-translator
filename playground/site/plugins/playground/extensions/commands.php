@@ -1,14 +1,13 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\CLI\CLI;
 
 return [
-    'playground:synchronize' => [
-        'description' => 'Synchronizes the content from the default language to a secondary language.',
+    'playground:copy' => [
+        'description' => 'Copies the content from the default language to a secondary language.',
         'args' => [
             'language' => [
-                'description' => 'The target language to synchronize the content to.',
+                'description' => 'The target language to copy the content to.',
                 'defaultValue' => 'de'
             ]
         ],
@@ -24,31 +23,21 @@ return [
 
             $siteChildren = $kirby->site()->children();
             $input = $cli->radio(
-                'Which pages should be synchronized?',
+                'Which page should be copied?',
                 $siteChildren->pluck('title')
             );
             $response = $input->prompt();
-            $cli->success('Selected parent page: ' . $response);
+            $cli->success('Selected page: ' . $response);
 
             $page = $siteChildren->findBy('title', $response);
+            $translator = $page->translator();
+            $translator->copyContent($targetLanguage, $defaultLanguage);
 
-            // foreach ($page->children()->listed() as $item) {
-            //     $translator = new Translator($item);
-            //     $cli->out('Synchronizing ' . $item->id() . '...');
-
-            //     $translator->synchronizeContent($targetLanguage, $defaultLanguage);
-            // }
-
-            $translator = new Translator($page);
-            $cli->out('Synchronizing ' . $page->id() . '...');
-
-            $translator->synchronizeContent($targetLanguage, $defaultLanguage);
-
-            $cli->success('Page ' . $page->id() . ' successfully synchronized');
+            $cli->success('Successfully copied ' . $page->id());
         }
     ],
     'playground:translate' => [
-        'description' => 'Synchronizes and translates the content from the default language to a secondary language.',
+        'description' => 'Translates the content of a specific page.',
         'args' => [
             'language' => [
                 'description' => 'The target language to translate the content to.',
@@ -67,29 +56,19 @@ return [
 
             $siteChildren = $kirby->site()->children();
             $input = $cli->radio(
-                'Which pages should be synchronized and translated?',
+                'Which page should be copied and translated?',
                 $siteChildren->pluck('title')
             );
             $response = $input->prompt();
-            $cli->success('Selected parent page: ' . $response);
+            $cli->success('Selected page: ' . $response);
 
             $page = $siteChildren->findBy('title', $response);
+            $translator = $page->translator();
 
-            // foreach ($page->children()->listed() as $item) {
-            //     $translator = new Translator($item);
-            //     $cli->out('Translating ' . $item->id() . '...');
-
-            //     $translator->synchronizeContent($targetLanguage, $defaultLanguage);
-            //     $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
-            // }
-
-            $translator = new Translator($page);
-            $cli->out('Translating ' . $page->id() . '...');
-
-            $translator->synchronizeContent($targetLanguage, $defaultLanguage);
+            $translator->copyContent($targetLanguage, $defaultLanguage);
             $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
 
-            $cli->success('Page ' . $page->id() . ' successfully translated');
+            $cli->success('Successfully translated ' . $page->id());
         }
     ]
 ];

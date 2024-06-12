@@ -90,12 +90,12 @@ final class ContentTranslatorTest extends TestCase
         $this->assertSame(md5('de' . 'hello'), $translatedText);
     }
 
-    public function testSynchronizeContent(): void
+    public function testCopyContent(): void
     {
         $page = $this->app('de')->page('home')->clone();
 
         $translator = new Translator($page);
-        $translator->synchronizeContent('de', 'en');
+        $translator->copyContent('de', 'en');
         $page = $translator->model();
 
         $this->assertSame('Untranslated', $page->content('de')->get('untranslated')->value());
