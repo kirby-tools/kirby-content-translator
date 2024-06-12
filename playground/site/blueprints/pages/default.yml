@@ -3,14 +3,6 @@ title: Page
 columns:
   - width: 2/3
     fields:
-      blocks01:
-        label: Blocks Field
-        type: blocks
-        fieldsets:
-          - heading
-          - text
-          - quote
-          - structure
       object01:
         type: object
         label: Object Field
@@ -23,6 +15,14 @@ columns:
             fields:
               text:
                 type: textarea
+      blocks01:
+        label: Blocks Field
+        type: blocks
+        fieldsets:
+          - heading
+          - text
+          - quote
+          - structure
   - width: 1/3
     sections:
       contentTranslator:

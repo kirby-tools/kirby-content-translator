@@ -3,7 +3,7 @@
 use Kirby\CLI\CLI;
 
 return [
-    'playground:copy' => [
+    'copy:page' => [
         'description' => 'Copies the content from the default language to a secondary language.',
         'args' => [
             'language' => [
@@ -36,7 +36,7 @@ return [
             $cli->success('Successfully copied ' . $page->id());
         }
     ],
-    'playground:translate' => [
+    'translate:page' => [
         'description' => 'Translates the content of a specific page.',
         'args' => [
             'language' => [
@@ -64,14 +64,13 @@ return [
 
             $page = $siteChildren->findBy('title', $response);
             $translator = $page->translator();
-
             $translator->copyContent($targetLanguage, $defaultLanguage);
             $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
 
             $cli->success('Successfully translated ' . $page->id());
         }
     ],
-    'playground:translateChildren' => [
+    'translate:children' => [
         'description' => 'Translates the content of all children of a specific page.',
         'args' => [
             'language' => [
@@ -91,7 +90,7 @@ return [
 
             $siteChildren = $kirby->site()->children();
             $input = $cli->radio(
-                'Which page should be copied and translated?',
+                'Which page\'s children should be translated?',
                 $siteChildren->pluck('title')
             );
             $response = $input->prompt();
@@ -99,11 +98,11 @@ return [
 
             $page = $siteChildren->findBy('title', $response);
 
-            foreach ($page->children() as $child) {
+            foreach ($page->children()->listed() as $child) {
                 $translator = $child->translator();
                 $translator->copyContent($targetLanguage, $defaultLanguage);
                 $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
-                $cli->success('Successfully translated ' . $child->id());
+                $cli->out('Translated ' . $child->id());
             }
 
             $cli->success('Successfully translated all ' . $page->id() . ' children');

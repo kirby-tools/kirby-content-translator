@@ -16,7 +16,7 @@ This plugin is the evolution of the now deprecated [Kirby Content Translator v1]
 - 🥟 One-click translation of content in the Panel
 - ↩️ One-click content duplication from primary language to secondary languages
 - 🤿 Recursive translation of nested structures, objects, blocks, etc.
-- 👩‍🔧 Programmatic API for developers – integrate content translation in CLI commands and all your custom workflows
+- 👩‍🔧 [Programmatic API for developers](https://kirby.tools/docs/content-translator/php-api) – integrate content translation in CLI commands and all your custom workflows
 - 🌾 Supports `blocks`, `layout`, `list`, `object`, `structure`, `text`, `textarea`, `writer` fields
 - 🧩 Use DeepL API or custom translation service
 
