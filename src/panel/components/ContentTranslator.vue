@@ -355,7 +355,7 @@ function openModal(text, callback) {
 
     <k-box
       v-show="license === false"
-      class="k-box-license kct-mt-3"
+      class="kct-mt-3"
       :theme="isLocalhost ? 'empty' : 'love'"
       :icon="!isLocalhost ? 'key' : undefined"
       :style="{
