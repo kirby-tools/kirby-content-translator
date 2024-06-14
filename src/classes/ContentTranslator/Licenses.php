@@ -8,6 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Kirby\Exception\LogicException;
 use Kirby\Http\Remote;
+use Kirby\Toolkit\Str;
 use Throwable;
 
 class Licenses
@@ -27,17 +28,25 @@ class Licenses
         try {
             $licenses = Json::read(App::instance()->root('config') . '/' . static::LICENSE_FILE);
         } catch (Throwable) {
-            return new static([]);
+            $licenses = [];
         }
 
-        return new static($licenses);
+        $instance = new static($licenses);
+
+        // Run migration for private Composer repository
+        // $instance->migration();
+
+        return $instance;
     }
 
     public function register(string $email, string|int $orderId): void
     {
         $response = $this->request('licenses', [
-            'email' => $email,
-            'orderId' => $orderId
+            'method' => 'POST',
+            'data' => [
+                'email' => $email,
+                'orderId' => $orderId
+            ]
         ]);
 
         ['packageName' => $packageName, 'licenseKey' => $key] = $response;
@@ -66,12 +75,41 @@ class Licenses
         return preg_match(static::LICENSE_PATTERN, $licenseKey) === 1;
     }
 
-    private function request(string $path, array $data): array
+    private function migration(): void
     {
-        $response = new Remote(static::API_URL . '/' . $path, [
-            'method' => 'POST',
-            'data' => $data
-        ]);
+        $authFile = App::instance()->root('config') . '/auth.json';
+
+        try {
+            $auth = Json::read($authFile);
+            $collection = $auth['bearer']['repo.kirby.tools'] ?? null;
+
+            if (empty($collection)) {
+                return;
+            }
+
+            $licenseKeys = array_values($this->licenses);
+
+            // Get package name for licenses and update them
+            foreach (Str::split($collection, ',') as $licenseKey) {
+                if (!$this->isValid($licenseKey)) {
+                    continue;
+                }
+
+                if (in_array($licenseKey, $licenseKeys)) {
+                    continue;
+                }
+
+                $response = $this->request('licenses/' . $licenseKey . '/package');
+                $this->update($response['packageName'], $licenseKey);
+            }
+        } catch (Throwable) {
+            // Ignore
+        }
+    }
+
+    private function request(string $path, array $options = []): array
+    {
+        $response = new Remote(static::API_URL . '/' . $path, $options);
 
         if ($response->code() !== 200) {
             $message = $response->json()['message'] ?? 'Request failed';
