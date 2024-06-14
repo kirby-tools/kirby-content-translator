@@ -4,7 +4,7 @@
 
 Why spend hours manually translating content field by field when you can automate the process with Kirby Content Translator? This plugin allows you to translate the entire content of any page with a single click. It supports all fields, including nested structures, objects, blocks, and more. You can also automatically import content from the primary language into secondary languages. Kirby Content Translator is the ultimate tool for translating content in Kirby CMS.
 
-With a single click in the Kirby panel, an editor can save time translating a page into another language by:
+With a single click in the Kirby Panel, an editor can save time translating a page into another language by:
 
 1. Copying content from the primary language to the currently active language.
 2. Then, recursively translating the imported content (which is still in the primary language) into the currently active language.
