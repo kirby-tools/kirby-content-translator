@@ -22,6 +22,7 @@ export function useTranslation() {
       for (const key in obj) {
         if (!obj[key]) continue;
         if (!fields[key]) continue;
+        if (!fields[key].translate) continue;
         if (!fieldTypes.includes(fields[key].type)) continue;
 
         // Include/exclude fields

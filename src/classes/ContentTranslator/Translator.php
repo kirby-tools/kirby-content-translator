@@ -148,6 +148,9 @@ final class Translator
             if (!isset($fields[$key])) {
                 continue;
             }
+            if (!$fields[$key]['translate']) {
+                continue;
+            }
             if (!in_array($fields[$key]['type'], $this->fieldTypes, true)) {
                 continue;
             }
