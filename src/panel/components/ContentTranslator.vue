@@ -9,9 +9,9 @@ import {
   useStore,
 } from "kirbyuse";
 import { section } from "kirbyuse/props";
+import { useLicense } from "@kirby-tools/licensing";
 import { TRANSLATION_API_ROUTE } from "../constants";
 import { useTranslation } from "../composables/translation";
-import { useLicense } from "../composables/license";
 
 const propsDefinition = {
   ...section,
@@ -28,7 +28,10 @@ const props = defineProps(propsDefinition);
 const panel = usePanel();
 const store = useStore();
 const { translateContent } = useTranslation();
-const { isLocalhost, openLicenseModal } = useLicense();
+const { isLocalhost, openLicenseModal } = useLicense({
+  label: "Kirby Content Translator",
+  apiNamespace: "__content-translator__",
+});
 
 // Section props
 const label = ref();
@@ -363,25 +366,13 @@ function openModal(text, callback) {
       }"
     >
       <k-text>
-        <p v-if="isLocalhost">
+        <p>
           <span
             v-html="
-              panel.t(
-                'johannschopplich.content-translator.license.localhost.buy',
-              )
+              panel.t('johannschopplich.content-translator.license.localhost')
             "
           />
-          (<span
-            class="k-link kct-cursor-pointer"
-            @click="openLicenseModal"
-            v-html="
-              panel.t(
-                'johannschopplich.content-translator.license.localhost.activate',
-              )
-            "
-          />)
-        </p>
-        <p v-else>
+          {{ " " }}
           <span
             v-html="panel.t('johannschopplich.content-translator.license.buy')"
           />

@@ -77,7 +77,7 @@ class Licenses
 
     private function migration(): void
     {
-        $authFile = App::instance()->root('config') . '/auth.json';
+        $authFile = App::instance()->root('base') . '/auth.json';
 
         try {
             $auth = Json::read($authFile);
@@ -91,11 +91,7 @@ class Licenses
 
             // Get package name for licenses and update them
             foreach (Str::split($collection, ',') as $licenseKey) {
-                if (!$this->isValid($licenseKey)) {
-                    continue;
-                }
-
-                if (in_array($licenseKey, $licenseKeys)) {
+                if (!$this->isValid($licenseKey) || in_array($licenseKey, $licenseKeys)) {
                     continue;
                 }
 

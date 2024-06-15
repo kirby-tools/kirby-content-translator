@@ -11,6 +11,9 @@ importers:
       '@antfu/eslint-config':
         specifier: ^2.20.0
         version: 2.20.0(@vue/compiler-sfc@2.7.16)(eslint@9.4.0)(typescript@5.4.5)
+      '@kirby-tools/licensing':
+        specifier: ^0.1.2
+        version: 0.1.2
       '@sindresorhus/slugify':
         specifier: ^2.2.1
         version: 2.2.1
@@ -467,6 +470,9 @@ packages:
   '@jsdevtools/ez-spawn@3.0.4':
     resolution: {integrity: sha512-f5DRIOZf7wxogefH03RjMPMdBF7ADTWUMoOs9kaJo06EfwF+aFhMZMDZxHg/Xe12hptN9xoZjGso2fdjapBRIA==}
     engines: {node: '>=10'}
+
+  '@kirby-tools/licensing@0.1.2':
+    resolution: {integrity: sha512-yLGsdeNtSP5S620RDacA3Ml5BW8nDLBvcGnI8OvJLw0QfbYv2QF3u8Xxv8iPlKl47k9ADMHbNppzfkx8GCk/CA==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2798,6 +2804,10 @@ snapshots:
       cross-spawn: 7.0.3
       string-argv: 0.3.2
       type-detect: 4.0.8
+
+  '@kirby-tools/licensing@0.1.2':
+    dependencies:
+      kirbyuse: 0.4.1
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
