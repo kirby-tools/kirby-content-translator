@@ -16,7 +16,7 @@ use Kirby\Toolkit\A;
 final class Translator
 {
     private App $kirby;
-    private Site|Page $model;
+    private Site|Page|File $model;
     private string|null $targetLanguage;
     private string|null $sourceLanguage;
     private array $fields;
