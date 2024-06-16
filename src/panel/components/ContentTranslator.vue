@@ -358,7 +358,7 @@ function openModal(text, callback) {
 
     <k-box
       v-show="license === false"
-      class="kct-mt-3"
+      class="kct-mt-3 kct-w-max"
       :theme="isLocalhost ? 'empty' : 'love'"
       :icon="!isLocalhost ? 'key' : undefined"
       :style="{
@@ -368,6 +368,7 @@ function openModal(text, callback) {
       <k-text>
         <p>
           <span
+            v-show="isLocalhost"
             v-html="
               panel.t('johannschopplich.content-translator.license.localhost')
             "
