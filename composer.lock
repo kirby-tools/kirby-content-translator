@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "592cf057cc504881c1cc974db07f279e",
+    "content-hash": "336c394678467a68c8c31bf4fa856b79",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -55,22 +55,22 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "072bd11117d713a2de85ce75313e936414ab9e18"
+                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/072bd11117d713a2de85ce75313e936414ab9e18",
-                "reference": "072bd11117d713a2de85ce75313e936414ab9e18",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/2fd798167d988cecbaa390a8515e0b246fef5abc",
+                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc",
                 "shasum": ""
             },
             "require-dev": {
                 "getkirby/cms": "^4"
             },
-            "type": "false",
+            "type": "library",
             "extra": {
                 "kirby-cms-path": false
             },
@@ -94,9 +94,9 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.1.1"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.1.2"
             },
-            "time": "2024-06-16T13:18:43+00:00"
+            "time": "2024-06-16T16:23:36+00:00"
         }
     ],
     "packages-dev": [

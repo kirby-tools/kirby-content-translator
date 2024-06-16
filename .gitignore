@@ -3,7 +3,7 @@
 
 # Vendor files
 /node_modules
-/vendor
+# /vendor
 
 # Build files
 # /assets
