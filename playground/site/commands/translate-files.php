@@ -3,7 +3,7 @@
 use Kirby\CLI\CLI;
 
 return [
-    'description' => 'Translates the files metadata of a specific page.',
+    'description' => 'Translates the files metadata of listed children pages.',
     'args' => [
         'language' => [
             'description' => 'The target language to translate the content to.',
