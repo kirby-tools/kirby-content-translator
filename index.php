@@ -7,10 +7,11 @@ use Kirby\Cms\Page;
 use Kirby\Cms\Site;
 use Kirby\Filesystem\F;
 
+@include_once __DIR__ . '/vendor/autoload.php';
+
 F::loadClasses([
     'JohannSchopplich\\ContentTranslator\\DeepL' => 'src/classes/ContentTranslator/DeepL.php',
-    'JohannSchopplich\\ContentTranslator\\Translator' => 'src/classes/ContentTranslator/Translator.php',
-    'JohannSchopplich\\ContentTranslator\\Licenses' => 'src/classes/ContentTranslator/Licenses.php'
+    'JohannSchopplich\\ContentTranslator\\Translator' => 'src/classes/ContentTranslator/Translator.php'
 ], __DIR__);
 
 // Validate Kirby version

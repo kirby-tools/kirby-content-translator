@@ -1,7 +1,7 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\Licenses;
 use JohannSchopplich\ContentTranslator\Translator;
+use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;
 
@@ -37,7 +37,7 @@ return [
                     throw new BadMethodCallException('Missing license registration parameters "email" or "orderId"');
                 }
 
-                $licenses = Licenses::read();
+                $licenses = Licenses::read('johannschopplich/kirby-content-translator', ['migrate' => false]);
                 $licenses->register($email, $orderId);
 
                 return [

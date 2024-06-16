@@ -1,7 +1,7 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\Licenses;
 use JohannSchopplich\ContentTranslator\Translator;
+use JohannSchopplich\Licensing\Licenses;
 use Kirby\Toolkit\I18n;
 
 return [
@@ -62,8 +62,8 @@ return [
                 return $config;
             },
             'license' => function () {
-                $licenses = Licenses::read();
-                return $licenses->isRegistered(Licenses::PACKAGE_NAME);
+                $licenses = Licenses::read('johannschopplich/kirby-content-translator', ['migrate' => false]);
+                return $licenses->isRegistered();
             },
         ]
     ]
