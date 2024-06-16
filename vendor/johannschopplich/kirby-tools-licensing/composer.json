@@ -1,0 +1,35 @@
+{
+  "name": "johannschopplich/kirby-tools-licensing",
+  "description": "Shared tooling for licensing server-side",
+  "type": "library",
+  "version": "0.1.2",
+  "license": "MIT",
+  "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
+  "authors": [
+    {
+      "name": "Johann Schopplich",
+      "email": "hello@johannschopplich.com",
+      "homepage": "https://johannschopplich.com"
+    }
+  ],
+  "require-dev": {
+    "getkirby/cms": "^4"
+  },
+  "scripts": {
+    "csfix": "@php tools/phpcs/vendor/bin/php-cs-fixer fix"
+  },
+  "autoload": {
+    "psr-4": {
+      "JohannSchopplich\\Licensing\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "allow-plugins": {
+      "getkirby/composer-installer": true
+    }
+  },
+  "extra": {
+    "kirby-cms-path": false
+  }
+}

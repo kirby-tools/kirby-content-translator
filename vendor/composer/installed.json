@@ -1,0 +1,104 @@
+{
+    "packages": [
+        {
+            "name": "getkirby/composer-installer",
+            "version": "1.2.1",
+            "version_normalized": "1.2.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/getkirby/composer-installer.git",
+                "reference": "c98ece30bfba45be7ce457e1102d1b169d922f3d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/getkirby/composer-installer/zipball/c98ece30bfba45be7ce457e1102d1b169d922f3d",
+                "reference": "c98ece30bfba45be7ce457e1102d1b169d922f3d",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^1.0 || ^2.0"
+            },
+            "require-dev": {
+                "composer/composer": "^1.8 || ^2.0"
+            },
+            "time": "2020-12-28T12:54:39+00:00",
+            "type": "composer-plugin",
+            "extra": {
+                "class": "Kirby\\ComposerInstaller\\Plugin"
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "Kirby\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Kirby's custom Composer installer for the Kirby CMS and for Kirby plugins",
+            "homepage": "https://getkirby.com",
+            "support": {
+                "issues": "https://github.com/getkirby/composer-installer/issues",
+                "source": "https://github.com/getkirby/composer-installer/tree/1.2.1"
+            },
+            "funding": [
+                {
+                    "url": "https://getkirby.com/buy",
+                    "type": "custom"
+                }
+            ],
+            "install-path": "../getkirby/composer-installer"
+        },
+        {
+            "name": "johannschopplich/kirby-tools-licensing",
+            "version": "0.1.2",
+            "version_normalized": "0.1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kirby-tools/licensing-backend.git",
+                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/2fd798167d988cecbaa390a8515e0b246fef5abc",
+                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc",
+                "shasum": ""
+            },
+            "require-dev": {
+                "getkirby/cms": "^4"
+            },
+            "time": "2024-06-16T16:23:36+00:00",
+            "type": "library",
+            "extra": {
+                "kirby-cms-path": false
+            },
+            "installation-source": "dist",
+            "autoload": {
+                "psr-4": {
+                    "JohannSchopplich\\Licensing\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Johann Schopplich",
+                    "email": "hello@johannschopplich.com",
+                    "homepage": "https://johannschopplich.com"
+                }
+            ],
+            "description": "Shared tooling for licensing server-side",
+            "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
+            "support": {
+                "issues": "https://github.com/kirby-tools/licensing-backend/issues",
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.1.2"
+            },
+            "install-path": "../johannschopplich/kirby-tools-licensing"
+        }
+    ],
+    "dev": false,
+    "dev-package-names": []
+}
