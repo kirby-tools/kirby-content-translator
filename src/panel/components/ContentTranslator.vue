@@ -370,7 +370,7 @@ function openModal(text, callback) {
           <span
             v-show="isLocalhost"
             v-html="
-              panel.t('johannschopplich.content-translator.license.localhost')
+              panel.t('johannschopplich.content-translator.license.local')
             "
           />
           {{ " " }}
