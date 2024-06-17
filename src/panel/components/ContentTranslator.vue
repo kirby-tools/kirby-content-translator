@@ -358,7 +358,8 @@ function openModal(text, callback) {
 
     <k-box
       v-show="license === false"
-      class="kct-mt-3 kct-w-max"
+      class="kct-mt-3"
+      :class="[!isLocalhost && 'kct-w-max']"
       :theme="isLocalhost ? 'empty' : 'love'"
       :icon="!isLocalhost ? 'key' : undefined"
       :style="{
