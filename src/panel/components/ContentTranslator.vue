@@ -28,7 +28,7 @@ const props = defineProps(propsDefinition);
 const panel = usePanel();
 const store = useStore();
 const { translateContent } = useTranslation();
-const { isLocalhost, openLicenseModal } = useLicense({
+const { openLicenseModal } = useLicense({
   label: "Kirby Content Translator",
   apiNamespace: "__content-translator__",
 });
@@ -224,6 +224,13 @@ function openModal(text, callback) {
     },
   });
 }
+
+async function handleRegistration() {
+  const { isRegistered } = await openLicenseModal();
+  if (isRegistered) {
+    license.value = true;
+  }
+}
 </script>
 
 <template>
@@ -349,44 +356,38 @@ function openModal(text, callback) {
         theme="none"
         :text="
           panel.t(
-            'johannschopplich.content-translator.help.disallowDefaultLanguage',
+            'johannschopplich.content-translator.help.disabledDefaultLanguage',
           )
         "
       />
     </template>
 
-    <k-box
-      v-show="license === false"
-      class="kct-mt-3"
-      :class="[!isLocalhost && 'kct-w-max']"
-      :theme="isLocalhost ? 'empty' : 'love'"
-      :icon="!isLocalhost ? 'key' : undefined"
-      :style="{
-        '--link-color': 'var(--color-text)',
-      }"
+    <k-button-group
+      v-if="license === false"
+      layout="collapsed"
+      class="kct-mt-2"
     >
-      <k-text>
-        <p>
-          <span
-            v-show="isLocalhost"
-            v-html="
-              panel.t('johannschopplich.content-translator.license.local')
-            "
-          />
-          {{ " " }}
-          <span
-            v-html="panel.t('johannschopplich.content-translator.license.buy')"
-          />
-          &
-          <span
-            class="k-link kct-cursor-pointer"
-            @click="openLicenseModal"
-            v-html="
-              panel.t('johannschopplich.content-translator.license.activate')
-            "
-          />
-        </p>
-      </k-text>
-    </k-box>
+      <k-button size="sm" text="Going live?" class="kct-cursor-auto kct-ps-1" />
+      <k-button-group layout="collapsed">
+        <k-button
+          theme="love"
+          variant="filled"
+          size="sm"
+          link="https://kirby.tools/content-translator#pricing"
+          target="_blank"
+          :text="panel.t('johannschopplich.content-translator.license.buy')"
+        />
+        <k-button
+          theme="love"
+          variant="filled"
+          size="sm"
+          icon="key"
+          :text="
+            panel.t('johannschopplich.content-translator.license.activate')
+          "
+          @click="handleRegistration()"
+        />
+      </k-button-group>
+    </k-button-group>
   </k-section>
 </template>
