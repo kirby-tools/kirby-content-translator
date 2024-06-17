@@ -5,14 +5,8 @@ use Kirby\Cms\App as Kirby;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
-use Kirby\Filesystem\F;
 
 @include_once __DIR__ . '/vendor/autoload.php';
-
-F::loadClasses([
-    'JohannSchopplich\\ContentTranslator\\DeepL' => 'src/classes/ContentTranslator/DeepL.php',
-    'JohannSchopplich\\ContentTranslator\\Translator' => 'src/classes/ContentTranslator/Translator.php'
-], __DIR__);
 
 // Validate Kirby version
 if (!Semver::satisfies(Kirby::version() ?? '0.0.0', '~4.0')) {

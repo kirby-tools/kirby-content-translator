@@ -235,6 +235,25 @@ async function handleRegistration() {
 
 <template>
   <k-section v-if="config" :label="label">
+    <k-button-group v-if="license === false" slot="options" layout="collapsed">
+      <k-button
+        theme="love"
+        variant="filled"
+        size="xs"
+        link="https://kirby.tools/content-translator#pricing"
+        target="_blank"
+        :text="panel.t('johannschopplich.content-translator.license.buy')"
+      />
+      <k-button
+        theme="love"
+        variant="filled"
+        size="xs"
+        icon="key"
+        :text="panel.t('johannschopplich.content-translator.license.activate')"
+        @click="handleRegistration()"
+      />
+    </k-button-group>
+
     <k-box v-if="!panel.multilang" theme="empty">
       <k-text>
         This section requires multi-language support to be enabled.
@@ -361,33 +380,5 @@ async function handleRegistration() {
         "
       />
     </template>
-
-    <k-button-group
-      v-if="license === false"
-      layout="collapsed"
-      class="kct-mt-2"
-    >
-      <k-button size="sm" text="Going live?" class="kct-cursor-auto kct-ps-1" />
-      <k-button-group layout="collapsed">
-        <k-button
-          theme="love"
-          variant="filled"
-          size="sm"
-          link="https://kirby.tools/content-translator#pricing"
-          target="_blank"
-          :text="panel.t('johannschopplich.content-translator.license.buy')"
-        />
-        <k-button
-          theme="love"
-          variant="filled"
-          size="sm"
-          icon="key"
-          :text="
-            panel.t('johannschopplich.content-translator.license.activate')
-          "
-          @click="handleRegistration()"
-        />
-      </k-button-group>
-    </k-button-group>
   </k-section>
 </template>

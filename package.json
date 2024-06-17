@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.1",
-    "@kirby-tools/licensing": "^0.1.8",
+    "@kirby-tools/licensing": "^0.1.9",
     "@sindresorhus/slugify": "^2.2.1",
     "autoprefixer": "^10.4.19",
     "bumpp": "^9.4.1",
