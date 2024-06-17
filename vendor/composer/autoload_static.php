@@ -14,6 +14,7 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         'J' => 
         array (
             'JohannSchopplich\\Licensing\\' => 27,
+            'JohannSchopplich\\' => 17,
         ),
     );
 
@@ -26,10 +27,16 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         array (
             0 => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src',
         ),
+        'JohannSchopplich\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/src/classes',
+        ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
+        'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
         'JohannSchopplich\\Licensing\\Licenses' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Licenses.php',
         'Kirby\\ComposerInstaller\\CmsInstaller' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
         'Kirby\\ComposerInstaller\\Installer' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',

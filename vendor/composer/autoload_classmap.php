@@ -7,6 +7,8 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
+    'JohannSchopplich\\ContentTranslator\\Translator' => $baseDir . '/src/classes/ContentTranslator/Translator.php',
     'JohannSchopplich\\Licensing\\Licenses' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Licenses.php',
     'Kirby\\ComposerInstaller\\CmsInstaller' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
     'Kirby\\ComposerInstaller\\Installer' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',
