@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c0166ee9c90c826bcec78807b871d3cc",
+    "content-hash": "7a72fabd4fcf767edd47e96f618aab97",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -55,16 +55,16 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.1.2",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc"
+                "reference": "3658b9ca55d11ec70b2aa1d22c176ca73a966eb8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/2fd798167d988cecbaa390a8515e0b246fef5abc",
-                "reference": "2fd798167d988cecbaa390a8515e0b246fef5abc",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/3658b9ca55d11ec70b2aa1d22c176ca73a966eb8",
+                "reference": "3658b9ca55d11ec70b2aa1d22c176ca73a966eb8",
                 "shasum": ""
             },
             "require-dev": {
@@ -94,9 +94,9 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.1.2"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.2.0"
             },
-            "time": "2024-06-16T16:23:36+00:00"
+            "time": "2024-06-17T06:21:16+00:00"
         }
     ],
     "packages-dev": [

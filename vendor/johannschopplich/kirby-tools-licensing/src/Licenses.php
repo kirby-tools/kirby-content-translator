@@ -60,6 +60,21 @@ class Licenses
         $this->update($packageName, $key);
     }
 
+    public function registerFromRequest(): bool
+    {
+        $request = App::instance()->request();
+        $email = $request->get('email');
+        $orderId = $request->get('orderId');
+
+        if (!$email || !$orderId) {
+            throw new LogicException('Missing license registration parameters "email" or "orderId"');
+        }
+
+        $this->register($email, $orderId);
+
+        return true;
+    }
+
     public function update(string $packageName, string $licenseKey): void
     {
         $this->licenses[$packageName] = $licenseKey;

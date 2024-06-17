@@ -87,8 +87,7 @@ const currentContent = computed(() => store.getters["content/values"]());
     response.excludeFields ?? response.config.excludeFields ?? [];
   fields.value = response.fields ?? {};
   config.value = response.config ?? {};
-  // eslint-disable-next-line no-undef
-  license.value = __PLAYGROUND__ ? true : response.license;
+  license.value = response.license;
 
   // Re-fetch default content whenever the page gets saved
   panel.events.on("model.update", updateModelDefaultLanguageData);

@@ -28,21 +28,9 @@ return [
         [
             'pattern' => '__content-translator__/register',
             'method' => 'POST',
-            'action' => function () use ($kirby) {
-                $request = $kirby->request();
-                $email = $request->get('email');
-                $orderId = $request->get('orderId');
-
-                if (!$email || !$orderId) {
-                    throw new BadMethodCallException('Missing license registration parameters "email" or "orderId"');
-                }
-
+            'action' => function () {
                 $licenses = Licenses::read('johannschopplich/kirby-content-translator', ['migrate' => false]);
-                $licenses->register($email, $orderId);
-
-                return [
-                    'ok' => true
-                ];
+                return $licenses->registerFromRequest();
             }
         ]
     ]
