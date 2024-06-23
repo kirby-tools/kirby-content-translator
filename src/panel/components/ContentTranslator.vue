@@ -28,7 +28,7 @@ const props = defineProps(propsDefinition);
 const panel = usePanel();
 const store = useStore();
 const { translateContent } = useTranslation();
-const { openLicenseModal } = useLicense({
+const { openLicenseModal, assertActivationIntegrity } = useLicense({
   label: "Kirby Content Translator",
   apiNamespace: "__content-translator__",
 });
@@ -50,7 +50,9 @@ const config = ref();
 const license = ref();
 
 // Generic data
+const isInitialized = ref(false);
 const defaultLanguageData = ref({});
+const licenseButtonGroup = ref();
 
 // Static data
 const defaultLanguage = panel.languages.find((language) => language.default);
@@ -93,6 +95,12 @@ const currentContent = computed(() => store.getters["content/values"]());
   panel.events.on("model.update", updateModelDefaultLanguageData);
   panel.events.on("page.changeTitle", updateModelDefaultLanguageData);
   updateModelDefaultLanguageData();
+
+  isInitialized.value = true;
+  assertActivationIntegrity({
+    component: licenseButtonGroup,
+    license: license.value,
+  });
 })();
 
 onBeforeUnmount(() => {
@@ -234,8 +242,13 @@ async function handleRegistration() {
 </script>
 
 <template>
-  <k-section v-if="config" :label="label">
-    <k-button-group v-if="license === false" slot="options" layout="collapsed">
+  <k-section v-if="isInitialized" :label="label">
+    <k-button-group
+      v-if="license === false"
+      ref="licenseButtonGroup"
+      slot="options"
+      layout="collapsed"
+    >
       <k-button
         theme="love"
         variant="filled"
