@@ -12,8 +12,8 @@ importers:
         specifier: ^2.21.1
         version: 2.21.1(@vue/compiler-sfc@2.7.16)(eslint@9.5.0)(typescript@5.4.5)
       '@kirby-tools/licensing':
-        specifier: ^0.2.2
-        version: 0.2.2
+        specifier: ^0.3.1
+        version: 0.3.1
       '@sindresorhus/slugify':
         specifier: ^2.2.1
         version: 2.2.1
@@ -471,8 +471,8 @@ packages:
     resolution: {integrity: sha512-f5DRIOZf7wxogefH03RjMPMdBF7ADTWUMoOs9kaJo06EfwF+aFhMZMDZxHg/Xe12hptN9xoZjGso2fdjapBRIA==}
     engines: {node: '>=10'}
 
-  '@kirby-tools/licensing@0.2.2':
-    resolution: {integrity: sha512-Kjt06zK3EtcrpyYETZNjhIzR6p2Taq8O81UeD9S8FYTCUuqTMro1qsJZPwZ0KP8/+643tLbDDg79zKWP93+jaQ==}
+  '@kirby-tools/licensing@0.3.1':
+    resolution: {integrity: sha512-4BxNhONXyBBkkNO6xmOU80Vl77Fv0D+nFV3PgleHjPC46e8UC34NqZzoiJPkHFgVAJsNKSoCCYI+Ipw6n57RmA==}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2810,7 +2810,7 @@ snapshots:
       string-argv: 0.3.2
       type-detect: 4.0.8
 
-  '@kirby-tools/licensing@0.2.2':
+  '@kirby-tools/licensing@0.3.1':
     dependencies:
       kirbyuse: 0.7.0
       vue: 2.7.16

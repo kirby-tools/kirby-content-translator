@@ -62,8 +62,8 @@ return [
                 return $config;
             },
             'license' => function () {
-                $licenses = Licenses::read('johannschopplich/kirby-content-translator', ['migrate' => false]);
-                return $licenses->isRegistered();
+                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
+                return $licenses->getStatus();
             }
         ]
     ]
