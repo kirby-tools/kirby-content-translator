@@ -52,23 +52,23 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.2.2",
-            "version_normalized": "0.2.2.0",
+            "version": "0.4.1",
+            "version_normalized": "0.4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "48238682c4e39b6cef2fe44c51bf57daa5b00776"
+                "reference": "294d4045f10d32c7a85f0d2909e87ecb0d2bc53c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/48238682c4e39b6cef2fe44c51bf57daa5b00776",
-                "reference": "48238682c4e39b6cef2fe44c51bf57daa5b00776",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/294d4045f10d32c7a85f0d2909e87ecb0d2bc53c",
+                "reference": "294d4045f10d32c7a85f0d2909e87ecb0d2bc53c",
                 "shasum": ""
             },
             "require-dev": {
                 "getkirby/cms": "^4"
             },
-            "time": "2024-06-17T07:59:27+00:00",
+            "time": "2024-06-27T13:03:49+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -81,7 +81,7 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "AGPL-3.0-or-later"
             ],
             "authors": [
                 {
@@ -94,7 +94,7 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.2.2"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.4.1"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         }

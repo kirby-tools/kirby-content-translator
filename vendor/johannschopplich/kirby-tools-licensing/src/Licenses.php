@@ -4,36 +4,50 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\Licensing;
 
+use Composer\Semver\Semver;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Kirby\Exception\LogicException;
+use Kirby\Filesystem\F;
 use Kirby\Http\Remote;
 use Kirby\Toolkit\Str;
 use Throwable;
 
+/**
+ * If you're here to learn all about how licenses are managed in Kirby Tools,
+ * you're in the right place.
+ *
+ * However, if you're trying to figure out how to crack the license system,
+ * please stop right here. I've put a lot of effort into creating Kirby Tools
+ * and I'm sure you can appreciate that. If you like the plugin, please consider
+ * supporting me by purchasing a license. Thank you!
+ *
+ * @see https://kirby.tools
+ */
 class Licenses
 {
     private const LICENSE_FILE = '.kirby-tools-licenses';
-    private const LICENSE_PATTERN = '!^KT\d-\w+-\w+$!';
+    private const LICENSE_PATTERN = '!^KT(\d)-\w+-\w+$!';
     private const API_URL = 'https://repo.kirby.tools/api';
+    private string $licenseFile;
 
     public function __construct(
         private array $licenses,
         private string $packageName,
     ) {
+        $this->licenseFile = dirname(App::instance()->root('license')) . '/' . static::LICENSE_FILE;
     }
 
     public static function read(string $packageName, array $options = []): static
     {
         try {
-            $licenses = Json::read(App::instance()->root('config') . '/' . static::LICENSE_FILE);
+            $licenses = Json::read(dirname(App::instance()->root('license')) . '/' . static::LICENSE_FILE);
         } catch (Throwable) {
             $licenses = [];
         }
 
         $instance = new static($licenses, $packageName);
 
-        // Run migration for private Composer repository
         if ($options['migrate'] ?? true) {
             $instance->migration();
         }
@@ -41,8 +55,83 @@ class Licenses
         return $instance;
     }
 
+    public function getStatus(): string
+    {
+        $licenseKey = $this->getLicenseKey();
+
+        if ($licenseKey === null) {
+            return 'inactive';
+        }
+
+        if (!$this->isValid($licenseKey)) {
+            return 'invalid';
+        }
+
+        if (!$this->isCompatible($this->getLicenseCompatibility())) {
+            return 'incompatible';
+        }
+
+        return 'active';
+    }
+
+    public function getLicense(): array|bool
+    {
+        if (!$this->isRegistered()) {
+            return false;
+        }
+
+        return [
+            'key' => $this->getLicenseKey(),
+            'version' => $this->getLicenseVersion(),
+            'compatibility' => $this->getLicenseCompatibility()
+        ];
+    }
+
+    public function getLicenseKey(): string|null
+    {
+        return $this->licenses[$this->packageName]['licenseKey'] ?? null;
+    }
+
+    public function getLicenseVersion(): int|null
+    {
+        $licenseKey = $this->getLicenseKey();
+
+        if (preg_match(static::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
+            return (int)$matches[1];
+        }
+    }
+
+    public function getLicenseCompatibility(): string|null
+    {
+        return $this->licenses[$this->packageName]['licenseCompatibility'] ?? null;
+    }
+
+    public function isRegistered(): bool
+    {
+        return $this->isValid($this->getLicenseKey()) && $this->isCompatible($this->getLicenseCompatibility());
+    }
+
+    public function isValid(string|null $licenseKey): bool
+    {
+        return $licenseKey !== null && preg_match(static::LICENSE_PATTERN, $licenseKey) === 1;
+    }
+
+    public function isCompatible(string|null $versionConstraint): bool
+    {
+        $kirbyPackageName = str_replace('/kirby-', '/', $this->packageName);
+
+        return $versionConstraint !== null && Semver::satisfies(
+            App::instance()->plugin($kirbyPackageName)?->version(),
+            $versionConstraint
+        );
+    }
+
     public function register(string $email, string|int $orderId): void
     {
+        if ($this->isRegistered()) {
+            throw new LogicException('License key already registered');
+        }
+
         $response = $this->request('licenses', [
             'method' => 'POST',
             'data' => [
@@ -51,13 +140,15 @@ class Licenses
             ]
         ]);
 
-        ['packageName' => $packageName, 'licenseKey' => $key] = $response;
-
-        if ($packageName !== $this->packageName) {
+        if ($response['packageName'] !== $this->packageName) {
             throw new LogicException('License key not valid for this plugin');
         }
 
-        $this->update($packageName, $key);
+        if (!$this->isCompatible($response['licenseCompatibility'])) {
+            throw new LogicException('License key not valid for this plugin version');
+        }
+
+        $this->update($this->packageName, $response);
     }
 
     public function registerFromRequest(): array
@@ -79,27 +170,34 @@ class Licenses
         ];
     }
 
-    public function update(string $packageName, string $licenseKey): void
+    public function update(string $packageName, array $data): void
     {
-        $this->licenses[$packageName] = $licenseKey;
-        Json::write(App::instance()->root('config') . '/' . static::LICENSE_FILE, $this->licenses);
-    }
+        $this->licenses[$packageName] = [
+            'licenseKey' => $data['licenseKey'],
+            'licenseCompatibility' => $data['licenseCompatibility'],
+            'createdAt' => $data['order']['createdAt']
+        ];
 
-    public function isRegistered(): bool
-    {
-        $licenseKey = $this->licenses[$this->packageName] ?? null;
-        return $licenseKey !== null && $this->isValid($licenseKey);
-    }
-
-    public function isValid(string $licenseKey): bool
-    {
-        return preg_match(static::LICENSE_PATTERN, $licenseKey) === 1;
+        Json::write($this->licenseFile, $this->licenses);
     }
 
     private function migration(): void
     {
-        $authFile = App::instance()->root('base') . '/auth.json';
+        // Migration 1: Move license file to license directory (if applicable)
+        $oldLicenseFile = App::instance()->root('config') . '/' . static::LICENSE_FILE;
+        if (F::exists($oldLicenseFile) && $oldLicenseFile !== $this->licenseFile) {
+            F::move($oldLicenseFile, $this->licenseFile);
+            $this->licenses = Json::read($this->licenseFile);
+        }
 
+        // Migration 2: If license value is a string, re-fetch license data from API
+        if (is_string($this->licenses[$this->packageName] ?? null)) {
+            $response = $this->request('licenses/' . $this->licenses[$this->packageName] . '/package');
+            $this->update($this->packageName, $response);
+        }
+
+        // Migration 3: Migrate licenses from private Composer repository
+        $authFile = App::instance()->root('base') . '/auth.json';
         try {
             $auth = Json::read($authFile);
             $collection = $auth['bearer']['repo.kirby.tools'] ?? null;
@@ -108,16 +206,23 @@ class Licenses
                 return;
             }
 
-            $licenseKeys = array_values($this->licenses);
+            // Extract all current license keys
+            $licenseKeys = array_map(
+                fn ($license) => is_array($license) ? $license['licenseKey'] : $license,
+                $this->licenses
+            );
 
             // Get package name for licenses and update them
-            foreach (Str::split($collection, ',') as $licenseKey) {
+            foreach (Str::split($collection, ',', 8) as $licenseKey) {
                 if (!$this->isValid($licenseKey) || in_array($licenseKey, $licenseKeys)) {
                     continue;
                 }
 
                 $response = $this->request('licenses/' . $licenseKey . '/package');
-                $this->update($response['packageName'], $licenseKey);
+
+                if ($response['packageName'] === $this->packageName) {
+                    $this->update($this->packageName, $response);
+                }
             }
         } catch (Throwable) {
             // Ignore

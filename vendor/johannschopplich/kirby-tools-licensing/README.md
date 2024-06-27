@@ -6,4 +6,4 @@ For licensing tooling in the Panel, see [@kirby-tools/licensing](https://github.
 
 ## License
 
-[MIT](./LICENSE) License © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
+[AGPL](./LICENSE) License © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
