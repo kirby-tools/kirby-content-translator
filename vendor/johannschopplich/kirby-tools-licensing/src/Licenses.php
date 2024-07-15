@@ -119,9 +119,14 @@ class Licenses
     public function isCompatible(string|null $versionConstraint): bool
     {
         $kirbyPackageName = str_replace('/kirby-', '/', $this->packageName);
+        $version = App::instance()->plugin($kirbyPackageName)?->version();
+
+        if ($version !== null && str_starts_with($version, 'dev-')) {
+            throw new LogicException('Development versions are not supported');
+        }
 
         return $versionConstraint !== null && Semver::satisfies(
-            App::instance()->plugin($kirbyPackageName)?->version(),
+            $version,
             $versionConstraint
         );
     }
@@ -231,7 +236,11 @@ class Licenses
 
     private function request(string $path, array $options = []): array
     {
-        $response = new Remote(static::API_URL . '/' . $path, $options);
+        $response = new Remote(static::API_URL . '/' . $path, array_merge($options, [
+            'headers' => [
+                'X-App-Url' => App::instance()->url()
+            ]
+        ]));
 
         if ($response->code() !== 200) {
             $message = $response->json()['message'] ?? 'Request failed';
