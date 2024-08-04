@@ -47,10 +47,8 @@ class Licenses
         }
 
         $instance = new static($licenses, $packageName);
-
-        if ($options['migrate'] ?? true) {
-            $instance->migration();
-        }
+        $instance->migration();
+        $instance->refresh();
 
         return $instance;
     }
@@ -106,6 +104,12 @@ class Licenses
         return $this->licenses[$this->packageName]['licenseCompatibility'] ?? null;
     }
 
+    public function getPluginVersion(): string|null
+    {
+        $kirbyPackageName = str_replace('/kirby-', '/', $this->packageName);
+        return App::instance()->plugin($kirbyPackageName)?->version();
+    }
+
     public function isRegistered(): bool
     {
         return $this->isValid($this->getLicenseKey()) && $this->isCompatible($this->getLicenseCompatibility());
@@ -118,8 +122,7 @@ class Licenses
 
     public function isCompatible(string|null $versionConstraint): bool
     {
-        $kirbyPackageName = str_replace('/kirby-', '/', $this->packageName);
-        $version = App::instance()->plugin($kirbyPackageName)?->version();
+        $version = $this->getPluginVersion();
 
         if ($version !== null && str_starts_with($version, 'dev-')) {
             throw new LogicException('Development versions are not supported');
@@ -180,6 +183,7 @@ class Licenses
         $this->licenses[$packageName] = [
             'licenseKey' => $data['licenseKey'],
             'licenseCompatibility' => $data['licenseCompatibility'],
+            'pluginVersion' => $this->getPluginVersion(),
             'createdAt' => $data['order']['createdAt']
         ];
 
@@ -231,6 +235,18 @@ class Licenses
             }
         } catch (Throwable) {
             // Ignore
+        }
+    }
+
+    private function refresh(): void
+    {
+        // If the plugin version has changed, update the license data
+        if (
+            $this->isValid($this->getLicenseKey()) &&
+            $this->getPluginVersion() !== $this->licenses[$this->packageName]['pluginVersion'] ?? null
+        ) {
+            $response = $this->request('licenses/' . $this->getLicenseKey() . '/package');
+            $this->update($this->packageName, $response);
         }
     }
 

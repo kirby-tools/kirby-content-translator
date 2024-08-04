@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-content-translator",
   "description": "Translate any page in the Panel or programmatically with DeepL",
   "type": "kirby-plugin",
-  "version": "2.1.12",
+  "version": "2.1.13",
   "keywords": [
     "content",
     "DeepL",
