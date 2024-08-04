@@ -35,11 +35,11 @@ const { openLicenseModal, assertActivationIntegrity } = useLicense({
 
 // Section props
 const label = ref();
-const allowImport = ref(true);
+const allowImport = ref();
 const importFrom = ref();
-const translateTitle = ref(false);
-const translateSlug = ref(false);
-const confirm = ref(true);
+const translateTitle = ref();
+const translateSlug = ref();
+const confirm = ref();
 const fieldTypes = ref([]);
 const includeFields = ref([]);
 const excludeFields = ref([]);
@@ -67,11 +67,11 @@ const currentContent = computed(() => store.getters["content/values"]());
   });
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
-  allowImport.value = response.import ?? response.config.import;
+  allowImport.value = response.import ?? response.config.import ?? true;
   importFrom.value = response.importFrom ?? response.config.importFrom;
-  translateTitle.value = response.title ?? response.config.title;
-  translateSlug.value = response.slug ?? response.config.slug;
-  confirm.value = response.confirm ?? response.config.confirm;
+  translateTitle.value = response.title ?? response.config.title ?? false;
+  translateSlug.value = response.slug ?? response.config.slug ?? false;
+  confirm.value = response.confirm ?? response.config.confirm ?? true;
   fieldTypes.value = response.fieldTypes ??
     response.config.fieldTypes ?? [
       "blocks",

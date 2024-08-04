@@ -8,7 +8,7 @@ return [
     'content-translator' => [
         'props' => [
             'label' => fn ($label = null) => I18n::translate($label, $label),
-            'import' => fn ($import = true) => $import === true,
+            'import' => fn ($import = null) => is_bool($import) ? $import : null,
             'importFrom' => function ($importFrom = null) {
                 if ($importFrom === 'all') {
                     return 'all';
@@ -16,9 +16,9 @@ return [
 
                 return $importFrom;
             },
-            'title' => fn ($title = false) => $title === true,
-            'slug' => fn ($slug = false) => $slug === true,
-            'confirm' => fn ($confirm = true) => $confirm === true,
+            'title' => fn ($title = null) => is_bool($title) ? $title : null,
+            'slug' => fn ($slug = null) => is_bool($slug) ? $slug : null,
+            'confirm' => fn ($confirm = null) => is_bool($confirm) ? $confirm : null,
             'fieldTypes' => function ($fieldTypes = null) {
                 if (!is_array($fieldTypes)) {
                     return null;
