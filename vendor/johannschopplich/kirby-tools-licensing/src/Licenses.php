@@ -240,10 +240,10 @@ class Licenses
 
     private function refresh(): void
     {
-        // If the plugin version has changed, update the license data
+        // If the plugin version has changed, refresh the license data for the package
         if (
             $this->isValid($this->getLicenseKey()) &&
-            $this->getPluginVersion() !== $this->licenses[$this->packageName]['pluginVersion'] ?? null
+            $this->getPluginVersion() !== ($this->licenses[$this->packageName]['pluginVersion'] ?? null)
         ) {
             $response = $this->request('licenses/' . $this->getLicenseKey() . '/package');
             $this->update($this->packageName, $response);
