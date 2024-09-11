@@ -1,4 +1,5 @@
 <script>
+import { useLicense } from "@kirby-tools/licensing";
 import slugify from "@sindresorhus/slugify";
 import {
   computed,
@@ -9,9 +10,8 @@ import {
   useStore,
 } from "kirbyuse";
 import { section } from "kirbyuse/props";
-import { useLicense } from "@kirby-tools/licensing";
-import { TRANSLATION_API_ROUTE } from "../constants";
 import { useTranslation } from "../composables/translation";
+import { TRANSLATION_API_ROUTE } from "../constants";
 
 const propsDefinition = {
   ...section,
