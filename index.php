@@ -9,8 +9,8 @@ use Kirby\Cms\Site;
 @include_once __DIR__ . '/vendor/autoload.php';
 
 // Validate Kirby version
-if (!Semver::satisfies(Kirby::version() ?? '0.0.0', '~4.0')) {
-    throw new Exception('Kirby Content Translator requires Kirby 4');
+if (!Semver::satisfies(Kirby::version() ?? '0.0.0', '^4.0 || ^5.0')) {
+    throw new Exception('Kirby Content Translator requires Kirby 4 or 5');
 }
 
 Kirby::plugin('johannschopplich/content-translator', [
