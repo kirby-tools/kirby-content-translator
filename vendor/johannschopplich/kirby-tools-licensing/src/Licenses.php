@@ -27,7 +27,7 @@ use Throwable;
 class Licenses
 {
     private const LICENSE_FILE = '.kirby-tools-licenses';
-    private const LICENSE_PATTERN = '!^KT(\d)-\w+-\w+$!';
+    private const LICENSE_PATTERN = '!^KT(\d+)-\w+-\w+$!';
     private const API_URL = 'https://repo.kirby.tools/api';
     private string $licenseFile;
 
@@ -240,10 +240,12 @@ class Licenses
 
     private function refresh(): void
     {
+        $currentVersion = $this->licenses[$this->packageName]['pluginVersion'] ?? null;
+
         // If the plugin version has changed, refresh the license data for the package
         if (
             $this->isValid($this->getLicenseKey()) &&
-            $this->getPluginVersion() !== ($this->licenses[$this->packageName]['pluginVersion'] ?? null)
+            $this->getPluginVersion() !== $currentVersion
         ) {
             $response = $this->request('licenses/' . $this->getLicenseKey() . '/package');
             $this->update($this->packageName, $response);
@@ -258,7 +260,7 @@ class Licenses
             ]
         ]));
 
-        if ($response->code() !== 200) {
+        if (!in_array($response->code(), [200, 201], true)) {
             $message = $response->json()['message'] ?? 'Request failed';
             throw new LogicException($message, $response->code());
         }

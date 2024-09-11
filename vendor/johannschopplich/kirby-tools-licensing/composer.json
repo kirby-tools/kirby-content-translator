@@ -1,8 +1,8 @@
 {
   "name": "johannschopplich/kirby-tools-licensing",
-  "description": "Shared tooling for licensing server-side",
+  "description": "Shared tooling for Kirby Tools licensing in Kirby",
   "type": "library",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
   "authors": [
