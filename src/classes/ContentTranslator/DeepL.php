@@ -89,13 +89,15 @@ final class DeepL
             ])
         ]);
 
-        if ($response->code() === 456) {
-            throw new LogicException('DeepL API quota exceeded');
-        }
-
-        if ($response->code() !== 200) {
-            throw new LogicException('DeepL API request failed: ' . $response->content());
-        }
+        // See error message guide: https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
+        match ($response->code()) {
+            403 => throw new LogicException('Authorization failed. Have you set the correct DeepL API key? See https://kirby.tools/docs/content-translator#step-2-configure-deepl for more information.'),
+            413 => throw new LogicException('DeepL API request size limit exceeded.'),
+            429 => throw new LogicException('Too many requests to the DeepL API. Please wait and resend your request.'),
+            456 => throw new LogicException('DeepL API quota exceeded. The character limit has been reached.'),
+            200 => null, // Do nothing for successful requests
+            default => throw new LogicException('DeepL API request failed: ' . $response->content()),
+        };
 
         $data = $response->json();
         return $data['translations'][0]['text'];
