@@ -171,8 +171,8 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
       fields: fields.value,
     });
   } catch (error) {
-    console.error(error);
-    panel.notification.error(panel.t("error"));
+    console.error("Failed to translate content:", error);
+    panel.notification.error(error.message);
     return;
   }
 

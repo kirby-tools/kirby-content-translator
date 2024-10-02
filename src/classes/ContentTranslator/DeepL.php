@@ -89,12 +89,15 @@ final class DeepL
             ])
         ]);
 
-        $data = $response->json();
-
-        if ($response->code() !== 200 || !isset($data['translations'][0]['text'])) {
-            throw new LogicException('Failed to translate text');
+        if ($response->code() === 456) {
+            throw new LogicException('DeepL API quota exceeded');
         }
 
+        if ($response->code() !== 200) {
+            throw new LogicException('DeepL API request failed: ' . $response->content());
+        }
+
+        $data = $response->json();
         return $data['translations'][0]['text'];
     }
 
