@@ -134,6 +134,18 @@ final class Translator
         });
     }
 
+    public function translateSlug(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
+    {
+        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
+            $translatedSlug = $this->translateText(
+                $this->model->slug($contentLanguageCode),
+                $toLanguageCode,
+                $fromLanguageCode
+            );
+            $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
+        });
+    }
+
     public function model(): Site|Page|File
     {
         return $this->model;
