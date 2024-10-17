@@ -136,7 +136,7 @@ final class Translator
 
     public function translateSlug(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
-        if ($this->model->isHomePage()) {
+        if ($this->model::CLASS_ALIAS !== 'page' || $this->model->isHomePage()) {
             return;
         }
 
