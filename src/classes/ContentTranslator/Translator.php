@@ -136,6 +136,10 @@ final class Translator
 
     public function translateSlug(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
+        if ($this->model->isHomePage()) {
+            return;
+        }
+
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $translatedSlug = $this->translateText(
                 $this->model->slug($contentLanguageCode),
