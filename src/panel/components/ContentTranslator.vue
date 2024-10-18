@@ -61,6 +61,9 @@ const licenseButtonGroup = ref();
 
 // Static data
 const defaultLanguage = panel.languages.find((language) => language.default);
+const nonDefaultLanguages = panel.languages.filter(
+  (language) => language.code !== defaultLanguage.code,
+);
 
 const currentContent = computed(() => store.getters["content/values"]());
 
@@ -219,12 +222,17 @@ async function bulkTranslateModelContent() {
   panel.view.isLoading = true;
 
   try {
-    await panel.api.post(TRANSLATION_CONTENT_API_ROUTE, {
-      context: modelMeta.value.context,
-      id: modelMeta.value.id,
-      title: translateTitle.value,
-      slug: translateSlug.value,
-    });
+    await Promise.all(
+      nonDefaultLanguages.map(async (language) => {
+        await panel.api.post(TRANSLATION_CONTENT_API_ROUTE, {
+          language: language.code,
+          context: modelMeta.value.context,
+          id: modelMeta.value.id,
+          title: translateTitle.value,
+          slug: translateSlug.value,
+        });
+      }),
+    );
 
     panel.notification.success(
       panel.t(
