@@ -23,5 +23,6 @@ columns:
       contentTranslator:
         type: content-translator
         label: Content Translator
+        importFrom: all
         title: true
         # slug: true

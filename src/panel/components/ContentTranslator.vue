@@ -373,8 +373,7 @@ async function handleRegistration() {
           }}
         </k-button>
         <k-button
-          v-if="allowBulkTranslation"
-          :disabled="!panel.language.default"
+          v-if="allowBulkTranslation && panel.language.default"
           icon="content-translator-flag"
           size="sm"
           variant="filled"
@@ -401,7 +400,9 @@ async function handleRegistration() {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-if="allowImport"
+            v-if="
+              allowImport && (!allowBulkTranslation || !panel.language.default)
+            "
             :disabled="panel.language.default"
             icon="import"
             size="sm"
@@ -418,6 +419,7 @@ async function handleRegistration() {
             {{ panel.t("johannschopplich.content-translator.import") }}
           </k-button>
           <k-button
+            v-if="!allowBulkTranslation || !panel.language.default"
             :disabled="panel.language.default"
             icon="translate"
             size="sm"
@@ -440,8 +442,7 @@ async function handleRegistration() {
             }}
           </k-button>
           <k-button
-            v-if="allowBulkTranslation"
-            :disabled="!panel.language.default"
+            v-if="allowBulkTranslation && panel.language.default"
             icon="content-translator-flag"
             size="sm"
             variant="filled"
@@ -466,18 +467,13 @@ async function handleRegistration() {
       </k-box>
 
       <k-box
-        v-show="panel.language.default"
+        v-show="!allowBulkTranslation && panel.language.default"
         class="kct-mt-1"
         theme="none"
         :text="
           panel.t(
             'johannschopplich.content-translator.help.disabledDefaultLanguage',
-          ) +
-          (allowBulkTranslation
-            ? ` ${panel.t(
-                'johannschopplich.content-translator.help.bulkTranslation',
-              )}`
-            : '')
+          )
         "
       />
     </template>

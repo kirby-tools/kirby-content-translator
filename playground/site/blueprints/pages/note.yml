@@ -13,3 +13,4 @@ columns:
         label: Content Translator
         title: true
         # slug: true
+        bulk: false
