@@ -16,6 +16,7 @@ return [
 
                 return $importFrom;
             },
+            'bulk' => fn ($bulk = null) => is_bool($bulk) ? $bulk : null,
             'title' => fn ($title = null) => is_bool($title) ? $title : null,
             'slug' => fn ($slug = null) => is_bool($slug) ? $slug : null,
             'confirm' => fn ($confirm = null) => is_bool($confirm) ? $confirm : null,
@@ -55,6 +56,14 @@ return [
                 }
 
                 return $this->slug;
+            },
+            'modelMeta' => function () {
+                /** @var \Kirby\Cms\Site|\Kirby\Cms\Page|\Kirby\Cms\File */
+                $model = $this->model();
+                return [
+                    'context' => $model::CLASS_ALIAS,
+                    'id' => $model->id()
+                ];
             },
             'fields' => function () {
                 return Translator::resolveModelFields($this->model);

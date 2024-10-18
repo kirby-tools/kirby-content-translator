@@ -11,7 +11,10 @@ import {
 } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import { useTranslation } from "../composables/translation";
-import { TRANSLATION_API_ROUTE } from "../constants";
+import {
+  TRANSLATION_API_ROUTE,
+  TRANSLATION_CONTENT_API_ROUTE,
+} from "../constants";
 
 const propsDefinition = {
   ...section,
@@ -37,6 +40,7 @@ const { openLicenseModal, assertActivationIntegrity } = useLicense({
 const label = ref();
 const allowImport = ref();
 const importFrom = ref();
+const allowBulkTranslation = ref();
 const translateTitle = ref();
 const translateSlug = ref();
 const confirm = ref();
@@ -45,6 +49,7 @@ const includeFields = ref([]);
 const excludeFields = ref([]);
 
 // Section computed
+const modelMeta = ref();
 const fields = ref();
 const config = ref();
 const license = ref();
@@ -69,6 +74,7 @@ const currentContent = computed(() => store.getters["content/values"]());
     t(response.label) || panel.t("johannschopplich.content-translator.label");
   allowImport.value = response.import ?? response.config.import ?? true;
   importFrom.value = response.importFrom ?? response.config.importFrom;
+  allowBulkTranslation.value = response.bulk ?? response.config.bulk ?? true;
   translateTitle.value = response.title ?? response.config.title ?? false;
   translateSlug.value = response.slug ?? response.config.slug ?? false;
   confirm.value = response.confirm ?? response.config.confirm ?? true;
@@ -87,6 +93,7 @@ const currentContent = computed(() => store.getters["content/values"]());
     response.includeFields ?? response.config.includeFields ?? [];
   excludeFields.value =
     response.excludeFields ?? response.config.excludeFields ?? [];
+  modelMeta.value = response.modelMeta ?? {};
   fields.value = response.fields ?? {};
   config.value = response.config ?? {};
   license.value = response.license;
@@ -158,6 +165,7 @@ async function syncModelContent(language) {
 }
 
 async function translateModelContent(targetLanguage, sourceLanguage) {
+  if (panel.view.isLoading) return;
   panel.view.isLoading = true;
 
   const clone = JSON.parse(JSON.stringify(currentContent.value));
@@ -173,6 +181,7 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
   } catch (error) {
     console.error("Failed to translate content:", error);
     panel.notification.error(error.message);
+    panel.view.isLoading = false;
     return;
   }
 
@@ -205,6 +214,34 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
   );
 }
 
+async function bulkTranslateModelContent() {
+  if (panel.view.isLoading) return;
+  panel.view.isLoading = true;
+
+  try {
+    await panel.api.post(TRANSLATION_CONTENT_API_ROUTE, {
+      context: modelMeta.value.context,
+      id: modelMeta.value.id,
+      title: translateTitle.value,
+      slug: translateSlug.value,
+    });
+
+    panel.notification.success(
+      panel.t(
+        "johannschopplich.content-translator.notification.bulkTranslated",
+      ),
+    );
+  } catch (error) {
+    console.error("Failed to bulk translate content:", error);
+    panel.notification.error(error.message);
+    panel.view.isLoading = false;
+    return;
+  }
+
+  // Reload will also end loading state
+  await panel.view.reload();
+}
+
 async function updateModelDefaultLanguageData() {
   defaultLanguageData.value = await getModelData(defaultLanguage);
 }
@@ -215,12 +252,16 @@ function getModelData(language) {
   });
 }
 
-function openModal(text, callback) {
+function openMaybeConfirmableModal(text, callback) {
   if (!confirm.value) {
     callback?.();
     return;
   }
 
+  openModal(text, callback);
+}
+
+function openModal(text, callback) {
   panel.dialog.open({
     component: "k-text-dialog",
     props: { text },
@@ -295,12 +336,10 @@ async function handleRegistration() {
             size="sm"
             variant="filled"
             @click="
-              openModal(
+              openMaybeConfirmableModal(
                 panel.t(
                   'johannschopplich.content-translator.dialog.importFrom',
-                  {
-                    language: language.name,
-                  },
+                  { language: language.name },
                 ),
                 () => syncModelContent(language),
               )
@@ -319,7 +358,7 @@ async function handleRegistration() {
           variant="filled"
           theme="notice"
           @click="
-            openModal(
+            openMaybeConfirmableModal(
               panel.t('johannschopplich.content-translator.dialog.translate', {
                 language: panel.language.name,
               }),
@@ -330,6 +369,29 @@ async function handleRegistration() {
           {{
             panel.t("johannschopplich.content-translator.translate", {
               language: panel.language.code.toUpperCase(),
+            })
+          }}
+        </k-button>
+        <k-button
+          v-if="allowBulkTranslation"
+          :disabled="!panel.language.default"
+          icon="content-translator-flag"
+          size="sm"
+          variant="filled"
+          theme="notice"
+          @click="
+            openModal(
+              panel.t(
+                'johannschopplich.content-translator.dialog.bulkTranslation',
+                { language: defaultLanguage.name },
+              ),
+              bulkTranslateModelContent,
+            )
+          "
+        >
+          {{
+            panel.t("johannschopplich.content-translator.bulkTranslate", {
+              language: defaultLanguage.code.toUpperCase(),
             })
           }}
         </k-button>
@@ -345,7 +407,7 @@ async function handleRegistration() {
             size="sm"
             variant="filled"
             @click="
-              openModal(
+              openMaybeConfirmableModal(
                 panel.t('johannschopplich.content-translator.dialog.import', {
                   language: defaultLanguage.name,
                 }),
@@ -362,12 +424,10 @@ async function handleRegistration() {
             variant="filled"
             theme="notice"
             @click="
-              openModal(
+              openMaybeConfirmableModal(
                 panel.t(
                   'johannschopplich.content-translator.dialog.translate',
-                  {
-                    language: panel.language.name,
-                  },
+                  { language: panel.language.name },
                 ),
                 () => translateModelContent(panel.language, defaultLanguage),
               )
@@ -376,6 +436,29 @@ async function handleRegistration() {
             {{
               panel.t("johannschopplich.content-translator.translate", {
                 language: panel.language.code.toUpperCase(),
+              })
+            }}
+          </k-button>
+          <k-button
+            v-if="allowBulkTranslation"
+            :disabled="!panel.language.default"
+            icon="content-translator-flag"
+            size="sm"
+            variant="filled"
+            theme="notice"
+            @click="
+              openModal(
+                panel.t(
+                  'johannschopplich.content-translator.dialog.bulkTranslation',
+                  { language: defaultLanguage.name },
+                ),
+                bulkTranslateModelContent,
+              )
+            "
+          >
+            {{
+              panel.t("johannschopplich.content-translator.bulkTranslate", {
+                language: defaultLanguage.code.toUpperCase(),
               })
             }}
           </k-button>
@@ -389,7 +472,12 @@ async function handleRegistration() {
         :text="
           panel.t(
             'johannschopplich.content-translator.help.disabledDefaultLanguage',
-          )
+          ) +
+          (allowBulkTranslation
+            ? ` ${panel.t(
+                'johannschopplich.content-translator.help.bulkTranslation',
+              )}`
+            : '')
         "
       />
     </template>
