@@ -37,7 +37,7 @@ return [
                 $request = $kirby->request();
                 $context = $request->get('context');
                 $id = $request->get('id');
-                $languageCode = $request->get('language');
+                $selectedLanguage = $request->get('selectedLanguage');
                 $translateTitle = $request->get('title', false);
                 $translateSlug = $request->get('slug', false);
 
@@ -45,12 +45,12 @@ return [
                     throw new BadMethodCallException('Missing "context" or "id" parameter');
                 }
 
-                if (!$languageCode) {
+                if (!$selectedLanguage) {
                     throw new BadMethodCallException('Missing "language" parameter');
                 }
 
                 $defaultLanguage = $kirby->defaultLanguage();
-                $language = $kirby->languages()->findByKey($languageCode);
+                $language = $kirby->languages()->findByKey($selectedLanguage);
 
                 if ($context === 'site') {
                     /** @var \JohannSchopplich\ContentTranslator\Translator */

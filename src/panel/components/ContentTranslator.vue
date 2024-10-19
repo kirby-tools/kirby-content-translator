@@ -225,7 +225,7 @@ async function bulkTranslateModelContent() {
     await Promise.all(
       nonDefaultLanguages.map(async (language) => {
         await panel.api.post(TRANSLATION_CONTENT_API_ROUTE, {
-          language: language.code,
+          selectedLanguage: language.code,
           context: modelMeta.value.context,
           id: modelMeta.value.id,
           title: translateTitle.value,
