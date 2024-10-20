@@ -3,8 +3,8 @@
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
-use Kirby\Cms\Language;
 use Kirby\Exception\BadMethodCallException;
+use Kirby\Exception\NotFoundException;
 
 return [
     'routes' => fn (App $kirby) => [
@@ -31,13 +31,13 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/bulk-translate-content',
+            'pattern' => '__content-translator__/translate-content',
             'method' => 'POST',
             'action' => function () use ($kirby) {
                 $request = $kirby->request();
                 $context = $request->get('context');
                 $id = $request->get('id');
-                $selectedLanguage = $request->get('selectedLanguage');
+                $toLanguageCode = $request->get('selectedLanguage');
                 $translateTitle = $request->get('title', false);
                 $translateSlug = $request->get('slug', false);
 
@@ -45,30 +45,32 @@ return [
                     throw new BadMethodCallException('Missing "context" or "id" parameter');
                 }
 
-                if (!$selectedLanguage) {
+                if (!$toLanguageCode) {
                     throw new BadMethodCallException('Missing "selectedLanguage" parameter');
                 }
 
-                $defaultLanguage = $kirby->defaultLanguage();
+                $fromLanguageCode = $kirby->defaultLanguage()->code();
 
                 if ($context === 'site') {
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
                     $translator = $kirby->site()->translator();
-
-                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
-                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
+                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    if ($translateTitle) $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                 } else if ($context === 'page') {
                     /** @var \Kirby\Cms\Page */
                     $page = $kirby->page($id);
+
+                    if (!$page) {
+                        throw new NotFoundException('Cannot find page with id "' . $id . '"');
+                    }
+
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
                     $translator = $page->translator();
-
-                    /** @var \Kirby\Cms\Language $language */
-                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
-                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
-                    if ($translateSlug) $translator->translateSlug($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
+                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    if ($translateTitle) $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    if ($translateSlug) $translator->translateSlug($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                 } else {
                     $id = dirname($id);
                     $filename = basename($id);
@@ -76,13 +78,14 @@ return [
                     $page = $kirby->page($id);
                     $file = $page->file($filename) ?? $kirby->site()->file($filename);
 
+                    if (!$file) {
+                        throw new NotFoundException('Cannot find file with id "' . $id . '"');
+                    }
+
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
                     $translator = $file->translator();
-
-                    /** @var \Kirby\Cms\Language $language */
-                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
-                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
+                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                 }
 
                 return [
