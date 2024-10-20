@@ -46,19 +46,18 @@ return [
                 }
 
                 if (!$selectedLanguage) {
-                    throw new BadMethodCallException('Missing "language" parameter');
+                    throw new BadMethodCallException('Missing "selectedLanguage" parameter');
                 }
 
                 $defaultLanguage = $kirby->defaultLanguage();
-                $language = $kirby->languages()->findByKey($selectedLanguage);
 
                 if ($context === 'site') {
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
                     $translator = $kirby->site()->translator();
 
-                    $translator->copyContent($language->code(), $defaultLanguage->code());
-                    $translator->translateContent($language->code(), $language->code(), $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($language->code(), $language->code(), $defaultLanguage->code());
+                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
+                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
                 } else if ($context === 'page') {
                     /** @var \Kirby\Cms\Page */
                     $page = $kirby->page($id);
@@ -66,10 +65,10 @@ return [
                     $translator = $page->translator();
 
                     /** @var \Kirby\Cms\Language $language */
-                    $translator->copyContent($language->code(), $defaultLanguage->code());
-                    $translator->translateContent($language->code(), $language->code(), $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($language->code(), $language->code(), $defaultLanguage->code());
-                    if ($translateSlug) $translator->translateSlug($language->code(), $language->code(), $defaultLanguage->code());
+                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
+                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    if ($translateSlug) $translator->translateSlug($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
                 } else {
                     $id = dirname($id);
                     $filename = basename($id);
@@ -81,9 +80,9 @@ return [
                     $translator = $file->translator();
 
                     /** @var \Kirby\Cms\Language $language */
-                    $translator->copyContent($language->code(), $defaultLanguage->code());
-                    $translator->translateContent($language->code(), $language->code(), $defaultLanguage->code());
-                    if ($translateTitle) $translator->translateTitle($language->code(), $language->code(), $defaultLanguage->code());
+                    $translator->copyContent($selectedLanguage, $defaultLanguage->code());
+                    $translator->translateContent($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
+                    if ($translateTitle) $translator->translateTitle($selectedLanguage, $selectedLanguage, $defaultLanguage->code());
                 }
 
                 return [
