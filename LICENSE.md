@@ -1,7 +1,7 @@
 # Kirby Tools License Agreement
 
 Published: 2024-03-03
-Last updated: 2024-06-06
+Last updated: 2024-11-13
 
 ## About this License Agreement
 
@@ -16,6 +16,10 @@ All payments for the Plugins are processed securely through our online reseller,
 ## Grant of License
 
 The Licensee is granted a non-exclusive, non-transferable, perpetual license to use the Plugins on projects owned by the Licensee. This license includes access to updates and support as defined herein.
+
+## Third-Party Purchases
+
+The Plugin license may be purchased by a third party on behalf of the intended Licensee. In such cases, the designated license holder specified during the purchase process shall be considered the Licensee under this agreement, and all terms and conditions shall apply to them. The purchasing party must ensure that the intended Licensee is aware of and agrees to the terms of this License Agreement.
 
 ## Ownership and Intellectual Property
 
