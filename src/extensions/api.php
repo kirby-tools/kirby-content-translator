@@ -56,8 +56,10 @@ return [
                     $translator = $kirby->site()->translator();
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateTitle) $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                } else if ($context === 'page') {
+                    if ($translateTitle) {
+                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    }
+                } elseif ($context === 'page') {
                     /** @var \Kirby\Cms\Page */
                     $page = $kirby->page($id);
 
@@ -69,8 +71,12 @@ return [
                     $translator = $page->translator();
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateTitle) $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateSlug) $translator->translateSlug($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    if ($translateTitle) {
+                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    }
+                    if ($translateSlug) {
+                        $translator->translateSlug($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    }
                 } else {
                     $id = dirname($id);
                     $filename = basename($id);

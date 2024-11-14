@@ -15,6 +15,9 @@ columns:
             fields:
               text:
                 type: textarea
+      tags01:
+        type: tags
+        label: Tags Field
       blocks01:
         label: Blocks Field
         type: blocks

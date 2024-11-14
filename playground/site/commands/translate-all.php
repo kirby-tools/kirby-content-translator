@@ -11,7 +11,7 @@ return [
     'command' => static function (CLI $cli) use ($defaultTranslatorOptions, $defaultAllLanguagesLabel): void {
         $kirby = $cli->kirby();
         $defaultLanguage = $kirby->defaultLanguage()->code();
-        $nonDefaultLanguages = $kirby->languages()->filter(fn(Language $language) => !$language->isDefault());
+        $nonDefaultLanguages = $kirby->languages()->filter(fn (Language $language) => !$language->isDefault());
 
         $input = $cli->radio(
             'Content of which language/languages should be translated?',
@@ -25,7 +25,7 @@ return [
         $hasAllLanguagesSelected = $targetLanguage === $defaultAllLanguagesLabel;
         $selectedLanguages = $hasAllLanguagesSelected
             ? $nonDefaultLanguages
-            : $nonDefaultLanguages->filter(fn(Language $language) => $language->name() === $targetLanguage);
+            : $nonDefaultLanguages->filter(fn (Language $language) => $language->name() === $targetLanguage);
 
         $cli->success('Translating to: ' . implode(', ', $selectedLanguages->pluck('name')));
 

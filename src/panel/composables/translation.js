@@ -41,6 +41,24 @@ export function useTranslation() {
           });
         }
 
+        // Handle tags fields
+        else if (
+          fields[key].type === "tags" &&
+          Array.isArray(obj[key]) &&
+          obj[key].length
+        ) {
+          // Improve performance by translating all tags in a single request
+          const text = obj[key].join(" | ");
+          tasks.push(async () => {
+            const response = await api.post(TRANSLATION_API_ROUTE, {
+              sourceLanguage,
+              targetLanguage,
+              text,
+            });
+            obj[key] = response.text.split("|").map((tag) => tag.trim());
+          });
+        }
+
         // Handle structure fields
         else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
           for (const item of obj[key]) {

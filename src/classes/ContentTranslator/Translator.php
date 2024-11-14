@@ -37,6 +37,7 @@ final class Translator
             'list',
             'object',
             'structure',
+            'tags',
             'text',
             'textarea',
             'writer'
@@ -190,7 +191,7 @@ final class Translator
             }
 
             // Handle text-like fields
-            if (in_array($fields[$key]['type'], ['list', 'text', 'textarea', 'writer'], true)) {
+            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer'], true)) {
                 $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
 

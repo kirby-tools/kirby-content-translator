@@ -88,6 +88,7 @@ const currentContent = computed(() => store.getters["content/values"]());
       "list",
       "object",
       "structure",
+      "tags",
       "text",
       "textarea",
       "writer",
