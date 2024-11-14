@@ -1,22 +1,22 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
+use Kirby\Cms\Page;
+use Kirby\Data\Json;
+use Kirby\Data\Yaml;
 use PHPUnit\Framework\TestCase;
 
 final class ContentTranslatorTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        restore_error_handler();
-        restore_exception_handler();
-    }
+    protected App $app;
+    protected Page $page;
 
-    public function app($language = null): App
+    protected function setUp(): void
     {
-        $app = new App([
+        $this->app = new App([
             'languages' => [
                 [
                     'code' => 'en',
@@ -26,16 +26,58 @@ final class ContentTranslatorTest extends TestCase
                 [
                     'code' => 'de',
                     'name' => 'Deutsch'
+                ],
+                [
+                    'code' => 'fr',
+                    'name' => 'Français'
                 ]
             ],
             'blueprints' => [
                 'pages/default' => [
                     'fields' => [
                         'title' => [
-                            'type' => 'text'
+                            'type' => 'text',
+                            'translate' => true
                         ],
-                        'untranslated' => [
-                            'type' => 'text'
+                        'text' => [
+                            'type' => 'textarea',
+                            'translate' => true
+                        ],
+                        'keepText' => [
+                            'type' => 'text',
+                            'translate' => false
+                        ],
+                        'blocks' => [
+                            'type' => 'blocks',
+                            'translate' => true,
+                            'fieldsets' => [
+                                'text' => [
+                                    'tabs' => [
+                                        'content' => [
+                                            'fields' => [
+                                                'text' => [
+                                                    'type' => 'textarea',
+                                                    'translate' => true
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ],
+                        'structure' => [
+                            'type' => 'structure',
+                            'translate' => true,
+                            'fields' => [
+                                'heading' => [
+                                    'type' => 'text',
+                                    'translate' => true
+                                ],
+                                'description' => [
+                                    'type' => 'textarea',
+                                    'translate' => true
+                                ]
+                            ]
                         ]
                     ]
                 ]
@@ -44,80 +86,177 @@ final class ContentTranslatorTest extends TestCase
                 'children' => [
                     [
                         'slug' => 'home',
+                        'template' => 'default',
                         'translations' => [
                             [
                                 'code' => 'en',
                                 'content' => [
                                     'title' => 'Home',
-                                    'untranslated' => 'Untranslated'
+                                    'text' => 'Welcome to our website',
+                                    'keepText' => 'Do not translate',
+                                    'blocks' => Json::encode([
+                                        [
+                                            'type' => 'text',
+                                            'id' => '1234',
+                                            'content' => [
+                                                'text' => 'Block content'
+                                            ]
+                                        ]
+                                    ]),
+                                    'structure' => Yaml::encode([
+                                        [
+                                            'heading' => 'Section 1',
+                                            'description' => 'Description 1'
+                                        ]
+                                    ])
                                 ]
                             ],
                             [
                                 'code' => 'de',
-                                'slug' => 'start',
-                                'content' => [
-                                    'title' => 'Startseite'
-                                ]
-                            ],
-                        ],
+                                'slug' => 'startseite',
+                                'content' => []
+                            ]
+                        ]
                     ]
-                ],
+                ]
             ],
             'options' => [
                 'debug' => true,
                 'johannschopplich.content-translator' => [
                     'translateFn' => function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
-                        return md5($toLanguageCode . $text);
+                        return "[$toLanguageCode]$text";
                     }
                 ]
             ]
         ]);
-
-        if ($language !== null) {
-            $app->setCurrentLanguage($language);
-            $app->setCurrentTranslation($language);
-        }
-
-        return $app;
     }
 
-    public function testTranslateTextUsesProvidedTranslateFunction(): void
+    protected function tearDown(): void
     {
-        $this->app('en');
-        $translatedText = Translator::translateText('hello', 'de');
-        $this->assertSame(md5('de' . 'hello'), $translatedText);
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
+    public function testTranslateTextWithEmptyString(): void
+    {
+        $this->assertSame('', Translator::translateText('', 'de'));
+    }
+
+    public function testTranslateTextWithCustomFunction(): void
+    {
+        $this->assertSame('[de]hello', Translator::translateText('hello', 'de'));
     }
 
     public function testCopyContent(): void
     {
-        $page = $this->app('de')->page('home')->clone();
+        $page = $this->app->page('home')->clone();
 
         $translator = new Translator($page);
         $translator->copyContent('de', 'en');
-        $page = $translator->model();
 
-        $this->assertSame('Untranslated', $page->content('de')->get('untranslated')->value());
+        $this->assertSame(
+            'Welcome to our website',
+            $translator->model()->content('de')->get('text')->value()
+        );
     }
 
     public function testTranslateContent(): void
     {
-        $page = $this->app('en')->page('home')->clone();
+        $page = $this->app->page('home')->clone();
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
-        $page = $translator->model();
 
-        $this->assertSame(md5('de' . 'Untranslated'), $page->content('de')->get('untranslated')->value());
+        $this->assertSame(
+            '[de]Welcome to our website',
+            $translator->model()->content('en')->get('text')->value()
+        );
+    }
+
+    public function testTranslateContentWithSourceLanguage(): void
+    {
+        $page = $this->app->page('home')->clone();
+
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de', 'en');
+
+        $this->assertSame(
+            '[de]Welcome to our website',
+            $translator->model()->content('en')->get('text')->value()
+        );
     }
 
     public function testTranslateTitle(): void
     {
-        $page = $this->app('en')->page('home')->clone();
+        $page = $this->app->page('home')->clone();
 
         $translator = new Translator($page);
         $translator->translateTitle('en', 'de');
-        $page = $translator->model();
 
-        $this->assertSame(md5('de' . 'Home'), $page->title()->value());
+        $this->assertSame('[de]Home', $translator->model()->title()->value());
+    }
+
+    public function testDoNotTranslateHomePageSlug(): void
+    {
+        $page = $this->app->page('home')->clone();
+        $originalSlug = $page->slug('en');
+
+        $translator = new Translator($page);
+        $translator->translateSlug('en', 'de');
+
+        $this->assertSame($originalSlug, $translator->model()->slug('en'));
+    }
+
+    public function testTranslateBlocksContent(): void
+    {
+        $page = $this->app->page('home')->clone();
+
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value(), true);
+        $this->assertSame('[de]Block content', $blocks[0]['content']['text']);
+    }
+
+    public function testTranslateStructureContent(): void
+    {
+        $page = $this->app->page('home')->clone();
+
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        $structure = Yaml::decode($translator->model()->content('en')->get('structure')->value());
+        $this->assertSame('[de]Section 1', $structure[0]['heading']);
+        $this->assertSame('[de]Description 1', $structure[0]['description']);
+    }
+
+    public function testDoNotTranslateUntranslatableFields(): void
+    {
+        $page = $this->app->page('home')->clone();
+
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        $this->assertSame(
+            'Do not translate',
+            $translator->model()->content('en')->get('keepText')->value()
+        );
+    }
+
+    public function testCustomFieldTypeConfiguration(): void
+    {
+        $page = $this->app->page('home')->clone();
+
+        $translator = new Translator($page, [
+            'fieldTypes' => ['textarea'],
+            'includeFields' => ['text'],
+            'excludeFields' => ['keepText']
+        ]);
+
+        $translator->translateContent('en', 'de');
+
+        // Only text should be translated
+        $this->assertSame('[de]Welcome to our website', $translator->model()->content('en')->get('text')->value());
+        $this->assertSame('Do not translate', $translator->model()->content('en')->get('keepText')->value());
     }
 }
