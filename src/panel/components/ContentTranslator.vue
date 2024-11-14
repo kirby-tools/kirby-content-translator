@@ -194,7 +194,10 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
     store.dispatch("content/update", [key, value]);
   }
 
-  if (translateTitle.value || translateSlug.value) {
+  if (
+    translateTitle.value ||
+    (translateSlug.value && !targetLanguage.default)
+  ) {
     const { text } = await panel.api.post(TRANSLATION_API_ROUTE, {
       sourceLanguage: sourceLanguage?.code,
       targetLanguage: targetLanguage.code,
@@ -203,7 +206,10 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
     if (translateTitle.value) {
       await panel.api.patch(`${panel.view.path}/title`, { title: text });
     }
-    if (translateSlug.value) {
+    // Translating the slug is only possible for non-default languages,
+    // as the page folder would be renamed otherwise.
+    // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
+    if (translateSlug.value && !targetLanguage.default) {
       const slug = slugify(text);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
