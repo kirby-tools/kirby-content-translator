@@ -10,7 +10,7 @@ use Kirby\Cms\Site;
 
 // Validate Kirby version
 if (!Semver::satisfies(Kirby::version() ?? '0.0.0', '^4.0 || >=5.0.0-alpha.1 <=5.0.0-alpha.3')) {
-    throw new Exception('Kirby SEO Audit requires Kirby 4');
+    throw new Exception('Kirby Content Translator requires Kirby 4');
 }
 
 Kirby::plugin('johannschopplich/content-translator', [
