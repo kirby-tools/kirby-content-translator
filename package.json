@@ -18,7 +18,7 @@
     "@kirby-tools/licensing": "^0.3.2",
     "@sindresorhus/slugify": "^2.2.1",
     "autoprefixer": "^10.4.20",
-    "bumpp": "^9.9.0",
+    "bumpp": "~9.8.1",
     "eslint": "^9.16.0",
     "kirbyup": "^3.2.0",
     "kirbyuse": "^0.8.8",
