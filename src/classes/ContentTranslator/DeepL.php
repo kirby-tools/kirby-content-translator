@@ -47,8 +47,10 @@ final class DeepL
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
 
-    private array $requestOptions = [ // https://developers.deepl.com/docs/api-reference/translate
-        'tag_handling' => 'html' // Sensible default to account for Writer field, which can contain HTML
+    /** @see https://developers.deepl.com/docs/api-reference/translate */
+    private array $requestOptions = [
+        // Enable HTML tag handling by default for the Writer field
+        'tag_handling' => 'html'
     ];
     private string|null $apiKey;
     private static DeepL|null $instance;
@@ -63,12 +65,10 @@ final class DeepL
         }
 
         $this->apiKey = $authKey;
-        if (option('johannschopplich.content-translator.deepl.requestOptions')) {
-            $this->requestOptions = A::merge(
-                $this->requestOptions,
-                option('johannschopplich.content-translator.deepl.requestOptions')
-            );
-        }
+        $this->requestOptions = A::merge(
+            $this->requestOptions,
+            $kirby->option('johannschopplich.content-translator.deepl.requestOptions', [])
+        );
     }
 
     public function instance(): DeepL
