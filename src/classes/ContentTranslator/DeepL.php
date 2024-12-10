@@ -8,6 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
 use Kirby\Http\Remote;
+use Kirby\Toolkit\A;
 
 final class DeepL
 {
@@ -46,6 +47,9 @@ final class DeepL
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
 
+    private array $requestOptions = [ // https://developers.deepl.com/docs/api-reference/translate
+        'tag_handling' => 'html' // Sensible default to account for Writer field, which can contain HTML
+    ];
     private string|null $apiKey;
     private static DeepL|null $instance;
 
@@ -59,6 +63,12 @@ final class DeepL
         }
 
         $this->apiKey = $authKey;
+        if (option('johannschopplich.content-translator.deepl.requestOptions')) {
+            $this->requestOptions = A::merge(
+                $this->requestOptions,
+                option('johannschopplich.content-translator.deepl.requestOptions')
+            );
+        }
     }
 
     public function instance(): DeepL
@@ -82,11 +92,14 @@ final class DeepL
                 'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
                 'Content-Type' => 'application/json'
             ],
-            'data' => json_encode([
-                'text' => [$text],
-                'source_lang' => $sourceLanguage,
-                'target_lang' => strtoupper($targetLanguage)
-            ])
+            'data' => json_encode(A::merge(
+                [
+                    'text' => [$text],
+                    'source_lang' => $sourceLanguage,
+                    'target_lang' => strtoupper($targetLanguage),
+                ],
+                $this->requestOptions
+            ))
         ]);
 
         // See error message guide: https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
