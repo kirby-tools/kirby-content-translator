@@ -1,35 +1,51 @@
 title: Page
 
-columns:
-  - width: 2/3
-    fields:
-      object01:
-        type: object
-        label: Object Field
+tabs:
+  blocks:
+    label: Blocks
+    columns:
+      - width: 2/3
         fields:
-          text:
-            type: textarea
-          structure02:
-            type: structure
-            label: Structure Field
+          blocks01:
+            label: Blocks Field
+            type: blocks
+            fieldsets:
+              - heading
+              - text
+              - quote
+              - structure
+      - width: 1/3
+        sections:
+          contentTranslator01:
+            type: content-translator
+            label: Content Translator
+            title: true
+            # slug: true
+
+  objectFields:
+    label: Object & Structure Fields
+    columns:
+      - width: 2/3
+        fields:
+          object01:
+            type: object
+            label: Object Field
             fields:
               text:
                 type: textarea
-      tags01:
-        type: tags
-        label: Tags Field
-      blocks01:
-        label: Blocks Field
-        type: blocks
-        fieldsets:
-          - heading
-          - text
-          - quote
-          - structure
-  - width: 1/3
-    sections:
-      contentTranslator:
-        type: content-translator
-        label: Content Translator
-        title: true
-        # slug: true
+              structure:
+                type: structure
+                label: Structure Field
+                fields:
+                  text:
+                    type: textarea
+          tags01:
+            type: tags
+            label: Tags Field
+      - width: 1/3
+        sections:
+          contentTranslator02:
+            type: content-translator
+            label: Content Translator
+            title: true
+            # slug: true

@@ -10,7 +10,10 @@ return [
     ],
 
     'panel' => [
-        'css' => env('DEMO', false) ? 'assets/panel.css' : null,
+        'css' => array_filter([
+            'assets/panel.css',
+            env('DEMO', false) ? 'assets/panel-demo.css' : false
+        ]),
         'favicon' => 'favicon.ico'
     ],
 

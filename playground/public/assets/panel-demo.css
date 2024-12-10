@@ -1,0 +1,19 @@
+/* Hide Panel navigation and topbar */
+.k-panel {
+  --main-start: 0;
+}
+
+.k-panel-menu,
+.k-panel-menu-proxy,
+.k-topbar {
+  display: none;
+}
+
+.k-page-view[data-id="demo"] .k-topbar,
+.k-page-view[data-id="demo"] .k-page-view-header {
+  display: none;
+}
+
+.k-page-view[data-id="demo"] .k-sections {
+  padding-top: 2rem;
+}

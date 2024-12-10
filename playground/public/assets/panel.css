@@ -1,18 +1,18 @@
-.k-panel {
-  --main-start: 0;
+/* Improved tabs layout */
+.k-tabs {
+  padding-top: var(--spacing-4);
 }
 
-.k-panel-menu,
-.k-panel-menu-proxy,
-.k-topbar {
-  display: none;
+.k-tab-button[aria-current] {
+  color: var(--toolbar-text);
+  background: var(--toolbar-back);
+  box-shadow: var(--shadow);
 }
 
-.k-page-view[data-id="demo"] .k-topbar,
-.k-page-view[data-id="demo"] .k-page-view-header {
-  display: none;
+.k-tab-button[aria-current] .k-button-text {
+  filter: unset !important;
 }
 
-.k-page-view[data-id="demo"] .k-sections {
-  padding-top: 2rem;
+.k-tab-button[aria-current]::after {
+  content: unset;
 }
