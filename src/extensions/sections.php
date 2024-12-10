@@ -68,22 +68,6 @@ return [
             'fields' => function () {
                 return Translator::resolveModelFields($this->model);
             },
-            'config' => function () {
-                /** @var \Kirby\Cms\App */
-                $kirby = $this->kirby();
-                $config = $kirby->option('johannschopplich.content-translator', []);
-
-                // Don't leak the API key to the Panel frontend
-                if (isset($config['DeepL']['apiKey'])) {
-                    $config['DeepL'] = [
-                        'apiKey' => !empty($config['DeepL']['apiKey'])
-                    ];
-                }
-
-                $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
-
-                return $config;
-            },
             'license' => function () {
                 $licenses = Licenses::read('johannschopplich/kirby-content-translator');
                 return $licenses->getStatus();

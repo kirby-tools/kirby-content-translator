@@ -9,6 +9,24 @@ use Kirby\Exception\NotFoundException;
 return [
     'routes' => fn (App $kirby) => [
         [
+            'pattern' => '__content-translator__/context',
+            'method' => 'GET',
+            'action' => function () use ($kirby) {
+                $config = $kirby->option('johannschopplich.content-translator', []);
+
+                // Don't leak the API key to the Panel frontend
+                if (isset($config['DeepL']['apiKey'])) {
+                    $config['DeepL'] = [
+                        'apiKey' => !empty($config['DeepL']['apiKey'])
+                    ];
+                }
+
+                $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
+
+                return compact('config');
+            }
+        ],
+        [
             'pattern' => '__content-translator__/translate',
             'method' => 'POST',
             'action' => function () use ($kirby) {

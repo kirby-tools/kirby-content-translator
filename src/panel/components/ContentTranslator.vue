@@ -9,6 +9,7 @@ import {
   useSection,
 } from "kirbyuse";
 import { section } from "kirbyuse/props";
+import { usePluginContext } from "../composables/plugin";
 import { useTranslation } from "../composables/translation";
 import {
   TRANSLATION_API_ROUTE,
@@ -66,20 +67,24 @@ const nonDefaultLanguages = panel.languages.filter(
 
 (async () => {
   const { load } = useSection();
-  const response = await load({
-    parent: props.parent,
-    name: props.name,
-  });
+  const [context, response] = await Promise.all([
+    usePluginContext(),
+    load({
+      parent: props.parent,
+      name: props.name,
+    }),
+  ]);
+
   label.value =
     t(response.label) || panel.t("johannschopplich.content-translator.label");
-  allowImport.value = response.import ?? response.config.import ?? true;
-  importFrom.value = response.importFrom ?? response.config.importFrom;
-  allowBulkTranslation.value = response.bulk ?? response.config.bulk ?? true;
-  translateTitle.value = response.title ?? response.config.title ?? false;
-  translateSlug.value = response.slug ?? response.config.slug ?? false;
-  confirm.value = response.confirm ?? response.config.confirm ?? true;
+  allowImport.value = response.import ?? context.config.import ?? true;
+  importFrom.value = response.importFrom ?? context.config.importFrom;
+  allowBulkTranslation.value = response.bulk ?? context.config.bulk ?? true;
+  translateTitle.value = response.title ?? context.config.title ?? false;
+  translateSlug.value = response.slug ?? context.config.slug ?? false;
+  confirm.value = response.confirm ?? context.config.confirm ?? true;
   fieldTypes.value = response.fieldTypes ??
-    response.config.fieldTypes ?? [
+    context.config.fieldTypes ?? [
       "blocks",
       "layout",
       "list",
@@ -92,12 +97,12 @@ const nonDefaultLanguages = panel.languages.filter(
       "markdown",
     ];
   includeFields.value =
-    response.includeFields ?? response.config.includeFields ?? [];
+    response.includeFields ?? context.config.includeFields ?? [];
   excludeFields.value =
-    response.excludeFields ?? response.config.excludeFields ?? [];
+    response.excludeFields ?? context.config.excludeFields ?? [];
   modelMeta.value = response.modelMeta ?? {};
   fields.value = response.fields ?? {};
-  config.value = response.config ?? {};
+  config.value = context.config ?? {};
   license.value = response.license;
 
   // Re-fetch default content whenever the page gets saved
