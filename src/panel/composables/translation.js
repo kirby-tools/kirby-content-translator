@@ -30,7 +30,11 @@ export function useTranslation() {
         if (excludeFields?.length && excludeFields.includes(key)) continue;
 
         // Handle text-like fields
-        if (["list", "text", "textarea", "writer"].includes(fields[key].type)) {
+        if (
+          ["list", "text", "textarea", "writer", "markdown"].includes(
+            fields[key].type,
+          )
+        ) {
           tasks.push(async () => {
             const response = await api.post(TRANSLATION_API_ROUTE, {
               sourceLanguage,

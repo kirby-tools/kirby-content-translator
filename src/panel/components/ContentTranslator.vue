@@ -2,12 +2,11 @@
 import { useLicense } from "@kirby-tools/licensing";
 import slugify from "@sindresorhus/slugify";
 import {
-  computed,
   onBeforeUnmount,
   ref,
+  useContent,
   usePanel,
   useSection,
-  useStore,
 } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import { useTranslation } from "../composables/translation";
@@ -29,7 +28,7 @@ export default {
 const props = defineProps(propsDefinition);
 
 const panel = usePanel();
-const store = useStore();
+const { currentContent, update: updateContent } = useContent();
 const { translateContent } = useTranslation();
 const { openLicenseModal, assertActivationIntegrity } = useLicense({
   label: "Kirby Content Translator",
@@ -65,8 +64,6 @@ const nonDefaultLanguages = panel.languages.filter(
   (language) => language.code !== defaultLanguage.code,
 );
 
-const currentContent = computed(() => store.getters["content/values"]());
-
 (async () => {
   const { load } = useSection();
   const response = await load({
@@ -92,6 +89,7 @@ const currentContent = computed(() => store.getters["content/values"]());
       "text",
       "textarea",
       "writer",
+      "markdown",
     ];
   includeFields.value =
     response.includeFields ?? response.config.includeFields ?? [];
@@ -148,9 +146,7 @@ async function syncModelContent(language) {
     ),
   );
 
-  for (const [key, value] of Object.entries(syncableContent)) {
-    store.dispatch("content/update", [key, value]);
-  }
+  await updateContent(syncableContent);
 
   if (translateTitle.value) {
     await panel.api.patch(`${panel.view.path}/title`, { title });
@@ -189,10 +185,7 @@ async function translateModelContent(targetLanguage, sourceLanguage) {
     return;
   }
 
-  // Update content
-  for (const [key, value] of Object.entries(clone)) {
-    store.dispatch("content/update", [key, value]);
-  }
+  await updateContent(clone);
 
   if (
     translateTitle.value ||

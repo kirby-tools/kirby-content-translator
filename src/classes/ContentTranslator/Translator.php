@@ -40,7 +40,9 @@ final class Translator
             'tags',
             'text',
             'textarea',
-            'writer'
+            'writer',
+            // Community plugins
+            'markdown'
         ];
         $this->includeFields = $options['includeFields'] ?? $config['includeFields'] ?? [];
         $this->excludeFields = $options['excludeFields'] ?? $config['excludeFields'] ?? [];
@@ -191,7 +193,7 @@ final class Translator
             }
 
             // Handle text-like fields
-            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer'], true)) {
+            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer', 'markdown'], true)) {
                 $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
 
