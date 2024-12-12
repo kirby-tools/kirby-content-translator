@@ -1,7 +1,6 @@
 <?php
 
 use JohannSchopplich\ContentTranslator\Translator;
-use JohannSchopplich\Licensing\Licenses;
 use Kirby\Toolkit\I18n;
 
 return [
