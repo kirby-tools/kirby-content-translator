@@ -47,9 +47,9 @@ const excludeFields = ref([]);
 // Section computed
 const modelMeta = ref();
 const fields = ref();
-const config = ref();
 
 // Generic data
+const config = ref();
 const isInitialized = ref(false);
 const defaultLanguageData = ref({});
 const licenseStatus = ref();
@@ -97,7 +97,7 @@ const nonDefaultLanguages = panel.languages.filter(
     response.excludeFields ?? context.config.excludeFields ?? [];
   modelMeta.value = response.modelMeta ?? {};
   fields.value = response.fields ?? {};
-  config.value = context.config ?? {};
+  config.value = context.config;
   licenseStatus.value = context.licenseStatus;
 
   // Re-fetch default content whenever the page gets saved
