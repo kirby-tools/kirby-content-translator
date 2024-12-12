@@ -12,6 +12,7 @@ return [
             'pattern' => '__content-translator__/context',
             'method' => 'GET',
             'action' => function () use ($kirby) {
+                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
                 $config = $kirby->option('johannschopplich.content-translator', []);
 
                 // Don't leak the API key to the Panel frontend
@@ -23,7 +24,10 @@ return [
 
                 $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
 
-                return compact('config');
+                return [
+                    'config' => $config,
+                    'licenseStatus' => $licenses->getStatus()
+                ];
             }
         ],
         [

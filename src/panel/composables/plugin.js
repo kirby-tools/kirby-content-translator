@@ -9,8 +9,8 @@ export function usePluginContext() {
 
   pendingPromise = window.panel.api
     .get(PLUGIN_CONTEXT_API_ROUTE)
-    .then(({ config }) => {
-      context = { config };
+    .then((response) => {
+      context = response;
       pendingPromise = undefined;
       return context;
     });

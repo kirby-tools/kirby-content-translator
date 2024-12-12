@@ -67,10 +67,6 @@ return [
             },
             'fields' => function () {
                 return Translator::resolveModelFields($this->model);
-            },
-            'license' => function () {
-                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
-                return $licenses->getStatus();
             }
         ]
     ]

@@ -1,5 +1,5 @@
 <script>
-import { useLicense } from "@kirby-tools/licensing";
+import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import slugify from "@sindresorhus/slugify";
 import {
   onBeforeUnmount,
@@ -31,10 +31,6 @@ const props = defineProps(propsDefinition);
 const panel = usePanel();
 const { currentContent, update: updateContent } = useContent();
 const { translateContent } = useTranslation();
-const { openLicenseModal, assertActivationIntegrity } = useLicense({
-  label: "Kirby Content Translator",
-  apiNamespace: "__content-translator__",
-});
 
 // Section props
 const label = ref();
@@ -52,12 +48,11 @@ const excludeFields = ref([]);
 const modelMeta = ref();
 const fields = ref();
 const config = ref();
-const license = ref();
 
 // Generic data
 const isInitialized = ref(false);
 const defaultLanguageData = ref({});
-const licenseButtonGroup = ref();
+const licenseStatus = ref();
 
 // Static data
 const defaultLanguage = panel.languages.find((language) => language.default);
@@ -103,7 +98,7 @@ const nonDefaultLanguages = panel.languages.filter(
   modelMeta.value = response.modelMeta ?? {};
   fields.value = response.fields ?? {};
   config.value = context.config ?? {};
-  license.value = response.license;
+  licenseStatus.value = context.licenseStatus;
 
   // Re-fetch default content whenever the page gets saved
   panel.events.on("model.update", updateModelDefaultLanguageData);
@@ -111,10 +106,6 @@ const nonDefaultLanguages = panel.languages.filter(
   updateModelDefaultLanguageData();
 
   isInitialized.value = true;
-  assertActivationIntegrity({
-    component: licenseButtonGroup,
-    licenseStatus: license.value,
-  });
 })();
 
 onBeforeUnmount(() => {
@@ -286,40 +277,18 @@ function openModal(text, callback) {
     },
   });
 }
-
-async function handleRegistration() {
-  const { isRegistered } = await openLicenseModal();
-  if (isRegistered) {
-    license.value = "active";
-  }
-}
 </script>
 
 <template>
   <k-section v-if="isInitialized" :label="label">
-    <k-button-group
-      v-if="license !== 'active'"
-      ref="licenseButtonGroup"
-      slot="options"
-      layout="collapsed"
-    >
-      <k-button
-        theme="love"
-        variant="filled"
-        size="xs"
-        link="https://kirby.tools/content-translator#pricing"
-        target="_blank"
-        :text="panel.t('johannschopplich.content-translator.license.buy')"
+    <template v-if="licenseStatus !== undefined" slot="options">
+      <LicensingButtonGroup
+        label="Kirby Content Translator"
+        api-namespace="__content-translator__"
+        :license-status="licenseStatus"
+        pricing-url="https://kirby.tools/content-translator#pricing"
       />
-      <k-button
-        theme="love"
-        variant="filled"
-        size="xs"
-        icon="key"
-        :text="panel.t('johannschopplich.content-translator.license.activate')"
-        @click="handleRegistration()"
-      />
-    </k-button-group>
+    </template>
 
     <k-box v-if="!panel.multilang" theme="empty">
       <k-text>

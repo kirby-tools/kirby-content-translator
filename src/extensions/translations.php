@@ -14,9 +14,7 @@ return [
         'johannschopplich.content-translator.dialog.bulkTranslation' => 'The content of all secondary languages will be overwritten with the data from <strong>{language}</strong> and then translated to the respective language. This process is <strong>not reversible</strong> and may take some time. Continue?',
         'johannschopplich.content-translator.notification.imported' => 'Content imported',
         'johannschopplich.content-translator.notification.translated' => 'Content translated',
-        'johannschopplich.content-translator.notification.bulkTranslated' => 'Content translated for all secondary languages',
-        'johannschopplich.content-translator.license.buy' => 'Buy a license',
-        'johannschopplich.content-translator.license.activate' => 'Activate',
+        'johannschopplich.content-translator.notification.bulkTranslated' => 'Content translated for all secondary languages'
     ],
     'de' => [
         'johannschopplich.content-translator.label' => 'Content-Übersetzer',
@@ -31,9 +29,7 @@ return [
         'johannschopplich.content-translator.dialog.bulkTranslation' => 'Der Content aller Sekundärsprachen werden mit den Daten von <strong>{language}</strong> überschrieben und anschließend in die jeweilige Sprache übersetzt. Dieser Vorgang ist <strong>nicht rückgängig zu machen</strong> und kann einige Zeit in Anspruch nehmen. Fortfahren?',
         'johannschopplich.content-translator.notification.imported' => 'Content importiert',
         'johannschopplich.content-translator.notification.translated' => 'Content übersetzt',
-        'johannschopplich.content-translator.notification.bulkTranslated' => 'Content für alle Sekundärsprachen übersetzt',
-        'johannschopplich.content-translator.license.buy' => 'Lizenz kaufen',
-        'johannschopplich.content-translator.license.activate' => 'Aktivieren',
+        'johannschopplich.content-translator.notification.bulkTranslated' => 'Content für alle Sekundärsprachen übersetzt'
     ],
     'fr' => [
         'johannschopplich.content-translator.label' => 'Traducteur de Contenu',
@@ -48,9 +44,7 @@ return [
         'johannschopplich.content-translator.dialog.bulkTranslation' => 'Le contenu de toutes les langues secondaires sera écrasé par les données de <strong>{language}</strong> puis traduit dans la langue respective. Ce processus n\'est <strong>pas réversible</strong> et peut prendre un certain temps. Continuer ?',
         'johannschopplich.content-translator.notification.imported' => 'Contenu importé',
         'johannschopplich.content-translator.notification.translated' => 'Contenu traduit',
-        'johannschopplich.content-translator.notification.bulkTranslated' => 'Contenu traduit pour toutes les langues secondaires',
-        'johannschopplich.content-translator.license.buy' => 'Acheter une licence',
-        'johannschopplich.content-translator.license.activate' => 'Activer',
+        'johannschopplich.content-translator.notification.bulkTranslated' => 'Contenu traduit pour toutes les langues secondaires'
     ],
     'nl' => [
         'johannschopplich.content-translator.label' => 'Inhoud Vertaler',
@@ -65,8 +59,6 @@ return [
         'johannschopplich.content-translator.dialog.bulkTranslation' => 'De inhoud van alle secundaire talen wordt overschreven met de gegevens van <strong>{language}</strong> en vervolgens vertaald naar de respectievelijke taal. Dit proces is <strong>niet omkeerbaar</strong> en kan enige tijd duren. Doorgaan?',
         'johannschopplich.content-translator.notification.imported' => 'Inhoud geïmporteerd',
         'johannschopplich.content-translator.notification.translated' => 'Inhoud vertaald',
-        'johannschopplich.content-translator.notification.bulkTranslated' => 'Inhoud vertaald voor alle secundaire talen',
-        'johannschopplich.content-translator.license.buy' => 'Koop een licentie',
-        'johannschopplich.content-translator.license.activate' => 'Activeren',
+        'johannschopplich.content-translator.notification.bulkTranslated' => 'Inhoud vertaald voor alle secundaire talen'
     ]
 ];
