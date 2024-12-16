@@ -48,7 +48,7 @@ const excludeFields = ref([]);
 const modelMeta = ref();
 const fields = ref();
 
-// Generic data
+// Local data
 const config = ref();
 const isInitialized = ref(false);
 const defaultLanguageData = ref({});
