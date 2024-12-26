@@ -122,11 +122,11 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/register',
+            'pattern' => '__content-translator__/activate',
             'method' => 'POST',
             'action' => function () {
-                $licenses = Licenses::read('johannschopplich/kirby-content-translator', ['migrate' => false]);
-                return $licenses->registerFromRequest();
+                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
+                return $licenses->activateFromRequest();
             }
         ]
     ]
