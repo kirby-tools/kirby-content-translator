@@ -10,7 +10,6 @@ use Kirby\Data\Json;
 use Kirby\Exception\LogicException;
 use Kirby\Filesystem\F;
 use Kirby\Http\Remote;
-use Kirby\Toolkit\Str;
 use Throwable;
 
 /**
@@ -65,16 +64,22 @@ class Licenses
             return 'invalid';
         }
 
-        if (!$this->isCompatible($this->getLicenseCompatibility())) {
-            return 'incompatible';
+        $compatibility = $this->getLicenseCompatibility();
+
+        if ($this->isCompatible($compatibility)) {
+            return 'active';
         }
 
-        return 'active';
+        if ($this->isUpgradeable($compatibility)) {
+            return 'upgradeable';
+        }
+
+        return 'incompatible';
     }
 
     public function getLicense(): array|bool
     {
-        if (!$this->isRegistered()) {
+        if (!$this->isActivated()) {
             return false;
         }
 
@@ -97,6 +102,8 @@ class Licenses
         if (preg_match(static::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
             return (int)$matches[1];
         }
+
+        return null;
     }
 
     public function getLicenseCompatibility(): string|null
@@ -110,7 +117,7 @@ class Licenses
         return App::instance()->plugin($kirbyPackageName)?->version();
     }
 
-    public function isRegistered(): bool
+    public function isActivated(): bool
     {
         return $this->isValid($this->getLicenseKey()) && $this->isCompatible($this->getLicenseCompatibility());
     }
@@ -128,19 +135,50 @@ class Licenses
             throw new LogicException('Development versions are not supported');
         }
 
-        return $versionConstraint !== null && Semver::satisfies(
-            $version,
-            $versionConstraint
-        );
+        return $versionConstraint !== null
+            && $version !== null
+            && Semver::satisfies($version, $versionConstraint);
     }
 
-    public function register(string $email, string|int $orderId): void
+    public function isUpgradeable(string|null $versionConstraint): bool
     {
-        if ($this->isRegistered()) {
-            throw new LogicException('License key already registered');
+        if ($versionConstraint === null) {
+            return false;
         }
 
-        $response = $this->request('licenses', [
+        $version = $this->getPluginVersion();
+        if ($version === null) {
+            return false;
+        }
+
+        // Parse version constraint to get major versions
+        $constraints = explode('||', $versionConstraint);
+        $maxLicensedMajor = 0;
+
+        foreach ($constraints as $constraint) {
+            $constraint = trim($constraint);
+            if (preg_match('/\^(\d+)/', $constraint, $matches)) {
+                $maxLicensedMajor = max($maxLicensedMajor, (int)$matches[1]);
+            }
+        }
+
+        // Get current version major
+        if (preg_match('/^(\d+)\./', $version, $matches)) {
+            $currentMajor = (int)$matches[1];
+            // If current major is higher than max supported major, it's upgradeable
+            return $currentMajor > $maxLicensedMajor;
+        }
+
+        return false;
+    }
+
+    public function activate(string $email, string|int $orderId): void
+    {
+        if ($this->isActivated()) {
+            throw new LogicException('License key already activated');
+        }
+
+        $response = $this->request('auth/activate', [
             'method' => 'POST',
             'data' => [
                 'email' => $email,
@@ -152,14 +190,20 @@ class Licenses
             throw new LogicException('License key not valid for this plugin');
         }
 
-        if (!$this->isCompatible($response['licenseCompatibility'])) {
+        $compatibility = $response['licenseCompatibility'];
+
+        if (!$this->isCompatible($compatibility)) {
+            if ($this->isUpgradeable($compatibility)) {
+                throw new LogicException('License key not valid for this plugin version, please upgrade your license');
+            }
+
             throw new LogicException('License key not valid for this plugin version');
         }
 
         $this->update($this->packageName, $response);
     }
 
-    public function registerFromRequest(): array
+    public function activateFromRequest(): array
     {
         $request = App::instance()->request();
         $email = $request->get('email');
@@ -169,12 +213,12 @@ class Licenses
             throw new LogicException('Missing license registration parameters "email" or "orderId"');
         }
 
-        $this->register($email, $orderId);
+        $this->activate($email, $orderId);
 
         return [
             'code' => 200,
             'status' => 'ok',
-            'message' => 'License key registered successfully'
+            'message' => 'License key successfully activated'
         ];
     }
 
@@ -192,7 +236,7 @@ class Licenses
 
     private function migration(): void
     {
-        // Migration 1: Move license file to license directory (if applicable)
+        // Migration 1: Move license file to license directory
         $oldLicenseFile = App::instance()->root('config') . '/' . static::LICENSE_FILE;
         if (F::exists($oldLicenseFile) && $oldLicenseFile !== $this->licenseFile) {
             F::move($oldLicenseFile, $this->licenseFile);
@@ -203,38 +247,6 @@ class Licenses
         if (is_string($this->licenses[$this->packageName] ?? null)) {
             $response = $this->request('licenses/' . $this->licenses[$this->packageName] . '/package');
             $this->update($this->packageName, $response);
-        }
-
-        // Migration 3: Migrate licenses from private Composer repository
-        $authFile = App::instance()->root('base') . '/auth.json';
-        try {
-            $auth = Json::read($authFile);
-            $collection = $auth['bearer']['repo.kirby.tools'] ?? null;
-
-            if (empty($collection)) {
-                return;
-            }
-
-            // Extract all current license keys
-            $licenseKeys = array_map(
-                fn ($license) => is_array($license) ? $license['licenseKey'] : $license,
-                $this->licenses
-            );
-
-            // Get package name for licenses and update them
-            foreach (Str::split($collection, ',', 8) as $licenseKey) {
-                if (!$this->isValid($licenseKey) || in_array($licenseKey, $licenseKeys)) {
-                    continue;
-                }
-
-                $response = $this->request('licenses/' . $licenseKey . '/package');
-
-                if ($response['packageName'] === $this->packageName) {
-                    $this->update($this->packageName, $response);
-                }
-            }
-        } catch (Throwable) {
-            // Ignore
         }
     }
 
@@ -262,7 +274,7 @@ class Licenses
 
         if (!in_array($response->code(), [200, 201], true)) {
             $message = $response->json()['message'] ?? 'Request failed';
-            throw new LogicException($message, $response->code());
+            throw new LogicException($message, (string)$response->code());
         }
 
         return $response->json();
