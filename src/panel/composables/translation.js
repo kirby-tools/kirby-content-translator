@@ -1,150 +1,274 @@
-import { useApi } from "kirbyuse";
-import pAll from "p-all";
-import { TRANSLATION_API_ROUTE } from "../constants";
+import slugify from "@sindresorhus/slugify";
+import { ref, useContent, usePanel, useSection } from "kirbyuse";
+import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
+import { translateContent } from "../utils/translation";
+import { openTextDialog } from "./dialog";
+import { usePluginContext } from "./plugin";
 
-export function useTranslation() {
-  const api = useApi();
+export function useContentTranslator() {
+  const panel = usePanel();
+  const { currentContent, update: updateContent } = useContent();
 
-  const translateContent = async (
-    obj,
-    {
-      sourceLanguage,
-      targetLanguage,
-      fieldTypes,
-      includeFields,
-      excludeFields,
-      fields,
-    },
-  ) => {
-    const tasks = [];
+  // Section props
+  const label = ref();
+  const allowImport = ref();
+  const importFrom = ref();
+  const allowBulkTranslation = ref();
+  const translateTitle = ref();
+  const translateSlug = ref();
+  const confirm = ref();
+  const fieldTypes = ref([]);
+  const includeFields = ref([]);
+  const excludeFields = ref([]);
 
-    function handleTranslation(obj, fields) {
-      for (const key in obj) {
-        if (!obj[key]) continue;
-        if (!fields[key]) continue;
-        if (!fields[key].translate) continue;
-        if (!fieldTypes.includes(fields[key].type)) continue;
+  // Section computed
+  const modelMeta = ref();
+  const fields = ref();
 
-        // Include/exclude fields
-        if (includeFields?.length && !includeFields.includes(key)) continue;
-        if (excludeFields?.length && excludeFields.includes(key)) continue;
+  // Local data
+  const config = ref();
+  const defaultLanguageData = ref({});
+  const licenseStatus = ref();
 
-        // Handle text-like fields
-        if (
-          ["list", "text", "textarea", "writer", "markdown"].includes(
-            fields[key].type,
-          )
-        ) {
-          tasks.push(async () => {
-            const response = await api.post(TRANSLATION_API_ROUTE, {
-              sourceLanguage,
-              targetLanguage,
-              text: obj[key],
-            });
-            obj[key] = response.text;
-          });
-        }
+  // Static data
+  const defaultLanguage = panel.languages.find((language) => language.default);
+  const nonDefaultLanguages = panel.languages.filter(
+    (language) => language.code !== defaultLanguage.code,
+  );
 
-        // Handle tags fields
-        else if (
-          fields[key].type === "tags" &&
-          Array.isArray(obj[key]) &&
-          obj[key].length
-        ) {
-          // Improve performance by translating all tags in a single request
-          const text = obj[key].join(" | ");
-          tasks.push(async () => {
-            const response = await api.post(TRANSLATION_API_ROUTE, {
-              sourceLanguage,
-              targetLanguage,
-              text,
-            });
-            obj[key] = response.text.split("|").map((tag) => tag.trim());
-          });
-        }
+  async function loadSection(props) {
+    const { load } = useSection();
+    const [context, response] = await Promise.all([
+      usePluginContext(),
+      load({
+        parent: props.parent,
+        name: props.name,
+      }),
+    ]);
 
-        // Handle structure fields
-        else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
-          for (const item of obj[key]) {
-            handleTranslation(item, fields[key].fields);
-          }
-        }
-
-        // Handle object fields
-        else if (fields[key].type === "object" && isObject(obj[key])) {
-          handleTranslation(obj[key], fields[key].fields);
-        }
-
-        // Handle layout fields
-        else if (fields[key].type === "layout" && Array.isArray(obj[key])) {
-          for (const layout of obj[key]) {
-            for (const column of layout.columns) {
-              for (const block of column.blocks) {
-                if (!isBlockTranslatable(block)) continue;
-                if (!fields[key].fieldsets[block.type]) continue;
-
-                // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
-
-                const blockFields = reduceFieldsFromTabs(
-                  fields[key].fieldsets,
-                  block,
-                );
-                handleTranslation(block.content, blockFields);
-              }
-            }
-          }
-        }
-
-        // Handle block fields
-        else if (fields[key].type === "blocks" && Array.isArray(obj[key])) {
-          for (const block of obj[key]) {
-            if (!isBlockTranslatable(block)) continue;
-            if (!fields[key].fieldsets[block.type]) continue;
-
-            // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
-
-            const blockFields = reduceFieldsFromTabs(
-              fields[key].fieldsets,
-              block,
-            );
-            handleTranslation(block.content, blockFields);
-          }
-        }
-      }
-    }
-
-    handleTranslation(obj, fields);
-
-    // Process translation tasks in batches
-    try {
-      await pAll(tasks, { concurrency: 5 });
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-
-    return obj;
-  };
-
-  return {
-    translateContent,
-  };
-}
-
-function isBlockTranslatable(block) {
-  return isObject(block.content) && block.id && block.isHidden !== true;
-}
-
-function reduceFieldsFromTabs(fieldsets, block) {
-  const blockFields = {};
-
-  for (const tab of Object.values(fieldsets[block.type].tabs)) {
-    Object.assign(blockFields, tab.fields);
+    initializeConfig(context, response);
   }
 
-  return blockFields;
-}
+  function initializeConfig(context, response = {}) {
+    label.value =
+      t(response.label) || panel.t("johannschopplich.content-translator.label");
+    allowImport.value = response.import ?? context.config.import ?? true;
+    importFrom.value =
+      response.importFrom ?? context.config.importFrom ?? undefined;
+    allowBulkTranslation.value = response.bulk ?? context.config.bulk ?? true;
+    translateTitle.value = response.title ?? context.config.title ?? false;
+    translateSlug.value = response.slug ?? context.config.slug ?? false;
+    confirm.value = response.confirm ?? context.config.confirm ?? true;
+    fieldTypes.value = response.fieldTypes ??
+      context.config.fieldTypes ?? [
+        "blocks",
+        "layout",
+        "list",
+        "object",
+        "structure",
+        "tags",
+        "text",
+        "textarea",
+        "writer",
+        "markdown",
+      ];
+    includeFields.value =
+      response.includeFields ?? context.config.includeFields ?? [];
+    excludeFields.value =
+      response.excludeFields ?? context.config.excludeFields ?? [];
+    modelMeta.value = response.modelMeta ?? {};
+    fields.value = response.fields ?? {};
+    config.value = context.config;
+    licenseStatus.value =
+      // eslint-disable-next-line no-undef
+      __PLAYGROUND__ ? "active" : context.licenseStatus;
+  }
 
-function isObject(value) {
-  return Object.prototype.toString.call(value) === "[object Object]";
+  function t(value) {
+    if (!value || typeof value === "string") return value;
+    return value[panel.translation.code] ?? Object.values(value)[0];
+  }
+
+  async function syncModelContent(language) {
+    let { title, content } = defaultLanguageData.value;
+
+    // If a language is passed, use the content of that language as the source,
+    // otherwise use the default language
+    if (language) {
+      const data = await getModelData(language);
+      title = data.title;
+      content = data.content;
+    }
+
+    const syncableContent = Object.fromEntries(
+      Object.entries(content).filter(
+        ([key]) =>
+          fieldTypes.value.includes(fields.value[key]?.type) &&
+          (includeFields.value.length
+            ? includeFields.value.includes(key)
+            : true) &&
+          (excludeFields.value.length
+            ? !excludeFields.value.includes(key)
+            : true),
+      ),
+    );
+
+    await updateContent(syncableContent);
+
+    if (translateTitle.value) {
+      await panel.api.patch(`${panel.view.path}/title`, { title });
+    }
+    if (translateSlug.value) {
+      const slug = slugify(title);
+      await panel.api.patch(`${panel.view.path}/slug`, { slug });
+    }
+    if (translateTitle.value || translateSlug.value) {
+      await panel.view.reload();
+    }
+
+    panel.notification.success(
+      panel.t("johannschopplich.content-translator.notification.imported"),
+    );
+  }
+
+  async function translateModelContent(targetLanguage, sourceLanguage) {
+    if (panel.view.isLoading) return;
+    panel.view.isLoading = true;
+
+    const clone = JSON.parse(JSON.stringify(currentContent.value));
+    try {
+      await translateContent(clone, {
+        sourceLanguage: sourceLanguage?.code,
+        targetLanguage: targetLanguage.code,
+        fieldTypes: fieldTypes.value,
+        includeFields: includeFields.value,
+        excludeFields: excludeFields.value,
+        fields: fields.value,
+      });
+    } catch (error) {
+      console.error("Failed to translate content:", error);
+      panel.notification.error(error.message);
+      panel.view.isLoading = false;
+      return;
+    }
+
+    await updateContent(clone);
+
+    if (
+      translateTitle.value ||
+      (translateSlug.value && !targetLanguage.default)
+    ) {
+      const { text } = await panel.api.post(TRANSLATE_API_ROUTE, {
+        sourceLanguage: sourceLanguage?.code,
+        targetLanguage: targetLanguage.code,
+        text: panel.view.title,
+      });
+      if (translateTitle.value) {
+        await panel.api.patch(`${panel.view.path}/title`, { title: text });
+      }
+      // Translating the slug is only possible for non-default languages,
+      // as the page folder would be renamed otherwise.
+      // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
+      if (translateSlug.value && !targetLanguage.default) {
+        const slug = slugify(text);
+        await panel.api.patch(`${panel.view.path}/slug`, { slug });
+      }
+      // Reload will also end loading state
+      await panel.view.reload();
+    } else {
+      panel.view.isLoading = false;
+    }
+
+    panel.notification.success(
+      panel.t("johannschopplich.content-translator.notification.translated"),
+    );
+  }
+
+  async function bulkTranslateModelContent() {
+    if (panel.view.isLoading) return;
+    panel.view.isLoading = true;
+
+    try {
+      await Promise.all(
+        nonDefaultLanguages.map(async (language) => {
+          await panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
+            selectedLanguage: language.code,
+            context: modelMeta.value.context,
+            id: modelMeta.value.id,
+            title: translateTitle.value,
+            slug: translateSlug.value,
+          });
+        }),
+      );
+
+      panel.notification.success(
+        panel.t(
+          "johannschopplich.content-translator.notification.bulkTranslated",
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to bulk translate content:", error);
+      panel.notification.error(error.message);
+      panel.view.isLoading = false;
+      return;
+    }
+
+    // Reload will also end loading state
+    await panel.view.reload();
+  }
+
+  async function updateModelDefaultLanguageData() {
+    defaultLanguageData.value = await getModelData(defaultLanguage);
+  }
+
+  function getModelData(language) {
+    return panel.api.get(panel.view.path, {
+      language: language.code,
+    });
+  }
+
+  function openMaybeConfirmableTextDialog(text, callback) {
+    if (!confirm.value) {
+      callback?.();
+      return;
+    }
+
+    openTextDialog(text, callback);
+  }
+
+  return {
+    // Section props
+    label,
+    allowImport,
+    importFrom,
+    allowBulkTranslation,
+    translateTitle,
+    translateSlug,
+    confirm,
+    fieldTypes,
+    includeFields,
+    excludeFields,
+
+    // Section computed
+    modelMeta,
+    fields,
+
+    // Local data
+    config,
+    defaultLanguageData,
+    licenseStatus,
+
+    // Static data
+    defaultLanguage,
+    nonDefaultLanguages,
+
+    // Methods
+    loadSection,
+    initializeConfig,
+    syncModelContent,
+    translateModelContent,
+    bulkTranslateModelContent,
+    updateModelDefaultLanguageData,
+    openMaybeConfirmableTextDialog,
+  };
 }
