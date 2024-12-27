@@ -1,8 +1,9 @@
 <script setup>
-import { ref, usePanel } from "kirbyuse";
+import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import ContentTranslator from "./ContentTranslator.vue";
 
+const _isKirby5 = isKirby5();
 const panel = usePanel();
 const dropdownContent = ref();
 const context = ref();
@@ -17,7 +18,7 @@ function toggle() {
 </script>
 
 <template>
-  <div v-if="context?.config?.viewButton">
+  <div v-if="_isKirby5 || context?.config?.viewButton">
     <k-button
       :dropdown="true"
       :text="panel.t('johannschopplich.content-translator.viewButton.label')"
