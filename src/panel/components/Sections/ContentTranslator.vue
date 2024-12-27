@@ -1,11 +1,12 @@
 <script>
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { onBeforeUnmount, ref, usePanel } from "kirbyuse";
+import { onBeforeUnmount, ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import {
   openConditionalTextDialog,
   openTextDialog,
 } from "../../composables/dialog";
+import { usePluginContext } from "../../composables/plugin";
 import { useContentTranslator } from "../../composables/translation";
 
 const propsDefinition = {
@@ -39,7 +40,7 @@ const {
   defaultLanguage,
 
   // Methods
-  loadSection,
+  initializeConfig,
   syncModelContent,
   translateModelContent,
   bulkTranslateModelContent,
@@ -47,7 +48,16 @@ const {
 } = useContentTranslator();
 
 (async () => {
-  await loadSection(props);
+  const { load } = useSection();
+  const [context, response] = await Promise.all([
+    usePluginContext(),
+    load({
+      parent: props.parent,
+      name: props.name,
+    }),
+  ]);
+
+  initializeConfig(context, response);
 
   // Re-fetch default content whenever the page gets saved
   panel.events.on("model.update", updateModelDefaultLanguageData);

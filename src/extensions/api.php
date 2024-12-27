@@ -31,6 +31,25 @@ return [
             }
         ],
         [
+            'pattern' => '__content-translator__/view-context',
+            'method' => 'GET',
+            'action' => function () use ($kirby) {
+                $id = $kirby->request()->query()->get('id');
+                $model = $id === 'site'
+                    ? $kirby->site()
+                    : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
+
+                $slug = $model::CLASS_ALIAS === 'page' && $model->isHomePage() ? false : null;
+                $modelMeta = [
+                    'context' => $model::CLASS_ALIAS,
+                    'id' => $model->id()
+                ];
+                $fields = Translator::resolveModelFields($model);
+
+                return compact('slug', 'modelMeta', 'fields');
+            }
+        ],
+        [
             'pattern' => '__content-translator__/translate',
             'method' => 'POST',
             'action' => function () use ($kirby) {

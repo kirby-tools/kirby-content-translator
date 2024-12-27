@@ -1,11 +1,12 @@
 <script>
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
-import { usePanel } from "kirbyuse";
+import { ref, usePanel } from "kirbyuse";
 import {
   openConditionalTextDialog,
   openTextDialog,
 } from "../../composables/dialog";
 import { useContentTranslator } from "../../composables/translation";
+import { VIEW_CONTEXT_API_ROUTE } from "../../constants";
 
 export default {
   inheritAttrs: false,
@@ -21,15 +22,22 @@ const props = defineProps({
 });
 
 const panel = usePanel();
+const isInitialized = ref(false);
 
 const {
   // Section props
   allowImport,
   importFrom,
   allowBulkTranslation,
+  translateSlug,
   confirm,
 
+  // Section computed
+  modelMeta,
+  fields,
+
   // Local data
+  defaultLanguageData,
   licenseStatus,
 
   // Static data
@@ -50,7 +58,33 @@ if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
 }
 
 initializeConfig(props.context);
-updateModelDefaultLanguageData();
+
+// Lazily fetch required view data (same as `computed` section methods)
+const initializationPromise = (async () => {
+  await updateModelDefaultLanguageData();
+
+  const response = await panel.api.get(VIEW_CONTEXT_API_ROUTE, {
+    id: defaultLanguageData.value.id ?? "site",
+  });
+
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.log(response);
+  }
+
+  if (response.slug != null) translateSlug.value = response.slug;
+  modelMeta.value = response.modelMeta ?? {};
+  fields.value = response.fields ?? {};
+
+  isInitialized.value = true;
+})();
+
+function invokeCallback(fn) {
+  return async (...args) => {
+    await initializationPromise;
+    return fn(...args);
+  };
+}
 </script>
 
 <template>
@@ -69,7 +103,7 @@ updateModelDefaultLanguageData();
               panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
-              () => syncModelContent(language),
+              invokeCallback(() => syncModelContent(language)),
             )
           "
         >
@@ -89,7 +123,7 @@ updateModelDefaultLanguageData();
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            () => translateModelContent(panel.language),
+            invokeCallback(() => translateModelContent(panel.language)),
           )
         "
       >
@@ -108,7 +142,7 @@ updateModelDefaultLanguageData();
               'johannschopplich.content-translator.dialog.bulkTranslation',
               { language: defaultLanguage.name },
             ),
-            bulkTranslateModelContent,
+            invokeCallback(bulkTranslateModelContent),
           )
         "
       >
@@ -133,7 +167,7 @@ updateModelDefaultLanguageData();
               panel.t('johannschopplich.content-translator.dialog.import', {
                 language: defaultLanguage.name,
               }),
-              () => syncModelContent(),
+              invokeCallback(() => syncModelContent()),
             )
           "
         >
@@ -151,7 +185,9 @@ updateModelDefaultLanguageData();
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            () => translateModelContent(panel.language, defaultLanguage),
+            invokeCallback(() =>
+              translateModelContent(panel.language, defaultLanguage),
+            ),
           )
         "
       >
@@ -170,7 +206,7 @@ updateModelDefaultLanguageData();
               'johannschopplich.content-translator.dialog.bulkTranslation',
               { language: defaultLanguage.name },
             ),
-            bulkTranslateModelContent,
+            invokeCallback(bulkTranslateModelContent),
           )
         "
       >

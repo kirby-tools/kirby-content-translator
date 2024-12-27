@@ -46,11 +46,7 @@ return [
                 /** @var \Kirby\Cms\Page */
                 $model = $this->model();
 
-                if ($model::CLASS_ALIAS !== 'page') {
-                    return $this->slug;
-                }
-
-                if ($model->isHomePage()) {
+                if ($model::CLASS_ALIAS === 'page' && $model->isHomePage()) {
                     return false;
                 }
 
@@ -59,6 +55,7 @@ return [
             'modelMeta' => function () {
                 /** @var \Kirby\Cms\Site|\Kirby\Cms\Page|\Kirby\Cms\File */
                 $model = $this->model();
+
                 return [
                     'context' => $model::CLASS_ALIAS,
                     'id' => $model->id()

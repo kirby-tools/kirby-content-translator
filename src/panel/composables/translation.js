@@ -1,8 +1,7 @@
 import slugify from "@sindresorhus/slugify";
-import { ref, useContent, usePanel, useSection } from "kirbyuse";
+import { ref, useContent, usePanel } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
-import { usePluginContext } from "./plugin";
 
 export function useContentTranslator() {
   const panel = usePanel();
@@ -34,19 +33,6 @@ export function useContentTranslator() {
   const nonDefaultLanguages = panel.languages.filter(
     (language) => language.code !== defaultLanguage.code,
   );
-
-  async function loadSection(props) {
-    const { load } = useSection();
-    const [context, response] = await Promise.all([
-      usePluginContext(),
-      load({
-        parent: props.parent,
-        name: props.name,
-      }),
-    ]);
-
-    initializeConfig(context, response);
-  }
 
   function initializeConfig(context, response = {}) {
     label.value =
@@ -253,7 +239,6 @@ export function useContentTranslator() {
     nonDefaultLanguages,
 
     // Methods
-    loadSection,
     initializeConfig,
     syncModelContent,
     translateModelContent,
