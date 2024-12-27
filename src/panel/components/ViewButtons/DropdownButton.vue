@@ -17,7 +17,7 @@ function toggle() {
 </script>
 
 <template>
-  <div>
+  <div v-if="context?.config?.viewButton">
     <k-button
       :dropdown="true"
       :text="panel.t('johannschopplich.content-translator.viewButton.label')"
@@ -29,7 +29,7 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslator v-if="context" :context="context" />
+      <ContentTranslator :context="context" />
     </k-dropdown-content>
   </div>
 </template>

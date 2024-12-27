@@ -24,6 +24,9 @@ return [
 
                 $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
 
+                // For backwards compatibility with Kirby 4
+                $config['viewButton'] = $config['viewButton'] ?? true;
+
                 return [
                     'config' => $config,
                     'homePageId' => $kirby->site()->homePageId(),
