@@ -1,5 +1,12 @@
 title: Page
 
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
 tabs:
   blocks:
     label: Blocks

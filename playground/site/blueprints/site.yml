@@ -1,5 +1,10 @@
 title: Playground
 
+buttons:
+  - preview
+  - content-translator
+  - languages
+
 sections:
   pages:
     type: pages
