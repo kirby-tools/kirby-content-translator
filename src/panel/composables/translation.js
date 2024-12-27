@@ -20,7 +20,6 @@ export function useContentTranslator() {
   const excludeFields = ref([]);
 
   // Section computed
-  const modelMeta = ref();
   const fields = ref();
 
   // Local data
@@ -61,7 +60,6 @@ export function useContentTranslator() {
       response.includeFields ?? context.config.includeFields ?? [];
     excludeFields.value =
       response.excludeFields ?? context.config.excludeFields ?? [];
-    modelMeta.value = response.modelMeta ?? {};
     fields.value = response.fields ?? {};
     config.value = context.config;
     licenseStatus.value =
@@ -80,7 +78,9 @@ export function useContentTranslator() {
     // If a language is passed, use the content of that language as the source,
     // otherwise use the default language
     if (language) {
-      const data = await getModelData(language);
+      const data = await panel.api.get(panel.view.path, {
+        language: language.code,
+      });
       title = data.title;
       content = data.content;
     }
@@ -178,8 +178,7 @@ export function useContentTranslator() {
         nonDefaultLanguages.map(async (language) => {
           await panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
             selectedLanguage: language.code,
-            context: modelMeta.value.context,
-            id: modelMeta.value.id,
+            id: defaultLanguageData.value.id ?? "site",
             title: translateTitle.value,
             slug: translateSlug.value,
           });
@@ -203,12 +202,8 @@ export function useContentTranslator() {
   }
 
   async function updateModelDefaultLanguageData() {
-    defaultLanguageData.value = await getModelData(defaultLanguage);
-  }
-
-  function getModelData(language) {
-    return panel.api.get(panel.view.path, {
-      language: language.code,
+    defaultLanguageData.value = await panel.api.get(panel.view.path, {
+      language: defaultLanguage.code,
     });
   }
 
@@ -226,7 +221,6 @@ export function useContentTranslator() {
     excludeFields,
 
     // Section computed
-    modelMeta,
     fields,
 
     // Local data

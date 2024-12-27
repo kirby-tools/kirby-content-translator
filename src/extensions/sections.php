@@ -52,15 +52,6 @@ return [
 
                 return $this->slug;
             },
-            'modelMeta' => function () {
-                /** @var \Kirby\Cms\Site|\Kirby\Cms\Page|\Kirby\Cms\File */
-                $model = $this->model();
-
-                return [
-                    'context' => $model::CLASS_ALIAS,
-                    'id' => $model->id()
-                ];
-            },
             'fields' => function () {
                 return Translator::resolveModelFields($this->model);
             }

@@ -40,13 +40,9 @@ return [
                     : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
 
                 $slug = $model::CLASS_ALIAS === 'page' && $model->isHomePage() ? false : null;
-                $modelMeta = [
-                    'context' => $model::CLASS_ALIAS,
-                    'id' => $model->id()
-                ];
                 $fields = Translator::resolveModelFields($model);
 
-                return compact('slug', 'modelMeta', 'fields');
+                return compact('slug', 'fields');
             }
         ],
         [
@@ -76,23 +72,26 @@ return [
             'method' => 'POST',
             'action' => function () use ($kirby) {
                 $request = $kirby->request();
-                $context = $request->get('context');
                 $id = $request->get('id');
                 $toLanguageCode = $request->get('selectedLanguage');
                 $translateTitle = $request->get('title', false);
                 $translateSlug = $request->get('slug', false);
 
-                if (!$context || !$id) {
-                    throw new BadMethodCallException('Missing "context" or "id" parameter');
+                if (!$id) {
+                    throw new BadMethodCallException('Missing "id" parameter');
                 }
 
                 if (!$toLanguageCode) {
                     throw new BadMethodCallException('Missing "selectedLanguage" parameter');
                 }
 
+                $model = $id === 'site'
+                    ? $kirby->site()
+                    : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
+
                 $fromLanguageCode = $kirby->defaultLanguage()->code();
 
-                if ($context === 'site') {
+                if ($model::CLASS_ALIAS === 'site') {
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
                     $translator = $kirby->site()->translator();
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
@@ -100,7 +99,7 @@ return [
                     if ($translateTitle) {
                         $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                     }
-                } elseif ($context === 'page') {
+                } elseif ($model::CLASS_ALIAS === 'page') {
                     /** @var \Kirby\Cms\Page */
                     $page = $kirby->page($id);
 

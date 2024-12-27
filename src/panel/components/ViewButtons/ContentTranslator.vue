@@ -33,7 +33,6 @@ const {
   confirm,
 
   // Section computed
-  modelMeta,
   fields,
 
   // Local data
@@ -73,7 +72,6 @@ const initializationPromise = (async () => {
   }
 
   if (response.slug != null) translateSlug.value = response.slug;
-  modelMeta.value = response.modelMeta ?? {};
   fields.value = response.fields ?? {};
 
   isInitialized.value = true;
