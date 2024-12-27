@@ -6,7 +6,7 @@ import {
   openTextDialog,
 } from "../../composables/dialog";
 import { useContentTranslator } from "../../composables/translation";
-import { VIEW_CONTEXT_API_ROUTE } from "../../constants";
+import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
 export default {
   inheritAttrs: false,
@@ -62,17 +62,18 @@ initializeConfig(props.context);
 const initializationPromise = (async () => {
   await updateModelDefaultLanguageData();
 
-  const response = await panel.api.get(VIEW_CONTEXT_API_ROUTE, {
+  const modelFields = await panel.api.get(MODEL_FIELDS_API_ROUTE, {
     id: defaultLanguageData.value.id ?? "site",
   });
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
-    console.log(response);
+    console.log("Model fields:", modelFields);
   }
 
-  if (response.slug != null) translateSlug.value = response.slug;
-  fields.value = response.fields ?? {};
+  if (defaultLanguageData.value.id === props.context.homePageId)
+    translateSlug.value = false;
+  fields.value = modelFields ?? {};
 
   isInitialized.value = true;
 })();

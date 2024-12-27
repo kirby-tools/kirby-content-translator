@@ -8,3 +8,7 @@
 .k-topbar {
   display: none;
 }
+
+.k-page-view-preview {
+  display: none;
+}

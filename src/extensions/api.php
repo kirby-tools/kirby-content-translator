@@ -26,12 +26,13 @@ return [
 
                 return [
                     'config' => $config,
+                    'homePageId' => $kirby->site()->homePageId(),
                     'licenseStatus' => $licenses->getStatus()
                 ];
             }
         ],
         [
-            'pattern' => '__content-translator__/view-context',
+            'pattern' => '__content-translator__/model-fields',
             'method' => 'GET',
             'action' => function () use ($kirby) {
                 $id = $kirby->request()->query()->get('id');
@@ -39,10 +40,7 @@ return [
                     ? $kirby->site()
                     : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
 
-                $slug = $model::CLASS_ALIAS === 'page' && $model->isHomePage() ? false : null;
-                $fields = Translator::resolveModelFields($model);
-
-                return compact('slug', 'fields');
+                return Translator::resolveModelFields($model);
             }
         ],
         [
