@@ -63,7 +63,6 @@ updateModelDefaultLanguageData();
           )"
           :key="language.code"
           icon="import"
-          variant="filled"
           @click="
             openConditionalTextDialog(
               confirm,
@@ -84,8 +83,6 @@ updateModelDefaultLanguageData();
       </template>
       <k-dropdown-item
         icon="translate"
-        variant="filled"
-        theme="notice"
         @click="
           openConditionalTextDialog(
             confirm,
@@ -105,8 +102,6 @@ updateModelDefaultLanguageData();
       <k-dropdown-item
         v-if="allowBulkTranslation && panel.language.default"
         icon="content-translator-global"
-        variant="filled"
-        theme="notice"
         @click="
           openTextDialog(
             panel.t(
@@ -132,7 +127,6 @@ updateModelDefaultLanguageData();
         <k-dropdown-item
           :disabled="panel.language.default"
           icon="import"
-          variant="filled"
           @click="
             openConditionalTextDialog(
               confirm,
@@ -151,8 +145,6 @@ updateModelDefaultLanguageData();
         v-if="!allowBulkTranslation || !panel.language.default"
         :disabled="panel.language.default"
         icon="translate"
-        variant="filled"
-        theme="notice"
         @click="
           openConditionalTextDialog(
             confirm,
@@ -172,8 +164,6 @@ updateModelDefaultLanguageData();
       <k-dropdown-item
         v-if="allowBulkTranslation && panel.language.default"
         icon="content-translator-global"
-        variant="filled"
-        theme="notice"
         @click="
           openTextDialog(
             panel.t(
