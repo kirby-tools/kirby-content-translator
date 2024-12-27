@@ -1,6 +1,6 @@
 <script>
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { onBeforeUnmount, usePanel } from "kirbyuse";
+import { onBeforeUnmount, ref, usePanel } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import {
   openConditionalTextDialog,
