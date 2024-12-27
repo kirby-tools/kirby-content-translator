@@ -14,3 +14,12 @@ export function openTextDialog(text, callback) {
     },
   });
 }
+
+export function openConditionalTextDialog(condition, text, callback) {
+  if (!condition) {
+    callback?.();
+    return;
+  }
+
+  openTextDialog(text, callback);
+}

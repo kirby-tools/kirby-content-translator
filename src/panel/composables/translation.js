@@ -2,7 +2,6 @@ import slugify from "@sindresorhus/slugify";
 import { ref, useContent, usePanel, useSection } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
-import { openTextDialog } from "./dialog";
 import { usePluginContext } from "./plugin";
 
 export function useContentTranslator() {
@@ -227,15 +226,6 @@ export function useContentTranslator() {
     });
   }
 
-  function openMaybeConfirmableTextDialog(text, callback) {
-    if (!confirm.value) {
-      callback?.();
-      return;
-    }
-
-    openTextDialog(text, callback);
-  }
-
   return {
     // Section props
     label,
@@ -269,6 +259,5 @@ export function useContentTranslator() {
     translateModelContent,
     bulkTranslateModelContent,
     updateModelDefaultLanguageData,
-    openMaybeConfirmableTextDialog,
   };
 }

@@ -1,7 +1,10 @@
 <script>
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
-import { openTextDialog } from "../../composables/dialog";
+import {
+  openConditionalTextDialog,
+  openTextDialog,
+} from "../../composables/dialog";
 import { useContentTranslator } from "../../composables/translation";
 
 export default {
@@ -24,6 +27,7 @@ const {
   allowImport,
   importFrom,
   allowBulkTranslation,
+  confirm,
 
   // Local data
   licenseStatus,
@@ -37,7 +41,6 @@ const {
   translateModelContent,
   bulkTranslateModelContent,
   updateModelDefaultLanguageData,
-  openMaybeConfirmableTextDialog,
 } = useContentTranslator();
 
 if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
@@ -62,7 +65,8 @@ updateModelDefaultLanguageData();
           icon="import"
           variant="filled"
           @click="
-            openMaybeConfirmableTextDialog(
+            openConditionalTextDialog(
+              confirm,
               panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
@@ -83,7 +87,8 @@ updateModelDefaultLanguageData();
         variant="filled"
         theme="notice"
         @click="
-          openMaybeConfirmableTextDialog(
+          openConditionalTextDialog(
+            confirm,
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
@@ -129,7 +134,8 @@ updateModelDefaultLanguageData();
           icon="import"
           variant="filled"
           @click="
-            openMaybeConfirmableTextDialog(
+            openConditionalTextDialog(
+              confirm,
               panel.t('johannschopplich.content-translator.dialog.import', {
                 language: defaultLanguage.name,
               }),
@@ -148,7 +154,8 @@ updateModelDefaultLanguageData();
         variant="filled"
         theme="notice"
         @click="
-          openMaybeConfirmableTextDialog(
+          openConditionalTextDialog(
+            confirm,
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
