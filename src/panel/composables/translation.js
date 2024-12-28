@@ -2,10 +2,12 @@ import slugify from "@sindresorhus/slugify";
 import { computed, ref, useContent, usePanel } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
+import { useI18n } from "./i18n";
 
 export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
+  const { t } = useI18n();
 
   // Configuration state
   const label = ref();
@@ -70,11 +72,6 @@ export function useContentTranslator() {
     licenseStatus.value =
       // eslint-disable-next-line no-undef
       __PLAYGROUND__ ? "active" : context.licenseStatus;
-  }
-
-  function t(value) {
-    if (!value || typeof value === "string") return value;
-    return value[panel.translation.code] ?? Object.values(value)[0];
   }
 
   async function syncModelContent(language) {

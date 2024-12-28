@@ -25,7 +25,7 @@ export function legacyViewButtonMixin(Vue) {
       );
       if (!languagesDropdown) return;
 
-      languagesDropdown.before(button.$el);
+      languagesDropdown.after(button.$el);
       this.$forceUpdate();
     },
   });

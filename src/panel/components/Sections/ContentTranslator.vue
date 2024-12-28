@@ -49,7 +49,7 @@ const {
 
 (async () => {
   const { load } = useSection();
-  const [context, response] = await Promise.all([
+  const [context, sectionProps] = await Promise.all([
     usePluginContext(),
     load({
       parent: props.parent,
@@ -57,7 +57,7 @@ const {
     }),
   ]);
 
-  initializeConfig(context, response);
+  initializeConfig(context, sectionProps);
 
   // Re-fetch default content whenever the page gets saved
   panel.events.on("model.update", updateModelDefaultLanguageData);
@@ -132,7 +132,7 @@ onBeforeUnmount(() => {
         <k-button
           icon="translate"
           variant="filled"
-          theme="notice"
+          theme="notice-icon"
           @click="
             openConditionalTextDialog(
               confirm,
@@ -153,7 +153,7 @@ onBeforeUnmount(() => {
           v-if="allowBulkTranslation && panel.language.default"
           icon="content-translator-global"
           variant="filled"
-          theme="notice"
+          theme="notice-icon"
           @click="
             openTextDialog(
               panel.t(
@@ -200,7 +200,7 @@ onBeforeUnmount(() => {
             :disabled="panel.language.default"
             icon="translate"
             variant="filled"
-            theme="notice"
+            theme="notice-icon"
             @click="
               openConditionalTextDialog(
                 confirm,
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
             v-if="allowBulkTranslation && panel.language.default"
             icon="content-translator-global"
             variant="filled"
-            theme="notice"
+            theme="notice-icon"
             @click="
               openTextDialog(
                 panel.t(

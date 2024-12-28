@@ -24,6 +24,7 @@ function toggle() {
       :text="panel.t('johannschopplich.content-translator.viewButton.label')"
       icon="content-translator-global"
       responsive="text"
+      theme="notice-icon"
       variant="filled"
       size="sm"
       @click="toggle()"
