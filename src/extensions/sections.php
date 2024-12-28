@@ -42,16 +42,6 @@ return [
             }
         ],
         'computed' => [
-            'slug' => function () {
-                /** @var \Kirby\Cms\Page */
-                $model = $this->model();
-
-                if ($model::CLASS_ALIAS === 'page' && $model->isHomePage()) {
-                    return false;
-                }
-
-                return $this->slug;
-            },
             'fields' => function () {
                 return Translator::resolveModelFields($this->model);
             }

@@ -25,21 +25,18 @@ const panel = usePanel();
 const isInitialized = ref(false);
 
 const {
-  // Section props
+  // Configuration state
   allowImport,
   importFrom,
   allowBulkTranslation,
-  translateSlug,
   confirm,
 
-  // Section computed
+  // Runtime state
   fields,
-
-  // Local data
-  defaultLanguageData,
   licenseStatus,
+  defaultLanguageData,
 
-  // Static data
+  // Panel constants
   defaultLanguage,
 
   // Methods
@@ -71,17 +68,14 @@ const initializationPromise = (async () => {
     console.log("Model fields:", modelFields);
   }
 
-  if (defaultLanguageData.value.id === props.context.homePageId)
-    translateSlug.value = false;
   fields.value = modelFields ?? {};
-
   isInitialized.value = true;
 })();
 
 function invokeCallback(fn) {
   return async (...args) => {
     await initializationPromise;
-    return fn(...args);
+    fn(...args);
   };
 }
 </script>

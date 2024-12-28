@@ -25,18 +25,18 @@ const panel = usePanel();
 const isInitialized = ref(false);
 
 const {
-  // Section props
+  // Configuration state
   label,
   allowImport,
   importFrom,
   allowBulkTranslation,
   confirm,
 
-  // Local data
+  // Runtime state
   config,
   licenseStatus,
 
-  // Static data
+  // Panel constants
   defaultLanguage,
 
   // Methods

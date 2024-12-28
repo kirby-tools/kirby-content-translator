@@ -1,5 +1,5 @@
 import slugify from "@sindresorhus/slugify";
-import { ref, useContent, usePanel } from "kirbyuse";
+import { computed, ref, useContent, usePanel } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
 
@@ -7,7 +7,7 @@ export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
 
-  // Section props
+  // Configuration state
   const label = ref();
   const allowImport = ref();
   const importFrom = ref();
@@ -19,18 +19,22 @@ export function useContentTranslator() {
   const includeFields = ref([]);
   const excludeFields = ref([]);
 
-  // Section computed
+  // Runtime state
   const fields = ref();
-
-  // Local data
   const config = ref();
-  const defaultLanguageData = ref({});
+  const homePageId = ref();
   const licenseStatus = ref();
+  const defaultLanguageData = ref({});
 
-  // Static data
+  // Panel constants
   const defaultLanguage = panel.languages.find((language) => language.default);
   const nonDefaultLanguages = panel.languages.filter(
     (language) => language.code !== defaultLanguage.code,
+  );
+
+  // Computed properties
+  const isHomePage = computed(
+    () => defaultLanguageData.value.id === homePageId.value,
   );
 
   function initializeConfig(context, response = {}) {
@@ -62,6 +66,7 @@ export function useContentTranslator() {
       response.excludeFields ?? context.config.excludeFields ?? [];
     fields.value = response.fields ?? {};
     config.value = context.config;
+    homePageId.value = context.homePageId;
     licenseStatus.value =
       // eslint-disable-next-line no-undef
       __PLAYGROUND__ ? "active" : context.licenseStatus;
@@ -103,11 +108,14 @@ export function useContentTranslator() {
     if (translateTitle.value) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
-    if (translateSlug.value) {
+    if (translateSlug.value && !language.default && !isHomePage.value) {
       const slug = slugify(title);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
-    if (translateTitle.value || translateSlug.value) {
+    if (
+      translateTitle.value ||
+      (translateSlug.value && !language.default && !isHomePage.value)
+    ) {
       await panel.view.reload();
     }
 
@@ -141,23 +149,26 @@ export function useContentTranslator() {
 
     if (
       translateTitle.value ||
-      (translateSlug.value && !targetLanguage.default)
+      (translateSlug.value && !targetLanguage.default && !isHomePage.value)
     ) {
       const { text } = await panel.api.post(TRANSLATE_API_ROUTE, {
         sourceLanguage: sourceLanguage?.code,
         targetLanguage: targetLanguage.code,
         text: panel.view.title,
       });
+
       if (translateTitle.value) {
         await panel.api.patch(`${panel.view.path}/title`, { title: text });
       }
+
       // Translating the slug is only possible for non-default languages,
       // as the page folder would be renamed otherwise.
       // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-      if (translateSlug.value && !targetLanguage.default) {
+      if (translateSlug.value && !targetLanguage.default && !isHomePage.value) {
         const slug = slugify(text);
         await panel.api.patch(`${panel.view.path}/slug`, { slug });
       }
+
       // Reload will also end loading state
       await panel.view.reload();
     } else {
@@ -208,7 +219,7 @@ export function useContentTranslator() {
   }
 
   return {
-    // Section props
+    // Configuration state
     label,
     allowImport,
     importFrom,
@@ -220,15 +231,13 @@ export function useContentTranslator() {
     includeFields,
     excludeFields,
 
-    // Section computed
+    // Runtime state
     fields,
-
-    // Local data
     config,
-    defaultLanguageData,
     licenseStatus,
+    defaultLanguageData,
 
-    // Static data
+    // Panel constants
     defaultLanguage,
     nonDefaultLanguages,
 
