@@ -63,6 +63,7 @@ const initializationPromise = (async () => {
   const modelFields = await panel.api.get(
     MODEL_FIELDS_API_ROUTE,
     { id: defaultLanguageData.value.id ?? "site" },
+    undefined,
     silent,
   );
 

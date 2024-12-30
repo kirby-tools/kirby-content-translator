@@ -84,6 +84,7 @@ export function useContentTranslator() {
       const data = await panel.api.get(
         panel.view.path,
         { language: language.code },
+        undefined,
         silent,
       );
       title = data.title;
@@ -217,6 +218,7 @@ export function useContentTranslator() {
     defaultLanguageData.value = await panel.api.get(
       panel.view.path,
       { language: defaultLanguage.code },
+      undefined,
       silent,
     );
   }
