@@ -59,9 +59,12 @@ initializeConfig(props.context);
 const initializationPromise = (async () => {
   await updateModelDefaultLanguageData();
 
-  const modelFields = await panel.api.get(MODEL_FIELDS_API_ROUTE, {
-    id: defaultLanguageData.value.id ?? "site",
-  });
+  const silent = true;
+  const modelFields = await panel.api.get(
+    MODEL_FIELDS_API_ROUTE,
+    { id: defaultLanguageData.value.id ?? "site" },
+    silent,
+  );
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console

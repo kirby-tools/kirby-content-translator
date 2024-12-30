@@ -80,9 +80,12 @@ export function useContentTranslator() {
     // If a language is passed, use the content of that language as the source,
     // otherwise use the default language
     if (language) {
-      const data = await panel.api.get(panel.view.path, {
-        language: language.code,
-      });
+      const silent = true;
+      const data = await panel.api.get(
+        panel.view.path,
+        { language: language.code },
+        silent,
+      );
       title = data.title;
       content = data.content;
     }
@@ -210,9 +213,12 @@ export function useContentTranslator() {
   }
 
   async function updateModelDefaultLanguageData() {
-    defaultLanguageData.value = await panel.api.get(panel.view.path, {
-      language: defaultLanguage.code,
-    });
+    const silent = true;
+    defaultLanguageData.value = await panel.api.get(
+      panel.view.path,
+      { language: defaultLanguage.code },
+      silent,
+    );
   }
 
   return {
