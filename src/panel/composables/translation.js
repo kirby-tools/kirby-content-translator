@@ -1,8 +1,7 @@
 import slugify from "@sindresorhus/slugify";
-import { computed, ref, useContent, usePanel } from "kirbyuse";
+import { computed, ref, useContent, useI18n, usePanel } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
-import { useI18n } from "./i18n";
 
 export function useContentTranslator() {
   const panel = usePanel();
