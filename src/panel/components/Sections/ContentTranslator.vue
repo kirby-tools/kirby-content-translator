@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
       theme="empty"
     >
       <k-text>
-        You need to set the either a custom <code>translateFn</code> or the
+        You need to set either a custom <code>translateFn</code> or the
         <code>DeepL.apiKey</code> option for the
         <code>johannschopplich.content-translator</code> namespace in your Kirby
         configuration.
