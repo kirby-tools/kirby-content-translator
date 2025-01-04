@@ -8,7 +8,7 @@ $defaultAllLanguagesLabel = 'All Languages';
 return [
     'description' => 'Translates the content of the whole website',
     'args' => [],
-    'command' => static function (CLI $cli) use ($defaultTranslatorOptions, $defaultAllLanguagesLabel): void {
+    'command' => static function (CLI $cli) use ($defaultAllLanguagesLabel): void {
         $kirby = $cli->kirby();
         $defaultLanguage = $kirby->defaultLanguage()->code();
         $nonDefaultLanguages = $kirby->languages()->filter(fn (Language $language) => !$language->isDefault());
@@ -32,7 +32,7 @@ return [
         // Translate all site translations
         foreach ($selectedLanguages as $language) {
             /** @var \JohannSchopplich\ContentTranslator\Translator */
-            $translator = $kirby->site()->translator($defaultTranslatorOptions);
+            $translator = $kirby->site()->translator();
 
             $translator->copyContent($language->code(), $defaultLanguage);
             $translator->translateContent($language->code(), $language->code(), $defaultLanguage);
@@ -46,7 +46,7 @@ return [
         // Recursively translate all pages
         foreach ($kirby->site()->index() as $page) {
             /** @var \JohannSchopplich\ContentTranslator\Translator */
-            $translator = $page->translator($defaultTranslatorOptions);
+            $translator = $page->translator();
 
             foreach ($selectedLanguages as $language) {
                 /** @var \Kirby\Cms\Language $language */
