@@ -136,7 +136,8 @@ return [
                 }
 
                 return [
-                    'ok' => true,
+                    'status' => 'ok',
+                    'code' => 200
                 ];
             }
         ],
