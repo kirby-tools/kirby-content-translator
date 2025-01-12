@@ -50,7 +50,10 @@ final class DeepL
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private array $requestOptions = [
         // Enable HTML tag handling by default for the Writer field
-        'tag_handling' => 'html'
+        'tag_handling' => 'html',
+        // Ignore `<deepl_ignore>` tags by default – this only works with the `tag_handling` option set to `xml`!
+        // See: https://developers.deepl.com/docs/xml-and-html-handling/xml#ignored-tags
+        // 'ignore_tags' => ['deepl_ignore']
     ];
     private string|null $apiKey;
     private static DeepL|null $instance;
@@ -58,13 +61,13 @@ final class DeepL
     public function __construct()
     {
         $kirby = App::instance();
-        $authKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
+        $apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
 
-        if (empty($authKey)) {
+        if (empty($apiKey)) {
             throw new AuthException('Missing DeepL API key');
         }
 
-        $this->apiKey = $authKey;
+        $this->apiKey = $apiKey;
         $this->requestOptions = A::merge(
             $this->requestOptions,
             $kirby->option('johannschopplich.content-translator.deepl.requestOptions', [])
