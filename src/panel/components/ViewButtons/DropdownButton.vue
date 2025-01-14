@@ -1,7 +1,7 @@
 <script setup>
 import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
-import ContentTranslator from "./ContentTranslator.vue";
+import DropdownContent from "./DropdownContent.vue";
 
 const _isKirby5 = isKirby5();
 const panel = usePanel();
@@ -31,7 +31,7 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslator :context="context" />
+      <DropdownContent :context="context" />
     </k-dropdown-content>
   </div>
 </template>
