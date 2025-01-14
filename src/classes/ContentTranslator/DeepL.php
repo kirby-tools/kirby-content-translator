@@ -74,7 +74,7 @@ final class DeepL
         );
     }
 
-    public function instance(): DeepL
+    public static function instance(): DeepL
     {
         return static::$instance ??= new static();
     }
