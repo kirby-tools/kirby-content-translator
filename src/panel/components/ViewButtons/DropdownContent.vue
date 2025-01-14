@@ -1,6 +1,6 @@
 <script>
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
-import { ref, usePanel } from "kirbyuse";
+import { usePanel } from "kirbyuse";
 import {
   openConditionalTextDialog,
   openTextDialog,
@@ -22,7 +22,6 @@ const props = defineProps({
 });
 
 const panel = usePanel();
-const isInitialized = ref(false);
 
 const {
   // Configuration state
@@ -73,7 +72,6 @@ const initializationPromise = (async () => {
   }
 
   fields.value = modelFields ?? {};
-  isInitialized.value = true;
 })();
 
 function invokeCallback(fn) {
