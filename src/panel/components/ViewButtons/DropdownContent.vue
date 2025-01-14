@@ -49,7 +49,7 @@ const {
 
 if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
   panel.notification.error(
-    `You need to set either a custom "translateFn" or the "DeepL.apiKey" option for the "johannschopplich.content-translator" namespace in your Kirby configuration.`,
+    'Either a custom "johannschopplich.content-translator.translateFn" or the "johannschopplich.content-translator.DeepL.apiKey" plugin option is required.',
   );
 }
 
