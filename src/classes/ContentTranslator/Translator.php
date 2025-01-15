@@ -73,8 +73,8 @@ final class Translator
     public static function resolveModelFields(ModelWithContent $model): array
     {
         $fields = $model->blueprint()->fields();
-        $lang = $model->kirby()->languageCode();
-        $content = $model->content($lang)->toArray();
+        $languageCode = $model->kirby()->languageCode();
+        $content = $model->content($languageCode)->toArray();
         $form = new Form([
             'fields' => $fields,
             'values' => $content,
