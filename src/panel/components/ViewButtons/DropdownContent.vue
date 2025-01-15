@@ -74,7 +74,7 @@ const initializationPromise = (async () => {
   fields.value = modelFields ?? {};
 })();
 
-function invokeCallback(fn) {
+function withInitialization(fn) {
   return async (...args) => {
     await initializationPromise;
     fn(...args);
@@ -98,7 +98,7 @@ function invokeCallback(fn) {
               panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
-              invokeCallback(() => syncModelContent(language)),
+              withInitialization(() => syncModelContent(language)),
             )
           "
         >
@@ -118,7 +118,7 @@ function invokeCallback(fn) {
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            invokeCallback(() => translateModelContent(panel.language)),
+            withInitialization(() => translateModelContent(panel.language)),
           )
         "
       >
@@ -137,7 +137,7 @@ function invokeCallback(fn) {
               'johannschopplich.content-translator.dialog.bulkTranslation',
               { language: defaultLanguage.name },
             ),
-            invokeCallback(bulkTranslateModelContent),
+            withInitialization(bulkTranslateModelContent),
           )
         "
       >
@@ -162,7 +162,7 @@ function invokeCallback(fn) {
               panel.t('johannschopplich.content-translator.dialog.import', {
                 language: defaultLanguage.name,
               }),
-              invokeCallback(() => syncModelContent()),
+              withInitialization(() => syncModelContent()),
             )
           "
         >
@@ -180,7 +180,7 @@ function invokeCallback(fn) {
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            invokeCallback(() =>
+            withInitialization(() =>
               translateModelContent(panel.language, defaultLanguage),
             ),
           )
@@ -201,7 +201,7 @@ function invokeCallback(fn) {
               'johannschopplich.content-translator.dialog.bulkTranslation',
               { language: defaultLanguage.name },
             ),
-            invokeCallback(bulkTranslateModelContent),
+            withInitialization(bulkTranslateModelContent),
           )
         "
       >
