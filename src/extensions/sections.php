@@ -43,7 +43,7 @@ return [
         ],
         'computed' => [
             'fields' => function () {
-                return Translator::resolveModelFields($this->model);
+                return Translator::resolveModelFields($this->model());
             }
         ]
     ]
