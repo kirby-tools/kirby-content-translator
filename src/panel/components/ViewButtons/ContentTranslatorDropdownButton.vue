@@ -14,6 +14,12 @@ function toggle() {
 
 (async () => {
   context.value = await usePluginContext();
+
+  if (!panel.multilang) {
+    panel.notification.error(
+      "The Content Translator plugin requires a multi-language Kirby installation.",
+    );
+  }
 })();
 </script>
 
