@@ -1,10 +1,7 @@
 <script>
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
-import {
-  openConditionalTextDialog,
-  openTextDialog,
-} from "../../composables/dialog";
+import { openTextDialog } from "../../composables/dialog";
 import { useContentTranslator } from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
@@ -80,6 +77,15 @@ function withInitialization(fn) {
     fn(...args);
   };
 }
+
+function openConfirmableTextDialog(text, callback) {
+  if (!confirm.value) {
+    callback?.();
+    return;
+  }
+
+  openTextDialog(text, callback);
+}
 </script>
 
 <template>
@@ -93,8 +99,7 @@ function withInitialization(fn) {
           :key="language.code"
           icon="import"
           @click="
-            openConditionalTextDialog(
-              confirm,
+            openConfirmableTextDialog(
               panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
@@ -113,8 +118,7 @@ function withInitialization(fn) {
       <k-dropdown-item
         icon="translate"
         @click="
-          openConditionalTextDialog(
-            confirm,
+          openConfirmableTextDialog(
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
@@ -157,8 +161,7 @@ function withInitialization(fn) {
           :disabled="panel.language.default"
           icon="import"
           @click="
-            openConditionalTextDialog(
-              confirm,
+            openConfirmableTextDialog(
               panel.t('johannschopplich.content-translator.dialog.import', {
                 language: defaultLanguage.name,
               }),
@@ -175,8 +178,7 @@ function withInitialization(fn) {
         :disabled="panel.language.default"
         icon="translate"
         @click="
-          openConditionalTextDialog(
-            confirm,
+          openConfirmableTextDialog(
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),

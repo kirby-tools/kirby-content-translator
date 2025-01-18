@@ -2,10 +2,7 @@
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import { onBeforeUnmount, ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
-import {
-  openConditionalTextDialog,
-  openTextDialog,
-} from "../../composables/dialog";
+import { openTextDialog } from "../../composables/dialog";
 import { usePluginContext } from "../../composables/plugin";
 import { useContentTranslator } from "../../composables/translation";
 
@@ -71,6 +68,15 @@ onBeforeUnmount(() => {
   panel.events.off("model.update", updateModelDefaultLanguageData);
   panel.events.off("page.changeTitle", updateModelDefaultLanguageData);
 });
+
+function openConfirmableTextDialog(text, callback) {
+  if (!confirm.value) {
+    callback?.();
+    return;
+  }
+
+  openTextDialog(text, callback);
+}
 </script>
 
 <template>
@@ -111,8 +117,7 @@ onBeforeUnmount(() => {
             icon="import"
             variant="filled"
             @click="
-              openConditionalTextDialog(
-                confirm,
+              openConfirmableTextDialog(
                 panel.t(
                   'johannschopplich.content-translator.dialog.importFrom',
                   { language: language.name },
@@ -133,8 +138,7 @@ onBeforeUnmount(() => {
           variant="filled"
           theme="notice-icon"
           @click="
-            openConditionalTextDialog(
-              confirm,
+            openConfirmableTextDialog(
               panel.t('johannschopplich.content-translator.dialog.translate', {
                 language: panel.language.name,
               }),
@@ -183,8 +187,7 @@ onBeforeUnmount(() => {
             icon="import"
             variant="filled"
             @click="
-              openConditionalTextDialog(
-                confirm,
+              openConfirmableTextDialog(
                 panel.t('johannschopplich.content-translator.dialog.import', {
                   language: defaultLanguage.name,
                 }),
@@ -201,8 +204,7 @@ onBeforeUnmount(() => {
             variant="filled"
             theme="notice-icon"
             @click="
-              openConditionalTextDialog(
-                confirm,
+              openConfirmableTextDialog(
                 panel.t(
                   'johannschopplich.content-translator.dialog.translate',
                   { language: panel.language.name },
