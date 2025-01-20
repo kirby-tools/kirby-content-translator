@@ -243,7 +243,7 @@ export function useContentTranslator() {
         },
         languages: {
           type: "checkboxes",
-          label: panel.t("johannschopplich.content-translator.translateTo"),
+          label: `${panel.t("johannschopplich.content-translator.translateTo")}:`,
           options: translationLanguages.map((language) => ({
             value: language.code,
             text: language.name,
