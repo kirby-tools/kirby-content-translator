@@ -3,7 +3,7 @@
   "type": "module",
   "version": "3.0.2",
   "private": true,
-  "packageManager": "pnpm@9.15.1",
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "dev": "PLAYGROUND=true kirbyup serve src/panel/index.js",
     "build": "kirbyup src/panel/index.js",
@@ -21,7 +21,7 @@
     "bumpp": "^9.9.2",
     "eslint": "^9.17.0",
     "kirbyup": "^3.2.0",
-    "kirbyuse": "^0.10.0",
+    "kirbyuse": "^0.11.3",
     "ofetch": "^1.4.1",
     "p-all": "^5.0.0",
     "prettier": "^3.4.2",

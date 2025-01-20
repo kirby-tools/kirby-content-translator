@@ -1,12 +1,15 @@
 import slugify from "@sindresorhus/slugify";
-import { computed, ref, useContent, useI18n, usePanel } from "kirbyuse";
+import { ref, useContent, useDialog, useI18n, usePanel } from "kirbyuse";
 import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
 import { translateContent } from "../utils/translation";
+import { useModel } from "./model";
 
 export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
+  const { openFieldsDialog } = useDialog();
+  const { getDefaultLanguageData } = useModel();
 
   // Configuration state
   const label = ref();
@@ -25,17 +28,11 @@ export function useContentTranslator() {
   const config = ref();
   const homePageId = ref();
   const licenseStatus = ref();
-  const defaultLanguageData = ref({});
 
   // Panel constants
   const defaultLanguage = panel.languages.find((language) => language.default);
-  const nonDefaultLanguages = panel.languages.filter(
+  const translationLanguages = panel.languages.filter(
     (language) => language.code !== defaultLanguage.code,
-  );
-
-  // Computed properties
-  const isHomePage = computed(
-    () => defaultLanguageData.value.id === homePageId.value,
   );
 
   function initializeConfig(context, response = {}) {
@@ -74,18 +71,23 @@ export function useContentTranslator() {
   }
 
   async function syncModelContent(language) {
-    let { title, content } = defaultLanguageData.value;
+    let title;
+    let content;
 
     // If a language is passed, use the content of that language as the source,
     // otherwise use the default language
     if (language) {
-      const silent = true;
       const data = await panel.api.get(
         panel.view.path,
         { language: language.code },
         undefined,
-        silent,
+        // Silent
+        true,
       );
+      title = data.title;
+      content = data.content;
+    } else {
+      const data = await getDefaultLanguageData();
       title = data.title;
       content = data.content;
     }
@@ -104,17 +106,18 @@ export function useContentTranslator() {
     );
 
     await updateContent(syncableContent);
+    const _isHomePage = await isHomePage();
 
     if (translateTitle.value) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
-    if (translateSlug.value && !language.default && !isHomePage.value) {
+    if (translateSlug.value && !language.default && !_isHomePage) {
       const slug = slugify(title);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
     if (
       translateTitle.value ||
-      (translateSlug.value && !language.default && !isHomePage.value)
+      (translateSlug.value && !language.default && !_isHomePage)
     ) {
       await panel.view.reload();
     }
@@ -139,17 +142,18 @@ export function useContentTranslator() {
         fields: fields.value,
       });
     } catch (error) {
+      panel.view.isLoading = false;
       console.error("Failed to translate content:", error);
       panel.notification.error(error.message);
-      panel.view.isLoading = false;
       return;
     }
 
     await updateContent(clone);
+    const _isHomePage = await isHomePage();
 
     if (
       translateTitle.value ||
-      (translateSlug.value && !targetLanguage.default && !isHomePage.value)
+      (translateSlug.value && !targetLanguage.default && !_isHomePage)
     ) {
       const { text } = await panel.api.post(TRANSLATE_API_ROUTE, {
         sourceLanguage: sourceLanguage?.code,
@@ -164,7 +168,7 @@ export function useContentTranslator() {
       // Translating the slug is only possible for non-default languages,
       // as the page folder would be renamed otherwise.
       // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-      if (translateSlug.value && !targetLanguage.default && !isHomePage.value) {
+      if (translateSlug.value && !targetLanguage.default && !_isHomePage) {
         const slug = slugify(text);
         await panel.api.patch(`${panel.view.path}/slug`, { slug });
       }
@@ -180,16 +184,18 @@ export function useContentTranslator() {
     );
   }
 
-  async function bulkTranslateModelContent() {
+  async function bulkTranslateModelContent(selectedLanguages) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
+    const defaultLanguageData = await getDefaultLanguageData();
+
     try {
       await Promise.all(
-        nonDefaultLanguages.map(async (language) => {
+        selectedLanguages.map(async (language) => {
           await panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
             selectedLanguage: language.code,
-            id: defaultLanguageData.value.id ?? "site",
+            id: defaultLanguageData.id ?? "site",
             title: translateTitle.value,
             slug: translateSlug.value,
           });
@@ -202,9 +208,9 @@ export function useContentTranslator() {
         ),
       );
     } catch (error) {
+      panel.view.isLoading = false;
       console.error("Failed to bulk translate content:", error);
       panel.notification.error(error.message);
-      panel.view.isLoading = false;
       return;
     }
 
@@ -212,14 +218,50 @@ export function useContentTranslator() {
     await panel.view.reload();
   }
 
-  async function updateModelDefaultLanguageData() {
-    const silent = true;
-    defaultLanguageData.value = await panel.api.get(
-      panel.view.path,
-      { language: defaultLanguage.code },
-      undefined,
-      silent,
-    );
+  async function isHomePage() {
+    const defaultLanguageData = await getDefaultLanguageData();
+    return defaultLanguageData.id === homePageId.value;
+  }
+
+  async function openBulkTranslationDialog() {
+    const options = await openFieldsDialog({
+      submitButton: {
+        icon: "translate",
+        theme: "positive",
+        text: panel.t(
+          "johannschopplich.content-translator.dialog.button.translate",
+        ),
+      },
+      fields: {
+        text: {
+          type: "info",
+          theme: "notice",
+          text: panel.t(
+            "johannschopplich.content-translator.dialog.bulkTranslation",
+            { language: defaultLanguage.name },
+          ),
+        },
+        languages: {
+          type: "checkboxes",
+          label: panel.t("johannschopplich.content-translator.translateTo"),
+          options: translationLanguages.map((language) => ({
+            value: language.code,
+            text: language.name,
+          })),
+        },
+      },
+      value: {
+        languages: translationLanguages.map((language) => language.code),
+      },
+    });
+
+    if (options.languages.length > 0) {
+      await bulkTranslateModelContent(
+        translationLanguages.filter((language) =>
+          options.languages.includes(language.code),
+        ),
+      );
+    }
   }
 
   return {
@@ -239,17 +281,18 @@ export function useContentTranslator() {
     fields,
     config,
     licenseStatus,
-    defaultLanguageData,
 
     // Panel constants
     defaultLanguage,
-    nonDefaultLanguages,
+    translationLanguages,
 
     // Methods
     initializeConfig,
     syncModelContent,
     translateModelContent,
     bulkTranslateModelContent,
-    updateModelDefaultLanguageData,
+
+    // Dialogs
+    openBulkTranslationDialog,
   };
 }

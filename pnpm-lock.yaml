@@ -13,7 +13,7 @@ importers:
         version: 3.12.1(@typescript-eslint/utils@8.18.2(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.2))(@vue/compiler-sfc@2.7.16)(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.2)
       '@kirby-tools/licensing':
         specifier: ^0.5.2
-        version: 0.5.2(kirbyuse@0.10.0)
+        version: 0.5.2(kirbyuse@0.11.3)
       '@sindresorhus/slugify':
         specifier: ^2.2.1
         version: 2.2.1
@@ -30,8 +30,8 @@ importers:
         specifier: ^3.2.0
         version: 3.2.0(@types/node@22.10.2)(jiti@2.4.2)(rollup@4.29.1)(yaml@2.6.1)
       kirbyuse:
-        specifier: ^0.10.0
-        version: 0.10.0
+        specifier: ^0.11.3
+        version: 0.11.3
       ofetch:
         specifier: ^1.4.1
         version: 1.4.1
@@ -1610,8 +1610,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  kirbyuse@0.10.0:
-    resolution: {integrity: sha512-9FBj+keybvLCOsjJXZkDq22Bn1NXaBXx3qV0FoSd79a1JQ0pQrxHUKALydFNSIeZEJD3AoVpoiM+7XE5muX1BA==}
+  kirbyuse@0.11.3:
+    resolution: {integrity: sha512-BUYATb7eEGKUrBMLJZ/BAnls4dw8k/MmuH+UqjBN9bSRip2CA0ivViXnGjndXjFLQnS0a/ncaRbQyKvQfpKzJw==}
 
   kleur@3.0.3:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
@@ -2970,9 +2970,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@kirby-tools/licensing@0.5.2(kirbyuse@0.10.0)':
+  '@kirby-tools/licensing@0.5.2(kirbyuse@0.11.3)':
     dependencies:
-      kirbyuse: 0.10.0
+      kirbyuse: 0.11.3
       vue: 2.7.16
 
   '@nodelib/fs.scandir@2.1.5':
@@ -4193,7 +4193,7 @@ snapshots:
       - tsx
       - yaml
 
-  kirbyuse@0.10.0:
+  kirbyuse@0.11.3:
     dependencies:
       vue: 2.7.16
 

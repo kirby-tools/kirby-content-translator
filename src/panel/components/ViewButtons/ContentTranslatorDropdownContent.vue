@@ -2,6 +2,7 @@
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
 import { openTextDialog } from "../../composables/dialog";
+import { useModel } from "../../composables/model";
 import { useContentTranslator } from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
@@ -19,6 +20,7 @@ const props = defineProps({
 });
 
 const panel = usePanel();
+const { getDefaultLanguageData } = useModel();
 
 const {
   // Configuration state
@@ -30,7 +32,6 @@ const {
   // Runtime state
   fields,
   licenseStatus,
-  defaultLanguageData,
 
   // Panel constants
   defaultLanguage,
@@ -39,8 +40,9 @@ const {
   initializeConfig,
   syncModelContent,
   translateModelContent,
-  bulkTranslateModelContent,
-  updateModelDefaultLanguageData,
+
+  // Dialogs
+  openBulkTranslationDialog,
 } = useContentTranslator();
 
 if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
@@ -53,22 +55,20 @@ initializeConfig(props.context);
 
 // Lazily fetch required view data (same as `computed` section methods)
 const initializationPromise = (async () => {
-  await updateModelDefaultLanguageData();
+  const defaultLanguageData = await getDefaultLanguageData();
 
-  const silent = true;
-  const modelFields = await panel.api.get(
+  fields.value = await panel.api.get(
     MODEL_FIELDS_API_ROUTE,
-    { id: defaultLanguageData.value.id ?? "site" },
+    { id: defaultLanguageData.id ?? "site" },
     undefined,
-    silent,
+    // Silent
+    true,
   );
 
   if (import.meta.env.DEV) {
     // eslint-disable-next-line no-console
-    console.log("Model fields:", modelFields);
+    console.log("Model fields:", fields.value);
   }
-
-  fields.value = modelFields ?? {};
 })();
 
 function withInitialization(fn) {
@@ -76,6 +76,11 @@ function withInitialization(fn) {
     await initializationPromise;
     fn(...args);
   };
+}
+
+async function invokeWhenInitialized(fn) {
+  await initializationPromise;
+  fn?.();
 }
 
 function openConfirmableTextDialog(text, callback) {
@@ -135,15 +140,7 @@ function openConfirmableTextDialog(text, callback) {
       <k-dropdown-item
         v-if="allowBulkTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="
-          openTextDialog(
-            panel.t(
-              'johannschopplich.content-translator.dialog.bulkTranslation',
-              { language: defaultLanguage.name },
-            ),
-            withInitialization(bulkTranslateModelContent),
-          )
-        "
+        @click="invokeWhenInitialized(openBulkTranslationDialog)"
       >
         {{
           panel.t("johannschopplich.content-translator.bulkTranslate", {
@@ -197,15 +194,7 @@ function openConfirmableTextDialog(text, callback) {
       <k-dropdown-item
         v-if="allowBulkTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="
-          openTextDialog(
-            panel.t(
-              'johannschopplich.content-translator.dialog.bulkTranslation',
-              { language: defaultLanguage.name },
-            ),
-            withInitialization(bulkTranslateModelContent),
-          )
-        "
+        @click="invokeWhenInitialized(openBulkTranslationDialog)"
       >
         {{
           panel.t("johannschopplich.content-translator.bulkTranslate", {

@@ -1,6 +1,6 @@
 <script>
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { onBeforeUnmount, ref, usePanel, useSection } from "kirbyuse";
+import { ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import { openTextDialog } from "../../composables/dialog";
 import { usePluginContext } from "../../composables/plugin";
@@ -40,8 +40,9 @@ const {
   initializeConfig,
   syncModelContent,
   translateModelContent,
-  bulkTranslateModelContent,
-  updateModelDefaultLanguageData,
+
+  // Dialogs
+  openBulkTranslationDialog,
 } = useContentTranslator();
 
 (async () => {
@@ -56,18 +57,8 @@ const {
 
   initializeConfig(context, sectionProps);
 
-  // Re-fetch default content whenever the page gets saved
-  panel.events.on("model.update", updateModelDefaultLanguageData);
-  panel.events.on("page.changeTitle", updateModelDefaultLanguageData);
-  updateModelDefaultLanguageData();
-
   isInitialized.value = true;
 })();
-
-onBeforeUnmount(() => {
-  panel.events.off("model.update", updateModelDefaultLanguageData);
-  panel.events.off("page.changeTitle", updateModelDefaultLanguageData);
-});
 
 function openConfirmableTextDialog(text, callback) {
   if (!confirm.value) {
@@ -157,15 +148,7 @@ function openConfirmableTextDialog(text, callback) {
           icon="content-translator-global"
           variant="filled"
           theme="notice-icon"
-          @click="
-            openTextDialog(
-              panel.t(
-                'johannschopplich.content-translator.dialog.bulkTranslation',
-                { language: defaultLanguage.name },
-              ),
-              bulkTranslateModelContent,
-            )
-          "
+          @click="openBulkTranslationDialog()"
         >
           {{
             panel.t("johannschopplich.content-translator.bulkTranslate", {
@@ -224,15 +207,7 @@ function openConfirmableTextDialog(text, callback) {
             icon="content-translator-global"
             variant="filled"
             theme="notice-icon"
-            @click="
-              openTextDialog(
-                panel.t(
-                  'johannschopplich.content-translator.dialog.bulkTranslation',
-                  { language: defaultLanguage.name },
-                ),
-                bulkTranslateModelContent,
-              )
-            "
+            @click="openBulkTranslationDialog()"
           >
             {{
               panel.t("johannschopplich.content-translator.bulkTranslate", {
