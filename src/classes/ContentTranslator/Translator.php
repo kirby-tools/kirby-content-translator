@@ -215,7 +215,7 @@ final class Translator
                     foreach ($layout['columns'] as $column) {
                         foreach ($column['blocks'] as $block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
-                                $blockFields = $this->reduceFieldsFromTabs($fields[$key]['fieldsets'], $block);
+                                $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
                                 $this->handleTranslation($block['content'], $blockFields, true);
                             }
                         }
@@ -227,7 +227,7 @@ final class Translator
             elseif ($fields[$key]['type'] === 'blocks' && is_array($obj[$key])) {
                 foreach ($obj[$key] as $block) {
                     if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
-                        $blockFields = $this->reduceFieldsFromTabs($fields[$key]['fieldsets'], $block);
+                        $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
                         $this->handleTranslation($block['content'], $blockFields, true);
                     }
                 }
@@ -257,7 +257,7 @@ final class Translator
             && ($block['isHidden'] ?? false) !== true;
     }
 
-    private function reduceFieldsFromTabs(array $fieldsets, array $block): array
+    private function flattenTabFields(array $fieldsets, array $block): array
     {
         $blockFields = [];
 

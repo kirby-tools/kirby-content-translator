@@ -83,7 +83,7 @@ export async function translateContent(
 
               // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
 
-              const blockFields = reduceFieldsFromTabs(
+              const blockFields = flattenTabFields(
                 fields[key].fieldsets,
                 block,
               );
@@ -101,10 +101,7 @@ export async function translateContent(
 
           // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
 
-          const blockFields = reduceFieldsFromTabs(
-            fields[key].fieldsets,
-            block,
-          );
+          const blockFields = flattenTabFields(fields[key].fieldsets, block);
           handleTranslation(block.content, blockFields);
         }
       }
@@ -128,7 +125,7 @@ function isBlockTranslatable(block) {
   return isObject(block.content) && block.id && block.isHidden !== true;
 }
 
-function reduceFieldsFromTabs(fieldsets, block) {
+function flattenTabFields(fieldsets, block) {
   const blockFields = {};
 
   for (const tab of Object.values(fieldsets[block.type].tabs)) {
