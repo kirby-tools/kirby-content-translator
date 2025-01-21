@@ -220,13 +220,15 @@ function openConfirmableTextDialog(text, callback) {
 
       <k-box
         v-show="!allowBulkTranslation && panel.language.default"
-        class="kct-mt-1"
         theme="none"
         :text="
           panel.t(
             'johannschopplich.content-translator.help.disabledDefaultLanguage',
           )
         "
+        :style="{
+          marginTop: 'var(--spacing-1)',
+        }"
       />
     </template>
   </k-section>
