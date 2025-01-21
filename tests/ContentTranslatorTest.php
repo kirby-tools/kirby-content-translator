@@ -131,12 +131,6 @@ final class ContentTranslatorTest extends TestCase
         ]);
     }
 
-    protected function tearDown(): void
-    {
-        restore_error_handler();
-        restore_exception_handler();
-    }
-
     public function testTranslateTextWithEmptyString(): void
     {
         $this->assertSame('', Translator::translateText('', 'de'));
@@ -149,7 +143,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testCopyContent(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->copyContent('de', 'en');
@@ -162,7 +156,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testTranslateContent(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
@@ -175,7 +169,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testTranslateContentWithSourceLanguage(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de', 'en');
@@ -188,7 +182,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testTranslateTitle(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateTitle('en', 'de');
@@ -198,7 +192,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testDoNotTranslateHomePageSlug(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
         $originalSlug = $page->slug('en');
 
         $translator = new Translator($page);
@@ -209,18 +203,18 @@ final class ContentTranslatorTest extends TestCase
 
     public function testTranslateBlocksContent(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
 
-        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value(), true);
+        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value());
         $this->assertSame('[de]Block content', $blocks[0]['content']['text']);
     }
 
     public function testTranslateStructureContent(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
@@ -232,7 +226,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testDoNotTranslateUntranslatableFields(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
@@ -245,7 +239,7 @@ final class ContentTranslatorTest extends TestCase
 
     public function testCustomFieldTypeConfiguration(): void
     {
-        $page = $this->app->page('home')->clone();
+        $page = $this->app->clone()->page('home');
 
         $translator = new Translator($page, [
             'fieldTypes' => ['textarea'],

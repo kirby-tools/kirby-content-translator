@@ -199,7 +199,7 @@ final class Translator
 
             // Handle structure fields
             elseif ($fields[$key]['type'] === 'structure' && is_array($obj[$key])) {
-                foreach ($obj[$key] as $item) {
+                foreach ($obj[$key] as &$item) {
                     $this->handleTranslation($item, $fields[$key]['fields'], true);
                 }
             }
@@ -211,7 +211,7 @@ final class Translator
 
             // Handle layout fields
             elseif ($fields[$key]['type'] === 'layout' && is_array($obj[$key])) {
-                foreach ($obj[$key] as $layout) {
+                foreach ($obj[$key] as &$layout) {
                     foreach ($layout['columns'] as $column) {
                         foreach ($column['blocks'] as $block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
@@ -225,7 +225,7 @@ final class Translator
 
             // Handle block fields
             elseif ($fields[$key]['type'] === 'blocks' && is_array($obj[$key])) {
-                foreach ($obj[$key] as $block) {
+                foreach ($obj[$key] as &$block) {
                     if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                         $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
                         $this->handleTranslation($block['content'], $blockFields, true);
