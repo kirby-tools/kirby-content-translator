@@ -6,10 +6,7 @@
 # /vendor
 
 # Build files
-# /assets
 /index.dev.mjs
-# /index.js
-# /index.css
 
 # Playground files
 .env
