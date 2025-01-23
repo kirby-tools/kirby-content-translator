@@ -13,7 +13,6 @@ export function useContentTranslator() {
 
   // Configuration state
   const label = ref();
-  const allowImport = ref();
   const importFrom = ref();
   const allowBulkTranslation = ref();
   const translateTitle = ref();
@@ -38,7 +37,6 @@ export function useContentTranslator() {
   function initializeConfig(context, response = {}) {
     label.value =
       t(response.label) || panel.t("johannschopplich.content-translator.label");
-    allowImport.value = response.import ?? context.config.import ?? true;
     importFrom.value =
       response.importFrom ?? context.config.importFrom ?? undefined;
     allowBulkTranslation.value = response.bulk ?? context.config.bulk ?? true;
@@ -267,7 +265,6 @@ export function useContentTranslator() {
   return {
     // Configuration state
     label,
-    allowImport,
     importFrom,
     allowBulkTranslation,
     translateTitle,

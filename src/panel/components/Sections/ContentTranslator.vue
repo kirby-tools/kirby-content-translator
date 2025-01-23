@@ -24,7 +24,6 @@ const isInitialized = ref(false);
 const {
   // Configuration state
   label,
-  allowImport,
   importFrom,
   allowBulkTranslation,
   confirm,
@@ -97,33 +96,30 @@ function openConfirmableTextDialog(text, callback) {
       </k-text>
     </k-box>
 
-    <k-box v-else-if="allowImport && importFrom === 'all'" theme="none">
+    <k-box v-else-if="importFrom === 'all'" theme="none">
       <k-button-group layout="collapsed">
-        <template v-if="allowImport">
-          <k-button
-            v-for="language in panel.languages.filter(
-              (language) => language.code !== panel.language.code,
-            )"
-            :key="language.code"
-            icon="import"
-            variant="filled"
-            @click="
-              openConfirmableTextDialog(
-                panel.t(
-                  'johannschopplich.content-translator.dialog.importFrom',
-                  { language: language.name },
-                ),
-                () => syncModelContent(language),
-              )
-            "
-          >
-            {{
-              panel.t("johannschopplich.content-translator.importFrom", {
-                language: language.code.toUpperCase(),
-              })
-            }}
-          </k-button>
-        </template>
+        <k-button
+          v-for="language in panel.languages.filter(
+            (language) => language.code !== panel.language.code,
+          )"
+          :key="language.code"
+          icon="import"
+          variant="filled"
+          @click="
+            openConfirmableTextDialog(
+              panel.t('johannschopplich.content-translator.dialog.importFrom', {
+                language: language.name,
+              }),
+              () => syncModelContent(language),
+            )
+          "
+        >
+          {{
+            panel.t("johannschopplich.content-translator.importFrom", {
+              language: language.code.toUpperCase(),
+            })
+          }}
+        </k-button>
         <k-button
           icon="translate"
           variant="filled"
@@ -163,9 +159,7 @@ function openConfirmableTextDialog(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-if="
-              allowImport && (!allowBulkTranslation || !panel.language.default)
-            "
+            v-if="!allowBulkTranslation || !panel.language.default"
             :disabled="panel.language.default"
             icon="import"
             variant="filled"
