@@ -255,7 +255,7 @@ export function useContentTranslator() {
       },
     });
 
-    if (options.languages.length > 0) {
+    if (options?.languages?.length) {
       await bulkTranslateModelContent(
         translationLanguages.filter((language) =>
           options.languages.includes(language.code),
