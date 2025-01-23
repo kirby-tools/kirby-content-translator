@@ -25,7 +25,7 @@ const { getDefaultLanguageData } = useModel();
 const {
   // Configuration state
   importFrom,
-  allowBulkTranslation,
+  allowBatchTranslation,
   confirm,
 
   // Runtime state
@@ -41,7 +41,7 @@ const {
   translateModelContent,
 
   // Dialogs
-  openBulkTranslationDialog,
+  openBatchTranslationDialog,
 } = useContentTranslator();
 
 if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
@@ -135,12 +135,12 @@ function openConfirmableTextDialog(text, callback) {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="allowBulkTranslation && panel.language.default"
+        v-if="allowBatchTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="invokeWhenInitialized(openBulkTranslationDialog)"
+        @click="invokeWhenInitialized(openBatchTranslationDialog)"
       >
         {{
-          panel.t("johannschopplich.content-translator.bulkTranslate", {
+          panel.t("johannschopplich.content-translator.batchTranslate", {
             language: defaultLanguage.code.toUpperCase(),
           })
         }}
@@ -148,7 +148,7 @@ function openConfirmableTextDialog(text, callback) {
     </template>
 
     <template v-else>
-      <template v-if="!allowBulkTranslation || !panel.language.default">
+      <template v-if="!allowBatchTranslation || !panel.language.default">
         <k-dropdown-item
           :disabled="panel.language.default"
           icon="import"
@@ -166,7 +166,7 @@ function openConfirmableTextDialog(text, callback) {
         <hr />
       </template>
       <k-dropdown-item
-        v-if="!allowBulkTranslation || !panel.language.default"
+        v-if="!allowBatchTranslation || !panel.language.default"
         :disabled="panel.language.default"
         icon="translate"
         @click="
@@ -187,12 +187,12 @@ function openConfirmableTextDialog(text, callback) {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="allowBulkTranslation && panel.language.default"
+        v-if="allowBatchTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="invokeWhenInitialized(openBulkTranslationDialog)"
+        @click="invokeWhenInitialized(openBatchTranslationDialog)"
       >
         {{
-          panel.t("johannschopplich.content-translator.bulkTranslate", {
+          panel.t("johannschopplich.content-translator.batchTranslate", {
             language: defaultLanguage.code.toUpperCase(),
           })
         }}

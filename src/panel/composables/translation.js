@@ -14,7 +14,7 @@ export function useContentTranslator() {
   // Configuration state
   const label = ref();
   const importFrom = ref();
-  const allowBulkTranslation = ref();
+  const allowBatchTranslation = ref();
   const translateTitle = ref();
   const translateSlug = ref();
   const confirm = ref();
@@ -39,7 +39,9 @@ export function useContentTranslator() {
       t(response.label) || panel.t("johannschopplich.content-translator.label");
     importFrom.value =
       response.importFrom ?? context.config.importFrom ?? undefined;
-    allowBulkTranslation.value = response.bulk ?? context.config.bulk ?? true;
+    allowBatchTranslation.value =
+      // TODO: `bulk` is deprecated, remove in v4
+      response.batch ?? context.config.batch ?? context.config.bulk ?? true;
     translateTitle.value = response.title ?? context.config.title ?? false;
     translateSlug.value = response.slug ?? context.config.slug ?? false;
     confirm.value = response.confirm ?? context.config.confirm ?? true;
@@ -182,7 +184,7 @@ export function useContentTranslator() {
     );
   }
 
-  async function bulkTranslateModelContent(selectedLanguages) {
+  async function batchTranslateModelContent(selectedLanguages) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
@@ -202,12 +204,12 @@ export function useContentTranslator() {
 
       panel.notification.success(
         panel.t(
-          "johannschopplich.content-translator.notification.bulkTranslated",
+          "johannschopplich.content-translator.notification.batchTranslated",
         ),
       );
     } catch (error) {
       panel.view.isLoading = false;
-      console.error("Failed to bulk translate content:", error);
+      console.error("Failed to batch translate content:", error);
       panel.notification.error(error.message);
       return;
     }
@@ -221,7 +223,7 @@ export function useContentTranslator() {
     return defaultLanguageData.id === homePageId.value;
   }
 
-  async function openBulkTranslationDialog() {
+  async function openBatchTranslationDialog() {
     const options = await openFieldsDialog({
       submitButton: {
         icon: "translate",
@@ -235,7 +237,7 @@ export function useContentTranslator() {
           type: "info",
           theme: "notice",
           text: panel.t(
-            "johannschopplich.content-translator.dialog.bulkTranslation",
+            "johannschopplich.content-translator.dialog.batchTranslation",
             { language: defaultLanguage.name },
           ),
         },
@@ -254,7 +256,7 @@ export function useContentTranslator() {
     });
 
     if (options?.languages?.length) {
-      await bulkTranslateModelContent(
+      await batchTranslateModelContent(
         translationLanguages.filter((language) =>
           options.languages.includes(language.code),
         ),
@@ -266,7 +268,7 @@ export function useContentTranslator() {
     // Configuration state
     label,
     importFrom,
-    allowBulkTranslation,
+    allowBatchTranslation,
     translateTitle,
     translateSlug,
     confirm,
@@ -287,9 +289,9 @@ export function useContentTranslator() {
     initializeConfig,
     syncModelContent,
     translateModelContent,
-    bulkTranslateModelContent,
+    batchTranslateModelContent,
 
     // Dialogs
-    openBulkTranslationDialog,
+    openBatchTranslationDialog,
   };
 }

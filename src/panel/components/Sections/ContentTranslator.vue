@@ -25,7 +25,7 @@ const {
   // Configuration state
   label,
   importFrom,
-  allowBulkTranslation,
+  allowBatchTranslation,
   confirm,
 
   // Runtime state
@@ -41,7 +41,7 @@ const {
   translateModelContent,
 
   // Dialogs
-  openBulkTranslationDialog,
+  openBatchTranslationDialog,
 } = useContentTranslator();
 
 (async () => {
@@ -140,14 +140,14 @@ function openConfirmableTextDialog(text, callback) {
           }}
         </k-button>
         <k-button
-          v-if="allowBulkTranslation && panel.language.default"
+          v-if="allowBatchTranslation && panel.language.default"
           icon="content-translator-global"
           variant="filled"
           theme="notice-icon"
-          @click="openBulkTranslationDialog()"
+          @click="openBatchTranslationDialog()"
         >
           {{
-            panel.t("johannschopplich.content-translator.bulkTranslate", {
+            panel.t("johannschopplich.content-translator.batchTranslate", {
               language: defaultLanguage.code.toUpperCase(),
             })
           }}
@@ -159,7 +159,7 @@ function openConfirmableTextDialog(text, callback) {
       <k-box theme="none">
         <k-button-group layout="collapsed">
           <k-button
-            v-if="!allowBulkTranslation || !panel.language.default"
+            v-if="!allowBatchTranslation || !panel.language.default"
             :disabled="panel.language.default"
             icon="import"
             variant="filled"
@@ -175,7 +175,7 @@ function openConfirmableTextDialog(text, callback) {
             {{ panel.t("johannschopplich.content-translator.import") }}
           </k-button>
           <k-button
-            v-if="!allowBulkTranslation || !panel.language.default"
+            v-if="!allowBatchTranslation || !panel.language.default"
             :disabled="panel.language.default"
             icon="translate"
             variant="filled"
@@ -197,14 +197,14 @@ function openConfirmableTextDialog(text, callback) {
             }}
           </k-button>
           <k-button
-            v-if="allowBulkTranslation && panel.language.default"
+            v-if="allowBatchTranslation && panel.language.default"
             icon="content-translator-global"
             variant="filled"
             theme="notice-icon"
-            @click="openBulkTranslationDialog()"
+            @click="openBatchTranslationDialog()"
           >
             {{
-              panel.t("johannschopplich.content-translator.bulkTranslate", {
+              panel.t("johannschopplich.content-translator.batchTranslate", {
                 language: defaultLanguage.code.toUpperCase(),
               })
             }}
@@ -213,7 +213,7 @@ function openConfirmableTextDialog(text, callback) {
       </k-box>
 
       <k-box
-        v-show="!allowBulkTranslation && panel.language.default"
+        v-show="!allowBatchTranslation && panel.language.default"
         theme="none"
         :text="
           panel.t(
