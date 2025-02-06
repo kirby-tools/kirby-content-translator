@@ -118,7 +118,7 @@ final class Translator
 
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
-            $translatedContent = $this->handleTranslation($content, $this->fields);
+            $translatedContent = $this->walkTranslatableFields($content, $this->fields);
 
             // Write the translated content
             $this->model = $this->model->update($translatedContent, $contentLanguageCode);
@@ -158,7 +158,7 @@ final class Translator
         return $this->model;
     }
 
-    private function handleTranslation(array &$obj, array $fields, $isRecursive = false): array
+    private function walkTranslatableFields(array &$obj, array $fields, $isRecursive = false): array
     {
         foreach ($obj as $key => $value) {
             if (empty($value)) {
@@ -193,20 +193,24 @@ final class Translator
             }
 
             // Handle text-like fields
-            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer', 'markdown'], true)) {
+            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer'], true)) {
                 $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
+            }
+            // Handle markdown content separately
+            elseif (in_array($fields[$key]['type'], ['textarea', 'markdown'], true)) {
+                $obj[$key] = $this->translateMarkdown($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
 
             // Handle structure fields
             elseif ($fields[$key]['type'] === 'structure' && is_array($obj[$key])) {
                 foreach ($obj[$key] as &$item) {
-                    $this->handleTranslation($item, $fields[$key]['fields'], true);
+                    $this->walkTranslatableFields($item, $fields[$key]['fields'], true);
                 }
             }
 
             // Handle object fields
             elseif ($fields[$key]['type'] === 'object' && A::isAssociative($obj[$key])) {
-                $this->handleTranslation($obj[$key], $fields[$key]['fields'], true);
+                $this->walkTranslatableFields($obj[$key], $fields[$key]['fields'], true);
             }
 
             // Handle layout fields
@@ -216,7 +220,7 @@ final class Translator
                         foreach ($column['blocks'] as $block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                                 $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                                $this->handleTranslation($block['content'], $blockFields, true);
+                                $this->walkTranslatableFields($block['content'], $blockFields, true);
                             }
                         }
                     }
@@ -228,7 +232,7 @@ final class Translator
                 foreach ($obj[$key] as &$block) {
                     if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                         $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                        $this->handleTranslation($block['content'], $blockFields, true);
+                        $this->walkTranslatableFields($block['content'], $blockFields, true);
                     }
                 }
             }
@@ -247,6 +251,38 @@ final class Translator
         }
 
         return $obj;
+    }
+
+    private function translateMarkdown(string $markdown, string $targetLanguage, ?string $sourceLanguage = null): string
+    {
+        if (empty($markdown)) {
+            return '';
+        }
+
+        // Split content into segments while preserving line breaks
+        $segments = preg_split(
+            '/(?<=\n)(?=#{1,6}\s|[^#\n])/m',
+            $markdown,
+            -1,
+            PREG_SPLIT_NO_EMPTY
+        );
+
+        // Translate each segment while preserving trailing newlines
+        $translatedSegments = array_map(function ($segment) use ($targetLanguage, $sourceLanguage) {
+            preg_match('/\n*$/', $segment, $matches);
+            $trailingNewlines = $matches[0] ?? '';
+
+            $contentToTranslate = rtrim($segment);
+            if (empty($contentToTranslate)) {
+                return $trailingNewlines;
+            }
+
+            $translated = $this->translateText($contentToTranslate, $targetLanguage, $sourceLanguage);
+
+            return $translated . $trailingNewlines;
+        }, $segments);
+
+        return implode('', $translatedSegments);
     }
 
     private function isBlockTranslatable(array $block): bool

@@ -2,6 +2,12 @@ import { useApi } from "kirbyuse";
 import pAll from "p-all";
 import { TRANSLATE_API_ROUTE } from "../constants";
 
+/**
+ * Regex pattern to split markdown content by headings and paragraphs
+ * while preserving line breaks
+ */
+const MARKDOWN_SEGMENT_PATTERN = /(?<=\n)(?=#{1,6}\s|[^#\n])/;
+
 export async function translateContent(
   obj,
   {
@@ -16,11 +22,11 @@ export async function translateContent(
   const api = useApi();
   const tasks = [];
 
-  function handleTranslation(obj, fields) {
+  function walkTranslatableFields(obj, fields) {
     for (const key in obj) {
       if (!obj[key]) continue;
       if (!fields[key]) continue;
-      if (!fields[key].translate) continue;
+      if (fields[key].translate === false) continue;
       if (!fieldTypes.includes(fields[key].type)) continue;
 
       // Include/exclude fields
@@ -28,11 +34,7 @@ export async function translateContent(
       if (excludeFields?.length && excludeFields.includes(key)) continue;
 
       // Handle text-like fields
-      if (
-        ["list", "text", "textarea", "writer", "markdown"].includes(
-          fields[key].type,
-        )
-      ) {
+      if (["list", "text", "textarea", "writer"].includes(fields[key].type)) {
         tasks.push(async () => {
           const response = await api.post(TRANSLATE_API_ROUTE, {
             sourceLanguage,
@@ -40,6 +42,12 @@ export async function translateContent(
             text: obj[key],
           });
           obj[key] = response.text;
+        });
+      }
+      // Handle markdown content separately
+      else if (["textarea", "markdown"].includes(fields[key].type)) {
+        tasks.push(async () => {
+          obj[key] = await translateMarkdown(obj[key]);
         });
       }
 
@@ -64,13 +72,13 @@ export async function translateContent(
       // Handle structure fields
       else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
         for (const item of obj[key]) {
-          handleTranslation(item, fields[key].fields);
+          walkTranslatableFields(item, fields[key].fields);
         }
       }
 
       // Handle object fields
       else if (fields[key].type === "object" && isObject(obj[key])) {
-        handleTranslation(obj[key], fields[key].fields);
+        walkTranslatableFields(obj[key], fields[key].fields);
       }
 
       // Handle layout fields
@@ -87,7 +95,7 @@ export async function translateContent(
                 fields[key].fieldsets,
                 block,
               );
-              handleTranslation(block.content, blockFields);
+              walkTranslatableFields(block.content, blockFields);
             }
           }
         }
@@ -102,13 +110,42 @@ export async function translateContent(
           // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
 
           const blockFields = flattenTabFields(fields[key].fieldsets, block);
-          handleTranslation(block.content, blockFields);
+          walkTranslatableFields(block.content, blockFields);
         }
       }
     }
   }
 
-  handleTranslation(obj, fields);
+  async function translateMarkdown(text) {
+    if (!text.trim()) return text;
+
+    // Split content into segments while preserving line breaks
+    const segments = text.split(MARKDOWN_SEGMENT_PATTERN).filter(Boolean);
+
+    // Translate each segment while preserving trailing newlines
+    const translatedSegments = await Promise.all(
+      segments.map(async (segment) => {
+        const trailingNewlines = segment.match(/\n*$/)?.[0] ?? "";
+        const contentToTranslate = segment.trimEnd();
+
+        if (!contentToTranslate) {
+          return trailingNewlines;
+        }
+
+        const response = await api.post(TRANSLATE_API_ROUTE, {
+          sourceLanguage,
+          targetLanguage,
+          text: contentToTranslate,
+        });
+
+        return response.text + trailingNewlines;
+      }),
+    );
+
+    return translatedSegments.join("");
+  }
+
+  walkTranslatableFields(obj, fields);
 
   // Process translation tasks in batches
   try {
