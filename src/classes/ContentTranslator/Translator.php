@@ -15,6 +15,15 @@ use Kirby\Toolkit\A;
 
 final class Translator
 {
+    /** @see https://github.com/getkirby/kirby/blob/main/src/Text/KirbyTags.php */
+    private const KIRBY_TAGS_REGEX = '!
+        (?=[^\]])               # positive lookahead that matches a group after the main expression without including ] in the result
+        (?=\([a-z0-9_-]+:)      # positive lookahead that requires starts with ( and lowercase ASCII letters, digits, underscores or hyphens followed with : immediately to the right of the current location
+        (\(                     # capturing group 1
+            (?:[^()]+|(?1))*+   # repetitions of any chars other than ( and ) or the whole group 1 pattern (recursed)
+        \))                     # end of capturing group 1
+    !isx';
+
     private App $kirby;
     private Site|Page|File $model;
     private string|null $targetLanguage;
@@ -193,7 +202,7 @@ final class Translator
             }
 
             // Handle text-like fields
-            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'textarea', 'writer'], true)) {
+            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'writer'], true)) {
                 $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
             // Handle markdown content separately
@@ -253,36 +262,25 @@ final class Translator
         return $obj;
     }
 
-    private function translateMarkdown(string $markdown, string $targetLanguage, ?string $sourceLanguage = null): string
+    private function translateMarkdown(string $text, string $targetLanguage, ?string $sourceLanguage = null): string
     {
-        if (empty($markdown)) {
+        if (empty($text)) {
             return '';
         }
 
-        // Split content into segments while preserving line breaks
-        $segments = preg_split(
-            '/(?<=\n)(?=#{1,6}\s|[^#\n])/m',
-            $markdown,
-            -1,
-            PREG_SPLIT_NO_EMPTY
+        $sanitizedText = preg_replace_callback(
+            static::KIRBY_TAGS_REGEX,
+            fn (array $matches) => '<div translate="no">' . $matches[0] . '</div>',
+            $text
         );
 
-        // Translate each segment while preserving trailing newlines
-        $translatedSegments = array_map(function ($segment) use ($targetLanguage, $sourceLanguage) {
-            preg_match('/\n*$/', $segment, $matches);
-            $trailingNewlines = $matches[0] ?? '';
+        $translatedText = $this->translateText($sanitizedText, $targetLanguage, $sourceLanguage);
 
-            $contentToTranslate = rtrim($segment);
-            if (empty($contentToTranslate)) {
-                return $trailingNewlines;
-            }
-
-            $translated = $this->translateText($contentToTranslate, $targetLanguage, $sourceLanguage);
-
-            return $translated . $trailingNewlines;
-        }, $segments);
-
-        return implode('', $translatedSegments);
+        return preg_replace(
+            '!<div translate="no">(.*?)</div>!s',
+            '$1',
+            $translatedText
+        );
     }
 
     private function isBlockTranslatable(array $block): bool

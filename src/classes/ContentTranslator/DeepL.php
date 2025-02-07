@@ -51,9 +51,10 @@ final class DeepL
     private array $requestOptions = [
         // Enable HTML tag handling by default for the Writer field
         'tag_handling' => 'html',
-        // Ignore `<deepl_ignore>` tags by default – this only works with the `tag_handling` option set to `xml`!
-        // See: https://developers.deepl.com/docs/xml-and-html-handling/xml#ignored-tags
-        // 'ignore_tags' => ['deepl_ignore']
+        // HTML tag handling sets `split_sentences=nonewlines`, which breaks
+        // markdown content. Therefore, we need to set it back to `1` to
+        // split sentences on punctuation and on newlines.
+        'split_sentences' => '1'
     ];
     private string|null $apiKey;
     private static DeepL|null $instance;
@@ -87,6 +88,12 @@ final class DeepL
             if (!in_array($sourceLanguage, static::SUPPORTED_SOURCE_LANGUAGES, true)) {
                 $sourceLanguage = null;
             }
+        }
+
+        // If a paragraph with the attribute `translate="no"` is present,
+        // force HTML tag handling (if not enabled already)
+        if (str_contains($text, '<div translate="no">')) {
+            $this->requestOptions['tag_handling'] = 'html';
         }
 
         $response = Remote::request($this->resolveApiUrl() . '/v2/translate', [

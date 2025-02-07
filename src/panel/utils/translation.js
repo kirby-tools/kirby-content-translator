@@ -2,11 +2,7 @@ import { useApi } from "kirbyuse";
 import pAll from "p-all";
 import { TRANSLATE_API_ROUTE } from "../constants";
 
-/**
- * Regex pattern to split markdown content by headings and paragraphs
- * while preserving line breaks
- */
-const MARKDOWN_SEGMENT_PATTERN = /(?<=\n)(?=#{1,6}\s|[^#\n])/;
+const KIRBY_TAGS_REGEX = /(?<!\])(\([\w-]+:(?:[^()]|\([^()]*\))*\))/g;
 
 export async function translateContent(
   obj,
@@ -34,7 +30,7 @@ export async function translateContent(
       if (excludeFields?.length && excludeFields.includes(key)) continue;
 
       // Handle text-like fields
-      if (["list", "text", "textarea", "writer"].includes(fields[key].type)) {
+      if (["list", "text", "writer"].includes(fields[key].type)) {
         tasks.push(async () => {
           const response = await api.post(TRANSLATE_API_ROUTE, {
             sourceLanguage,
@@ -117,32 +113,22 @@ export async function translateContent(
   }
 
   async function translateMarkdown(text) {
-    if (!text.trim()) return text;
+    if (!text.trim()) {
+      return text;
+    }
 
-    // Split content into segments while preserving line breaks
-    const segments = text.split(MARKDOWN_SEGMENT_PATTERN).filter(Boolean);
-
-    // Translate each segment while preserving trailing newlines
-    const translatedSegments = await Promise.all(
-      segments.map(async (segment) => {
-        const trailingNewlines = segment.match(/\n*$/)?.[0] ?? "";
-        const contentToTranslate = segment.trimEnd();
-
-        if (!contentToTranslate) {
-          return trailingNewlines;
-        }
-
-        const response = await api.post(TRANSLATE_API_ROUTE, {
-          sourceLanguage,
-          targetLanguage,
-          text: contentToTranslate,
-        });
-
-        return response.text + trailingNewlines;
-      }),
+    const sanitizedText = text.replace(
+      KIRBY_TAGS_REGEX,
+      (match) => `<div translate="no">${match}</div>`,
     );
 
-    return translatedSegments.join("");
+    const response = await api.post(TRANSLATE_API_ROUTE, {
+      sourceLanguage,
+      targetLanguage,
+      text: sanitizedText,
+    });
+
+    return response.text.replace(/<div translate="no">(.*?)<\/div>/gs, "$1");
   }
 
   walkTranslatableFields(obj, fields);
