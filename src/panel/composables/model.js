@@ -9,9 +9,6 @@ export function useModel() {
 
   // Ensure event listener is only set once
   if (!isListenerRegistered) {
-    const removeLanguageData = () => {
-      languageDataCache.delete(panel.view.path);
-    };
     panel.events.on("model.update", removeLanguageData);
     panel.events.on("page.changeSlug", removeLanguageData);
     panel.events.on("page.changeTitle", removeLanguageData);
@@ -37,7 +34,12 @@ export function useModel() {
     return response;
   }
 
+  function removeLanguageData() {
+    languageDataCache.delete(panel.view.path);
+  }
+
   return {
     getDefaultLanguageData,
+    removeLanguageData,
   };
 }
