@@ -72,5 +72,23 @@ return [
         'johannschopplich.content-translator.notification.imported' => 'Inhoud geïmporteerd',
         'johannschopplich.content-translator.notification.translated' => 'Inhoud vertaald',
         'johannschopplich.content-translator.notification.batchTranslated' => 'Inhoud vertaald voor alle geselecteerde talen'
+    ],
+    'pt_PT' => [
+        'johannschopplich.content-translator.label' => 'Tradutor de Conteúdo',
+        'johannschopplich.content-translator.import' => 'Importar',
+        'johannschopplich.content-translator.importFrom' => 'Importar de {language}',
+        'johannschopplich.content-translator.translate' => 'Traduzir → {language}',
+        'johannschopplich.content-translator.translateTo' => 'Traduzir para',
+        'johannschopplich.content-translator.batchTranslate' => '{language} → Todos os idiomas',
+        'johannschopplich.content-translator.viewButton.label' => 'Tradutor',
+        'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'O conteúdo só pode ser importado e traduzido para idiomas secundários.',
+        'johannschopplich.content-translator.dialog.button.translate' => 'Traduzir',
+        'johannschopplich.content-translator.dialog.import' => 'O conteúdo do idioma atual será substituído pelo conteúdo do idioma por defeito ({language}). As alterações no conteúdo são reversíveis. Continuar?',
+        'johannschopplich.content-translator.dialog.importFrom' => 'O conteúdo do idioma atual será substituído pelo conteúdo de <strong>{language}</strong>. As alterações no conteúdo são reversíveis. Continuar?',
+        'johannschopplich.content-translator.dialog.translate' => 'O conteúdo do idioma atual será traduzido para <strong>{language}</strong>. As alterações no conteúdo são reversíveis. Continuar?',
+        'johannschopplich.content-translator.dialog.batchTranslation' => 'O conteúdo de todos os idiomas selecionados será substituído pelo conteúdo do idioma por defeito ({language}) e depois traduzido para o respetivo idioma. Este processo é <strong>irreversível</strong> e pode demorar algum tempo.',
+        'johannschopplich.content-translator.notification.imported' => 'Conteúdo importado',
+        'johannschopplich.content-translator.notification.translated' => 'Conteúdo traduzido',
+        'johannschopplich.content-translator.notification.batchTranslated' => 'Conteúdo traduzido para todos os idiomas selecionados'
     ]
 ];
