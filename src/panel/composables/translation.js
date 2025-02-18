@@ -27,6 +27,7 @@ export function useContentTranslator() {
   const fields = ref();
   const config = ref();
   const homePageId = ref();
+  const errorPageId = ref();
   const licenseStatus = ref();
 
   // Panel constants
@@ -67,6 +68,7 @@ export function useContentTranslator() {
     fields.value = response.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
+    errorPageId.value = context.errorPageId;
     licenseStatus.value =
       // eslint-disable-next-line no-undef
       __PLAYGROUND__ ? "active" : context.licenseStatus;
@@ -109,17 +111,26 @@ export function useContentTranslator() {
 
     await updateContent(syncableContent);
     const _isHomePage = await isHomePage();
+    const _isErrorPage = await isErrorPage();
 
     if (translateTitle.value) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
-    if (translateSlug.value && !language.default && !_isHomePage) {
+    if (
+      translateSlug.value &&
+      !language.default &&
+      !_isHomePage &&
+      !_isErrorPage
+    ) {
       const slug = slugify(title);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
     if (
       translateTitle.value ||
-      (translateSlug.value && !language.default && !_isHomePage)
+      (translateSlug.value &&
+        !language.default &&
+        !_isHomePage &&
+        !_isErrorPage)
     ) {
       await panel.view.reload();
     }
@@ -152,10 +163,14 @@ export function useContentTranslator() {
 
     await updateContent(clone);
     const _isHomePage = await isHomePage();
+    const _isErrorPage = await isErrorPage();
 
     if (
       translateTitle.value ||
-      (translateSlug.value && !targetLanguage.default && !_isHomePage)
+      (translateSlug.value &&
+        !targetLanguage.default &&
+        !_isHomePage &&
+        !_isErrorPage)
     ) {
       const { text } = await panel.api.post(TRANSLATE_API_ROUTE, {
         sourceLanguage: sourceLanguage?.code,
@@ -170,7 +185,12 @@ export function useContentTranslator() {
       // Translating the slug is only possible for non-default languages,
       // as the page folder would be renamed otherwise.
       // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-      if (translateSlug.value && !targetLanguage.default && !_isHomePage) {
+      if (
+        translateSlug.value &&
+        !targetLanguage.default &&
+        !_isHomePage &&
+        !_isErrorPage
+      ) {
         const slug = slugify(text);
         await panel.api.patch(`${panel.view.path}/slug`, { slug });
       }
@@ -223,6 +243,11 @@ export function useContentTranslator() {
   async function isHomePage() {
     const defaultLanguageData = await getDefaultLanguageData();
     return defaultLanguageData.id === homePageId.value;
+  }
+
+  async function isErrorPage() {
+    const defaultLanguageData = await getDefaultLanguageData();
+    return defaultLanguageData.id === errorPageId.value;
   }
 
   async function openBatchTranslationDialog() {

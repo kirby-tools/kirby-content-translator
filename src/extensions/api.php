@@ -30,6 +30,7 @@ return [
                 return [
                     'config' => $config,
                     'homePageId' => $kirby->site()->homePageId(),
+                    'errorPageId' => $kirby->site()->errorPageId(),
                     'licenseStatus' => $licenses->getStatus()
                 ];
             }
