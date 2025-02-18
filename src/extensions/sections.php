@@ -7,6 +7,7 @@ return [
     'content-translator' => [
         'props' => [
             'label' => fn ($label = null) => I18n::translate($label, $label),
+            'import' => fn ($import = null) => is_bool($import) ? $import : null,
             'importFrom' => function ($importFrom = null) {
                 if ($importFrom === 'all') {
                     return 'all';

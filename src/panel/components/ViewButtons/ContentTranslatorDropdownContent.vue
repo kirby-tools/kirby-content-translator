@@ -24,6 +24,7 @@ const { getDefaultLanguageData } = useModel();
 
 const {
   // Configuration state
+  allowImport,
   importFrom,
   allowBatchTranslation,
   confirm,
@@ -94,29 +95,31 @@ function openConfirmableTextDialog(text, callback) {
 
 <template>
   <div>
-    <template v-if="importFrom === 'all'">
-      <k-dropdown-item
-        v-for="language in panel.languages.filter(
-          (language) => language.code !== panel.language.code,
-        )"
-        :key="language.code"
-        icon="import"
-        @click="
-          openConfirmableTextDialog(
-            panel.t('johannschopplich.content-translator.dialog.importFrom', {
-              language: language.name,
-            }),
-            withInitialization(() => syncModelContent(language)),
-          )
-        "
-      >
-        {{
-          panel.t("johannschopplich.content-translator.importFrom", {
-            language: language.code.toUpperCase(),
-          })
-        }}
-      </k-dropdown-item>
-      <hr />
+    <template v-if="allowImport && importFrom === 'all'">
+      <template v-if="allowImport">
+        <k-dropdown-item
+          v-for="language in panel.languages.filter(
+            (language) => language.code !== panel.language.code,
+          )"
+          :key="language.code"
+          icon="import"
+          @click="
+            openConfirmableTextDialog(
+              panel.t('johannschopplich.content-translator.dialog.importFrom', {
+                language: language.name,
+              }),
+              withInitialization(() => syncModelContent(language)),
+            )
+          "
+        >
+          {{
+            panel.t("johannschopplich.content-translator.importFrom", {
+              language: language.code.toUpperCase(),
+            })
+          }}
+        </k-dropdown-item>
+        <hr />
+      </template>
       <k-dropdown-item
         icon="translate"
         @click="
@@ -148,7 +151,11 @@ function openConfirmableTextDialog(text, callback) {
     </template>
 
     <template v-else>
-      <template v-if="!allowBatchTranslation || !panel.language.default">
+      <template
+        v-if="
+          allowImport && (!allowBatchTranslation || !panel.language.default)
+        "
+      >
         <k-dropdown-item
           :disabled="panel.language.default"
           icon="import"
