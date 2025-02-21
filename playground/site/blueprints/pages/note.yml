@@ -5,6 +5,18 @@ columns:
     fields:
       text:
         type: blocks
+        fieldsets:
+          - code
+          - gallery
+          - heading
+          - image
+          - line
+          - list
+          - markdown
+          - quote
+          - text
+          - video
+          - structure
 
   - width: 1/3
     sections:

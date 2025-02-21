@@ -1,8 +1,12 @@
 name: Structure
 icon: checklist
-fields:
-  structure:
-    type: structure
+preview: fields
+
+tabs:
+  content:
     fields:
-      text:
-        type: textarea
+      structure:
+        type: structure
+        fields:
+          text:
+            type: textarea
