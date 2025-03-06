@@ -12,40 +12,11 @@ use Kirby\Toolkit\A;
 
 final class DeepL
 {
-    public const SUPPORTED_SOURCE_LANGUAGES = [
-        'AR',
-        'BG',
-        'CS',
-        'DA',
-        'DE',
-        'EL',
-        'EN',
-        'ES',
-        'ET',
-        'FI',
-        'FR',
-        'HU',
-        'ID',
-        'IT',
-        'JA',
-        'KO',
-        'LT',
-        'LV',
-        'NB',
-        'NL',
-        'PL',
-        'PT',
-        'RO',
-        'RU',
-        'SK',
-        'SL',
-        'SV',
-        'TR',
-        'UK',
-        'ZH'
-    ];
+    public const SUPPORTED_SOURCE_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'ES', 'ET', 'FI', 'FR', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'RO', 'RU', 'SK', 'SL', 'SV', 'TR', 'UK', 'ZH'];
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
+    private const MAX_RETRIES = 3;
+    private const INITIAL_RETRY_DELAY_MS = 1000;
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private array $requestOptions = [
@@ -96,21 +67,23 @@ final class DeepL
             $this->requestOptions['tag_handling'] = 'html';
         }
 
-        $response = Remote::request($this->resolveApiUrl() . '/v2/translate', [
-            'method' => 'POST',
-            'headers' => [
-                'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
-                'Content-Type' => 'application/json'
-            ],
-            'data' => json_encode(A::merge(
-                [
-                    'text' => [$text],
-                    'source_lang' => $sourceLanguage,
-                    'target_lang' => strtoupper($targetLanguage),
+        $response = $this->withRetry(function () use ($text, $sourceLanguage, $targetLanguage) {
+            return Remote::request($this->resolveApiUrl() . '/v2/translate', [
+                'method' => 'POST',
+                'headers' => [
+                    'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
+                    'Content-Type' => 'application/json'
                 ],
-                $this->requestOptions
-            ))
-        ]);
+                'data' => json_encode(A::merge(
+                    [
+                        'text' => [$text],
+                        'source_lang' => $sourceLanguage,
+                        'target_lang' => strtoupper($targetLanguage),
+                    ],
+                    $this->requestOptions
+                ))
+            ]);
+        });
 
         // See error message guide: https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
         match ($response->code()) {
@@ -124,6 +97,32 @@ final class DeepL
 
         $data = $response->json();
         return $data['translations'][0]['text'];
+    }
+
+    private function withRetry(callable $callback): mixed
+    {
+        $retries = 0;
+        $delay = static::INITIAL_RETRY_DELAY_MS;
+
+        while (true) {
+            $response = $callback();
+
+            // Handle rate limits from the DeepL API
+            if ($response->code() === 429) {
+                if ($retries >= static::MAX_RETRIES) {
+                    throw new LogicException('Too many requests to the DeepL API. Maximum retry attempts reached.');
+                }
+
+                // Sleep with exponential backoff
+                $sleepTime = (int)($delay * (1.5 ** $retries)) / 1000;
+                sleep($sleepTime);
+
+                $retries++;
+                continue;
+            }
+
+            return $response;
+        }
     }
 
     private function resolveApiUrl(): string
