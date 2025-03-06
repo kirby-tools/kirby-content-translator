@@ -114,7 +114,7 @@ final class DeepL
                 }
 
                 // Sleep with exponential backoff
-                $sleepTime = (int)($delay * (1.5 ** $retries)) / 1000;
+                $sleepTime = (int)($delay * (1.5 ** $retries) / 1000);
                 sleep($sleepTime);
 
                 $retries++;
