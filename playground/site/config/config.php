@@ -14,7 +14,10 @@ return [
             'assets/panel.css',
             env('DEMO', false) ? 'assets/panel-demo.css' : false
         ]),
-        'favicon' => 'favicon.ico'
+        'favicon' => 'favicon.ico',
+        'vue' => [
+            'compiler' => false
+        ]
     ],
 
     'johannschopplich.content-translator' => [
