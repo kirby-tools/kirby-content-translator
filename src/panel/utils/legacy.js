@@ -16,17 +16,16 @@ export function legacyViewButtonMixin(Vue) {
       );
       if (!buttonGroup) return;
 
-      const button = new Vue({
-        render: (h) => h(ContentTranslatorDropdownButton),
-      }).$mount();
-
       const languagesDropdown = buttonGroup.$el.querySelector(
         ".k-languages-dropdown",
       );
       if (!languagesDropdown) return;
 
+      const ButtonConstructor = Vue.extend(ContentTranslatorDropdownButton);
+      const button = new ButtonConstructor({ parent: this });
+      button.$mount();
+
       languagesDropdown.after(button.$el);
-      this.$forceUpdate();
     },
   });
 }
