@@ -6,6 +6,8 @@ export function legacyViewButtonMixin(Vue) {
     return;
   }
 
+  let buttonComponent;
+
   Vue.mixin({
     mounted() {
       if (this.$options.name !== "k-header") return;
@@ -22,10 +24,19 @@ export function legacyViewButtonMixin(Vue) {
       if (!languagesDropdown) return;
 
       const ButtonConstructor = Vue.extend(ContentTranslatorDropdownButton);
-      const button = new ButtonConstructor({ parent: this });
-      button.$mount();
+      buttonComponent = new ButtonConstructor({ parent: this });
+      buttonComponent.$mount();
 
-      languagesDropdown.after(button.$el);
+      languagesDropdown.after(buttonComponent.$el);
+    },
+    beforeDestroy() {
+      if (this.$options.name !== "k-header") return;
+      if (!window.panel.multilang) return;
+
+      if (buttonComponent) {
+        buttonComponent.$destroy();
+        buttonComponent = undefined;
+      }
     },
   });
 }
