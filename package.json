@@ -1,7 +1,7 @@
 {
   "name": "kirby-content-translator",
   "type": "module",
-  "version": "3.2.5",
+  "version": "3.2.6",
   "private": true,
   "packageManager": "pnpm@10.5.2",
   "scripts": {
