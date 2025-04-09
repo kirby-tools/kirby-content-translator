@@ -1,6 +1,6 @@
 import { usePanel } from "kirbyuse";
 
-const languageDataCache = new Map();
+const modelDataCache = new Map();
 let isListenerRegistered = false;
 
 export function useModel() {
@@ -9,37 +9,37 @@ export function useModel() {
 
   // Ensure event listener is only set once
   if (!isListenerRegistered) {
-    panel.events.on("model.update", removeLanguageData);
-    panel.events.on("page.changeSlug", removeLanguageData);
-    panel.events.on("page.changeTitle", removeLanguageData);
+    panel.events.on("model.update", clearViewModelData);
+    panel.events.on("page.changeSlug", clearViewModelData);
+    panel.events.on("page.changeTitle", clearViewModelData);
     isListenerRegistered = true;
   }
 
-  async function getDefaultLanguageData() {
+  async function getViewModelData() {
     const { path: id } = panel.view;
 
-    if (languageDataCache.has(id)) {
-      return languageDataCache.get(id);
+    if (modelDataCache.has(id)) {
+      return modelDataCache.get(id);
     }
 
     const response = await panel.api.get(
       id,
-      { language: defaultLanguage.code },
+      { language: defaultLanguage?.code },
       undefined,
       // Silent
       true,
     );
 
-    languageDataCache.set(id, response);
+    modelDataCache.set(id, response);
     return response;
   }
 
-  function removeLanguageData() {
-    languageDataCache.delete(panel.view.path);
+  function clearViewModelData() {
+    modelDataCache.delete(panel.view.path);
   }
 
   return {
-    getDefaultLanguageData,
-    removeLanguageData,
+    getViewModelData,
+    clearViewModelData,
   };
 }

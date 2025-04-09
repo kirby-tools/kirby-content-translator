@@ -9,7 +9,7 @@ export function useContentTranslator() {
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
   const { openFieldsDialog } = useDialog();
-  const { getDefaultLanguageData } = useModel();
+  const { getViewModelData } = useModel();
 
   // Configuration state
   const label = ref();
@@ -91,7 +91,7 @@ export function useContentTranslator() {
       title = data.title;
       content = data.content;
     } else {
-      const data = await getDefaultLanguageData();
+      const data = await getViewModelData();
       title = data.title;
       content = data.content;
     }
@@ -198,7 +198,7 @@ export function useContentTranslator() {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
-    const defaultLanguageData = await getDefaultLanguageData();
+    const defaultLanguageData = await getViewModelData();
 
     try {
       await Promise.all(
@@ -229,12 +229,12 @@ export function useContentTranslator() {
   }
 
   async function isHomePage() {
-    const defaultLanguageData = await getDefaultLanguageData();
+    const defaultLanguageData = await getViewModelData();
     return defaultLanguageData.id === homePageId.value;
   }
 
   async function isErrorPage() {
-    const defaultLanguageData = await getDefaultLanguageData();
+    const defaultLanguageData = await getViewModelData();
     return defaultLanguageData.id === errorPageId.value;
   }
 
