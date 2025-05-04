@@ -13,6 +13,7 @@ use Kirby\Toolkit\A;
 final class DeepL
 {
     public const SUPPORTED_SOURCE_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'ES', 'ET', 'FI', 'FR', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'RO', 'RU', 'SK', 'SL', 'SV', 'TR', 'UK', 'ZH'];
+    public const SUPPORTED_TARGET_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'EN-GB', 'EN-US', 'ES', 'ET', 'FI', 'FR', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'PT-BR', 'RO', 'RU', 'SK', 'SL', 'SV', 'TR', 'UK', 'ZH', 'ZH-HANS', 'ZH-HANT'];
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
     private const MAX_RETRIES = 3;
@@ -61,6 +62,8 @@ final class DeepL
             }
         }
 
+        $targetLanguage = $this->resolveLanguageCode($targetLanguage);
+
         // If a paragraph with the attribute `translate="no"` is present,
         // force HTML tag handling (if not enabled already)
         if (str_contains($text, '<div translate="no">')) {
@@ -78,7 +81,7 @@ final class DeepL
                     [
                         'text' => [$text],
                         'source_lang' => $sourceLanguage,
-                        'target_lang' => strtoupper($targetLanguage),
+                        'target_lang' => $targetLanguage,
                     ],
                     $this->requestOptions
                 ))
@@ -129,5 +132,36 @@ final class DeepL
     {
         $hasFreeAccount = str_ends_with($this->apiKey, ':fx');
         return $hasFreeAccount ? static::API_URL_FREE : static::API_URL_PRO;
+    }
+
+    private function resolveLanguageCode(string $code): string
+    {
+        $kirby = App::instance();
+        $language = $kirby->languages()->findBy('code', $code);
+
+        if ($language) {
+            $fullLocale = $language->locale(LC_ALL) ?? $language->code();
+            $fullLocale = preg_replace('/\.utf-?8$/i', '', $fullLocale);
+
+            // Get the base language and region if available
+            if (str_contains($fullLocale, '_')) {
+                [$baseCode, $regionCode] = array_map('strtoupper', explode('_', $fullLocale));
+
+                // Create region-specific code in DeepL format (e.g., EN-GB)
+                $targetCode = $baseCode . '-' . $regionCode;
+
+                // Only use region-specific code if it's a supported target language
+                if (in_array($targetCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+                    return $targetCode;
+                }
+
+                // If region-specific code is not supported, fall back to base language
+                if (in_array($baseCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+                    return $baseCode;
+                }
+            }
+        }
+
+        return strtoupper($code);
     }
 }
