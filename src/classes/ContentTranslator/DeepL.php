@@ -64,6 +64,10 @@ final class DeepL
 
         $targetLanguage = $this->resolveLanguageCode($targetLanguage);
 
+        if (!in_array($targetLanguage, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+            throw new LogicException('The target language "' . $targetLanguage . '" is not supported by the DeepL API.');
+        }
+
         // If a paragraph with the attribute `translate="no"` is present,
         // force HTML tag handling (if not enabled already)
         if (str_contains($text, '<div translate="no">')) {
