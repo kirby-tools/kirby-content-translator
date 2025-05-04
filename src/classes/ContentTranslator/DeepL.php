@@ -142,9 +142,9 @@ final class DeepL
     {
         $kirby = App::instance();
         $language = $kirby->languages()->findBy('code', $code);
+        $fullLocale = $language?->locale(LC_ALL);
 
-        if ($language) {
-            $fullLocale = $language->locale(LC_ALL) ?? $language->code();
+        if ($fullLocale) {
             $fullLocale = preg_replace('/\.utf-?8$/i', '', $fullLocale);
 
             // Get the base language and region if available
