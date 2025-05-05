@@ -152,11 +152,11 @@ final class DeepL
                 [$baseCode, $regionCode] = array_map('strtoupper', explode('_', $fullLocale));
 
                 // Create region-specific code in DeepL format (e.g., EN-GB)
-                $targetCode = $baseCode . '-' . $regionCode;
+                $regionSpecificCode = $baseCode . '-' . $regionCode;
 
                 // Only use region-specific code if it's a supported target language
-                if (in_array($targetCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
-                    return $targetCode;
+                if (in_array($regionSpecificCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+                    return $regionSpecificCode;
                 }
 
                 // If region-specific code is not supported, fall back to base language
