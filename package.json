@@ -3,7 +3,7 @@
   "type": "module",
   "version": "3.3.0",
   "private": true,
-  "packageManager": "pnpm@10.10.0",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "PLAYGROUND=true kirbyup serve src/panel/index.js",
     "build": "kirbyup src/panel/index.js",
@@ -14,18 +14,18 @@
     "release": "pnpm run build && bumpp --all --execute \"npx zx scripts/pre-release.mjs\" && zx scripts/post-release.mjs"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.12.0",
+    "@antfu/eslint-config": "^4.13.1",
     "@kirby-tools/licensing": "^0.5.2",
     "@sindresorhus/slugify": "^2.2.1",
-    "bumpp": "^10.1.0",
-    "eslint": "^9.26.0",
+    "bumpp": "^10.1.1",
+    "eslint": "^9.27.0",
     "kirbyup": "^3.3.0",
-    "kirbyuse": "^0.11.3",
+    "kirbyuse": "^0.12.1",
     "ofetch": "^1.4.1",
     "p-all": "^5.0.0",
     "prettier": "^3.5.3",
     "ufo": "^1.6.1",
-    "zx": "^8.5.3"
+    "zx": "^8.5.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
