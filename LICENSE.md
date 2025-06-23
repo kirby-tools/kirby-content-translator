@@ -1,11 +1,12 @@
 # Kirby Tools License Agreement
 
 Published: 2024-03-03
-Last updated: 2024-11-13
+
+Last updated: 2025-06-21
 
 ## About this License Agreement
 
-This License Agreement outlines the terms and conditions for the use of the Kirby Live Preview plugin and Kirby Content Translator plugin ("Plugins") sold on Lemon Squeezy by Johann Schopplich ("Licensor"). By purchasing, downloading, installing, or using any of the Plugins, you ("Licensee") agree to comply with this License Agreement.
+This License Agreement outlines the terms and conditions for the use of the Kirby Live Preview, Kirby Content Translator, Kirby Copilot and Kirby SEO Audit plugins ("Plugins") sold on Lemon Squeezy by Johann Schopplich ("Licensor"). By purchasing, downloading, installing, or using any of the Plugins, you ("Licensee") agree to comply with this License Agreement.
 
 Every effort has been made to accurately represent the Plugins and their potential. Please ensure you have read and understood the Plugins' capabilities and limitations, which are detailed on our website, before making your purchase.
 
@@ -15,7 +16,7 @@ All payments for the Plugins are processed securely through our online reseller,
 
 ## Grant of License
 
-The Licensee is granted a non-exclusive, non-transferable, perpetual license to use the Plugins on projects owned by the Licensee. This license includes access to updates and support as defined herein.
+The Licensee is granted a non-exclusive, non-transferable, perpetual license to use the Plugins on an unlimited number of projects where the Licensee is the code owner. A project's code is considered "owned" by the Licensee if they retain the intellectual property rights to the source code they have developed for that project. This license includes access to updates and support as defined herein.
 
 ## Third-Party Purchases
 
@@ -34,7 +35,7 @@ The Plugins are independent products and are not affiliated with the developers 
 The Licensee is permitted to use the Plugins in accordance with the documentation provided. The Licensee may modify the Plugins to the extent necessary for their personal use and for the Plugins to function within their projects. The following conditions and restrictions apply:
 
 - The Licensee may not distribute, sell, lease, sublicense, or offer the modified or unmodified version of the Plugins to any third parties.
-- The Licensee is prohibited from using the Plugins or their modified versions for any commercial purpose other than as integrated into their own projects.
+- The Licensee is prohibited from using the Plugins or their modified versions for any commercial purpose unless the Licensee owns the source code of the project where the Plugin is integrated.
 - The creation of derivative works is permitted solely for the Licensee's use within their own projects and must not be distributed or made available to the public in any form.
 - Reverse engineering, decompiling, or disassembling the Plugins is prohibited, except and only to the extent that such activity is expressly permitted by applicable law notwithstanding this limitation.
 - The Licensee may use the Plugins in various environments, including production, staging, and development environments, provided that the Plugins remain exclusively for the Licensee's use within their own projects and are not made accessible to the public outside of the completed project.
@@ -44,7 +45,7 @@ Any use of the Plugins outside of these conditions and restrictions is strictly 
 
 ## Updates and Support
 
-Minor and patch updates are provided for the Plugins. Major updates and support are available as specified on the purchase page.
+The license includes access to all minor and patch updates for the lifetime of the product. Access to major version upgrades and dedicated support terms are specified on the purchase page.
 
 ## Refund Policy
 
@@ -64,15 +65,11 @@ The License may be terminated by either party if terms are breached and not reme
 
 ## General Provisions
 
-This Agreement constitutes the entire understanding between the parties. Amendments must be in writing. If any provision is unenforceable, the remainder remains in effect.
+This Agreement constitutes the entire understanding between the parties. If any part of this Agreement is declared unenforceable or invalid, the remainder will continue to be valid and enforceable. The Licensor reserves the right to amend this Agreement at any time. Continued use of the Plugins after such changes shall constitute the Licensee's consent to such changes.
 
 ## Governing Law
 
 This Agreement is governed by the laws of Germany. Any disputes arising from this Agreement shall be resolved through mediation, if possible, before resorting to litigation.
-
-## Severability
-
-If any part of this Agreement is declared unenforceable or invalid, the remainder will continue to be valid and enforceable.
 
 ## Indemnification
 
@@ -81,10 +78,6 @@ The Licensee agrees to indemnify, defend, and hold harmless the Licensor from an
 ## Data Protection
 
 The Licensor complies with the General Data Protection Regulation (GDPR). Personal data collected is handled in accordance with the Licensor's privacy policy.
-
-## Amendments and Modifications
-
-The Licensor reserves the right to amend this Agreement at any time. Continued use of the Plugins after such changes shall constitute the Licensee's consent to such changes.
 
 ## Contact Information
 
