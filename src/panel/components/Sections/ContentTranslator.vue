@@ -77,7 +77,7 @@ function openConfirmableTextDialog(text, callback) {
         label="Kirby Content Translator"
         api-namespace="__content-translator__"
         :license-status="licenseStatus"
-        pricing-url="https://kirby.tools/content-translator#pricing"
+        pricing-url="https://kirby.tools/content-translator/buy"
       />
     </template>
 
