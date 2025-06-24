@@ -10,6 +10,7 @@ return array(
     'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\Translator' => $baseDir . '/src/classes/ContentTranslator/Translator.php',
     'JohannSchopplich\\Licensing\\Licenses' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Licenses.php',
+    'JohannSchopplich\\Licensing\\PluginLicense' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/PluginLicense.php',
     'Kirby\\ComposerInstaller\\CmsInstaller' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
     'Kirby\\ComposerInstaller\\Installer' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',
     'Kirby\\ComposerInstaller\\Plugin' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/Plugin.php',

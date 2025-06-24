@@ -10,18 +10,23 @@ use Kirby\Data\Json;
 use Kirby\Exception\LogicException;
 use Kirby\Filesystem\F;
 use Kirby\Http\Remote;
+use Kirby\Toolkit\A;
 use Throwable;
 
 /**
+ * Manages licenses for Kirby Tools plugins.
+ *
  * If you're here to learn all about how licenses are managed in Kirby Tools,
  * you're in the right place.
  *
  * However, if you're trying to figure out how to crack the license system,
- * please stop right here. I've put a lot of effort into creating Kirby Tools
- * and I'm sure you can appreciate that. If you like the plugin, please consider
+ * please stop. I've put a lot of effort into creating Kirby Tools and I'm
+ * sure you can appreciate that. If you like the plugin, please consider
  * supporting me by purchasing a license. Thank you!
  *
- * @see https://kirby.tools
+ * @link      https://kirby.tools
+ * @copyright Johann Schopplich
+ * @license   AGPL-3.0
  */
 class Licenses
 {
@@ -266,13 +271,13 @@ class Licenses
 
     private function request(string $path, array $options = []): array
     {
-        $response = new Remote(static::API_URL . '/' . $path, array_merge($options, [
+        $response = new Remote(static::API_URL . '/' . $path, A::merge([
             'headers' => [
                 'X-App-Url' => App::instance()->url()
             ]
-        ]));
+        ], $options));
 
-        if (!in_array($response->code(), [200, 201], true)) {
+        if ($response->code() < 200 || $response->code() >= 300) {
             $message = $response->json()['message'] ?? 'Request failed';
             throw new LogicException($message, (string)$response->code());
         }

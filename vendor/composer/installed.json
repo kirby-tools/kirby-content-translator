@@ -52,23 +52,23 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.7.0",
-            "version_normalized": "0.7.0.0",
+            "version": "0.7.2",
+            "version_normalized": "0.7.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "d8b469f7ab0f38b9540c2f20d85ed3a962b5f343"
+                "reference": "186b5a066d16bd78075b3f4a413567835de3f940"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/d8b469f7ab0f38b9540c2f20d85ed3a962b5f343",
-                "reference": "d8b469f7ab0f38b9540c2f20d85ed3a962b5f343",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/186b5a066d16bd78075b3f4a413567835de3f940",
+                "reference": "186b5a066d16bd78075b3f4a413567835de3f940",
                 "shasum": ""
             },
             "require-dev": {
-                "getkirby/cms": "^4"
+                "getkirby/cms": "^5"
             },
-            "time": "2024-12-26T09:48:09+00:00",
+            "time": "2025-06-24T15:04:04+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -90,11 +90,11 @@
                     "homepage": "https://johannschopplich.com"
                 }
             ],
-            "description": "Shared tooling for Kirby Tools licensing in Kirby",
+            "description": "License system backend for Kirby Tools plugins",
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.7.0"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.7.2"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         }

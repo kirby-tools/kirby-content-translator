@@ -1,8 +1,8 @@
 {
   "name": "johannschopplich/kirby-tools-licensing",
-  "description": "Shared tooling for Kirby Tools licensing in Kirby",
+  "description": "License system backend for Kirby Tools plugins",
   "type": "library",
-  "version": "0.7.0",
+  "version": "0.7.2",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
   "authors": [
@@ -13,7 +13,7 @@
     }
   ],
   "require-dev": {
-    "getkirby/cms": "^4"
+    "getkirby/cms": "^5"
   },
   "scripts": {
     "csfix": "@php tools/phpcs/vendor/bin/php-cs-fixer fix"
