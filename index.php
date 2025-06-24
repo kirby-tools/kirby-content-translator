@@ -7,26 +7,41 @@ use Kirby\Cms\Site;
 
 @include_once __DIR__ . '/vendor/autoload.php';
 
-Kirby::plugin('johannschopplich/content-translator', [
-    'api' => require __DIR__ . '/src/extensions/api.php',
-    'sections' => require __DIR__ . '/src/extensions/sections.php',
-    'translations' => require __DIR__ . '/src/extensions/translations.php',
-    'siteMethods' => [
-        'translator' => function (array $options = []) {
-            return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
-        }
-    ],
-    'pageMethods' => [
-        'translator' => function (array $options = []) {
-            return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
-        }
-    ],
-    'fileMethods' => [
-        'translator' => function (array $options = []) {
-            return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
-        }
+$pluginConfig = [
+    'name' => 'johannschopplich/content-translator',
+    'extends' => [
+        'api' => require __DIR__ . '/src/extensions/api.php',
+        'sections' => require __DIR__ . '/src/extensions/sections.php',
+        'translations' => require __DIR__ . '/src/extensions/translations.php',
+        'siteMethods' => [
+            'translator' => function (array $options = []) {
+                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+            }
+        ],
+        'pageMethods' => [
+            'translator' => function (array $options = []) {
+                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+            }
+        ],
+        'fileMethods' => [
+            'translator' => function (array $options = []) {
+                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+            }
+        ]
     ]
-]);
+];
+
+if (class_exists('\Kirby\Plugin\License')) {
+    Kirby::plugin(
+        ...$pluginConfig,
+        license: fn ($plugin) => new \JohannSchopplich\Licensing\PluginLicense(
+            plugin: $plugin,
+            packageName: 'johannschopplich/kirby-content-translator'
+        )
+    );
+} else {
+    Kirby::plugin(...$pluginConfig);
+}
 
 if (!function_exists('translator')) {
     function translator(Site|Page|File $model, array $options = []): \JohannSchopplich\ContentTranslator\Translator
