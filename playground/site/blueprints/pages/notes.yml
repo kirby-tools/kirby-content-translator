@@ -1,5 +1,12 @@
 title: Notes
 
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
 columns:
   - width: 1/1
     sections:

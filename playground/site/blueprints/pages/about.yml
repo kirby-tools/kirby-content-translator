@@ -6,6 +6,13 @@ options:
   changeSlug: false
   delete: false
 
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
 tabs:
   content:
     icon: text

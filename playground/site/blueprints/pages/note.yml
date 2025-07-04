@@ -1,5 +1,12 @@
 title: Note
 
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
 columns:
   - width: 2/3
     fields:
