@@ -1,8 +1,7 @@
 <script>
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { ref, usePanel, useSection } from "kirbyuse";
+import { ref, useDialog, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
-import { openTextDialog } from "../../composables/dialog";
 import { usePluginContext } from "../../composables/plugin";
 import { useContentTranslator } from "../../composables/translation";
 
@@ -19,6 +18,7 @@ export default {
 const props = defineProps(propsDefinition);
 
 const panel = usePanel();
+const { openTextDialog } = useDialog();
 const isInitialized = ref(false);
 
 const {
@@ -60,13 +60,14 @@ const {
   isInitialized.value = true;
 })();
 
-function openConfirmableTextDialog(text, callback) {
+async function openConfirmableTextDialog(text, callback) {
   if (!confirm.value) {
     callback?.();
     return;
   }
 
-  openTextDialog(text, callback);
+  const isOk = await openTextDialog(text);
+  if (isOk) callback?.();
 }
 </script>
 

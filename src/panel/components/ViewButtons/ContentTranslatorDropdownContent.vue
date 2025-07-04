@@ -1,7 +1,6 @@
 <script>
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
-import { usePanel } from "kirbyuse";
-import { openTextDialog } from "../../composables/dialog";
+import { useDialog, usePanel } from "kirbyuse";
 import { useModel } from "../../composables/model";
 import { useContentTranslator } from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
@@ -20,6 +19,7 @@ const props = defineProps({
 });
 
 const panel = usePanel();
+const { openTextDialog } = useDialog();
 const { getViewModelData } = useModel();
 
 const {
@@ -83,13 +83,14 @@ async function invokeWhenInitialized(fn) {
   fn?.();
 }
 
-function openConfirmableTextDialog(text, callback) {
+async function openConfirmableTextDialog(text, callback) {
   if (!confirm.value) {
     callback?.();
     return;
   }
 
-  openTextDialog(text, callback);
+  const isOk = await openTextDialog(text);
+  if (isOk) callback?.();
 }
 </script>
 
