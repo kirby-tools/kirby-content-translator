@@ -225,8 +225,8 @@ final class Translator
             // Handle layout fields
             elseif ($fields[$key]['type'] === 'layout' && is_array($obj[$key])) {
                 foreach ($obj[$key] as &$layout) {
-                    foreach ($layout['columns'] as $column) {
-                        foreach ($column['blocks'] as $block) {
+                    foreach ($layout['columns'] as &$column) {
+                        foreach ($column['blocks'] as &$block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                                 $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
                                 $this->walkTranslatableFields($block['content'], $blockFields, true);
