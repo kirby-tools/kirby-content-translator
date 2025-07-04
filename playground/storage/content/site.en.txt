@@ -1,1 +1,1 @@
-Title: Playground
+Title: Kirby Content Translator
