@@ -9,6 +9,8 @@ return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\Translator' => $baseDir . '/src/classes/ContentTranslator/Translator.php',
+    'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',
+    'JohannSchopplich\\Licensing\\Http\\KirbyHttpClient' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Http/KirbyHttpClient.php',
     'JohannSchopplich\\Licensing\\Licenses' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Licenses.php',
     'JohannSchopplich\\Licensing\\PluginLicense' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/PluginLicense.php',
     'Kirby\\ComposerInstaller\\CmsInstaller' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
