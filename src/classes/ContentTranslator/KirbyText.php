@@ -34,31 +34,15 @@ final class KirbyText
             return '';
         }
 
-        // If no KirbyTags configuration is provided, exclude all tags
-        if (empty($this->kirbyTags)) {
-            $sanitizedText = preg_replace_callback(
+        if (!empty($this->kirbyTags)) {
+            $text = preg_replace_callback(
                 self::KIRBY_TAGS_REGEX,
-                fn (array $matches) => '<div translate="no">' . $matches[0] . '</div>',
+                fn (array $matches) => $this->processKirbyTag($matches[0], $targetLanguage, $sourceLanguage),
                 $text
-            );
-
-            $translatedText = Translator::translateText($sanitizedText, $targetLanguage, $sourceLanguage);
-
-            return preg_replace(
-                '!<div translate="no">(.*?)</div>!s',
-                '$1',
-                $translatedText
             );
         }
 
-        // Process KirbyTags selectively
-        $processedText = preg_replace_callback(
-            self::KIRBY_TAGS_REGEX,
-            fn (array $matches) => $this->processKirbyTag($matches[0], $targetLanguage, $sourceLanguage),
-            $text
-        );
-
-        return Translator::translateText($processedText, $targetLanguage, $sourceLanguage);
+        return $this->protectedTranslate($text, $targetLanguage, $sourceLanguage);
     }
 
     private function processKirbyTag(string $tagString, string $targetLanguage, string|null $sourceLanguage = null): string
@@ -131,5 +115,22 @@ final class KirbyText
         }
 
         return '(' . implode(' ', $parts) . ')';
+    }
+
+    private function protectedTranslate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    {
+        $protectedText = preg_replace_callback(
+            self::KIRBY_TAGS_REGEX,
+            fn (array $matches) => '<div translate="no">' . $matches[0] . '</div>',
+            $text
+        );
+
+        $translatedText = Translator::translateText($protectedText, $targetLanguage, $sourceLanguage);
+
+        return preg_replace(
+            '!<div translate="no">(.*?)</div>!s',
+            '$1',
+            $translatedText
+        );
     }
 }
