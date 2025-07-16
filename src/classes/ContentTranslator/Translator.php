@@ -6,24 +6,13 @@ namespace JohannSchopplich\ContentTranslator;
 
 use Kirby\Cms\App;
 use Kirby\Cms\File;
-use Kirby\Cms\ModelWithContent;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
 use Kirby\Data\Data;
-use Kirby\Form\Form;
 use Kirby\Toolkit\A;
 
 final class Translator
 {
-    /** @see https://github.com/getkirby/kirby/blob/main/src/Text/KirbyTags.php */
-    private const KIRBY_TAGS_REGEX = '!
-        (?=[^\]])               # positive lookahead that matches a group after the main expression without including ] in the result
-        (?=\([a-z0-9_-]+:)      # positive lookahead that requires starts with ( and lowercase ASCII letters, digits, underscores or hyphens followed with : immediately to the right of the current location
-        (\(                     # capturing group 1
-            (?:[^()]+|(?1))*+   # repetitions of any chars other than ( and ) or the whole group 1 pattern (recursed)
-        \))                     # end of capturing group 1
-    !isx';
-
     private App $kirby;
     private Site|Page|File $model;
     private string|null $targetLanguage;
@@ -32,12 +21,14 @@ final class Translator
     private array $fieldTypes;
     private array $includeFields;
     private array $excludeFields;
+    private array $kirbyTags;
+    private KirbyText $kirbyText;
 
     public function __construct(Site|Page|File $model, array $options = [])
     {
         $this->kirby = $model->kirby();
         $this->model = $model;
-        $this->fields = Translator::resolveModelFields($model);
+        $this->fields = FieldResolver::resolveModelFields($model);
         $config = $model->kirby()->option('johannschopplich.content-translator', []);
 
         $this->fieldTypes = $options['fieldTypes'] ?? $config['fieldTypes'] ?? [
@@ -55,11 +46,14 @@ final class Translator
         ];
         $this->includeFields = $options['includeFields'] ?? $config['includeFields'] ?? [];
         $this->excludeFields = $options['excludeFields'] ?? $config['excludeFields'] ?? [];
+        $this->kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
 
         // Lowercase fields keys, sine the Kirby Panel content object keys are lowercase
         $this->fieldTypes = array_map('strtolower', $this->fieldTypes);
         $this->includeFields = array_map('strtolower', $this->includeFields);
         $this->excludeFields = array_map('strtolower', $this->excludeFields);
+
+        $this->kirbyText = new KirbyText($model, $this->kirbyTags);
     }
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
@@ -96,28 +90,6 @@ final class Translator
         ], 'text');
 
         return $result;
-    }
-
-    public static function resolveModelFields(ModelWithContent $model): array
-    {
-        $fields = $model->blueprint()->fields();
-        $languageCode = $model->kirby()->languageCode();
-        $content = $model->content($languageCode)->toArray();
-        $form = new Form([
-            'fields' => $fields,
-            'values' => $content,
-            'model' => $model,
-            'strict' => true
-        ]);
-
-        $fields = $form->fields()->toArray();
-        unset($fields['title']);
-
-        foreach ($fields as $index => $props) {
-            unset($fields[$index]['value']);
-        }
-
-        return $fields;
     }
 
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
@@ -232,7 +204,7 @@ final class Translator
             }
             // Handle markdown content separately
             elseif (in_array($fields[$key]['type'], ['textarea', 'markdown'], true)) {
-                $obj[$key] = $this->translateMarkdown($obj[$key], $this->targetLanguage, $this->sourceLanguage);
+                $obj[$key] = $this->kirbyText->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
             }
 
             // Handle structure fields
@@ -285,27 +257,6 @@ final class Translator
         }
 
         return $obj;
-    }
-
-    private function translateMarkdown(string $text, string $targetLanguage, ?string $sourceLanguage = null): string
-    {
-        if (empty($text)) {
-            return '';
-        }
-
-        $sanitizedText = preg_replace_callback(
-            static::KIRBY_TAGS_REGEX,
-            fn (array $matches) => '<div translate="no">' . $matches[0] . '</div>',
-            $text
-        );
-
-        $translatedText = $this->translateText($sanitizedText, $targetLanguage, $sourceLanguage);
-
-        return preg_replace(
-            '!<div translate="no">(.*?)</div>!s',
-            '$1',
-            $translatedText
-        );
     }
 
     private function isBlockTranslatable(array $block): bool

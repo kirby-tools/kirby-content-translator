@@ -25,6 +25,12 @@ return [
         'slug' => true,
         'DeepL' => [
             'apiKey' => env('DEEPL_API_KEY')
+        ],
+        'kirbyTags' => [
+            'link' => ['text', 'title'], // Translate link text and title, but not the URL
+            'image' => ['alt', 'title', 'caption'], // Translate image descriptions
+            'file' => ['text', 'title'], // Translate download link text
+            'email' => ['text', 'title'] // Translate email link text
         ]
     ]
 ];

@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\Translator;
+use JohannSchopplich\ContentTranslator\FieldResolver;
 use Kirby\Toolkit\I18n;
 
 return [
@@ -48,7 +48,7 @@ return [
                 return $this->batch ?? $this->bulk;
             },
             'fields' => function () {
-                return Translator::resolveModelFields($this->model());
+                return FieldResolver::resolveModelFields($this->model());
             }
         ]
     ]

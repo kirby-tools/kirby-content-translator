@@ -2,6 +2,7 @@
 
 declare(strict_types = 1);
 
+use JohannSchopplich\ContentTranslator\FieldResolver;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
@@ -212,6 +213,19 @@ final class TranslatorTest extends TestCase
                         ]
                     ],
                     [
+                        'slug' => 'kirbytags',
+                        'template' => 'default',
+                        'translations' => [
+                            [
+                                'code' => 'en',
+                                'content' => [
+                                    'title' => 'KirbyTags Test',
+                                    'text' => 'Visit (link: https://example.com text: our website title: Click here)!'
+                                ]
+                            ]
+                        ]
+                    ],
+                    [
                         'slug' => 'about',
                         'template' => 'article',
                         'translations' => [
@@ -252,6 +266,14 @@ final class TranslatorTest extends TestCase
                         return "[$toLanguageCode]$text";
                     }
                 ]
+            ],
+            'tags' => [
+                'link' => [
+                    'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
+                    'html' => function ($tag) {
+                        return '<a href="' . $tag->link . '">' . ($tag->text ?? $tag->link) . '</a>';
+                    }
+                ]
             ]
         ]);
     }
@@ -280,7 +302,7 @@ final class TranslatorTest extends TestCase
     public function testResolveModelFields(): void
     {
         $page = $this->app->page('home');
-        $fields = Translator::resolveModelFields($page);
+        $fields = FieldResolver::resolveModelFields($page);
 
         $this->assertIsArray($fields);
         $this->assertArrayHasKey('text', $fields);
@@ -499,5 +521,54 @@ final class TranslatorTest extends TestCase
         $translator = new Translator($page);
 
         $this->assertSame($page, $translator->model());
+    }
+
+    // KirbyTags translation tests
+    public function testKirbyTagsTranslationWithEmptyConfig(): void
+    {
+        $page = $this->app->page('kirbytags');
+        $translator = new Translator($page);
+
+        $translator->translateContent('en', 'de');
+        $content = $translator->model()->content('en')->get('text')->value();
+
+        $this->assertStringContainsString('(link: https://example.com text: our website title: Click here)', $content);
+        $this->assertStringContainsString('[de]Visit', $content);
+        $this->assertStringNotContainsString('[de]our website', $content); // KirbyTag content should not be translated
+    }
+
+    public function testKirbyTagsLinkTranslation(): void
+    {
+        $page = $this->app->page('kirbytags');
+        $translator = new Translator($page, [
+            'kirbyTags' => [
+                'link' => ['text', 'title']
+            ]
+        ]);
+
+        $translator->translateContent('en', 'de');
+        $content = $translator->model()->content('en')->get('text')->value();
+
+        $this->assertStringContainsString('https://example.com', $content);
+        $this->assertStringContainsString('text: [de]our website', $content);
+        $this->assertStringContainsString('title: [de]Click here', $content);
+        $this->assertStringContainsString('[de]Visit', $content);
+    }
+
+    public function testKirbyTagsEmailTranslation(): void
+    {
+        $page = $this->app->page('home');
+        $content = $page->content('en')->get('text')->value();
+
+        $translator = new Translator($page, [
+            'kirbyTags' => [
+                'link' => ['text'] // Test that only configured tags work
+            ]
+        ]);
+
+        $translator->translateContent('en', 'de');
+        $translatedContent = $translator->model()->content('en')->get('text')->value();
+
+        $this->assertStringContainsString('[de]Welcome to our website', $translatedContent);
     }
 }

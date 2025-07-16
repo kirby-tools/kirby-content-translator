@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\FieldResolver;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
@@ -44,7 +45,7 @@ return [
                     ? $kirby->site()
                     : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
 
-                return Translator::resolveModelFields($model);
+                return FieldResolver::resolveModelFields($model);
             }
         ],
         [
