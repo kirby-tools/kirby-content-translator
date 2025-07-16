@@ -69,14 +69,33 @@ final class Translator
         }
 
         $kirby = App::instance();
+
+        // Apply before translation hook - allows modification of text before translation
+        $text = $kirby->apply('content-translator.translate:before', [
+            'text' => $text,
+            'targetLanguage' => $targetLanguage,
+            'sourceLanguage' => $sourceLanguage,
+            'type' => 'text'
+        ], 'text');
+
         $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
 
         if ($translateFn && is_callable($translateFn)) {
-            return $translateFn($text, $targetLanguage, $sourceLanguage);
+            $result = $translateFn($text, $targetLanguage, $sourceLanguage);
+        } else {
+            $deepL = new DeepL();
+            $result = $deepL->translate($text, $targetLanguage, $sourceLanguage);
         }
 
-        $deepL = new DeepL();
-        return $deepL->translate($text, $targetLanguage, $sourceLanguage);
+        $result = $kirby->apply('content-translator.translate:after', [
+            'text' => $result,
+            'originalText' => $text,
+            'targetLanguage' => $targetLanguage,
+            'sourceLanguage' => $sourceLanguage,
+            'type' => 'text'
+        ], 'text');
+
+        return $result;
     }
 
     public static function resolveModelFields(ModelWithContent $model): array
@@ -125,7 +144,7 @@ final class Translator
         $this->targetLanguage = $toLanguageCode;
         $this->sourceLanguage = $fromLanguageCode;
 
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode) {
+        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
             $translatedContent = $this->walkTranslatableFields($content, $this->fields);
 
@@ -137,11 +156,14 @@ final class Translator
     public function translateTitle(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
+            $originalTitle = $this->model->content($contentLanguageCode)->get('title')->value();
+
             $translatedTitle = $this->translateText(
-                $this->model->content($contentLanguageCode)->get('title')->value(),
+                $originalTitle,
                 $toLanguageCode,
                 $fromLanguageCode
             );
+
             $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
         });
     }
@@ -153,11 +175,14 @@ final class Translator
         }
 
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
+            $originalSlug = $this->model->slug($contentLanguageCode);
+
             $translatedSlug = $this->translateText(
-                $this->model->slug($contentLanguageCode),
+                $originalSlug,
                 $toLanguageCode,
                 $fromLanguageCode
             );
+
             $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
         });
     }
