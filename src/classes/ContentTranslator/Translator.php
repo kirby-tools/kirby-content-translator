@@ -21,7 +21,6 @@ final class Translator
     private array $fieldTypes;
     private array $includeFields;
     private array $excludeFields;
-    private array $kirbyTags;
     private KirbyText $kirbyText;
 
     public function __construct(Site|Page|File $model, array $options = [])
@@ -46,14 +45,14 @@ final class Translator
         ];
         $this->includeFields = $options['includeFields'] ?? $config['includeFields'] ?? [];
         $this->excludeFields = $options['excludeFields'] ?? $config['excludeFields'] ?? [];
-        $this->kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
 
         // Lowercase fields keys, sine the Kirby Panel content object keys are lowercase
         $this->fieldTypes = array_map('strtolower', $this->fieldTypes);
         $this->includeFields = array_map('strtolower', $this->includeFields);
         $this->excludeFields = array_map('strtolower', $this->excludeFields);
 
-        $this->kirbyText = new KirbyText($model, $this->kirbyTags);
+        $kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
+        $this->kirbyText = new KirbyText($model, $kirbyTags);
     }
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
