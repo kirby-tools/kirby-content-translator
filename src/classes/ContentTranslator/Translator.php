@@ -64,7 +64,6 @@ final class Translator
 
         $kirby = App::instance();
 
-        // Apply before translation hook - allows modification of text before translation
         $text = $kirby->apply('content-translator.translate:before', [
             'text' => $text,
             'targetLanguage' => $targetLanguage,
