@@ -1,8 +1,9 @@
 import { useApi } from "kirbyuse";
 import pAll from "p-all";
-import { TRANSLATE_API_ROUTE } from "../constants";
-
-const KIRBY_TAGS_REGEX = /(?<!\])(\([\w-]+:(?:[^()]|\([^()]*\))*\))/g;
+import {
+  TRANSLATE_API_ROUTE,
+  TRANSLATE_KIRBYTEXT_API_ROUTE,
+} from "../constants";
 
 export async function translateContent(
   obj,
@@ -42,8 +43,15 @@ export async function translateContent(
       }
       // Handle markdown content separately
       else if (["textarea", "markdown"].includes(fields[key].type)) {
+        if (!obj[key]?.trim()) continue;
+
         tasks.push(async () => {
-          obj[key] = await translateMarkdown(obj[key]);
+          const response = await api.post(TRANSLATE_KIRBYTEXT_API_ROUTE, {
+            sourceLanguage,
+            targetLanguage,
+            text: obj[key],
+          });
+          obj[key] = response.text;
         });
       }
 
@@ -110,25 +118,6 @@ export async function translateContent(
         }
       }
     }
-  }
-
-  async function translateMarkdown(text) {
-    if (!text.trim()) {
-      return text;
-    }
-
-    const sanitizedText = text.replace(
-      KIRBY_TAGS_REGEX,
-      (match) => `<div translate="no">${match}</div>`,
-    );
-
-    const response = await api.post(TRANSLATE_API_ROUTE, {
-      sourceLanguage,
-      targetLanguage,
-      text: sanitizedText,
-    });
-
-    return response.text.replace(/<div translate="no">(.*?)<\/div>/gs, "$1");
   }
 
   walkTranslatableFields(obj, fields);

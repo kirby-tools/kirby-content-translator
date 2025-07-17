@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace JohannSchopplich\ContentTranslator;
 
 use Exception;
+use Kirby\Cms\App;
 use Kirby\Cms\ModelWithContent;
 use Kirby\Text\KirbyTag;
 
@@ -19,18 +20,18 @@ final class KirbyText
         \))                     # end of capturing group 1
     !isx';
 
-    private ModelWithContent $model;
     private array $kirbyTags;
+    private ModelWithContent|null $model;
 
-    public function __construct(ModelWithContent $model, array $kirbyTags = [])
+    public function __construct(array $kirbyTags = [], ModelWithContent|null $model = null)
     {
-        $this->model = $model;
         $this->kirbyTags = $kirbyTags;
+        $this->model = $model;
     }
 
     public function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
-        if (empty($text)) {
+        if (empty(trim($text))) {
             return '';
         }
 
@@ -47,9 +48,11 @@ final class KirbyText
 
     private function processKirbyTag(string $tagString, string $targetLanguage, string|null $sourceLanguage = null): string
     {
+        $kirby = $this->model?->kirby() ?? App::instance();
+
         try {
             $tag = KirbyTag::parse($tagString, [
-                'kirby' => $this->model->kirby(),
+                'kirby' => $kirby,
                 'parent' => $this->model
             ]);
 
@@ -88,7 +91,7 @@ final class KirbyText
             return $this->createKirbyTag($tagType, $newValue, $newAttributes);
 
         } catch (Exception $e) {
-            if ($this->model->kirby()->option('debug', false)) {
+            if ($kirby->option('debug', false)) {
                 throw $e;
             }
 

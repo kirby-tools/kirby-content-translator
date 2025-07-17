@@ -1,6 +1,7 @@
 <?php
 
 use JohannSchopplich\ContentTranslator\FieldResolver;
+use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
@@ -67,7 +68,31 @@ return [
 
                 $text = Translator::translateText($text, $targetLanguage, $sourceLanguage);
 
-                return compact('text');
+                return ['text' => $text];
+            }
+        ],
+        [
+            'pattern' => '__content-translator__/translate-kirbytext',
+            'method' => 'POST',
+            'action' => function () use ($kirby) {
+                $request = $kirby->request();
+                $text = $request->get('text');
+                $sourceLanguage = $request->get('sourceLanguage');
+                $targetLanguage = $request->get('targetLanguage');
+
+                if (!$text) {
+                    throw new BadMethodCallException('Missing "text" parameter');
+                }
+
+                if (!$targetLanguage) {
+                    throw new BadMethodCallException('Missing "targetLanguage" parameter');
+                }
+
+                $kirbyTags = $kirby->option('johannschopplich.content-translator.kirbyTags', []);
+                $kirbyText = new KirbyText($kirbyTags);
+                $translatedText = $kirbyText->translateText($text, $targetLanguage, $sourceLanguage);
+
+                return ['text' => $translatedText];
             }
         ],
         [

@@ -52,12 +52,12 @@ final class Translator
         $this->excludeFields = array_map('strtolower', $this->excludeFields);
 
         $kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
-        $this->kirbyText = new KirbyText($model, $kirbyTags);
+        $this->kirbyText = new KirbyText($kirbyTags, $model);
     }
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
-        if (empty($text)) {
+        if (empty(trim($text))) {
             return '';
         }
 
