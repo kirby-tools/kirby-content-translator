@@ -21,7 +21,7 @@ final class Translator
     private array $fieldTypes;
     private array $includeFields;
     private array $excludeFields;
-    private KirbyText $kirbyText;
+    private array $kirbyTags;
 
     public function __construct(Site|Page|File $model, array $options = [])
     {
@@ -51,8 +51,7 @@ final class Translator
         $this->includeFields = array_map('strtolower', $this->includeFields);
         $this->excludeFields = array_map('strtolower', $this->excludeFields);
 
-        $kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
-        $this->kirbyText = new KirbyText($kirbyTags, $model);
+        $this->kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
     }
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
@@ -202,7 +201,7 @@ final class Translator
             }
             // Handle markdown content separately
             elseif (in_array($fields[$key]['type'], ['textarea', 'markdown'], true)) {
-                $obj[$key] = $this->kirbyText->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
+                $obj[$key] = KirbyText::translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage, $this->kirbyTags);
             }
 
             // Handle structure fields

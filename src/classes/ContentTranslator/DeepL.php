@@ -57,14 +57,14 @@ final class DeepL
         if (!empty($sourceLanguage)) {
             $sourceLanguage = strtoupper($sourceLanguage);
 
-            if (!in_array($sourceLanguage, static::SUPPORTED_SOURCE_LANGUAGES, true)) {
+            if (!in_array($sourceLanguage, self::SUPPORTED_SOURCE_LANGUAGES, true)) {
                 $sourceLanguage = null;
             }
         }
 
         $targetLanguage = $this->resolveLanguageCode($targetLanguage);
 
-        if (!in_array($targetLanguage, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+        if (!in_array($targetLanguage, self::SUPPORTED_TARGET_LANGUAGES, true)) {
             throw new LogicException('The target language "' . $targetLanguage . '" is not supported by the DeepL API.');
         }
 
@@ -109,14 +109,14 @@ final class DeepL
     private function withRetry(callable $callback): mixed
     {
         $retries = 0;
-        $delay = static::INITIAL_RETRY_DELAY_MS;
+        $delay = self::INITIAL_RETRY_DELAY_MS;
 
         while (true) {
             $response = $callback();
 
             // Handle rate limits from the DeepL API
             if ($response->code() === 429) {
-                if ($retries >= static::MAX_RETRIES) {
+                if ($retries >= self::MAX_RETRIES) {
                     throw new LogicException('Too many requests to the DeepL API. Maximum retry attempts reached.');
                 }
 
@@ -135,7 +135,7 @@ final class DeepL
     private function resolveApiUrl(): string
     {
         $hasFreeAccount = str_ends_with($this->apiKey, ':fx');
-        return $hasFreeAccount ? static::API_URL_FREE : static::API_URL_PRO;
+        return $hasFreeAccount ? self::API_URL_FREE : self::API_URL_PRO;
     }
 
     private function resolveLanguageCode(string $code): string
@@ -155,12 +155,12 @@ final class DeepL
                 $regionSpecificCode = $baseCode . '-' . $regionCode;
 
                 // Only use region-specific code if it's a supported target language
-                if (in_array($regionSpecificCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+                if (in_array($regionSpecificCode, self::SUPPORTED_TARGET_LANGUAGES, true)) {
                     return $regionSpecificCode;
                 }
 
                 // If region-specific code is not supported, fall back to base language
-                if (in_array($baseCode, static::SUPPORTED_TARGET_LANGUAGES, true)) {
+                if (in_array($baseCode, self::SUPPORTED_TARGET_LANGUAGES, true)) {
                     return $baseCode;
                 }
             }

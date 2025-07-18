@@ -6,7 +6,6 @@ namespace JohannSchopplich\ContentTranslator;
 
 use Exception;
 use Kirby\Cms\App;
-use Kirby\Cms\ModelWithContent;
 use Kirby\Text\KirbyTag;
 
 final class KirbyText
@@ -20,44 +19,34 @@ final class KirbyText
         \))                     # end of capturing group 1
     !isx';
 
-    private array $kirbyTags;
-    private ModelWithContent|null $model;
-
-    public function __construct(array $kirbyTags = [], ModelWithContent|null $model = null)
-    {
-        $this->kirbyTags = $kirbyTags;
-        $this->model = $model;
-    }
-
-    public function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, array $kirbyTags = []): string
     {
         if (empty(trim($text))) {
             return '';
         }
 
-        if (!empty($this->kirbyTags)) {
+        if (!empty($kirbyTags)) {
             $text = preg_replace_callback(
                 self::KIRBY_TAGS_REGEX,
-                fn (array $matches) => $this->processKirbyTag($matches[0], $targetLanguage, $sourceLanguage),
+                fn (array $matches) => self::translateKirbyTag($matches[0], $targetLanguage, $sourceLanguage, $kirbyTags),
                 $text
             );
         }
 
-        return $this->protectedTranslate($text, $targetLanguage, $sourceLanguage);
+        return self::translateWithProtectedTags($text, $targetLanguage, $sourceLanguage);
     }
 
-    private function processKirbyTag(string $tagString, string $targetLanguage, string|null $sourceLanguage = null): string
+    private static function translateKirbyTag(string $tagString, string $targetLanguage, string|null $sourceLanguage, array $kirbyTags): string
     {
-        $kirby = $this->model?->kirby() ?? App::instance();
+        $kirby = App::instance();
 
         try {
             $tag = KirbyTag::parse($tagString, [
-                'kirby' => $kirby,
-                'parent' => $this->model
+                'kirby' => $kirby
             ]);
 
             $tagType = $tag->type();
-            $translatableAttributes = $this->kirbyTags[$tagType] ?? null;
+            $translatableAttributes = $kirbyTags[$tagType] ?? null;
 
             if (empty($translatableAttributes)) {
                 return '<div translate="no">' . $tagString . '</div>';
@@ -88,7 +77,7 @@ final class KirbyText
                 return $tagString;
             }
 
-            return $this->createKirbyTag($tagType, $newValue, $newAttributes);
+            return self::buildKirbyTag($tagType, $newValue, $newAttributes);
 
         } catch (Exception $e) {
             if ($kirby->option('debug', false)) {
@@ -99,7 +88,7 @@ final class KirbyText
         }
     }
 
-    private function createKirbyTag(string $type, string|null $value, array $attributes): string
+    private static function buildKirbyTag(string $type, string|null $value, array $attributes): string
     {
         $parts = [];
 
@@ -120,7 +109,7 @@ final class KirbyText
         return '(' . implode(' ', $parts) . ')';
     }
 
-    private function protectedTranslate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    private static function translateWithProtectedTags(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
         $protectedText = preg_replace_callback(
             self::KIRBY_TAGS_REGEX,
