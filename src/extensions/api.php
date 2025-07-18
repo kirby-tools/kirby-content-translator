@@ -176,6 +176,9 @@ return [
                     $translator = $file->translator($translatorOptions);
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    if ($translateTitle) {
+                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
+                    }
                 }
 
                 return [

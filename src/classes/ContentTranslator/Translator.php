@@ -127,13 +127,19 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $originalTitle = $this->model->content($contentLanguageCode)->get('title')->value();
 
-            $translatedTitle = $this->translateText(
-                $originalTitle,
-                $toLanguageCode,
-                $fromLanguageCode
-            );
+            if (empty($originalTitle) && $fromLanguageCode && $fromLanguageCode !== $contentLanguageCode) {
+                $originalTitle = $this->model->content($fromLanguageCode)->get('title')->value();
+            }
 
-            $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
+            if (!empty($originalTitle)) {
+                $translatedTitle = $this->translateText(
+                    $originalTitle,
+                    $toLanguageCode,
+                    $fromLanguageCode
+                );
+
+                $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
+            }
         });
     }
 
