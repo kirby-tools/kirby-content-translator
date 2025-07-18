@@ -22,6 +22,7 @@ export function useContentTranslator() {
   const fieldTypes = ref([]);
   const includeFields = ref([]);
   const excludeFields = ref([]);
+  const kirbyTags = ref({});
 
   // Runtime state
   const fields = ref();
@@ -65,6 +66,7 @@ export function useContentTranslator() {
       response.includeFields ?? context.config.includeFields ?? [];
     excludeFields.value =
       response.excludeFields ?? context.config.excludeFields ?? [];
+    kirbyTags.value = response.kirbyTags ?? context.config.kirbyTags ?? {};
     fields.value = response.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
@@ -146,6 +148,7 @@ export function useContentTranslator() {
         fieldTypes: fieldTypes.value,
         includeFields: includeFields.value,
         excludeFields: excludeFields.value,
+        kirbyTags: kirbyTags.value,
         fields: fields.value,
       });
     } catch (error) {
@@ -208,6 +211,10 @@ export function useContentTranslator() {
             id: defaultLanguageData.id ?? "site",
             title: translateTitle.value,
             slug: translateSlug.value,
+            fieldTypes: fieldTypes.value,
+            includeFields: includeFields.value,
+            excludeFields: excludeFields.value,
+            kirbyTags: kirbyTags.value,
           });
         }),
       );
@@ -291,6 +298,7 @@ export function useContentTranslator() {
     fieldTypes,
     includeFields,
     excludeFields,
+    kirbyTags,
 
     // Runtime state
     fields,

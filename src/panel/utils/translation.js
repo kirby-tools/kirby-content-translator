@@ -13,6 +13,7 @@ export async function translateContent(
     fieldTypes,
     includeFields,
     excludeFields,
+    kirbyTags,
     fields,
   },
 ) {
@@ -50,6 +51,7 @@ export async function translateContent(
             sourceLanguage,
             targetLanguage,
             text: obj[key],
+            kirbyTags,
           });
           obj[key] = response.text;
         });

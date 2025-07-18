@@ -41,6 +41,13 @@ return [
                 }
 
                 return array_map('strtolower', $excludeFields);
+            },
+            'kirbyTags' => function ($kirbyTags = null) {
+                if (!is_array($kirbyTags)) {
+                    return null;
+                }
+
+                return $kirbyTags;
             }
         ],
         'computed' => [

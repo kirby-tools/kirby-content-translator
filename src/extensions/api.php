@@ -79,6 +79,10 @@ return [
                 $text = $request->get('text');
                 $sourceLanguage = $request->get('sourceLanguage');
                 $targetLanguage = $request->get('targetLanguage');
+                $kirbyTags = $request->get(
+                    'kirbyTags',
+                    $kirby->option('johannschopplich.content-translator.kirbyTags', [])
+                );
 
                 if (!$text) {
                     throw new BadMethodCallException('Missing "text" parameter');
@@ -88,9 +92,7 @@ return [
                     throw new BadMethodCallException('Missing "targetLanguage" parameter');
                 }
 
-                $kirbyTags = $kirby->option('johannschopplich.content-translator.kirbyTags', []);
-                $kirbyText = new KirbyText($kirbyTags);
-                $translatedText = $kirbyText->translateText($text, $targetLanguage, $sourceLanguage);
+                $translatedText = KirbyText::translateText($text, $targetLanguage, $sourceLanguage, $kirbyTags);
 
                 return ['text' => $translatedText];
             }
@@ -104,6 +106,12 @@ return [
                 $toLanguageCode = $request->get('selectedLanguage');
                 $translateTitle = $request->get('title', false);
                 $translateSlug = $request->get('slug', false);
+
+                // Section-specific options
+                $fieldTypes = $request->get('fieldTypes');
+                $includeFields = $request->get('includeFields');
+                $excludeFields = $request->get('excludeFields');
+                $kirbyTags = $request->get('kirbyTags');
 
                 if (!$id) {
                     throw new BadMethodCallException('Missing "id" parameter');
@@ -119,9 +127,17 @@ return [
 
                 $fromLanguageCode = $kirby->defaultLanguage()->code();
 
+                // Build translator options from section configuration
+                $translatorOptions = array_filter([
+                    'fieldTypes' => $fieldTypes,
+                    'includeFields' => $includeFields,
+                    'excludeFields' => $excludeFields,
+                    'kirbyTags' => $kirbyTags,
+                ]);
+
                 if ($model::CLASS_ALIAS === 'site') {
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $kirby->site()->translator();
+                    $translator = $kirby->site()->translator($translatorOptions);
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                     if ($translateTitle) {
@@ -136,7 +152,7 @@ return [
                     }
 
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $page->translator();
+                    $translator = $page->translator($translatorOptions);
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                     if ($translateTitle) {
@@ -157,7 +173,7 @@ return [
                     }
 
                     /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $file->translator();
+                    $translator = $file->translator($translatorOptions);
                     $translator->copyContent($toLanguageCode, $fromLanguageCode);
                     $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                 }
