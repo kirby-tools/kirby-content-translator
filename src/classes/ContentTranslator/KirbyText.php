@@ -49,7 +49,7 @@ final class KirbyText
             $translatableAttributes = $kirbyTags[$tagType] ?? null;
 
             if (empty($translatableAttributes)) {
-                return '<div translate="no">' . $tagString . '</div>';
+                return '<span translate="no">' . $tagString . '</span>';
             }
 
             $newAttributes = [];
@@ -84,7 +84,7 @@ final class KirbyText
                 throw $e;
             }
 
-            return '<div translate="no">' . $tagString . '</div>';
+            return '<span translate="no">' . $tagString . '</span>';
         }
     }
 
@@ -113,14 +113,14 @@ final class KirbyText
     {
         $protectedText = preg_replace_callback(
             self::KIRBY_TAGS_REGEX,
-            fn (array $matches) => '<div translate="no">' . $matches[0] . '</div>',
+            fn (array $matches) => '<span translate="no">' . $matches[0] . '</span>',
             $text
         );
 
         $translatedText = Translator::translateText($protectedText, $targetLanguage, $sourceLanguage);
 
         return preg_replace(
-            '!<div translate="no">(.*?)</div>!s',
+            '!<span translate="no">(.*?)</span>!s',
             '$1',
             $translatedText
         );

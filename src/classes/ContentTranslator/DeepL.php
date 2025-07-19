@@ -70,7 +70,7 @@ final class DeepL
 
         // If a paragraph with the attribute `translate="no"` is present,
         // force HTML tag handling (if not enabled already)
-        if (str_contains($text, '<div translate="no">')) {
+        if (str_contains($text, '<span translate="no">')) {
             $this->requestOptions['tag_handling'] = 'html';
         }
 
