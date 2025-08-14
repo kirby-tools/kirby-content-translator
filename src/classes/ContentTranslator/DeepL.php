@@ -94,10 +94,15 @@ final class DeepL
 
         // See error message guide: https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
         match ($response->code()) {
-            403 => throw new LogicException('Authorization failed. Have you set the correct DeepL API key? See https://kirby.tools/docs/content-translator#step-2-configure-deepl for more information.'),
+            400 => throw new LogicException('Bad request to DeepL API. Please check your parameters: ' . $response->content()),
+            403 => throw new LogicException('Authorization failed. Have you set the correct DeepL API key? See https://kirby.tools/docs/content-translator/getting-started/installation for more information.'),
+            404 => throw new LogicException('DeepL API endpoint not found. Please check the API URL.'),
             413 => throw new LogicException('DeepL API request size limit exceeded.'),
-            429 => throw new LogicException('Too many requests to the DeepL API. Please wait and resend your request.'),
+            429, 529 => throw new LogicException('Too many requests to the DeepL API. Please wait and resend your request.'),
             456 => throw new LogicException('DeepL API quota exceeded. The character limit has been reached.'),
+            500 => throw new LogicException('DeepL API internal server error. Please try again later.'),
+            503 => throw new LogicException('DeepL API service temporarily unavailable. Please try again later.'),
+            504 => throw new LogicException('DeepL API gateway timeout. Please try again later.'),
             200 => null, // Do nothing for successful requests
             default => throw new LogicException('DeepL API request failed: ' . $response->content()),
         };
@@ -114,14 +119,16 @@ final class DeepL
         while (true) {
             $response = $callback();
 
-            // Handle rate limits from the DeepL API
-            if ($response->code() === 429) {
+            // Handle retryable errors from the DeepL API
+            $statusCode = $response->code();
+            if (in_array($statusCode, [429, 500, 503, 504, 529], true)) {
                 if ($retries >= self::MAX_RETRIES) {
-                    throw new LogicException('Too many requests to the DeepL API. Maximum retry attempts reached.');
+                    throw new LogicException('DeepL API error ' . $statusCode . '. Maximum retry attempts reached.');
                 }
 
-                // Sleep with exponential backoff
+                // Calculate sleep time with exponential backoff
                 $sleepTime = (int)($delay * (1.5 ** $retries) / 1000);
+
                 sleep($sleepTime);
 
                 $retries++;
