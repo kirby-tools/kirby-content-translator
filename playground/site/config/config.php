@@ -21,8 +21,6 @@ return [
     ],
 
     'johannschopplich.content-translator' => [
-        'title' => true,
-        'slug' => true,
         'DeepL' => [
             'apiKey' => env('DEEPL_API_KEY')
         ],
