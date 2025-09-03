@@ -60,7 +60,9 @@ export function useContentTranslator() {
         "text",
         "textarea",
         "writer",
+        // Community plugins
         "markdown",
+        "table",
       ];
     includeFields.value =
       response.includeFields ?? context.config.includeFields ?? [];

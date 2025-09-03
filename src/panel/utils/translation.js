@@ -1,5 +1,6 @@
 import { useApi } from "kirbyuse";
 import pAll from "p-all";
+import * as yaml from "yaml";
 import {
   TRANSLATE_API_ROUTE,
   TRANSLATE_KIRBYTEXT_API_ROUTE,
@@ -19,6 +20,7 @@ export async function translateContent(
 ) {
   const api = useApi();
   const tasks = [];
+  const finalizationTasks = [];
 
   function walkTranslatableFields(obj, fields) {
     for (const key in obj) {
@@ -42,6 +44,7 @@ export async function translateContent(
           obj[key] = response.text;
         });
       }
+
       // Handle markdown content separately
       else if (["textarea", "markdown"].includes(fields[key].type)) {
         if (!obj[key]?.trim()) continue;
@@ -73,6 +76,67 @@ export async function translateContent(
           });
           obj[key] = response.text.split("|").map((tag) => tag.trim());
         });
+      }
+
+      // Handle table fields (https://github.com/bogdancondorachi/kirby-table-field)
+      else if (fields[key].type === "table") {
+        let tableData = obj[key];
+        let isYamlEncoded = false;
+
+        // Panel content data is not deserialized, so we need to parse it first
+        if (typeof tableData === "string") {
+          isYamlEncoded = true;
+          try {
+            tableData = yaml.parse(tableData);
+          } catch (error) {
+            console.error(
+              `Failed to parse table field "${key}" as YAML:`,
+              error,
+            );
+            continue;
+          }
+        }
+
+        if (Array.isArray(tableData)) {
+          for (const [rowIndex, row] of tableData.entries()) {
+            if (!Array.isArray(row)) continue;
+
+            for (const [colIndex, cell] of row.entries()) {
+              if (!cell || typeof cell !== "string" || !cell.trim()) continue;
+
+              tasks.push(async () => {
+                const response = await api.post(TRANSLATE_API_ROUTE, {
+                  sourceLanguage,
+                  targetLanguage,
+                  text: cell,
+                });
+                tableData[rowIndex][colIndex] = response.text;
+              });
+            }
+          }
+
+          obj[key] = tableData;
+
+          // Serialize back to YAML after all translations are done
+          if (isYamlEncoded) {
+            finalizationTasks.push(async () => {
+              // Stringify each row individually to match the input format
+              const rowStrings = tableData.map((row) => {
+                if (!Array.isArray(row)) return "";
+                return yaml
+                  .stringify(row)
+                  .trim()
+                  .split("\n")
+                  .map((line) => `  ${line}`)
+                  .join("\n");
+              });
+
+              obj[key] = rowStrings
+                .map((rowString) => `-\n${rowString}`)
+                .join("\n");
+            });
+          }
+        }
       }
 
       // Handle structure fields
@@ -127,6 +191,7 @@ export async function translateContent(
   // Process translation tasks in batches
   try {
     await pAll(tasks, { concurrency: 5 });
+    await pAll(finalizationTasks, { concurrency: 5 });
   } catch (error) {
     console.error(error);
     throw error;

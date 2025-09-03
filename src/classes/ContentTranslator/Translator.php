@@ -41,7 +41,8 @@ final class Translator
             'textarea',
             'writer',
             // Community plugins
-            'markdown'
+            'markdown',
+            'table'
         ];
         $this->includeFields = $options['includeFields'] ?? $config['includeFields'] ?? [];
         $this->excludeFields = $options['excludeFields'] ?? $config['excludeFields'] ?? [];
@@ -197,7 +198,7 @@ final class Translator
             }
 
             // Parse YAML-encoded fields
-            elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object') && is_string($obj[$key])) {
+            elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') && is_string($obj[$key])) {
                 $obj[$key] = Data::decode($obj[$key], 'yaml');
             }
 
@@ -220,6 +221,21 @@ final class Translator
             // Handle object fields
             elseif ($fields[$key]['type'] === 'object' && A::isAssociative($obj[$key])) {
                 $this->walkTranslatableFields($obj[$key], $fields[$key]['fields'], true);
+            }
+
+            // Handle table fields
+            elseif ($fields[$key]['type'] === 'table' && is_array($obj[$key])) {
+                foreach ($obj[$key] as &$row) {
+                    if (!is_array($row)) {
+                        continue;
+                    }
+
+                    foreach ($row as &$cell) {
+                        if (!empty($cell) && is_string($cell)) {
+                            $cell = $this->translateText($cell, $this->targetLanguage, $this->sourceLanguage);
+                        }
+                    }
+                }
             }
 
             // Handle layout fields
@@ -253,7 +269,7 @@ final class Translator
 
             if (!$isRecursive) {
                 // Encode fields back to YAML
-                if ($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object') {
+                if ($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') {
                     $obj[$key] = Data::encode($obj[$key], 'yaml');
                 }
             }

@@ -41,6 +41,9 @@ importers:
       ufo:
         specifier: ^1.6.1
         version: 1.6.1
+      yaml:
+        specifier: ^2.8.1
+        version: 2.8.1
       zx:
         specifier: ^8.8.1
         version: 8.8.1
