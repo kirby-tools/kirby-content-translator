@@ -162,10 +162,10 @@ return [
                         $translator->translateSlug($toLanguageCode, $toLanguageCode, $fromLanguageCode);
                     }
                 } else {
-                    $id = dirname($id);
+                    $pageId = dirname($id);
                     $filename = basename($id);
                     /** @var \Kirby\Cms\Page */
-                    $page = $kirby->page($id);
+                    $page = $kirby->page($pageId);
                     $file = $page->file($filename) ?? $kirby->site()->file($filename);
 
                     if (!$file) {
