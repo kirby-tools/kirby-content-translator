@@ -68,7 +68,9 @@ return [
 
                 $text = Translator::translateText($text, $targetLanguage, $sourceLanguage);
 
-                return ['text' => $text];
+                return [
+                    'text' => $text
+                ];
             }
         ],
         [
@@ -94,7 +96,9 @@ return [
 
                 $translatedText = KirbyText::translateText($text, $targetLanguage, $sourceLanguage, $kirbyTags);
 
-                return ['text' => $translatedText];
+                return [
+                    'text' => $translatedText
+                ];
             }
         ],
         [
@@ -182,8 +186,7 @@ return [
                 }
 
                 return [
-                    'status' => 'ok',
-                    'code' => 200
+                    'status' => 'ok'
                 ];
             }
         ],
