@@ -43,7 +43,7 @@ final class DeepL
         $this->apiKey = $apiKey;
         $this->requestOptions = A::merge(
             $this->requestOptions,
-            $kirby->option('johannschopplich.content-translator.Deepl.requestOptions', [])
+            $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
         );
     }
 
