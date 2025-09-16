@@ -21,6 +21,8 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org/
 
+      # Jiti tries to resolve index.js as config, but fails
+      - run: rm index.js
       - run: npx changelogithub
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
