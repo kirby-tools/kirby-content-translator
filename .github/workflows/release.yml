@@ -21,7 +21,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
-      # Jiti tries to resolve index.js as config, but fails
+      # unjs/c12 tries to resolve index.js as config
       - run: rm index.js
       - run: npx changelogithub
         env:

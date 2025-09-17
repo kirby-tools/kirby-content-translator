@@ -3,7 +3,7 @@
   "type": "module",
   "version": "3.6.3",
   "private": true,
-  "packageManager": "pnpm@10.15.1",
+  "packageManager": "pnpm@10.17.0",
   "scripts": {
     "dev": "PLAYGROUND=true kirbyup serve src/panel/index.js",
     "build": "kirbyup src/panel/index.js",
@@ -16,10 +16,10 @@
   "devDependencies": {
     "@antfu/eslint-config": "^5.3.0",
     "@kirby-tools/licensing": "^0.5.2",
-    "@sindresorhus/slugify": "^2.2.1",
+    "@sindresorhus/slugify": "^3.0.0",
     "bumpp": "^10.2.3",
     "eslint": "^9.35.0",
-    "kirbyup": "^3.3.0",
+    "kirbyup": "^3.4.1",
     "kirbyuse": "^0.12.1",
     "ofetch": "^1.4.1",
     "p-all": "^5.0.0",
