@@ -8,7 +8,7 @@ export const TRANSLATE_CONTENT_API_ROUTE =
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
-export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 2;
+export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 4;
 export const DEFAULT_FIELD_TYPES = [
   "blocks",
   "layout",
