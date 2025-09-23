@@ -35,6 +35,9 @@ importers:
       p-all:
         specifier: ^5.0.0
         version: 5.0.0
+      p-map:
+        specifier: ^7.0.3
+        version: 7.0.3
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -1764,6 +1767,10 @@ packages:
   p-map@6.0.0:
     resolution: {integrity: sha512-T8BatKGY+k5rU+Q/GTYgrEf2r4xRMevAN5mtXc2aPc4rS1j3s+vWTaO2Wag94neXuCAUAs8cxBL9EeB5EA6diw==}
     engines: {node: '>=16'}
+
+  p-map@7.0.3:
+    resolution: {integrity: sha512-VkndIv2fIB99swvQoA65bm+fsmt6UNdGeIB0oxBs+WhAhdh08QA04JXpI7rbB9r08/nkbysKoya9rtDERYOYMA==}
+    engines: {node: '>=18'}
 
   package-manager-detector@1.3.0:
     resolution: {integrity: sha512-ZsEbbZORsyHuO00lY1kV3/t72yp6Ysay6Pd17ZAlNGuGwmWDLCJxFpRs0IzfXfj1o4icJOkUEioexFHzyPurSQ==}
@@ -4100,6 +4107,8 @@ snapshots:
       p-limit: 3.1.0
 
   p-map@6.0.0: {}
+
+  p-map@7.0.3: {}
 
   package-manager-detector@1.3.0: {}
 

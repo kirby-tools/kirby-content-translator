@@ -1,6 +1,12 @@
 import slugify from "@sindresorhus/slugify";
 import { ref, useContent, useDialog, useI18n, usePanel } from "kirbyuse";
-import { TRANSLATE_API_ROUTE, TRANSLATE_CONTENT_API_ROUTE } from "../constants";
+import pMap from "p-map";
+import {
+  DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+  DEFAULT_FIELD_TYPES,
+  TRANSLATE_API_ROUTE,
+  TRANSLATE_CONTENT_API_ROUTE,
+} from "../constants";
 import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
 
@@ -37,39 +43,26 @@ export function useContentTranslator() {
     (language) => language.code !== defaultLanguage.code,
   );
 
-  function initializeConfig(context, response = {}) {
+  function initializeConfig(context, props = {}) {
     label.value =
-      t(response.label) || panel.t("johannschopplich.content-translator.label");
-    allowImport.value = response.import ?? context.config.import ?? true;
+      t(props.label) || panel.t("johannschopplich.content-translator.label");
+    allowImport.value = props.import ?? context.config.import ?? true;
     importFrom.value =
-      response.importFrom ?? context.config.importFrom ?? undefined;
+      props.importFrom ?? context.config.importFrom ?? undefined;
     allowBatchTranslation.value =
       // TODO: `bulk` is deprecated, remove in v4
-      response.batch ?? context.config.batch ?? context.config.bulk ?? true;
-    translateTitle.value = response.title ?? context.config.title ?? false;
-    translateSlug.value = response.slug ?? context.config.slug ?? false;
-    confirm.value = response.confirm ?? context.config.confirm ?? true;
-    fieldTypes.value = response.fieldTypes ??
-      context.config.fieldTypes ?? [
-        "blocks",
-        "layout",
-        "list",
-        "object",
-        "structure",
-        "tags",
-        "text",
-        "textarea",
-        "writer",
-        // Community plugins
-        "markdown",
-        "table",
-      ];
+      props.batch ?? context.config.batch ?? context.config.bulk ?? true;
+    translateTitle.value = props.title ?? context.config.title ?? false;
+    translateSlug.value = props.slug ?? context.config.slug ?? false;
+    confirm.value = props.confirm ?? context.config.confirm ?? true;
+    fieldTypes.value =
+      props.fieldTypes ?? context.config.fieldTypes ?? DEFAULT_FIELD_TYPES;
     includeFields.value =
-      response.includeFields ?? context.config.includeFields ?? [];
+      props.includeFields ?? context.config.includeFields ?? [];
     excludeFields.value =
-      response.excludeFields ?? context.config.excludeFields ?? [];
-    kirbyTags.value = response.kirbyTags ?? context.config.kirbyTags ?? {};
-    fields.value = response.fields ?? {};
+      props.excludeFields ?? context.config.excludeFields ?? [];
+    kirbyTags.value = props.kirbyTags ?? context.config.kirbyTags ?? {};
+    fields.value = props.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
     errorPageId.value = context.errorPageId;
@@ -206,9 +199,10 @@ export function useContentTranslator() {
     const defaultLanguageData = await getViewModelData();
 
     try {
-      await Promise.all(
-        selectedLanguages.map(async (language) => {
-          await panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
+      await pMap(
+        selectedLanguages,
+        (language) =>
+          panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
             selectedLanguage: language.code,
             id: defaultLanguageData.id ?? "site",
             title: translateTitle.value,
@@ -217,8 +211,11 @@ export function useContentTranslator() {
             includeFields: includeFields.value,
             excludeFields: excludeFields.value,
             kirbyTags: kirbyTags.value,
-          });
-        }),
+          }),
+        {
+          concurrency:
+            config.batchConcurrency || DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+        },
       );
 
       panel.notification.success(

@@ -27,7 +27,8 @@ return [
                 $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
 
                 // For backwards compatibility with Kirby 4
-                $config['viewButton'] = $config['viewButton'] ?? true;
+                // TODO: Deprecated, remove for Kirby 6 release
+                $config['viewButton'] ??= true;
 
                 return [
                     'config' => $config,
