@@ -214,7 +214,8 @@ export function useContentTranslator() {
           }),
         {
           concurrency:
-            config.batchConcurrency || DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+            config.value.batchConcurrency ||
+            DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
         },
       );
 
