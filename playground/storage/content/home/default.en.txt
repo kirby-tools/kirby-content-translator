@@ -23,23 +23,6 @@ Tags01: Life, is, a, journey
 
 ----
 
-Table:
-
-- 
-  - ""
-  - ""
-  - ""
-- 
-  - This is column 1 in row 1
-  - This is column 2 in row 1
-  - This is column 3 in row 1
-- 
-  - This is the column1 in row 2
-  - This is column 2 in row 2
-  - This is column 3 in row 2
-
-----
-
 Markdown01: Some content.
 
 ----

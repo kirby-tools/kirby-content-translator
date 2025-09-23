@@ -8,14 +8,47 @@ buttons:
   - status
 
 tabs:
+  blocks:
+    label: Blocks
+    columns:
+      - width: 2/3
+        fields:
+          blocks01:
+            label: Blocks Field
+            type: blocks
+            fieldsets:
+              - heading
+              - text
+              - quote
+              - structure
+      - width: 1/3
+        sections:
+          contentTranslator01:
+            type: content-translator
+            label: Content Translator
+            title: true
+            # slug: true
+
   objectFields:
     label: Object & Structure Fields
     columns:
       - width: 2/3
         fields:
-          table:
-            label: Table
-            type: table
+          object01:
+            type: object
+            label: Object Field
+            fields:
+              text:
+                type: textarea
+              structure:
+                type: structure
+                label: Structure Field
+                fields:
+                  text:
+                    type: textarea
+          tags01:
+            type: tags
+            label: Tags Field
       - width: 1/3
         sections:
           contentTranslator02:

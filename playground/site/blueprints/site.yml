@@ -1,9 +1,10 @@
 title: Playground
 
 buttons:
-  - preview
-  - content-translator
-  - languages
+  preview: true
+  content-translator:
+    label: Translate
+  languages: true
 
 sections:
   pages:
