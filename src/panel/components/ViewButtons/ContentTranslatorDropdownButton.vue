@@ -3,6 +3,41 @@ import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
 
+const props = defineProps({
+  label: {
+    type: String,
+    required: false,
+  },
+  import: {
+    type: Boolean,
+    default: true,
+  },
+  importFrom: {
+    type: String,
+    required: false,
+  },
+  batch: {
+    type: Boolean,
+    default: true,
+  },
+  title: {
+    type: Boolean,
+    default: false,
+  },
+  slug: {
+    type: Boolean,
+    default: false,
+  },
+  confirm: {
+    type: Boolean,
+    default: true,
+  },
+  fieldTypes: Array,
+  includeFields: Array,
+  excludeFields: Array,
+  kirbyTags: Object,
+});
+
 const _isKirby5 = isKirby5();
 const panel = usePanel();
 const dropdownContent = ref();
@@ -27,7 +62,9 @@ function toggle() {
   <div v-if="_isKirby5 || context?.config?.viewButton">
     <k-button
       :dropdown="true"
-      :text="panel.t('johannschopplich.content-translator.viewButton.label')"
+      :text="
+        label || panel.t('johannschopplich.content-translator.viewButton.label')
+      "
       icon="content-translator-global"
       responsive="text"
       theme="notice-icon"
@@ -37,7 +74,7 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslatorDropdownContent :context="context" />
+      <ContentTranslatorDropdownContent :context="context" :props="props" />
     </k-dropdown-content>
   </div>
 </template>

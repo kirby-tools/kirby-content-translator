@@ -16,6 +16,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  props: {
+    type: Object,
+    required: true,
+  },
 });
 
 const panel = usePanel();
@@ -51,7 +55,7 @@ if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
   );
 }
 
-initializeConfig(props.context);
+initializeConfig(props.context, props.props);
 
 // Lazily fetch required view data (same as `computed` section methods)
 const initializationPromise = (async () => {
