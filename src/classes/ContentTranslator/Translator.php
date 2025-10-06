@@ -124,7 +124,7 @@ final class Translator
             if (!empty($collector['texts'])) {
                 // Apply before hook to all texts
                 $textsToTranslate = array_map(
-                    fn($text) => $this->kirby->apply('content-translator.translate:before', [
+                    fn ($text) => $this->kirby->apply('content-translator.translate:before', [
                         'text' => $text,
                         'targetLanguage' => $this->targetLanguage,
                         'sourceLanguage' => $this->sourceLanguage,
@@ -137,7 +137,7 @@ final class Translator
 
                 if ($translateFn && is_callable($translateFn)) {
                     $translated = array_map(
-                        fn($text) => $translateFn($text, $this->targetLanguage, $this->sourceLanguage),
+                        fn ($text) => $translateFn($text, $this->targetLanguage, $this->sourceLanguage),
                         $textsToTranslate
                     );
                 } else {
