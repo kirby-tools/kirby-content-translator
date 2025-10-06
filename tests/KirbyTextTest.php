@@ -6,6 +6,10 @@ use JohannSchopplich\ContentTranslator\KirbyText;
 use Kirby\Cms\App;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ */
 final class KirbyTextTest extends TestCase
 {
     protected function setUp(): void

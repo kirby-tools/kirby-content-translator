@@ -7,19 +7,12 @@ use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @runTestsInSeparateProcesses
+ * @preserveGlobalState disabled
+ */
 final class HooksTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        // Reset DeepL singleton
-        $reflection = new \ReflectionClass(DeepL::class);
-        $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
-        $instanceProperty->setValue(null, null);
-
-        App::destroy();
-    }
-
     public function testBeforeHookModifiesText(): void
     {
         $app = new App([

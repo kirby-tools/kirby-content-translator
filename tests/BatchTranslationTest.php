@@ -270,12 +270,6 @@ final class BatchTranslationTest extends TestCase
 
     protected function tearDown(): void
     {
-        // Reset DeepL singleton
-        $reflection = new \ReflectionClass(DeepL::class);
-        $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
-        $instanceProperty->setValue(null, null);
-
         App::destroy();
     }
 

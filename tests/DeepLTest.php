@@ -33,22 +33,11 @@ final class DeepLTest extends TestCase
                 ]
             ]
         ]);
-
-        $this->resetSingleton();
     }
 
     protected function tearDown(): void
     {
         App::destroy();
-        $this->resetSingleton();
-    }
-
-    private function resetSingleton(): void
-    {
-        $reflection = new \ReflectionClass(DeepL::class);
-        $instanceProperty = $reflection->getProperty('instance');
-        $instanceProperty->setAccessible(true);
-        $instanceProperty->setValue(null, null);
     }
 
     public function testConstructorThrowsExceptionWithoutApiKey(): void
@@ -64,6 +53,11 @@ final class DeepLTest extends TestCase
         $this->expectExceptionMessage('Missing DeepL API key');
 
         new DeepL();
+    }
+
+    protected function tearDown(): void
+    {
+        App::destroy();
     }
 
     public function testInstanceReturnsSingleton(): void
