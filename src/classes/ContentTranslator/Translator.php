@@ -116,10 +116,37 @@ final class Translator
 
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
-            $translatedContent = $this->walkTranslatableFields($content, $this->fields);
 
-            // Write the translated content
-            $this->model = $this->model->update($translatedContent, $contentLanguageCode);
+            $collector = ['texts' => [], 'pointers' => [], 'encodeFields' => []];
+            $this->collectTranslatableFields($content, $this->fields, $collector);
+
+            // Batch translation for all collected texts
+            if (!empty($collector['texts'])) {
+                $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
+
+                if ($translateFn && is_callable($translateFn)) {
+                    foreach ($collector['pointers'] as $i => $pointer) {
+                        [$refKey, &$refObj] = $pointer;
+                        $refObj[$refKey] = $translateFn($collector['texts'][$i], $this->targetLanguage, $this->sourceLanguage);
+                    }
+                } else {
+                    $deepL = DeepL::instance();
+                    $translated = $deepL->translateMany($collector['texts'], $this->targetLanguage, $this->sourceLanguage);
+
+                    foreach ($collector['pointers'] as $i => $pointer) {
+                        [$refKey, &$refObj] = $pointer;
+                        $refObj[$refKey] = $translated[$i];
+                    }
+                }
+            }
+
+            // Encode fields back to their original format after translations are applied
+            foreach ($collector['encodeFields'] as $encodeInfo) {
+                [$fieldKey, $format, &$targetObj] = $encodeInfo;
+                $targetObj[$fieldKey] = Data::encode($targetObj[$fieldKey], $format);
+            }
+
+            $this->model = $this->model->update($content, $contentLanguageCode);
         });
     }
 
@@ -168,12 +195,10 @@ final class Translator
         return $this->model;
     }
 
-    private function walkTranslatableFields(array &$obj, array $fields, $isRecursive = false): array
+    private function collectTranslatableFields(array &$obj, array $fields, array &$collector, $isRecursive = false): array
     {
         $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
         $canBatch = !$translateFn || !is_callable($translateFn);
-        $batchTexts = [];
-        $batchPointers = [];
 
         foreach ($obj as $key => $value) {
             if (empty($value)) {
@@ -197,21 +222,26 @@ final class Translator
                 continue;
             }
 
+            $needsJsonEncoding = false;
+            $needsYamlEncoding = false;
+
             // Parse JSON-encoded fields
             if (($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') && is_string($obj[$key])) {
                 $obj[$key] = Data::decode($obj[$key], 'json');
+                $needsJsonEncoding = true;
             }
 
             // Parse YAML-encoded fields
             elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') && is_string($obj[$key])) {
                 $obj[$key] = Data::decode($obj[$key], 'yaml');
+                $needsYamlEncoding = true;
             }
 
             // Handle text-like fields
             if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'writer'], true)) {
                 if ($canBatch) {
-                    $batchPointers[] = [$key, &$obj];
-                    $batchTexts[] = $obj[$key];
+                    $collector['pointers'][] = [$key, &$obj];
+                    $collector['texts'][] = $obj[$key];
                 } else {
                     $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
                 }
@@ -224,13 +254,13 @@ final class Translator
             // Handle structure fields
             elseif ($fields[$key]['type'] === 'structure' && is_array($obj[$key])) {
                 foreach ($obj[$key] as &$item) {
-                    $this->walkTranslatableFields($item, $fields[$key]['fields'], true);
+                    $this->collectTranslatableFields($item, $fields[$key]['fields'], $collector, true);
                 }
             }
 
             // Handle object fields
             elseif ($fields[$key]['type'] === 'object' && A::isAssociative($obj[$key])) {
-                $this->walkTranslatableFields($obj[$key], $fields[$key]['fields'], true);
+                $this->collectTranslatableFields($obj[$key], $fields[$key]['fields'], $collector, true);
             }
 
             // Handle table fields
@@ -255,7 +285,7 @@ final class Translator
                         foreach ($column['blocks'] as &$block) {
                             if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                                 $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                                $this->walkTranslatableFields($block['content'], $blockFields, true);
+                                $this->collectTranslatableFields($block['content'], $blockFields, $collector, true);
                             }
                         }
                     }
@@ -267,32 +297,18 @@ final class Translator
                 foreach ($obj[$key] as &$block) {
                     if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
                         $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                        $this->walkTranslatableFields($block['content'], $blockFields, true);
+                        $this->collectTranslatableFields($block['content'], $blockFields, $collector, true);
                     }
                 }
             }
 
-            // Encode fields back to JSON
-            if ($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') {
-                $obj[$key] = Data::encode($obj[$key], 'json');
+            // Track fields that need encoding after translations are applied
+            if ($needsJsonEncoding && !$isRecursive) {
+                $collector['encodeFields'][] = [$key, 'json', &$obj];
             }
 
-            if (!$isRecursive) {
-                // Encode fields back to YAML
-                if ($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') {
-                    $obj[$key] = Data::encode($obj[$key], 'yaml');
-                }
-            }
-        }
-
-        // Perform batched translations (DeepL handles chunking internally)
-        if (!empty($batchTexts)) {
-            $deepL = DeepL::instance();
-            $translated = $deepL->translateMany($batchTexts, $this->targetLanguage, $this->sourceLanguage);
-
-            foreach ($translated as $i => $translatedText) {
-                [$refKey, &$refObj] = $batchPointers[$i];
-                $refObj[$refKey] = $translatedText;
+            if ($needsYamlEncoding && !$isRecursive) {
+                $collector['encodeFields'][] = [$key, 'yaml', &$obj];
             }
         }
 
