@@ -75,7 +75,7 @@ final class Translator
         if ($translateFn && is_callable($translateFn)) {
             $result = $translateFn($text, $targetLanguage, $sourceLanguage);
         } else {
-            $deepL = new DeepL();
+            $deepL = DeepL::instance();
             $result = $deepL->translate($text, $targetLanguage, $sourceLanguage);
         }
 
