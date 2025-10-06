@@ -42,7 +42,6 @@ final class DeepLTest extends TestCase
 
     public function testConstructorThrowsExceptionWithoutApiKey(): void
     {
-        App::destroy();
         new App([
             'options' => [
                 'johannschopplich.content-translator' => []
@@ -53,11 +52,6 @@ final class DeepLTest extends TestCase
         $this->expectExceptionMessage('Missing DeepL API key');
 
         new DeepL();
-    }
-
-    protected function tearDown(): void
-    {
-        App::destroy();
     }
 
     public function testInstanceReturnsSingleton(): void
@@ -88,7 +82,6 @@ final class DeepLTest extends TestCase
     public function testValidatesAndNormalizesLanguages(): void
     {
         // Test with EN-GB locale (should resolve to EN-GB)
-        App::destroy();
         new App([
             'languages' => [
                 [
@@ -133,7 +126,6 @@ final class DeepLTest extends TestCase
 
     public function testResolvesApiUrlForFreeAccount(): void
     {
-        App::destroy();
         new App([
             'options' => [
                 'johannschopplich.content-translator' => [
@@ -155,7 +147,6 @@ final class DeepLTest extends TestCase
 
     public function testResolvesApiUrlForProAccount(): void
     {
-        App::destroy();
         new App([
             'options' => [
                 'johannschopplich.content-translator' => [
@@ -216,7 +207,6 @@ final class DeepLTest extends TestCase
 
     public function testResolveLanguageCodeWithRegionalLocale(): void
     {
-        App::destroy();
         new App([
             'languages' => [
                 [

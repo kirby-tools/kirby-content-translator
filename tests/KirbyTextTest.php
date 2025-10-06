@@ -125,7 +125,6 @@ final class KirbyTextTest extends TestCase
 
     public function testHandlesMalformedTagWithDebugOff(): void
     {
-        App::destroy();
         new App([
             'options' => [
                 'debug' => false,
