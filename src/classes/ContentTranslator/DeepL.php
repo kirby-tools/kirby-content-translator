@@ -140,23 +140,26 @@ class DeepL
      */
     private function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
     {
-        $response = $this->withRetry(function () use ($texts, $targetLanguage, $sourceLanguage, $requestOptions) {
-            return Remote::request($this->resolveApiUrl() . '/v2/translate', [
-                'method' => 'POST',
-                'headers' => [
-                    'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
-                    'Content-Type' => 'application/json'
-                ],
-                'data' => json_encode(A::merge(
-                    [
-                        'text' => $texts,
-                        'source_lang' => $sourceLanguage,
-                        'target_lang' => $targetLanguage,
+        $response = $this->withRetry(
+            function () use ($texts, $targetLanguage, $sourceLanguage, $requestOptions) {
+                return Remote::request($this->resolveApiUrl() . '/v2/translate', [
+                    'method' => 'POST',
+                    'headers' => [
+                        'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
+                        'Content-Type' => 'application/json'
                     ],
-                    $requestOptions
-                ))
-            ]);
-        });
+                    'data' => json_encode(A::merge(
+                        [
+                            'text' => $texts,
+                            'source_lang' => $sourceLanguage,
+                            'target_lang' => $targetLanguage,
+                        ],
+                        $requestOptions
+                    ))
+                ]);
+            },
+            count($texts)
+        );
 
         match ($response->code()) {
             400 => throw new LogicException('Bad request to DeepL API. Please check your parameters: ' . $response->content()),
@@ -175,7 +178,7 @@ class DeepL
         return $response;
     }
 
-    private function withRetry(callable $callback): mixed
+    private function withRetry(callable $callback, int $batchSize = 1): mixed
     {
         $attempt = 0;
         while (true) {
@@ -187,16 +190,22 @@ class DeepL
             }
 
             if ($attempt >= self::MAX_RETRIES) {
-                throw new LogicException('DeepL API error ' . $statusCode . '. Maximum retry attempts reached.');
+                $textPlural = $batchSize === 1 ? 'text' : 'texts';
+                throw new LogicException(
+                    "DeepL API error {$statusCode}. Maximum retry attempts reached after " . self::MAX_RETRIES .
+                    " attempts (batch size: {$batchSize} {$textPlural})."
+                );
             }
 
-            // Exponential backoff
+            // Exponential backoff with jitter
             $exponentDelay = (int)(self::INITIAL_RETRY_DELAY_MS * (2 ** $attempt));
             if ($exponentDelay > self::MAX_RETRY_DELAY_MS) {
                 $exponentDelay = self::MAX_RETRY_DELAY_MS;
             }
 
-            $sleepMs = random_int(0, $exponentDelay);
+            // Use minimum backoff floor to avoid immediate retries
+            $minBackoff = (int)(self::INITIAL_RETRY_DELAY_MS / 2);
+            $sleepMs = random_int($minBackoff, $exponentDelay);
             // Convert ms to microseconds
             usleep($sleepMs * 1000);
 
