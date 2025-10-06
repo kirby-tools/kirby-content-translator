@@ -75,6 +75,30 @@ return [
             }
         ],
         [
+            'pattern' => '__content-translator__/translate-batch',
+            'method' => 'POST',
+            'action' => function () use ($kirby) {
+                $request = $kirby->request();
+                $texts = $request->get('texts');
+                $sourceLanguage = $request->get('sourceLanguage');
+                $targetLanguage = $request->get('targetLanguage');
+
+                if (!$texts || !is_array($texts)) {
+                    throw new BadMethodCallException('Missing or invalid "texts" parameter');
+                }
+
+                if (!$targetLanguage) {
+                    throw new BadMethodCallException('Missing "targetLanguage" parameter');
+                }
+
+                $translatedTexts = Translator::translateTexts($texts, $targetLanguage, $sourceLanguage);
+
+                return [
+                    'texts' => $translatedTexts
+                ];
+            }
+        ],
+        [
             'pattern' => '__content-translator__/translate-kirbytext',
             'method' => 'POST',
             'action' => function () use ($kirby) {

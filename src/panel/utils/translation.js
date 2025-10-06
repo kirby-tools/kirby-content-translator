@@ -3,6 +3,7 @@ import pAll from "p-all";
 import * as yaml from "yaml";
 import {
   TRANSLATE_API_ROUTE,
+  TRANSLATE_BATCH_API_ROUTE,
   TRANSLATE_KIRBYTEXT_API_ROUTE,
 } from "../constants";
 
@@ -22,6 +23,12 @@ export async function translateContent(
   const tasks = [];
   const finalizationTasks = [];
 
+  // Batch translation collector for text-like fields
+  const batchCollector = {
+    texts: [],
+    callbacks: [],
+  };
+
   function walkTranslatableFields(obj, fields) {
     for (const key in obj) {
       if (!obj[key]) continue;
@@ -33,15 +40,11 @@ export async function translateContent(
       if (includeFields?.length && !includeFields.includes(key)) continue;
       if (excludeFields?.length && excludeFields.includes(key)) continue;
 
-      // Handle text-like fields
+      // Handle text-like fields (collect for batch translation)
       if (["list", "text", "writer"].includes(fields[key].type)) {
-        tasks.push(async () => {
-          const response = await api.post(TRANSLATE_API_ROUTE, {
-            sourceLanguage,
-            targetLanguage,
-            text: obj[key],
-          });
-          obj[key] = response.text;
+        batchCollector.texts.push(obj[key]);
+        batchCollector.callbacks.push((translatedText) => {
+          obj[key] = translatedText;
         });
       }
 
@@ -60,21 +63,16 @@ export async function translateContent(
         });
       }
 
-      // Handle tags fields
+      // Handle tags fields (collect for batch translation)
       else if (
         fields[key].type === "tags" &&
         Array.isArray(obj[key]) &&
         obj[key].length
       ) {
-        // Improve performance by translating all tags in a single request
         const text = obj[key].join(" | ");
-        tasks.push(async () => {
-          const response = await api.post(TRANSLATE_API_ROUTE, {
-            sourceLanguage,
-            targetLanguage,
-            text,
-          });
-          obj[key] = response.text.split("|").map((tag) => tag.trim());
+        batchCollector.texts.push(text);
+        batchCollector.callbacks.push((translatedText) => {
+          obj[key] = translatedText.split("|").map((tag) => tag.trim());
         });
       }
 
@@ -187,6 +185,21 @@ export async function translateContent(
   }
 
   walkTranslatableFields(obj, fields);
+
+  // Add batch translation task if there are texts to translate
+  if (batchCollector.texts.length > 0) {
+    tasks.unshift(async () => {
+      const response = await api.post(TRANSLATE_BATCH_API_ROUTE, {
+        sourceLanguage,
+        targetLanguage,
+        texts: batchCollector.texts,
+      });
+
+      for (const [index, translatedText] of response.texts.entries()) {
+        batchCollector.callbacks[index](translatedText);
+      }
+    });
+  }
 
   // Process translation tasks in batches
   try {

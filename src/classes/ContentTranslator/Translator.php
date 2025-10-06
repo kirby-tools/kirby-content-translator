@@ -61,33 +61,58 @@ final class Translator
             return '';
         }
 
+        $result = self::translateTexts([$text], $targetLanguage, $sourceLanguage);
+        return $result[0];
+    }
+
+    /**
+     * @param array<int,string> $texts
+     * @return array<int,string>
+     */
+    public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
+    {
+        if (empty($texts)) {
+            return [];
+        }
+
         $kirby = App::instance();
 
-        $text = $kirby->apply('content-translator.translate:before', [
-            'text' => $text,
-            'targetLanguage' => $targetLanguage,
-            'sourceLanguage' => $sourceLanguage,
-            'type' => 'text'
-        ], 'text');
+        // Apply before hook to all texts
+        $textsToTranslate = array_map(
+            fn ($text) => $kirby->apply('content-translator.translate:before', [
+                'text' => $text,
+                'targetLanguage' => $targetLanguage,
+                'sourceLanguage' => $sourceLanguage,
+                'type' => 'text'
+            ], 'text'),
+            $texts
+        );
 
         $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
 
         if ($translateFn && is_callable($translateFn)) {
-            $result = $translateFn($text, $targetLanguage, $sourceLanguage);
+            $result = array_map(
+                fn ($text) => $translateFn($text, $targetLanguage, $sourceLanguage),
+                $textsToTranslate
+            );
         } else {
             $deepL = DeepL::instance();
-            $result = $deepL->translate($text, $targetLanguage, $sourceLanguage);
+            $result = $deepL->translateMany($textsToTranslate, $targetLanguage, $sourceLanguage);
         }
 
-        $result = $kirby->apply('content-translator.translate:after', [
-            'text' => $result,
-            'originalText' => $text,
-            'targetLanguage' => $targetLanguage,
-            'sourceLanguage' => $sourceLanguage,
-            'type' => 'text'
-        ], 'text');
+        // Apply after hook to all translated texts
+        $translatedTexts = [];
+        foreach ($result as $i => $translatedText) {
+            $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
+                'text' => $translatedText,
+                'originalText' => $texts[$i],
+                'targetLanguage' => $targetLanguage,
+                'sourceLanguage' => $sourceLanguage,
+                'type' => 'text'
+            ], 'text');
+        }
 
-        return $result;
+        return $translatedTexts;
     }
 
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
@@ -136,20 +161,20 @@ final class Translator
                 $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
 
                 if ($translateFn && is_callable($translateFn)) {
-                    $translated = array_map(
+                    $result = array_map(
                         fn ($text) => $translateFn($text, $this->targetLanguage, $this->sourceLanguage),
                         $textsToTranslate
                     );
                 } else {
                     $deepL = DeepL::instance();
-                    $translated = $deepL->translateMany($textsToTranslate, $this->targetLanguage, $this->sourceLanguage);
+                    $result = $deepL->translateMany($textsToTranslate, $this->targetLanguage, $this->sourceLanguage);
                 }
 
                 // Apply after hook to all translated texts
                 foreach ($collector['pointers'] as $i => $pointer) {
                     [$refKey, &$refObj] = $pointer;
                     $result = $this->kirby->apply('content-translator.translate:after', [
-                        'text' => $translated[$i],
+                        'text' => $result[$i],
                         'originalText' => $collector['texts'][$i],
                         'targetLanguage' => $this->targetLanguage,
                         'sourceLanguage' => $this->sourceLanguage,
