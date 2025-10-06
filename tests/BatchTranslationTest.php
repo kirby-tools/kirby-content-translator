@@ -301,7 +301,7 @@ final class BatchTranslationTest extends TestCase
         $this->mockDeepL(function ($texts, $target) use (&$translateManyCallCount, &$batchSizes) {
             $translateManyCallCount++;
             $batchSizes[] = count($texts);
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $this->app->page('home');
@@ -324,7 +324,7 @@ final class BatchTranslationTest extends TestCase
 
         $this->mockDeepL(function ($texts, $target) use (&$collectedTexts) {
             $collectedTexts = $texts;
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $this->app->page('home');
@@ -350,7 +350,7 @@ final class BatchTranslationTest extends TestCase
 
         $this->mockDeepL(function ($texts, $target) use (&$collectedTexts) {
             $collectedTexts = $texts;
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $this->app->page('about');
@@ -371,7 +371,7 @@ final class BatchTranslationTest extends TestCase
 
         $this->mockDeepL(function ($texts, $target) use (&$collectedTexts) {
             $collectedTexts = $texts;
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $this->app->page('home');
@@ -394,7 +394,7 @@ final class BatchTranslationTest extends TestCase
 
         $this->mockDeepL(function ($texts, $target) use (&$collectedTexts) {
             $collectedTexts = $texts;
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $this->app->page('home');
@@ -466,7 +466,7 @@ final class BatchTranslationTest extends TestCase
         $this->mockDeepL(function ($texts, $target) use (&$translateManyCallCount, &$batchSizes) {
             $translateManyCallCount++;
             $batchSizes[] = count($texts);
-            return array_map(fn ($t) => "[$target]$t", $texts);
+            return array_map(fn ($t) => "[{$target}]{$t}", $texts);
         });
 
         $page = $batchApp->page('batch-test');
