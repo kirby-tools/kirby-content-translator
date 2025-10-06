@@ -114,8 +114,6 @@ class DeepL
     }
 
     /**
-     * Builds per-request options by detecting if HTML tag handling is needed.
-     *
      * @param array<string> $texts
      * @return array
      */
