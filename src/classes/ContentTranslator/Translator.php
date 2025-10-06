@@ -91,18 +91,18 @@ final class Translator
         $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
 
         if ($translateFn && is_callable($translateFn)) {
-            $result = array_map(
+            $translatedResult = array_map(
                 fn ($text) => $translateFn($text, $targetLanguage, $sourceLanguage),
                 $textsToTranslate
             );
         } else {
             $deepL = DeepL::instance();
-            $result = $deepL->translateMany($textsToTranslate, $targetLanguage, $sourceLanguage);
+            $translatedResult = $deepL->translateMany($textsToTranslate, $targetLanguage, $sourceLanguage);
         }
 
         // Apply after hook to all translated texts
         $translatedTexts = [];
-        foreach ($result as $i => $translatedText) {
+        foreach ($translatedResult as $i => $translatedText) {
             $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
                 'text' => $translatedText,
                 'originalText' => $texts[$i],
@@ -161,26 +161,26 @@ final class Translator
                 $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
 
                 if ($translateFn && is_callable($translateFn)) {
-                    $result = array_map(
+                    $translatedResult = array_map(
                         fn ($text) => $translateFn($text, $this->targetLanguage, $this->sourceLanguage),
                         $textsToTranslate
                     );
                 } else {
                     $deepL = DeepL::instance();
-                    $result = $deepL->translateMany($textsToTranslate, $this->targetLanguage, $this->sourceLanguage);
+                    $translatedResult = $deepL->translateMany($textsToTranslate, $this->targetLanguage, $this->sourceLanguage);
                 }
 
                 // Apply after hook to all translated texts
                 foreach ($collector['pointers'] as $i => $pointer) {
                     [$refKey, &$refObj] = $pointer;
-                    $result = $this->kirby->apply('content-translator.translate:after', [
-                        'text' => $result[$i],
+                    $translatedText = $this->kirby->apply('content-translator.translate:after', [
+                        'text' => $translatedResult[$i],
                         'originalText' => $collector['texts'][$i],
                         'targetLanguage' => $this->targetLanguage,
                         'sourceLanguage' => $this->sourceLanguage,
                         'type' => 'text'
                     ], 'text');
-                    $refObj[$refKey] = $result;
+                    $refObj[$refKey] = $translatedText;
                 }
             }
 
