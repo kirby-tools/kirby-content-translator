@@ -113,7 +113,6 @@ final class DeepLTest extends TestCase
 
         $deepL = new DeepL();
 
-        // Use reflection to test validateLanguages method
         $reflection = new \ReflectionClass($deepL);
         $method = $reflection->getMethod('validateLanguages');
         $method->setAccessible(true);
@@ -198,7 +197,6 @@ final class DeepLTest extends TestCase
         $options = $method->invoke($deepL, ['Keep <span translate="no">Brand</span> unchanged']);
         $this->assertSame('html', $options['tag_handling']);
 
-        // Verify original requestOptions are not mutated (singleton safety)
         $requestOptions = $reflection->getProperty('requestOptions');
         $requestOptions->setAccessible(true);
         $originalOptions = $requestOptions->getValue($deepL);
@@ -264,17 +262,15 @@ final class DeepLTest extends TestCase
     public function testSupportsAllLanguages(): void
     {
         $deepL = DeepL::instance();
-
-        // Test that major supported languages don't throw exceptions
         $supportedTargetLanguages = ['DE', 'EN', 'FR', 'ES', 'IT', 'JA', 'NL', 'PL', 'PT', 'RU', 'ZH'];
 
         foreach ($supportedTargetLanguages as $lang) {
             try {
                 // Just validate - won't make actual HTTP call since array is empty
                 $deepL->translateMany([], $lang);
-                $this->assertTrue(true); // Language is supported
+                $this->assertTrue(true);
             } catch (LogicException $e) {
-                $this->fail("Language $lang should be supported but threw exception: " . $e->getMessage());
+                $this->fail("Language {$lang} should be supported but threw exception: " . $e->getMessage());
             }
         }
     }
