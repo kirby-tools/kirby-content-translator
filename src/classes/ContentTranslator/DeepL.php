@@ -10,14 +10,16 @@ use Kirby\Exception\LogicException;
 use Kirby\Http\Remote;
 use Kirby\Toolkit\A;
 
-final class DeepL
+class DeepL
 {
     public const SUPPORTED_SOURCE_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'ES', 'ET', 'FI', 'FR', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'RO', 'RU', 'SK', 'SL', 'SV', 'TR', 'UK', 'ZH'];
     public const SUPPORTED_TARGET_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'EN-GB', 'EN-US', 'ES', 'ET', 'FI', 'FR', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'PT-BR', 'RO', 'RU', 'SK', 'SL', 'SV', 'TR', 'UK', 'ZH', 'ZH-HANS', 'ZH-HANT'];
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
-    private const MAX_RETRIES = 3;
-    private const INITIAL_RETRY_DELAY_MS = 1000;
+    // Retry configuration
+    private const MAX_RETRIES = 5;
+    private const INITIAL_RETRY_DELAY_MS = 500;
+    private const MAX_RETRY_DELAY_MS = 8000;
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private array $requestOptions = [
@@ -54,27 +56,91 @@ final class DeepL
 
     public function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
+        $result = $this->translateMany([$text], $targetLanguage, $sourceLanguage);
+        return $result[0];
+    }
+
+    /**
+     * @param array<int,string> $texts
+     * @return array<int,string>
+     */
+    public function translateMany(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
+    {
+        if (empty($texts)) {
+            return [];
+        }
+
+        [$sourceLanguage, $targetLanguage] = $this->validateLanguages($sourceLanguage, $targetLanguage);
+
+        $results = [];
+
+        // Process in chunks of maximum 50 texts per request as per DeepL API limits
+        $chunks = array_chunk($texts, 50);
+
+        foreach ($chunks as $chunk) {
+            $requestOptions = $this->buildRequestOptions($chunk);
+
+            $response = $this->request($chunk, $targetLanguage, $sourceLanguage, $requestOptions);
+            $data = $response->json();
+
+            foreach ($data['translations'] as $translation) {
+                $results[] = $translation['text'];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * @return array{0: string|null, 1: string} [sourceLanguage, targetLanguage]
+     */
+    private function validateLanguages(string|null $sourceLanguage, string $targetLanguage): array
+    {
+        // Normalize and validate source language
         if (!empty($sourceLanguage)) {
             $sourceLanguage = strtoupper($sourceLanguage);
-
             if (!in_array($sourceLanguage, self::SUPPORTED_SOURCE_LANGUAGES, true)) {
                 $sourceLanguage = null;
             }
         }
 
+        // Resolve and validate target language
         $targetLanguage = $this->resolveLanguageCode($targetLanguage);
-
         if (!in_array($targetLanguage, self::SUPPORTED_TARGET_LANGUAGES, true)) {
             throw new LogicException('The target language "' . $targetLanguage . '" is not supported by the DeepL API.');
         }
 
-        // If a paragraph with the attribute `translate="no"` is present,
-        // force HTML tag handling (if not enabled already)
-        if (str_contains($text, '<span translate="no">')) {
-            $this->requestOptions['tag_handling'] = 'html';
+        return [$sourceLanguage, $targetLanguage];
+    }
+
+    /**
+     * Builds per-request options by detecting if HTML tag handling is needed.
+     *
+     * @param array<string> $texts
+     * @return array
+     */
+    private function buildRequestOptions(array $texts): array
+    {
+        $options = $this->requestOptions;
+
+        // Enable HTML tag handling if any text contains <span translate="no">
+        foreach ($texts as $text) {
+            if (str_contains($text, '<span translate="no">')) {
+                $options['tag_handling'] = 'html';
+                break;
+            }
         }
 
-        $response = $this->withRetry(function () use ($text, $sourceLanguage, $targetLanguage) {
+        return $options;
+    }
+
+    /**
+     * @param array<string> $texts
+     * @see https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
+     */
+    private function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
+    {
+        $response = $this->withRetry(function () use ($texts, $targetLanguage, $sourceLanguage, $requestOptions) {
             return Remote::request($this->resolveApiUrl() . '/v2/translate', [
                 'method' => 'POST',
                 'headers' => [
@@ -83,16 +149,15 @@ final class DeepL
                 ],
                 'data' => json_encode(A::merge(
                     [
-                        'text' => [$text],
+                        'text' => $texts,
                         'source_lang' => $sourceLanguage,
                         'target_lang' => $targetLanguage,
                     ],
-                    $this->requestOptions
+                    $requestOptions
                 ))
             ]);
         });
 
-        // See error message guide: https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
         match ($response->code()) {
             400 => throw new LogicException('Bad request to DeepL API. Please check your parameters: ' . $response->content()),
             403 => throw new LogicException('Authorization failed. Have you set the correct DeepL API key? See https://kirby.tools/docs/content-translator/getting-started/installation for more information.'),
@@ -103,39 +168,39 @@ final class DeepL
             500 => throw new LogicException('DeepL API internal server error. Please try again later.'),
             503 => throw new LogicException('DeepL API service temporarily unavailable. Please try again later.'),
             504 => throw new LogicException('DeepL API gateway timeout. Please try again later.'),
-            200 => null, // Do nothing for successful requests
+            200 => null,
             default => throw new LogicException('DeepL API request failed: ' . $response->content()),
         };
 
-        $data = $response->json();
-        return $data['translations'][0]['text'];
+        return $response;
     }
 
     private function withRetry(callable $callback): mixed
     {
-        $retries = 0;
-        $delay = self::INITIAL_RETRY_DELAY_MS;
-
+        $attempt = 0;
         while (true) {
             $response = $callback();
-
-            // Handle retryable errors from the DeepL API
             $statusCode = $response->code();
-            if (in_array($statusCode, [429, 500, 503, 504, 529], true)) {
-                if ($retries >= self::MAX_RETRIES) {
-                    throw new LogicException('DeepL API error ' . $statusCode . '. Maximum retry attempts reached.');
-                }
 
-                // Calculate sleep time with exponential backoff
-                $sleepTime = (int)($delay * (1.5 ** $retries) / 1000);
-
-                sleep($sleepTime);
-
-                $retries++;
-                continue;
+            if (!in_array($statusCode, [429, 500, 503, 504, 529], true)) {
+                return $response;
             }
 
-            return $response;
+            if ($attempt >= self::MAX_RETRIES) {
+                throw new LogicException('DeepL API error ' . $statusCode . '. Maximum retry attempts reached.');
+            }
+
+            // Exponential backoff
+            $exponentDelay = (int)(self::INITIAL_RETRY_DELAY_MS * (2 ** $attempt));
+            if ($exponentDelay > self::MAX_RETRY_DELAY_MS) {
+                $exponentDelay = self::MAX_RETRY_DELAY_MS;
+            }
+
+            $sleepMs = random_int(0, $exponentDelay);
+            // Convert ms to microseconds
+            usleep($sleepMs * 1000);
+
+            $attempt++;
         }
     }
 

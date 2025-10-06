@@ -2,6 +2,7 @@
 
 declare(strict_types = 1);
 
+use JohannSchopplich\ContentTranslator\DeepL;
 use JohannSchopplich\ContentTranslator\FieldResolver;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
@@ -570,5 +571,92 @@ final class TranslatorTest extends TestCase
         $translatedContent = $translator->model()->content('en')->get('text')->value();
 
         $this->assertStringContainsString('[de]Welcome to our website', $translatedContent);
+    }
+
+    // Batch translation tests
+    public function testBatchTranslation(): void
+    {
+        // Create 60 fields to test both batching (< 50) and chunking (> 50)
+        $fields = [];
+        $content = [];
+        for ($i = 1; $i <= 60; $i++) {
+            $fields["field{$i}"] = ['type' => 'text'];
+            $content["field{$i}"] = "Text {$i}";
+        }
+
+        $batchApp = new App([
+            'languages' => [
+                [
+                    'code' => 'en',
+                    'name' => 'English',
+                    'default' => true
+                ],
+                [
+                    'code' => 'de',
+                    'name' => 'Deutsch'
+                ]
+            ],
+            'blueprints' => [
+                'pages/batch-test' => [
+                    'fields' => $fields
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'batch-test',
+                        'template' => 'batch-test',
+                        'translations' => [
+                            [
+                                'code' => 'en',
+                                'content' => $content
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'options' => [
+                'debug' => true,
+                'johannschopplich.content-translator' => [
+                    'DeepL.apiKey' => 'test-key:fx'
+                ]
+            ]
+        ]);
+
+        $reflection = new \ReflectionClass(DeepL::class);
+        $instanceProperty = $reflection->getProperty('instance');
+        $instanceProperty->setAccessible(true);
+
+        // Mock DeepL to track `translateMany` calls and batch sizes
+        $mockDeepL = $this->createMock(DeepL::class);
+        $translateManyCallCount = 0;
+        $batchSizes = [];
+
+        $mockDeepL->expects($this->once())
+            ->method('translateMany')
+            ->willReturnCallback(function ($texts, $target, $source) use (&$translateManyCallCount, &$batchSizes) {
+                $translateManyCallCount++;
+                $batchSizes[] = count($texts);
+                // Return prefixed texts to simulate translation
+                return array_map(fn ($t) => "[$target]$t", $texts);
+            });
+
+        $instanceProperty->setValue(null, $mockDeepL);
+
+        $page = $batchApp->page('batch-test');
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        // Verify batching: all 60 items sent in one call (DeepL handles internal chunking)
+        $this->assertSame(1, $translateManyCallCount, 'translateMany should be called once with all items');
+        $this->assertSame(60, $batchSizes[0], 'Should send all 60 items at once');
+
+        // Verify translations were applied correctly
+        $model = $translator->model();
+        $this->assertStringContainsString('[de]Text 1', $model->content('en')->get('field1')->value());
+        $this->assertStringContainsString('[de]Text 60', $model->content('en')->get('field60')->value());
+
+        $instanceProperty->setValue(null, null);
+        App::destroy();
     }
 }

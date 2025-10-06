@@ -170,6 +170,11 @@ final class Translator
 
     private function walkTranslatableFields(array &$obj, array $fields, $isRecursive = false): array
     {
+        $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
+        $canBatch = !$translateFn || !is_callable($translateFn);
+        $batchTexts = [];
+        $batchPointers = [];
+
         foreach ($obj as $key => $value) {
             if (empty($value)) {
                 continue;
@@ -204,7 +209,12 @@ final class Translator
 
             // Handle text-like fields
             if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'writer'], true)) {
-                $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
+                if ($canBatch) {
+                    $batchPointers[] = [$key, &$obj];
+                    $batchTexts[] = $obj[$key];
+                } else {
+                    $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
+                }
             }
             // Handle markdown content separately
             elseif (in_array($fields[$key]['type'], ['textarea', 'markdown'], true)) {
@@ -272,6 +282,17 @@ final class Translator
                 if ($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') {
                     $obj[$key] = Data::encode($obj[$key], 'yaml');
                 }
+            }
+        }
+
+        // Perform batched translations (DeepL handles chunking internally)
+        if (!empty($batchTexts)) {
+            $deepL = DeepL::instance();
+            $translated = $deepL->translateMany($batchTexts, $this->targetLanguage, $this->sourceLanguage);
+
+            foreach ($translated as $i => $translatedText) {
+                [$refKey, &$refObj] = $batchPointers[$i];
+                $refObj[$refKey] = $translatedText;
             }
         }
 
