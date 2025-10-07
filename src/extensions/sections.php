@@ -15,8 +15,6 @@ return [
 
                 return $importFrom;
             },
-            // TODO: Deprecated, remove in v4
-            'bulk' => fn ($bulk = null) => is_bool($bulk) ? $bulk : null,
             'batch' => fn ($batch = null) => is_bool($batch) ? $batch : null,
             'title' => fn ($title = null) => is_bool($title) ? $title : null,
             'slug' => fn ($slug = null) => is_bool($slug) ? $slug : null,
@@ -51,9 +49,6 @@ return [
             }
         ],
         'computed' => [
-            'batch' => function () {
-                return $this->batch ?? $this->bulk;
-            },
             'fields' => function () {
                 return FieldResolver::resolveModelFields($this->model());
             }

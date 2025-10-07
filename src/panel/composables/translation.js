@@ -49,9 +49,7 @@ export function useContentTranslator() {
     allowImport.value = props.import ?? context.config.import ?? true;
     importFrom.value =
       props.importFrom ?? context.config.importFrom ?? undefined;
-    allowBatchTranslation.value =
-      // TODO: `bulk` is deprecated, remove in v4
-      props.batch ?? context.config.batch ?? context.config.bulk ?? true;
+    allowBatchTranslation.value = props.batch ?? context.config.batch ?? true;
     translateTitle.value = props.title ?? context.config.title ?? false;
     translateSlug.value = props.slug ?? context.config.slug ?? false;
     confirm.value = props.confirm ?? context.config.confirm ?? true;
