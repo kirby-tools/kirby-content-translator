@@ -42,7 +42,7 @@ final class TranslatorTest extends TestCase
                             'type' => 'textarea',
                             'translate' => true
                         ],
-                        'keepText' => [
+                        'untranslatableText' => [
                             'type' => 'text',
                             'translate' => false
                         ],
@@ -160,7 +160,7 @@ final class TranslatorTest extends TestCase
                                 'content' => [
                                     'title' => 'Home',
                                     'text' => 'Welcome to our website',
-                                    'keepText' => 'Do not translate',
+                                    'untranslatableText' => 'Do not translate',
                                     'tags' => 'tag1, tag2',
                                     'list' => 'item1, item2',
                                     'writer' => 'Writer content',
@@ -325,7 +325,7 @@ final class TranslatorTest extends TestCase
         );
         $this->assertSame(
             'Do not translate',
-            $translator->model()->content('de')->get('keepText')->value()
+            $translator->model()->content('de')->get('untranslatableText')->value()
         );
     }
 
@@ -362,7 +362,7 @@ final class TranslatorTest extends TestCase
 
         $this->assertSame(
             'Do not translate',
-            $translator->model()->content('en')->get('keepText')->value()
+            $translator->model()->content('en')->get('untranslatableText')->value()
         );
     }
 
@@ -472,12 +472,12 @@ final class TranslatorTest extends TestCase
         $translator = new Translator($page, [
             'fieldTypes' => ['textarea'],
             'includeFields' => ['text'],
-            'excludeFields' => ['keepText']
+            'excludeFields' => ['untranslatableText']
         ]);
         $translator->translateContent('en', 'de');
 
         $this->assertSame('[de]Welcome to our website', $translator->model()->content('en')->get('text')->value());
-        $this->assertSame('Do not translate', $translator->model()->content('en')->get('keepText')->value());
+        $this->assertSame('Do not translate', $translator->model()->content('en')->get('untranslatableText')->value());
     }
 
     public function testIncludeFieldsConfiguration(): void

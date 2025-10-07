@@ -19,6 +19,14 @@ structure:
 
 ----
 
+Entries01:
+
+- design
+- architecture
+- photography
+
+----
+
 Tags01: Life, is, a, journey
 
 ----

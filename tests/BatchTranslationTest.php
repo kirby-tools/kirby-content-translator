@@ -74,7 +74,7 @@ final class BatchTranslationTest extends TestCase
                                         ]
                                     ]
                                 ],
-                                'section' => [
+                                'container' => [
                                     'tabs' => [
                                         'content' => [
                                             'fields' => [
@@ -191,10 +191,10 @@ final class BatchTranslationTest extends TestCase
                                             ]
                                         ],
                                         [
-                                            'type' => 'section',
-                                            'id' => 'section1',
+                                            'type' => 'container',
+                                            'id' => 'container1',
                                             'content' => [
-                                                'heading' => 'Section heading',
+                                                'heading' => 'Container heading',
                                                 'blocks' => Json::encode([
                                                     [
                                                         'type' => 'text',
@@ -333,14 +333,14 @@ final class BatchTranslationTest extends TestCase
 
         // Verify nested block text was collected
         $this->assertContains('Nested block text', $collectedTexts, 'Nested block text should be batched');
-        $this->assertContains('Section heading', $collectedTexts, 'Section heading should be batched');
+        $this->assertContains('Container heading', $collectedTexts, 'Container heading should be batched');
 
         // Verify nested blocks were translated
         $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value());
         $nestedBlocksJson = $blocks[2]['content']['blocks'];
         $nestedBlocks = Json::decode($nestedBlocksJson);
 
-        $this->assertSame('[de]Section heading', $blocks[2]['content']['heading']);
+        $this->assertSame('[de]Container heading', $blocks[2]['content']['heading']);
         $this->assertSame('[de]Nested block text', $nestedBlocks[0]['content']['text']);
     }
 

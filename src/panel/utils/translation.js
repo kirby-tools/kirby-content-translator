@@ -29,7 +29,7 @@ export async function translateContent(
     callbacks: [],
   };
 
-  function walkTranslatableFields(obj, fields) {
+  function collectTranslatableFields(obj, fields) {
     for (const key in obj) {
       if (!obj[key]) continue;
       if (!fields[key]) continue;
@@ -140,13 +140,13 @@ export async function translateContent(
       // Handle structure fields
       else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
         for (const item of obj[key]) {
-          walkTranslatableFields(item, fields[key].fields);
+          collectTranslatableFields(item, fields[key].fields);
         }
       }
 
       // Handle object fields
       else if (fields[key].type === "object" && isObject(obj[key])) {
-        walkTranslatableFields(obj[key], fields[key].fields);
+        collectTranslatableFields(obj[key], fields[key].fields);
       }
 
       // Handle layout fields
@@ -163,7 +163,7 @@ export async function translateContent(
                 fields[key].fieldsets,
                 block,
               );
-              walkTranslatableFields(block.content, blockFields);
+              collectTranslatableFields(block.content, blockFields);
             }
           }
         }
@@ -178,13 +178,13 @@ export async function translateContent(
           // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
 
           const blockFields = flattenTabFields(fields[key].fieldsets, block);
-          walkTranslatableFields(block.content, blockFields);
+          collectTranslatableFields(block.content, blockFields);
         }
       }
     }
   }
 
-  walkTranslatableFields(obj, fields);
+  collectTranslatableFields(obj, fields);
 
   // Add batch translation task if there are texts to translate
   if (batchCollector.texts.length > 0) {
