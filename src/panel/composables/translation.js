@@ -311,7 +311,6 @@ export function useContentTranslator() {
     initializeConfig,
     syncModelContent,
     translateModelContent,
-    batchTranslateModelContent,
 
     // Dialogs
     openBatchTranslationDialog,
