@@ -32,10 +32,26 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  fieldTypes: Array,
-  includeFields: Array,
-  excludeFields: Array,
-  kirbyTags: Object,
+  fieldTypes: {
+    type: Array,
+    required: false,
+  },
+  includeFields: {
+    type: Array,
+    required: false,
+  },
+  excludeFields: {
+    type: Array,
+    required: false,
+  },
+  kirbyTags: {
+    type: Object,
+    required: false,
+  },
+  theme: {
+    type: String,
+    default: "notice-icon",
+  },
 });
 
 const _isKirby5 = isKirby5();
@@ -67,7 +83,7 @@ function toggle() {
       "
       icon="content-translator-global"
       responsive="text"
-      theme="notice-icon"
+      :theme="theme"
       variant="filled"
       size="sm"
       @click="toggle()"
