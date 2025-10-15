@@ -6,15 +6,30 @@ import {
   TRANSLATE_BATCH_API_ROUTE,
   TRANSLATE_KIRBYTEXT_API_ROUTE,
 } from "../constants";
+import { flattenTabFields, isBlockTranslatable, isObject } from "./shared";
 
+/**
+ * Translates content recursively, handling various field types including blocks, layouts, structures, etc.
+ *
+ * @param {object} obj - The content object to translate
+ * @param {object} options - Translation options
+ * @param {string} options.sourceLanguage - Source language code
+ * @param {string} options.targetLanguage - Target language code
+ * @param {Array<string>} options.fieldTypes - Array of field types to translate
+ * @param {Array<string>} options.includeFields - Array of field names to include
+ * @param {Array<string>} options.excludeFields - Array of field names to exclude
+ * @param {object} options.kirbyTags - KirbyText tags configuration
+ * @param {object} options.fields - Field definitions
+ * @returns {Promise<object>} The translated content object
+ */
 export async function translateContent(
   obj,
   {
     sourceLanguage,
     targetLanguage,
     fieldTypes,
-    includeFields,
-    excludeFields,
+    includeFields = [],
+    excludeFields = [],
     kirbyTags,
     fields,
   },
@@ -31,14 +46,18 @@ export async function translateContent(
 
   function collectTranslatableFields(obj, fields) {
     for (const key in obj) {
+      // Skip empty values
       if (!obj[key]) continue;
+      // Skip if field definition doesn't exist
       if (!fields[key]) continue;
+      // Skip if field has translate = false
       if (fields[key].translate === false) continue;
+      // Skip if field type is not in the translatable types list
       if (!fieldTypes.includes(fields[key].type)) continue;
 
-      // Include/exclude fields
-      if (includeFields?.length && !includeFields.includes(key)) continue;
-      if (excludeFields?.length && excludeFields.includes(key)) continue;
+      // Apply include/exclude filters
+      if (includeFields.length && !includeFields.includes(key)) continue;
+      if (excludeFields.length && excludeFields.includes(key)) continue;
 
       // Handle text-like fields (collect for batch translation)
       if (["list", "text", "writer"].includes(fields[key].type)) {
@@ -50,6 +69,7 @@ export async function translateContent(
 
       // Handle markdown content separately
       else if (["textarea", "markdown"].includes(fields[key].type)) {
+        // Skip empty content
         if (!obj[key]?.trim()) continue;
 
         tasks.push(async () => {
@@ -69,9 +89,11 @@ export async function translateContent(
         Array.isArray(obj[key]) &&
         obj[key].length
       ) {
+        // Join tags with separator for translation
         const text = obj[key].join(" | ");
         batchCollector.texts.push(text);
         batchCollector.callbacks.push((translatedText) => {
+          // Split translated text back into array
           obj[key] = translatedText.split("|").map((tag) => tag.trim());
         });
       }
@@ -96,10 +118,12 @@ export async function translateContent(
         }
 
         if (Array.isArray(tableData)) {
+          // Translate each cell in the table
           for (const [rowIndex, row] of tableData.entries()) {
             if (!Array.isArray(row)) continue;
 
             for (const [colIndex, cell] of row.entries()) {
+              // Skip empty cells
               if (!cell || typeof cell !== "string" || !cell.trim()) continue;
 
               tasks.push(async () => {
@@ -139,6 +163,7 @@ export async function translateContent(
 
       // Handle structure fields
       else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
+        // Recursively translate each structure item
         for (const item of obj[key]) {
           collectTranslatableFields(item, fields[key].fields);
         }
@@ -146,6 +171,7 @@ export async function translateContent(
 
       // Handle object fields
       else if (fields[key].type === "object" && isObject(obj[key])) {
+        // Recursively translate object content
         collectTranslatableFields(obj[key], fields[key].fields);
       }
 
@@ -154,15 +180,16 @@ export async function translateContent(
         for (const layout of obj[key]) {
           for (const column of layout.columns) {
             for (const block of column.blocks) {
+              // Skip non-translatable blocks
               if (!isBlockTranslatable(block)) continue;
+              // Skip if block type definition doesn't exist
               if (!fields[key].fieldsets[block.type]) continue;
-
-              // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
 
               const blockFields = flattenTabFields(
                 fields[key].fieldsets,
                 block,
               );
+              // Recursively translate block content
               collectTranslatableFields(block.content, blockFields);
             }
           }
@@ -172,12 +199,13 @@ export async function translateContent(
       // Handle block fields
       else if (fields[key].type === "blocks" && Array.isArray(obj[key])) {
         for (const block of obj[key]) {
+          // Skip non-translatable blocks
           if (!isBlockTranslatable(block)) continue;
+          // Skip if block type definition doesn't exist
           if (!fields[key].fieldsets[block.type]) continue;
 
-          // if (!Object.keys(translatableBlocks).includes(block.type)) continue;
-
           const blockFields = flattenTabFields(fields[key].fieldsets, block);
+          // Recursively translate block content
           collectTranslatableFields(block.content, blockFields);
         }
       }
@@ -211,22 +239,4 @@ export async function translateContent(
   }
 
   return obj;
-}
-
-function isBlockTranslatable(block) {
-  return isObject(block.content) && block.id && block.isHidden !== true;
-}
-
-function flattenTabFields(fieldsets, block) {
-  const blockFields = {};
-
-  for (const tab of Object.values(fieldsets[block.type].tabs)) {
-    Object.assign(blockFields, tab.fields);
-  }
-
-  return blockFields;
-}
-
-function isObject(value) {
-  return Object.prototype.toString.call(value) === "[object Object]";
 }

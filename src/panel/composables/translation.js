@@ -7,6 +7,7 @@ import {
   TRANSLATE_API_ROUTE,
   TRANSLATE_CONTENT_API_ROUTE,
 } from "../constants";
+import { filterSyncableContent } from "../utils/sync";
 import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
 
@@ -91,18 +92,12 @@ export function useContentTranslator() {
       content = data.content;
     }
 
-    const syncableContent = Object.fromEntries(
-      Object.entries(content).filter(
-        ([key]) =>
-          fieldTypes.value.includes(fields.value[key]?.type) &&
-          (includeFields.value.length
-            ? includeFields.value.includes(key)
-            : true) &&
-          (excludeFields.value.length
-            ? !excludeFields.value.includes(key)
-            : true),
-      ),
-    );
+    const syncableContent = filterSyncableContent(content, {
+      fields: fields.value,
+      fieldTypes: fieldTypes.value,
+      includeFields: includeFields.value,
+      excludeFields: excludeFields.value,
+    });
 
     await updateContent(syncableContent);
     const _isHomePage = await isHomePage();
