@@ -4,6 +4,8 @@ buttons:
   preview: true
   content-translator:
     label: Translate
+    title: true
+    slug: false
   languages: true
 
 sections:

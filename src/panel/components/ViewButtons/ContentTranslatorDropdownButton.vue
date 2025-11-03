@@ -9,28 +9,28 @@ const props = defineProps({
     required: false,
   },
   import: {
-    type: Boolean,
-    default: true,
+    type: [Boolean, String, Number],
+    required: false,
   },
   importFrom: {
     type: String,
     required: false,
   },
   batch: {
-    type: Boolean,
-    default: true,
+    type: [Boolean, String, Number],
+    required: false,
   },
   title: {
-    type: Boolean,
-    default: false,
+    type: [Boolean, String, Number],
+    required: false,
   },
   slug: {
-    type: Boolean,
-    default: false,
+    type: [Boolean, String, Number],
+    required: false,
   },
   confirm: {
-    type: Boolean,
-    default: true,
+    type: [Boolean, String, Number],
+    required: false,
   },
   fieldTypes: {
     type: Array,

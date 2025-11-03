@@ -47,13 +47,16 @@ export function useContentTranslator() {
   function initializeConfig(context, props = {}) {
     label.value =
       t(props.label) || panel.t("johannschopplich.content-translator.label");
-    allowImport.value = props.import ?? context.config.import ?? true;
+    allowImport.value = toBool(props.import ?? context.config.import, true);
     importFrom.value =
       props.importFrom ?? context.config.importFrom ?? undefined;
-    allowBatchTranslation.value = props.batch ?? context.config.batch ?? true;
-    translateTitle.value = props.title ?? context.config.title ?? false;
-    translateSlug.value = props.slug ?? context.config.slug ?? false;
-    confirm.value = props.confirm ?? context.config.confirm ?? true;
+    allowBatchTranslation.value = toBool(
+      props.batch ?? context.config.batch,
+      true,
+    );
+    translateTitle.value = toBool(props.title ?? context.config.title, false);
+    translateSlug.value = toBool(props.slug ?? context.config.slug, false);
+    confirm.value = toBool(props.confirm ?? context.config.confirm, true);
     fieldTypes.value =
       props.fieldTypes ?? context.config.fieldTypes ?? DEFAULT_FIELD_TYPES;
     includeFields.value =
@@ -310,4 +313,16 @@ export function useContentTranslator() {
     // Dialogs
     openBatchTranslationDialog,
   };
+}
+
+/**
+ * Normalize boolean values from YAML/PHP to JavaScript booleans
+ */
+function toBool(value, defaultValue = false) {
+  if (value === undefined || value === null) return defaultValue;
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value === "true" || value === "1";
+  if (typeof value === "number") return value === 1;
+
+  return Boolean(value);
 }
