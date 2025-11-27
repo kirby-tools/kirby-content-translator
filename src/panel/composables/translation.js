@@ -319,7 +319,7 @@ export function useContentTranslator() {
  * Normalize boolean values from YAML/PHP to JavaScript booleans
  */
 function toBool(value, defaultValue = false) {
-  if (value === undefined || value === null) return defaultValue;
+  if (value == null) return defaultValue;
   if (typeof value === "boolean") return value;
   if (typeof value === "string") return value === "true" || value === "1";
   if (typeof value === "number") return value === 1;

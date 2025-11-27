@@ -6,11 +6,11 @@ import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent
 const props = defineProps({
   label: {
     type: String,
-    required: false,
+    default: null,
   },
   import: {
     type: [Boolean, String, Number],
-    required: false,
+    default: null,
   },
   importFrom: {
     type: String,
@@ -18,19 +18,19 @@ const props = defineProps({
   },
   batch: {
     type: [Boolean, String, Number],
-    required: false,
+    default: null,
   },
   title: {
     type: [Boolean, String, Number],
-    required: false,
+    default: null,
   },
   slug: {
     type: [Boolean, String, Number],
-    required: false,
+    default: null,
   },
   confirm: {
     type: [Boolean, String, Number],
-    required: false,
+    default: null,
   },
   fieldTypes: {
     type: Array,
