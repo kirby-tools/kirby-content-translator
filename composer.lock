@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2e584a83c0dffe7cb1b969dcadcbe1ef",
+    "content-hash": "7eea5835b1172f8d27e7bae9807c9715",
     "packages": [
         {
             "name": "getkirby/composer-installer",
