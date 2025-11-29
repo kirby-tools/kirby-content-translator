@@ -16,13 +16,13 @@ export function isBlockTranslatable(block) {
  * @returns {object} Flattened fields object
  */
 export function flattenTabFields(fieldsets, block) {
-  const blockFields = {};
+  const flattenedFields = {};
 
   for (const tab of Object.values(fieldsets[block.type].tabs)) {
-    Object.assign(blockFields, tab.fields);
+    Object.assign(flattenedFields, tab.fields);
   }
 
-  return blockFields;
+  return flattenedFields;
 }
 
 /**
