@@ -4,7 +4,7 @@ let context;
 let pendingPromise;
 
 export function usePluginContext() {
-  if (context) return context;
+  if (context) return Promise.resolve(context);
   if (pendingPromise) return pendingPromise;
 
   pendingPromise = window.panel.api
