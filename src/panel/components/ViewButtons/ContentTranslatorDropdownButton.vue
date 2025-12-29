@@ -6,15 +6,12 @@ import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent
 const props = defineProps({
   label: {
     type: String,
-    default: null,
   },
   import: {
     type: [Boolean, String, Number],
-    default: null,
   },
   importFrom: {
     type: String,
-    required: false,
   },
   batch: {
     type: [Boolean, String, Number],
@@ -34,19 +31,15 @@ const props = defineProps({
   },
   fieldTypes: {
     type: Array,
-    required: false,
   },
   includeFields: {
     type: Array,
-    required: false,
   },
   excludeFields: {
     type: Array,
-    required: false,
   },
   kirbyTags: {
     type: Object,
-    required: false,
   },
   theme: {
     type: String,
