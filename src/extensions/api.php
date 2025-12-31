@@ -1,8 +1,8 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\FieldResolver;
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
+use JohannSchopplich\KirbyPlugins\FieldResolver;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;

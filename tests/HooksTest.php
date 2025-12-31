@@ -2,7 +2,6 @@
 
 declare(strict_types = 1);
 
-use JohannSchopplich\ContentTranslator\DeepL;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use PHPUnit\Framework\TestCase;
