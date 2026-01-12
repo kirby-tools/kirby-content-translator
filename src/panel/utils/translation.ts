@@ -17,6 +17,8 @@ import {
 } from "../constants";
 import { flattenTabFields, isBlockTranslatable, isObject } from "./shared";
 
+type TranslationTask = () => Promise<void>;
+
 /**
  * Translates content recursively, handling various field types including blocks, layouts, structures, etc.
  */
@@ -41,8 +43,8 @@ export async function translateContent(
   },
 ) {
   const api = useApi();
-  const tasks: (() => Promise<void>)[] = [];
-  const finalizationTasks: (() => Promise<void>)[] = [];
+  const tasks: TranslationTask[] = [];
+  const finalizationTasks: TranslationTask[] = [];
 
   // Batch translation collector for text-like fields
   const batchCollector = {
@@ -114,75 +116,19 @@ export async function translateContent(
 
       // Handle table fields (https://github.com/bogdancondorachi/kirby-table-field)
       else if (field.type === "table") {
-        let tableData = obj[key] as string | string[][];
-        let isYamlEncoded = false;
-
-        // Panel content data is not deserialized, so we need to parse it first
-        if (typeof tableData === "string") {
-          isYamlEncoded = true;
-          try {
-            tableData = yaml.parse(tableData) as string[][];
-          } catch (error) {
-            console.error(
-              `Failed to parse table field "${key}" as YAML:`,
-              error,
-            );
-            continue;
-          }
-        }
-
-        if (Array.isArray(tableData)) {
-          // Translate each cell in the table
-          for (const [rowIndex, row] of tableData.entries()) {
-            if (!Array.isArray(row)) continue;
-
-            for (const [colIndex, cell] of row.entries()) {
-              // Skip empty cells
-              if (!cell || typeof cell !== "string" || !cell.trim()) continue;
-
-              tasks.push(async () => {
-                const response = await api.post<{ text: string }>(
-                  TRANSLATE_API_ROUTE,
-                  {
-                    sourceLanguage,
-                    targetLanguage,
-                    text: cell,
-                  },
-                );
-                (tableData as string[][])[rowIndex]![colIndex] = response.text;
-              });
-            }
-          }
-
-          obj[key] = tableData;
-
-          // Serialize back to YAML after all translations are done
-          if (isYamlEncoded) {
-            finalizationTasks.push(async () => {
-              // Stringify each row individually to match the input format
-              const rowStrings = (tableData as string[][]).map((row) => {
-                if (!Array.isArray(row)) return "";
-                return yaml
-                  .stringify(row)
-                  .trim()
-                  .split("\n")
-                  .map((line) => `  ${line}`)
-                  .join("\n");
-              });
-
-              obj[key] = rowStrings
-                .map((rowString) => `-\n${rowString}`)
-                .join("\n");
-            });
-          }
-        }
+        collectTableTranslations(obj, key, {
+          sourceLanguage,
+          targetLanguage,
+          tasks,
+          finalizationTasks,
+        });
       }
 
       // Handle structure fields
       else if (field.type === "structure" && Array.isArray(obj[key])) {
         const structureField = field as KirbyStructureFieldProps;
         // Recursively translate each structure item
-        for (const item of obj[key] as Record<string, unknown>[]) {
+        for (const item of obj[key]) {
           collectTranslatableFields(item, structureField.fields);
         }
       }
@@ -191,10 +137,7 @@ export async function translateContent(
       else if (field.type === "object" && isObject(obj[key])) {
         const objectField = field as KirbyObjectFieldProps;
         // Recursively translate object content
-        collectTranslatableFields(
-          obj[key] as Record<string, unknown>,
-          objectField.fields,
-        );
+        collectTranslatableFields(obj[key], objectField.fields);
       }
 
       // Handle layout fields
@@ -213,10 +156,7 @@ export async function translateContent(
                 block,
               );
               // Recursively translate block content
-              collectTranslatableFields(
-                block.content as Record<string, unknown>,
-                blockFields,
-              );
+              collectTranslatableFields(block.content, blockFields);
             }
           }
         }
@@ -233,10 +173,7 @@ export async function translateContent(
 
           const blockFields = flattenTabFields(blocksField.fieldsets, block);
           // Recursively translate block content
-          collectTranslatableFields(
-            block.content as Record<string, unknown>,
-            blockFields,
-          );
+          collectTranslatableFields(block.content, blockFields);
         }
       }
     }
@@ -272,4 +209,72 @@ export async function translateContent(
   }
 
   return obj;
+}
+
+function collectTableTranslations(
+  obj: Record<string, unknown>,
+  key: string,
+  ctx: {
+    sourceLanguage?: string;
+    targetLanguage: string;
+    tasks: TranslationTask[];
+    finalizationTasks: TranslationTask[];
+  },
+) {
+  const api = useApi();
+
+  let tableData = obj[key] as string | string[][];
+  let isYamlEncoded = false;
+
+  // Panel content data is not deserialized, so we need to parse it first
+  if (typeof tableData === "string") {
+    isYamlEncoded = true;
+    try {
+      tableData = yaml.parse(tableData) as string[][];
+    } catch (error) {
+      console.error(`Failed to parse table field "${key}" as YAML:`, error);
+      return;
+    }
+  }
+
+  if (!Array.isArray(tableData)) return;
+
+  // Translate each cell in the table
+  for (const [rowIndex, row] of tableData.entries()) {
+    if (!Array.isArray(row)) continue;
+
+    for (const [colIndex, cell] of row.entries()) {
+      // Skip empty cells
+      if (!cell || typeof cell !== "string" || !cell.trim()) continue;
+
+      ctx.tasks.push(async () => {
+        const response = await api.post<{ text: string }>(TRANSLATE_API_ROUTE, {
+          sourceLanguage: ctx.sourceLanguage,
+          targetLanguage: ctx.targetLanguage,
+          text: cell,
+        });
+        tableData[rowIndex]![colIndex] = response.text;
+      });
+    }
+  }
+
+  obj[key] = tableData;
+
+  // Serialize back to YAML after all translations are done
+  if (isYamlEncoded) {
+    ctx.finalizationTasks.push(async () => {
+      // Stringify each row individually to match the input format
+      const rowStrings = tableData.map((row) => {
+        if (!Array.isArray(row)) return "";
+        return yaml
+          .stringify(row)
+          .trim()
+          .split("\n")
+          .map((line) => `  ${line}`)
+          .join("\n");
+      });
+
+      obj[key] = rowStrings.map((rowString) => `-\n${rowString}`).join("\n");
+    });
+  }
 }
