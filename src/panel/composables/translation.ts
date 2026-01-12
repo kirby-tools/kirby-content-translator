@@ -1,3 +1,13 @@
+import type {
+  KirbyFieldProps,
+  PanelLanguageInfo,
+  PanelModelData,
+} from "kirby-types";
+import type {
+  KirbyTagConfig,
+  PluginConfig,
+  PluginContextResponse,
+} from "../types";
 import slugify from "@sindresorhus/slugify";
 import { ref, useContent, useDialog, useI18n, usePanel } from "kirbyuse";
 import pMap from "p-map";
@@ -11,6 +21,21 @@ import { filterSyncableContent } from "../utils/sync";
 import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
 
+export interface TranslatorOptions {
+  label?: string;
+  import?: boolean;
+  importFrom?: string;
+  batch?: boolean;
+  title?: boolean;
+  slug?: boolean;
+  confirm?: boolean;
+  fieldTypes?: string[];
+  includeFields?: string[];
+  excludeFields?: string[];
+  kirbyTags?: Record<string, KirbyTagConfig>;
+  fields?: Record<string, KirbyFieldProps>;
+}
+
 export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
@@ -19,68 +44,69 @@ export function useContentTranslator() {
   const { getModelData } = useModel();
 
   // Configuration state
-  const label = ref();
-  const allowImport = ref();
-  const importFrom = ref();
-  const allowBatchTranslation = ref();
-  const translateTitle = ref();
-  const translateSlug = ref();
-  const confirm = ref();
-  const fieldTypes = ref([]);
-  const includeFields = ref([]);
-  const excludeFields = ref([]);
-  const kirbyTags = ref({});
+  const label = ref<string>();
+  const allowImport = ref<boolean>();
+  const importFrom = ref<string>();
+  const allowBatchTranslation = ref<boolean>();
+  const translateTitle = ref<boolean>();
+  const translateSlug = ref<boolean>();
+  const confirm = ref<boolean>();
+  const fieldTypes = ref<string[]>([]);
+  const includeFields = ref<string[]>([]);
+  const excludeFields = ref<string[]>([]);
+  const kirbyTags = ref<Record<string, KirbyTagConfig>>({});
 
   // Runtime state
-  const fields = ref();
-  const config = ref();
-  const homePageId = ref();
-  const errorPageId = ref();
-  const licenseStatus = ref();
+  const fields = ref<Record<string, KirbyFieldProps>>();
+  const config = ref<PluginConfig>();
+  const homePageId = ref<string>();
+  const errorPageId = ref<string>();
+  const licenseStatus = ref<string>();
 
   // Panel constants
-  const defaultLanguage = panel.languages.find((language) => language.default);
+  const defaultLanguage = panel.languages.find((language) => language.default)!;
   const translationLanguages = panel.languages.filter(
     (language) => language.code !== defaultLanguage.code,
   );
 
-  function initializeConfig(context, props = {}) {
+  function initializeConfig(
+    context: PluginContextResponse,
+    options: TranslatorOptions = {},
+  ) {
     label.value =
-      t(props.label) || panel.t("johannschopplich.content-translator.label");
-    allowImport.value = toBool(props.import ?? context.config.import, true);
+      t(options.label) || panel.t("johannschopplich.content-translator.label");
+    allowImport.value = toBool(options.import ?? context.config.import, true);
     importFrom.value =
-      props.importFrom ?? context.config.importFrom ?? undefined;
+      options.importFrom ?? context.config.importFrom ?? undefined;
     allowBatchTranslation.value = toBool(
-      props.batch ?? context.config.batch,
+      options.batch ?? context.config.batch,
       true,
     );
-    translateTitle.value = toBool(props.title ?? context.config.title, false);
-    translateSlug.value = toBool(props.slug ?? context.config.slug, false);
-    confirm.value = toBool(props.confirm ?? context.config.confirm, true);
-    fieldTypes.value =
-      props.fieldTypes ?? context.config.fieldTypes ?? DEFAULT_FIELD_TYPES;
+    translateTitle.value = toBool(options.title ?? context.config.title, false);
+    translateSlug.value = toBool(options.slug ?? context.config.slug, false);
+    confirm.value = toBool(options.confirm ?? context.config.confirm, true);
+    fieldTypes.value = options.fieldTypes ??
+      context.config.fieldTypes ?? [...DEFAULT_FIELD_TYPES];
     includeFields.value =
-      props.includeFields ?? context.config.includeFields ?? [];
+      options.includeFields ?? context.config.includeFields ?? [];
     excludeFields.value =
-      props.excludeFields ?? context.config.excludeFields ?? [];
-    kirbyTags.value = props.kirbyTags ?? context.config.kirbyTags ?? {};
-    fields.value = props.fields ?? {};
+      options.excludeFields ?? context.config.excludeFields ?? [];
+    kirbyTags.value = options.kirbyTags ?? context.config.kirbyTags ?? {};
+    fields.value = options.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
     errorPageId.value = context.errorPageId;
-    licenseStatus.value =
-      // eslint-disable-next-line no-undef
-      __PLAYGROUND__ ? "active" : context.licenseStatus;
+    licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
   }
 
-  async function syncModelContent(language) {
-    let title;
-    let content;
+  async function syncModelContent(language?: PanelLanguageInfo) {
+    let title: string;
+    let content: Record<string, unknown>;
 
     // If a language is passed, use the content of that language as the source,
     // otherwise use the default language
     if (language) {
-      const data = await panel.api.get(
+      const data = await panel.api.get<PanelModelData>(
         panel.view.path,
         { language: language.code },
         undefined,
@@ -96,7 +122,7 @@ export function useContentTranslator() {
     }
 
     const syncableContent = filterSyncableContent(content, {
-      fields: fields.value,
+      fields: fields.value!,
       fieldTypes: fieldTypes.value,
       includeFields: includeFields.value,
       excludeFields: excludeFields.value,
@@ -127,11 +153,17 @@ export function useContentTranslator() {
     );
   }
 
-  async function translateModelContent(targetLanguage, sourceLanguage) {
+  async function translateModelContent(
+    targetLanguage: PanelLanguageInfo,
+    sourceLanguage?: PanelLanguageInfo,
+  ) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
-    const clone = JSON.parse(JSON.stringify(currentContent.value));
+    const clone: Record<string, unknown> = JSON.parse(
+      JSON.stringify(currentContent.value),
+    );
+
     try {
       await translateContent(clone, {
         sourceLanguage: sourceLanguage?.code,
@@ -140,12 +172,12 @@ export function useContentTranslator() {
         includeFields: includeFields.value,
         excludeFields: excludeFields.value,
         kirbyTags: kirbyTags.value,
-        fields: fields.value,
+        fields: fields.value!,
       });
     } catch (error) {
       panel.view.isLoading = false;
       console.error("Failed to translate content:", error);
-      panel.notification.error(error.message);
+      panel.notification.error((error as Error).message);
       return;
     }
 
@@ -159,11 +191,14 @@ export function useContentTranslator() {
       !_isErrorPage;
 
     if (translateTitle.value || shouldTranslateSlug) {
-      const { text } = await panel.api.post(TRANSLATE_API_ROUTE, {
-        sourceLanguage: sourceLanguage?.code,
-        targetLanguage: targetLanguage.code,
-        text: panel.view.title,
-      });
+      const { text } = await panel.api.post<{ text: string }>(
+        TRANSLATE_API_ROUTE,
+        {
+          sourceLanguage: sourceLanguage?.code,
+          targetLanguage: targetLanguage.code,
+          text: panel.view.title,
+        },
+      );
 
       if (translateTitle.value) {
         await panel.api.patch(`${panel.view.path}/title`, { title: text });
@@ -188,7 +223,9 @@ export function useContentTranslator() {
     );
   }
 
-  async function batchTranslateModelContent(selectedLanguages) {
+  async function batchTranslateModelContent(
+    selectedLanguages: PanelLanguageInfo[],
+  ) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
@@ -210,7 +247,7 @@ export function useContentTranslator() {
           }),
         {
           concurrency:
-            config.value.batchConcurrency ||
+            config.value?.batchConcurrency ||
             DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
         },
       );
@@ -223,7 +260,7 @@ export function useContentTranslator() {
     } catch (error) {
       panel.view.isLoading = false;
       console.error("Failed to batch translate content:", error);
-      panel.notification.error(error.message);
+      panel.notification.error((error as Error).message);
       return;
     }
 
@@ -318,7 +355,7 @@ export function useContentTranslator() {
 /**
  * Normalize boolean values from YAML/PHP to JavaScript booleans
  */
-function toBool(value, defaultValue = false) {
+function toBool(value: unknown, defaultValue = false) {
   if (value == null) return defaultValue;
   if (typeof value === "boolean") return value;
   if (typeof value === "string") return value === "true" || value === "1";

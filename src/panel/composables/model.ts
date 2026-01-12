@@ -1,6 +1,7 @@
+import type { PanelModelData } from "kirby-types";
 import { usePanel } from "kirbyuse";
 
-const modelDataCache = new Map();
+const modelDataCache = new Map<string, PanelModelData>();
 let isListenerRegistered = false;
 
 export function useModel() {
@@ -19,10 +20,10 @@ export function useModel() {
     const { path: id } = panel.view;
 
     if (modelDataCache.has(id)) {
-      return modelDataCache.get(id);
+      return modelDataCache.get(id)!;
     }
 
-    const response = await panel.api.get(
+    const response = await panel.api.get<PanelModelData>(
       id,
       { language: defaultLanguage?.code },
       undefined,

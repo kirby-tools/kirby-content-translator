@@ -1,22 +1,31 @@
+import type {
+  KirbyBlock,
+  KirbyBlocksFieldProps,
+  KirbyFieldProps,
+  KirbyLayout,
+  KirbyLayoutFieldProps,
+} from "kirby-types";
 import { flattenTabFields } from "./shared";
 
 /**
  * Filters content to only include syncable fields, respecting the `translate: false` setting
  * on fields, especially within blocks and layouts.
- *
- * @param {object} obj - The content object to filter
- * @param {object} options - Syncronization options
- * @param {object} options.fields - The field definitions
- * @param {Array<string>} options.fieldTypes - Array of field types to sync
- * @param {Array<string>} options.includeFields - Array of field names to include (optional)
- * @param {Array<string>} options.excludeFields - Array of field names to exclude (optional)
- * @returns {object} Filtered content object
  */
 export function filterSyncableContent(
-  obj,
-  { fields, fieldTypes, includeFields = [], excludeFields = [] },
+  obj: Record<string, unknown>,
+  {
+    fields,
+    fieldTypes,
+    includeFields = [],
+    excludeFields = [],
+  }: {
+    fields: Record<string, KirbyFieldProps>;
+    fieldTypes: readonly string[] | string[];
+    includeFields?: string[];
+    excludeFields?: string[];
+  },
 ) {
-  const syncableContent = {};
+  const syncableContent: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
     const field = fields[key];
@@ -33,13 +42,19 @@ export function filterSyncableContent(
 
     // Handle blocks fields
     if (field.type === "blocks" && Array.isArray(value)) {
-      syncableContent[key] = filterBlocksContent(value, field.fieldsets);
+      syncableContent[key] = filterBlocksContent(
+        value as KirbyBlock[],
+        (field as KirbyBlocksFieldProps).fieldsets,
+      );
       continue;
     }
 
     // Handle layout fields (which contain blocks)
     if (field.type === "layout" && Array.isArray(value)) {
-      syncableContent[key] = filterLayoutContent(value, field.fieldsets);
+      syncableContent[key] = filterLayoutContent(
+        value as KirbyLayout[],
+        (field as KirbyLayoutFieldProps).fieldsets,
+      );
       continue;
     }
 
@@ -52,12 +67,11 @@ export function filterSyncableContent(
 
 /**
  * Filters blocks content to only include fields that don't have translate = false
- *
- * @param {Array} blocks - Array of block objects
- * @param {object} fieldsets - Block fieldset definitions
- * @returns {Array} Filtered blocks array
  */
-function filterBlocksContent(blocks, fieldsets) {
+function filterBlocksContent(
+  blocks: KirbyBlock[],
+  fieldsets: KirbyBlocksFieldProps["fieldsets"],
+): KirbyBlock[] {
   return blocks.map((block) => {
     // If block type doesn't exist in fieldsets, return as-is
     if (!fieldsets[block.type]) return block;
@@ -66,7 +80,7 @@ function filterBlocksContent(blocks, fieldsets) {
     const blockFields = flattenTabFields(fieldsets, block);
 
     // Filter the block content
-    const filteredContent = {};
+    const filteredContent: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(block.content || {})) {
       const field = blockFields[key];
 
@@ -85,12 +99,11 @@ function filterBlocksContent(blocks, fieldsets) {
 
 /**
  * Filters layout content to only include fields that don't have translate = false
- *
- * @param {Array} layouts - Array of layout objects
- * @param {object} fieldsets - Block fieldset definitions
- * @returns {Array} Filtered layouts array
  */
-function filterLayoutContent(layouts, fieldsets) {
+function filterLayoutContent(
+  layouts: KirbyLayout[],
+  fieldsets: KirbyLayoutFieldProps["fieldsets"],
+): KirbyLayout[] {
   return layouts.map((layout) => ({
     ...layout,
     columns: layout.columns.map((column) => ({

@@ -1,3 +1,12 @@
+import type {
+  KirbyBlock,
+  KirbyBlocksFieldProps,
+  KirbyFieldProps,
+  KirbyLayout,
+  KirbyLayoutFieldProps,
+  KirbyObjectFieldProps,
+  KirbyStructureFieldProps,
+} from "kirby-types";
 import { useApi } from "kirbyuse";
 import pAll from "p-all";
 import * as yaml from "yaml";
@@ -10,20 +19,9 @@ import { flattenTabFields, isBlockTranslatable, isObject } from "./shared";
 
 /**
  * Translates content recursively, handling various field types including blocks, layouts, structures, etc.
- *
- * @param {object} obj - The content object to translate
- * @param {object} options - Translation options
- * @param {string} options.sourceLanguage - Source language code
- * @param {string} options.targetLanguage - Target language code
- * @param {Array<string>} options.fieldTypes - Array of field types to translate
- * @param {Array<string>} options.includeFields - Array of field names to include
- * @param {Array<string>} options.excludeFields - Array of field names to exclude
- * @param {object} options.kirbyTags - KirbyText tags configuration
- * @param {object} options.fields - Field definitions
- * @returns {Promise<object>} The translated content object
  */
 export async function translateContent(
-  obj,
+  obj: Record<string, unknown>,
   {
     sourceLanguage,
     targetLanguage,
@@ -32,19 +30,30 @@ export async function translateContent(
     excludeFields = [],
     kirbyTags,
     fields,
+  }: {
+    sourceLanguage?: string;
+    targetLanguage: string;
+    fieldTypes: string[] | readonly string[];
+    includeFields?: string[];
+    excludeFields?: string[];
+    kirbyTags: Record<string, unknown>;
+    fields: Record<string, KirbyFieldProps>;
   },
 ) {
   const api = useApi();
-  const tasks = [];
-  const finalizationTasks = [];
+  const tasks: (() => Promise<void>)[] = [];
+  const finalizationTasks: (() => Promise<void>)[] = [];
 
   // Batch translation collector for text-like fields
   const batchCollector = {
-    texts: [],
-    callbacks: [],
+    texts: [] as string[],
+    callbacks: [] as ((translatedText: string) => void)[],
   };
 
-  function collectTranslatableFields(obj, fields) {
+  function collectTranslatableFields(
+    obj: Record<string, unknown>,
+    fields: Record<string, KirbyFieldProps>,
+  ) {
     for (const key in obj) {
       // Skip empty values
       if (!obj[key]) continue;
@@ -59,55 +68,60 @@ export async function translateContent(
       if (includeFields.length && !includeFields.includes(key)) continue;
       if (excludeFields.length && excludeFields.includes(key)) continue;
 
+      const field = fields[key];
+
       // Handle text-like fields (collect for batch translation)
-      if (["list", "text", "writer"].includes(fields[key].type)) {
-        batchCollector.texts.push(obj[key]);
-        batchCollector.callbacks.push((translatedText) => {
+      if (["list", "text", "writer"].includes(field.type)) {
+        batchCollector.texts.push(obj[key] as string);
+        batchCollector.callbacks.push((translatedText: string) => {
           obj[key] = translatedText;
         });
       }
 
       // Handle markdown content separately
-      else if (["textarea", "markdown"].includes(fields[key].type)) {
+      else if (["textarea", "markdown"].includes(field.type)) {
+        const text = obj[key] as string;
         // Skip empty content
-        if (!obj[key]?.trim()) continue;
+        if (!text?.trim()) continue;
 
         tasks.push(async () => {
-          const response = await api.post(TRANSLATE_KIRBYTEXT_API_ROUTE, {
-            sourceLanguage,
-            targetLanguage,
-            text: obj[key],
-            kirbyTags,
-          });
+          const response = await api.post<{ text: string }>(
+            TRANSLATE_KIRBYTEXT_API_ROUTE,
+            {
+              sourceLanguage,
+              targetLanguage,
+              text,
+              kirbyTags,
+            },
+          );
           obj[key] = response.text;
         });
       }
 
       // Handle tags fields (collect for batch translation)
-      else if (
-        fields[key].type === "tags" &&
-        Array.isArray(obj[key]) &&
-        obj[key].length
-      ) {
+      else if (field.type === "tags") {
+        const tags = obj[key];
+        if (!Array.isArray(tags) || !tags.length) continue;
+
         // Join tags with separator for translation
-        const text = obj[key].join(" | ");
+        const text = (tags as string[]).join(" | ");
         batchCollector.texts.push(text);
-        batchCollector.callbacks.push((translatedText) => {
+        batchCollector.callbacks.push((translatedText: string) => {
           // Split translated text back into array
           obj[key] = translatedText.split("|").map((tag) => tag.trim());
         });
       }
 
       // Handle table fields (https://github.com/bogdancondorachi/kirby-table-field)
-      else if (fields[key].type === "table") {
-        let tableData = obj[key];
+      else if (field.type === "table") {
+        let tableData = obj[key] as string | string[][];
         let isYamlEncoded = false;
 
         // Panel content data is not deserialized, so we need to parse it first
         if (typeof tableData === "string") {
           isYamlEncoded = true;
           try {
-            tableData = yaml.parse(tableData);
+            tableData = yaml.parse(tableData) as string[][];
           } catch (error) {
             console.error(
               `Failed to parse table field "${key}" as YAML:`,
@@ -127,12 +141,15 @@ export async function translateContent(
               if (!cell || typeof cell !== "string" || !cell.trim()) continue;
 
               tasks.push(async () => {
-                const response = await api.post(TRANSLATE_API_ROUTE, {
-                  sourceLanguage,
-                  targetLanguage,
-                  text: cell,
-                });
-                tableData[rowIndex][colIndex] = response.text;
+                const response = await api.post<{ text: string }>(
+                  TRANSLATE_API_ROUTE,
+                  {
+                    sourceLanguage,
+                    targetLanguage,
+                    text: cell,
+                  },
+                );
+                (tableData as string[][])[rowIndex]![colIndex] = response.text;
               });
             }
           }
@@ -143,7 +160,7 @@ export async function translateContent(
           if (isYamlEncoded) {
             finalizationTasks.push(async () => {
               // Stringify each row individually to match the input format
-              const rowStrings = tableData.map((row) => {
+              const rowStrings = (tableData as string[][]).map((row) => {
                 if (!Array.isArray(row)) return "";
                 return yaml
                   .stringify(row)
@@ -162,51 +179,64 @@ export async function translateContent(
       }
 
       // Handle structure fields
-      else if (fields[key].type === "structure" && Array.isArray(obj[key])) {
+      else if (field.type === "structure" && Array.isArray(obj[key])) {
+        const structureField = field as KirbyStructureFieldProps;
         // Recursively translate each structure item
-        for (const item of obj[key]) {
-          collectTranslatableFields(item, fields[key].fields);
+        for (const item of obj[key] as Record<string, unknown>[]) {
+          collectTranslatableFields(item, structureField.fields);
         }
       }
 
       // Handle object fields
-      else if (fields[key].type === "object" && isObject(obj[key])) {
+      else if (field.type === "object" && isObject(obj[key])) {
+        const objectField = field as KirbyObjectFieldProps;
         // Recursively translate object content
-        collectTranslatableFields(obj[key], fields[key].fields);
+        collectTranslatableFields(
+          obj[key] as Record<string, unknown>,
+          objectField.fields,
+        );
       }
 
       // Handle layout fields
-      else if (fields[key].type === "layout" && Array.isArray(obj[key])) {
-        for (const layout of obj[key]) {
+      else if (field.type === "layout" && Array.isArray(obj[key])) {
+        const layoutField = field as KirbyLayoutFieldProps;
+        for (const layout of obj[key] as KirbyLayout[]) {
           for (const column of layout.columns) {
             for (const block of column.blocks) {
               // Skip non-translatable blocks
               if (!isBlockTranslatable(block)) continue;
               // Skip if block type definition doesn't exist
-              if (!fields[key].fieldsets[block.type]) continue;
+              if (!layoutField.fieldsets[block.type]) continue;
 
               const blockFields = flattenTabFields(
-                fields[key].fieldsets,
+                layoutField.fieldsets,
                 block,
               );
               // Recursively translate block content
-              collectTranslatableFields(block.content, blockFields);
+              collectTranslatableFields(
+                block.content as Record<string, unknown>,
+                blockFields,
+              );
             }
           }
         }
       }
 
       // Handle block fields
-      else if (fields[key].type === "blocks" && Array.isArray(obj[key])) {
-        for (const block of obj[key]) {
+      else if (field.type === "blocks" && Array.isArray(obj[key])) {
+        const blocksField = field as KirbyBlocksFieldProps;
+        for (const block of obj[key] as KirbyBlock[]) {
           // Skip non-translatable blocks
           if (!isBlockTranslatable(block)) continue;
           // Skip if block type definition doesn't exist
-          if (!fields[key].fieldsets[block.type]) continue;
+          if (!blocksField.fieldsets[block.type]) continue;
 
-          const blockFields = flattenTabFields(fields[key].fieldsets, block);
+          const blockFields = flattenTabFields(blocksField.fieldsets, block);
           // Recursively translate block content
-          collectTranslatableFields(block.content, blockFields);
+          collectTranslatableFields(
+            block.content as Record<string, unknown>,
+            blockFields,
+          );
         }
       }
     }
@@ -217,14 +247,17 @@ export async function translateContent(
   // Add batch translation task if there are texts to translate
   if (batchCollector.texts.length > 0) {
     tasks.unshift(async () => {
-      const response = await api.post(TRANSLATE_BATCH_API_ROUTE, {
-        sourceLanguage,
-        targetLanguage,
-        texts: batchCollector.texts,
-      });
+      const response = await api.post<{ texts: string[] }>(
+        TRANSLATE_BATCH_API_ROUTE,
+        {
+          sourceLanguage,
+          targetLanguage,
+          texts: batchCollector.texts,
+        },
+      );
 
       for (const [index, translatedText] of response.texts.entries()) {
-        batchCollector.callbacks[index](translatedText);
+        batchCollector.callbacks[index]!(translatedText);
       }
     });
   }

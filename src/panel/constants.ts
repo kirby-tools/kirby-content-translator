@@ -11,6 +11,7 @@ export const TRANSLATE_CONTENT_API_ROUTE =
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
 export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 4;
+
 export const DEFAULT_FIELD_TYPES = [
   "blocks",
   "layout",
@@ -24,4 +25,6 @@ export const DEFAULT_FIELD_TYPES = [
   // Community plugins
   "markdown",
   "table",
-];
+] as const;
+
+export type FieldType = (typeof DEFAULT_FIELD_TYPES)[number];

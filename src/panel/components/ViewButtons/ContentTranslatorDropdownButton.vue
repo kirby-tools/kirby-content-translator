@@ -9,6 +9,7 @@ const props = defineProps({
   },
   import: {
     type: [Boolean, String, Number],
+    default: null,
   },
   importFrom: {
     type: String,
