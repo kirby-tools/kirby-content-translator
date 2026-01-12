@@ -1,4 +1,6 @@
-<script setup>
+<script setup lang="ts">
+import type { PropType } from "vue";
+import type { KirbyTagConfig, PluginContextResponse } from "../../types";
 import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
@@ -31,16 +33,16 @@ const props = defineProps({
     default: null,
   },
   fieldTypes: {
-    type: Array,
+    type: Array as PropType<string[]>,
   },
   includeFields: {
-    type: Array,
+    type: Array as PropType<string[]>,
   },
   excludeFields: {
-    type: Array,
+    type: Array as PropType<string[]>,
   },
   kirbyTags: {
-    type: Object,
+    type: Object as PropType<Record<string, KirbyTagConfig>>,
   },
   theme: {
     type: String,
@@ -51,7 +53,7 @@ const props = defineProps({
 const _isKirby5 = isKirby5();
 const panel = usePanel();
 const dropdownContent = ref();
-const context = ref();
+const context = ref<PluginContextResponse>();
 
 function toggle() {
   dropdownContent.value.toggle();
@@ -84,7 +86,7 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslatorDropdownContent :context="context" :props="props" />
+      <ContentTranslatorDropdownContent :context="context!" :props="props" />
     </k-dropdown-content>
   </div>
 </template>

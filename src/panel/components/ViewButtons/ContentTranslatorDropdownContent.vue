@@ -1,4 +1,6 @@
-<script>
+<script lang="ts">
+import type { PropType } from "vue";
+import type { PluginContextResponse, TranslatorOptions } from "../../types";
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { useDialog, usePanel } from "kirbyuse";
 import { useModel } from "../../composables/model";
@@ -10,14 +12,14 @@ export default {
 };
 </script>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps({
   context: {
-    type: Object,
+    type: Object as PropType<PluginContextResponse>,
     required: true,
   },
   props: {
-    type: Object,
+    type: Object as PropType<TranslatorOptions>,
     required: true,
   },
 });
@@ -75,19 +77,19 @@ const initializationPromise = (async () => {
   }
 })();
 
-function withInitialization(fn) {
-  return async (...args) => {
+function withInitialization(fn: (...args: unknown[]) => void) {
+  return async (...args: unknown[]) => {
     await initializationPromise;
     fn(...args);
   };
 }
 
-async function invokeWhenInitialized(fn) {
+async function invokeWhenInitialized(fn?: () => void) {
   await initializationPromise;
   fn?.();
 }
 
-async function openConfirmableTextDialog(text, callback) {
+async function openConfirmableTextDialog(text: string, callback?: () => void) {
   if (!confirm.value) {
     callback?.();
     return;
@@ -138,7 +140,7 @@ async function openConfirmableTextDialog(text, callback) {
       >
         {{
           panel.t("johannschopplich.content-translator.translate", {
-            language: panel.language.code.toUpperCase(),
+            language: panel.language.code!.toUpperCase(),
           })
         }}
       </k-dropdown-item>
@@ -194,7 +196,7 @@ async function openConfirmableTextDialog(text, callback) {
       >
         {{
           panel.t("johannschopplich.content-translator.translate", {
-            language: panel.language.code.toUpperCase(),
+            language: panel.language.code!.toUpperCase(),
           })
         }}
       </k-dropdown-item>
@@ -216,7 +218,7 @@ async function openConfirmableTextDialog(text, callback) {
       <LicensingDropdownItems
         label="Kirby Content Translator"
         api-namespace="__content-translator__"
-        :license-status="licenseStatus"
+        :license-status="licenseStatus!"
         pricing-url="https://kirby.tools/content-translator/buy"
       />
     </template>

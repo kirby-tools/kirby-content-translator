@@ -1,5 +1,7 @@
+import type { LicenseStatus } from "@kirby-tools/licensing";
 import type {
   KirbyFieldProps,
+  PanelLanguage,
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
@@ -7,6 +9,7 @@ import type {
   KirbyTagConfig,
   PluginConfig,
   PluginContextResponse,
+  TranslatorOptions,
 } from "../types";
 import slugify from "@sindresorhus/slugify";
 import { ref, useContent, useDialog, useI18n, usePanel } from "kirbyuse";
@@ -20,21 +23,6 @@ import {
 import { filterSyncableContent } from "../utils/sync";
 import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
-
-export interface TranslatorOptions {
-  label?: string;
-  import?: boolean;
-  importFrom?: string;
-  batch?: boolean;
-  title?: boolean;
-  slug?: boolean;
-  confirm?: boolean;
-  fieldTypes?: string[];
-  includeFields?: string[];
-  excludeFields?: string[];
-  kirbyTags?: Record<string, KirbyTagConfig>;
-  fields?: Record<string, KirbyFieldProps>;
-}
 
 export function useContentTranslator() {
   const panel = usePanel();
@@ -61,7 +49,7 @@ export function useContentTranslator() {
   const config = ref<PluginConfig>();
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
-  const licenseStatus = ref<string>();
+  const licenseStatus = ref<LicenseStatus>();
 
   // Panel constants
   const defaultLanguage = panel.languages.find((language) => language.default)!;
@@ -99,7 +87,9 @@ export function useContentTranslator() {
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
   }
 
-  async function syncModelContent(language?: PanelLanguageInfo) {
+  async function syncModelContent(
+    language?: PanelLanguageInfo | PanelLanguage,
+  ) {
     let title: string;
     let content: Record<string, unknown>;
 
@@ -154,8 +144,8 @@ export function useContentTranslator() {
   }
 
   async function translateModelContent(
-    targetLanguage: PanelLanguageInfo,
-    sourceLanguage?: PanelLanguageInfo,
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
@@ -166,8 +156,8 @@ export function useContentTranslator() {
 
     try {
       await translateContent(clone, {
-        sourceLanguage: sourceLanguage?.code,
-        targetLanguage: targetLanguage.code,
+        sourceLanguage: sourceLanguage?.code ?? undefined,
+        targetLanguage: targetLanguage.code!,
         fieldTypes: fieldTypes.value,
         includeFields: includeFields.value,
         excludeFields: excludeFields.value,
@@ -224,7 +214,7 @@ export function useContentTranslator() {
   }
 
   async function batchTranslateModelContent(
-    selectedLanguages: PanelLanguageInfo[],
+    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
   ) {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;

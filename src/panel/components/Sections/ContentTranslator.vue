@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import { ref, useDialog, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
@@ -14,7 +14,7 @@ export default {
 };
 </script>
 
-<script setup>
+<script setup lang="ts">
 const props = defineProps(propsDefinition);
 
 const panel = usePanel();
@@ -50,8 +50,8 @@ const {
   const [context, sectionProps] = await Promise.all([
     usePluginContext(),
     load({
-      parent: props.parent,
-      name: props.name,
+      parent: props.parent!,
+      name: props.name!,
     }),
   ]);
 
@@ -60,7 +60,7 @@ const {
   isInitialized.value = true;
 })();
 
-async function openConfirmableTextDialog(text, callback) {
+async function openConfirmableTextDialog(text: string, callback?: () => void) {
   if (!confirm.value) {
     callback?.();
     return;
@@ -88,7 +88,7 @@ async function openConfirmableTextDialog(text, callback) {
       </k-text>
     </k-box>
     <k-box
-      v-else-if="!config.translateFn && !config.DeepL?.apiKey"
+      v-else-if="!config?.translateFn && !config?.DeepL?.apiKey"
       theme="empty"
     >
       <k-text>
@@ -140,7 +140,7 @@ async function openConfirmableTextDialog(text, callback) {
         >
           {{
             panel.t("johannschopplich.content-translator.translate", {
-              language: panel.language.code.toUpperCase(),
+              language: panel.language.code!.toUpperCase(),
             })
           }}
         </k-button>
@@ -199,7 +199,7 @@ async function openConfirmableTextDialog(text, callback) {
           >
             {{
               panel.t("johannschopplich.content-translator.translate", {
-                language: panel.language.code.toUpperCase(),
+                language: panel.language.code!.toUpperCase(),
               })
             }}
           </k-button>
