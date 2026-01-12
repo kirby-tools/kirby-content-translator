@@ -16,7 +16,7 @@ export function useContentTranslator() {
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
   const { openFieldsDialog } = useDialog();
-  const { getViewModelData } = useModel();
+  const { getModelData } = useModel();
 
   // Configuration state
   const label = ref();
@@ -90,7 +90,7 @@ export function useContentTranslator() {
       title = data.title;
       content = data.content;
     } else {
-      const data = await getViewModelData();
+      const data = await getModelData();
       title = data.title;
       content = data.content;
     }
@@ -192,7 +192,7 @@ export function useContentTranslator() {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
-    const defaultLanguageData = await getViewModelData();
+    const defaultLanguageData = await getModelData();
 
     try {
       await pMap(
@@ -232,12 +232,12 @@ export function useContentTranslator() {
   }
 
   async function isHomePage() {
-    const defaultLanguageData = await getViewModelData();
+    const defaultLanguageData = await getModelData();
     return defaultLanguageData.id === homePageId.value;
   }
 
   async function isErrorPage() {
-    const defaultLanguageData = await getViewModelData();
+    const defaultLanguageData = await getModelData();
     return defaultLanguageData.id === errorPageId.value;
   }
 

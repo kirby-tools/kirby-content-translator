@@ -9,13 +9,13 @@ export function useModel() {
 
   // Ensure event listener is only set once
   if (!isListenerRegistered) {
-    panel.events.on("model.update", clearViewModelData);
-    panel.events.on("page.changeSlug", clearViewModelData);
-    panel.events.on("page.changeTitle", clearViewModelData);
+    panel.events.on("model.update", clearModelData);
+    panel.events.on("page.changeSlug", clearModelData);
+    panel.events.on("page.changeTitle", clearModelData);
     isListenerRegistered = true;
   }
 
-  async function getViewModelData() {
+  async function getModelData() {
     const { path: id } = panel.view;
 
     if (modelDataCache.has(id)) {
@@ -34,12 +34,12 @@ export function useModel() {
     return response;
   }
 
-  function clearViewModelData() {
+  function clearModelData() {
     modelDataCache.delete(panel.view.path);
   }
 
   return {
-    getViewModelData,
-    clearViewModelData,
+    getModelData,
+    clearModelData,
   };
 }

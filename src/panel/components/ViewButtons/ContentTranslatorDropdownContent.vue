@@ -24,7 +24,7 @@ const props = defineProps({
 
 const panel = usePanel();
 const { openTextDialog } = useDialog();
-const { getViewModelData } = useModel();
+const { getModelData } = useModel();
 
 const {
   // Configuration state
@@ -59,7 +59,7 @@ initializeConfig(props.context, props.props);
 
 // Lazily fetch required view data (same as `computed` section methods)
 const initializationPromise = (async () => {
-  const defaultLanguageData = await getViewModelData();
+  const defaultLanguageData = await getModelData();
 
   fields.value = await panel.api.get(
     MODEL_FIELDS_API_ROUTE,
