@@ -1,5 +1,4 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
-import type { Ref } from "vue";
 import { useDialog, usePanel } from "kirbyuse";
 
 export interface TranslationDialogsOptions {
