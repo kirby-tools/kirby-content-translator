@@ -15,7 +15,8 @@ import {
   TRANSLATE_BATCH_API_ROUTE,
   TRANSLATE_KIRBYTEXT_API_ROUTE,
 } from "../constants";
-import { flattenTabFields, isBlockTranslatable, isObject } from "./shared";
+import { flattenTabFields, isBlockTranslatable } from "./fields";
+import { isObject } from "./shared";
 
 type TranslationTask = () => Promise<void>;
 

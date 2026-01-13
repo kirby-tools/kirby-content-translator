@@ -30,6 +30,14 @@ export interface KirbyTagConfig {
   [key: string]: unknown;
 }
 
+/** Response from `__content-translator__/context` API endpoint. */
+export interface PluginContextResponse {
+  config: PluginConfig;
+  homePageId: string;
+  errorPageId: string;
+  licenseStatus?: LicenseStatus;
+}
+
 /**
  * Translator options as received from section/view button props.
  *
@@ -50,12 +58,4 @@ export interface TranslatorOptions {
   kirbyTags?: Record<string, KirbyTagConfig>;
   /** Only available when passed from section computed props */
   fields?: Record<string, KirbyFieldProps>;
-}
-
-/** Response from `__content-translator__/context` API endpoint. */
-export interface PluginContextResponse {
-  config: PluginConfig;
-  homePageId: string;
-  errorPageId: string;
-  licenseStatus?: LicenseStatus;
 }

@@ -12,7 +12,7 @@ import type {
   TranslatorOptions,
 } from "../types";
 import slugify from "@sindresorhus/slugify";
-import { ref, useContent, useDialog, useI18n, usePanel } from "kirbyuse";
+import { ref, useContent, useI18n, usePanel } from "kirbyuse";
 import pMap from "p-map";
 import {
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
@@ -20,7 +20,7 @@ import {
   TRANSLATE_API_ROUTE,
   TRANSLATE_CONTENT_API_ROUTE,
 } from "../constants";
-import { filterSyncableContent } from "../utils/sync";
+import { filterSyncableContent } from "../utils/filter";
 import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
 
@@ -28,7 +28,6 @@ export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
-  const { openFieldsDialog } = useDialog();
   const { getModelData } = useModel();
 
   // Configuration state
@@ -50,12 +49,6 @@ export function useContentTranslator() {
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
   const licenseStatus = ref<LicenseStatus>();
-
-  // Panel constants
-  const defaultLanguage = panel.languages.find((language) => language.default)!;
-  const translationLanguages = panel.languages.filter(
-    (language) => language.code !== defaultLanguage.code,
-  );
 
   function initializeConfig(
     context: PluginContextResponse,
@@ -150,12 +143,12 @@ export function useContentTranslator() {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
-    const clone: Record<string, unknown> = JSON.parse(
+    const contentCopy: Record<string, unknown> = JSON.parse(
       JSON.stringify(currentContent.value),
     );
 
     try {
-      await translateContent(clone, {
+      await translateContent(contentCopy, {
         sourceLanguage: sourceLanguage?.code ?? undefined,
         targetLanguage: targetLanguage.code!,
         fieldTypes: fieldTypes.value,
@@ -171,7 +164,7 @@ export function useContentTranslator() {
       return;
     }
 
-    await updateContent(clone);
+    await updateContent(contentCopy);
     const _isHomePage = await isHomePage();
     const _isErrorPage = await isErrorPage();
     const shouldTranslateSlug =
@@ -268,47 +261,6 @@ export function useContentTranslator() {
     return defaultLanguageData.id === errorPageId.value;
   }
 
-  async function openBatchTranslationDialog() {
-    const options = await openFieldsDialog({
-      submitButton: {
-        icon: "translate",
-        theme: "positive",
-        text: panel.t(
-          "johannschopplich.content-translator.dialog.button.translate",
-        ),
-      },
-      fields: {
-        text: {
-          type: "info",
-          theme: "notice",
-          text: panel.t(
-            "johannschopplich.content-translator.dialog.batchTranslation",
-            { language: defaultLanguage.name },
-          ),
-        },
-        languages: {
-          type: "checkboxes",
-          label: `${panel.t("johannschopplich.content-translator.translateTo")}:`,
-          options: translationLanguages.map((language) => ({
-            value: language.code,
-            text: language.name,
-          })),
-        },
-      },
-      value: {
-        languages: translationLanguages.map((language) => language.code),
-      },
-    });
-
-    if (options?.languages?.length) {
-      await batchTranslateModelContent(
-        translationLanguages.filter((language) =>
-          options.languages.includes(language.code),
-        ),
-      );
-    }
-  }
-
   return {
     // Configuration state
     label,
@@ -328,17 +280,11 @@ export function useContentTranslator() {
     config,
     licenseStatus,
 
-    // Panel constants
-    defaultLanguage,
-    translationLanguages,
-
     // Methods
     initializeConfig,
     syncModelContent,
     translateModelContent,
-
-    // Dialogs
-    openBatchTranslationDialog,
+    batchTranslateModelContent,
   };
 }
 

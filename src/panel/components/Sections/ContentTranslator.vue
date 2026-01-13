@@ -1,7 +1,8 @@
 <script lang="ts">
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { ref, useDialog, usePanel, useSection } from "kirbyuse";
+import { ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
+import { useTranslationDialogs } from "../../composables/dialogs";
 import { usePluginContext } from "../../composables/plugin";
 import { useContentTranslator } from "../../composables/translation";
 
@@ -18,7 +19,7 @@ export default {
 const props = defineProps(propsDefinition);
 
 const panel = usePanel();
-const { openTextDialog } = useDialog();
+const defaultLanguage = panel.languages.find((language) => language.default)!;
 const isInitialized = ref(false);
 
 const {
@@ -33,17 +34,15 @@ const {
   config,
   licenseStatus,
 
-  // Panel constants
-  defaultLanguage,
-
   // Methods
   initializeConfig,
   syncModelContent,
   translateModelContent,
-
-  // Dialogs
-  openBatchTranslationDialog,
+  batchTranslateModelContent,
 } = useContentTranslator();
+
+const { openConfirmableTextDialog, openBatchTranslationDialog } =
+  useTranslationDialogs({ batchTranslateModelContent });
 
 (async () => {
   const { load } = useSection();
@@ -59,16 +58,6 @@ const {
 
   isInitialized.value = true;
 })();
-
-async function openConfirmableTextDialog(text: string, callback?: () => void) {
-  if (!confirm.value) {
-    callback?.();
-    return;
-  }
-
-  const isOk = await openTextDialog(text);
-  if (isOk) callback?.();
-}
 </script>
 
 <template>
@@ -114,6 +103,7 @@ async function openConfirmableTextDialog(text: string, callback?: () => void) {
                   'johannschopplich.content-translator.dialog.importFrom',
                   { language: language.name },
                 ),
+                confirm,
                 () => syncModelContent(language),
               )
             "
@@ -134,6 +124,7 @@ async function openConfirmableTextDialog(text: string, callback?: () => void) {
               panel.t('johannschopplich.content-translator.dialog.translate', {
                 language: panel.language.name,
               }),
+              confirm,
               () => translateModelContent(panel.language),
             )
           "
@@ -175,6 +166,7 @@ async function openConfirmableTextDialog(text: string, callback?: () => void) {
                 panel.t('johannschopplich.content-translator.dialog.import', {
                   language: defaultLanguage.name,
                 }),
+                confirm,
                 () => syncModelContent(),
               )
             "
@@ -193,6 +185,7 @@ async function openConfirmableTextDialog(text: string, callback?: () => void) {
                   'johannschopplich.content-translator.dialog.translate',
                   { language: panel.language.name },
                 ),
+                confirm,
                 () => translateModelContent(panel.language, defaultLanguage),
               )
             "
