@@ -34,7 +34,7 @@ const {
   allowImport,
   importFrom,
   allowBatchTranslation,
-  confirm,
+  shouldConfirm,
 
   // Runtime state
   fields,
@@ -104,7 +104,7 @@ async function invokeWhenInitialized(fn?: () => void) {
               panel.t('johannschopplich.content-translator.dialog.importFrom', {
                 language: language.name,
               }),
-              confirm,
+              shouldConfirm,
               withInitialization(() => syncModelContent(language)),
             )
           "
@@ -124,7 +124,7 @@ async function invokeWhenInitialized(fn?: () => void) {
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            confirm,
+            shouldConfirm,
             withInitialization(() => translateModelContent(panel.language)),
           )
         "
@@ -162,7 +162,7 @@ async function invokeWhenInitialized(fn?: () => void) {
               panel.t('johannschopplich.content-translator.dialog.import', {
                 language: defaultLanguage.name,
               }),
-              confirm,
+              shouldConfirm,
               withInitialization(() => syncModelContent()),
             )
           "
@@ -180,7 +180,7 @@ async function invokeWhenInitialized(fn?: () => void) {
             panel.t('johannschopplich.content-translator.dialog.translate', {
               language: panel.language.name,
             }),
-            confirm,
+            shouldConfirm,
             withInitialization(() =>
               translateModelContent(panel.language, defaultLanguage),
             ),

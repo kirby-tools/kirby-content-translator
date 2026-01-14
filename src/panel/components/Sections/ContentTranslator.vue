@@ -28,7 +28,7 @@ const {
   allowImport,
   importFrom,
   allowBatchTranslation,
-  confirm,
+  shouldConfirm,
 
   // Runtime state
   config,
@@ -103,7 +103,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
                   'johannschopplich.content-translator.dialog.importFrom',
                   { language: language.name },
                 ),
-                confirm,
+                shouldConfirm,
                 () => syncModelContent(language),
               )
             "
@@ -124,7 +124,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
               panel.t('johannschopplich.content-translator.dialog.translate', {
                 language: panel.language.name,
               }),
-              confirm,
+              shouldConfirm,
               () => translateModelContent(panel.language),
             )
           "
@@ -166,7 +166,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
                 panel.t('johannschopplich.content-translator.dialog.import', {
                   language: defaultLanguage.name,
                 }),
-                confirm,
+                shouldConfirm,
                 () => syncModelContent(),
               )
             "
@@ -185,7 +185,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
                   'johannschopplich.content-translator.dialog.translate',
                   { language: panel.language.name },
                 ),
-                confirm,
+                shouldConfirm,
                 () => translateModelContent(panel.language, defaultLanguage),
               )
             "

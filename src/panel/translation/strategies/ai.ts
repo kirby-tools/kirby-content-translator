@@ -3,7 +3,7 @@ import type {
   TranslationStrategy,
   TranslationUnit,
 } from "../types";
-import { z } from "zod";
+import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
 
 const MAX_BATCH_SIZE = 50;
@@ -68,8 +68,8 @@ export class AIStrategy implements TranslationStrategy {
 
     for (const chunk of chunks) {
       try {
-        const schema = z.object({
-          translations: z.array(z.string()).length(chunk.length),
+        const schema = z.strictObject({
+          translations: z.array(z.string()),
         });
 
         const { output: finalOutput } = await streamText({
@@ -95,7 +95,7 @@ export class AIStrategy implements TranslationStrategy {
           }
         }
       } catch (error) {
-        console.error("AI translation chunk failed:", error);
+        console.error("Failed to translate chunk:", error);
         // Keep original texts (already in results)
       }
     }

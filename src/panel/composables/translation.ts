@@ -37,7 +37,7 @@ export function useContentTranslator() {
   const allowBatchTranslation = ref<boolean>();
   const translateTitle = ref<boolean>();
   const translateSlug = ref<boolean>();
-  const confirm = ref<boolean>();
+  const shouldConfirm = ref<boolean>();
   const fieldTypes = ref<string[]>([]);
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
@@ -65,7 +65,10 @@ export function useContentTranslator() {
     );
     translateTitle.value = toBool(options.title ?? context.config.title, false);
     translateSlug.value = toBool(options.slug ?? context.config.slug, false);
-    confirm.value = toBool(options.confirm ?? context.config.confirm, true);
+    shouldConfirm.value = toBool(
+      options.confirm ?? context.config.confirm,
+      true,
+    );
     fieldTypes.value = options.fieldTypes ??
       context.config.fieldTypes ?? [...DEFAULT_FIELD_TYPES];
     includeFields.value =
@@ -270,7 +273,7 @@ export function useContentTranslator() {
     allowBatchTranslation,
     translateTitle,
     translateSlug,
-    confirm,
+    shouldConfirm,
     fieldTypes,
     includeFields,
     excludeFields,
