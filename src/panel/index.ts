@@ -4,7 +4,7 @@ import ContentTranslator from "./components/Sections/ContentTranslator.vue";
 // @ts-ignore - Vue component
 import ContentTranslatorDropdownButton from "./components/ViewButtons/ContentTranslatorDropdownButton.vue";
 import { icons } from "./config/icons";
-import { legacyViewButtonMixin } from "./utils/legacy";
+import { legacyViewButtonMixin } from "./legacy";
 
 window.panel.plugin("johannschopplich/content-translator", {
   sections: {
