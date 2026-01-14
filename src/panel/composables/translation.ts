@@ -20,8 +20,8 @@ import {
   TRANSLATE_API_ROUTE,
   TRANSLATE_CONTENT_API_ROUTE,
 } from "../constants";
+import { DeepLStrategy, translateContent } from "../translation";
 import { filterSyncableContent } from "../utils/filter";
-import { translateContent } from "../utils/translation";
 import { useModel } from "./model";
 
 export function useContentTranslator() {
@@ -149,6 +149,7 @@ export function useContentTranslator() {
 
     try {
       await translateContent(contentCopy, {
+        strategy: new DeepLStrategy(),
         sourceLanguage: sourceLanguage?.code ?? undefined,
         targetLanguage: targetLanguage.code!,
         fieldTypes: fieldTypes.value,

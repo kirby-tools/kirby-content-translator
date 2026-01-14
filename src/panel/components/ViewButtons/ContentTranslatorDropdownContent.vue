@@ -131,7 +131,7 @@ async function invokeWhenInitialized(fn?: () => void) {
       >
         {{
           panel.t("johannschopplich.content-translator.translate", {
-            language: panel.language.code!.toUpperCase(),
+            language: panel.language.code?.toUpperCase(),
           })
         }}
       </k-dropdown-item>
@@ -189,7 +189,7 @@ async function invokeWhenInitialized(fn?: () => void) {
       >
         {{
           panel.t("johannschopplich.content-translator.translate", {
-            language: panel.language.code!.toUpperCase(),
+            language: panel.language.code?.toUpperCase(),
           })
         }}
       </k-dropdown-item>
@@ -206,12 +206,12 @@ async function invokeWhenInitialized(fn?: () => void) {
       </k-dropdown-item>
     </template>
 
-    <template v-if="licenseStatus !== 'active'">
+    <template v-if="licenseStatus !== undefined && licenseStatus !== 'active'">
       <hr />
       <LicensingDropdownItems
         label="Kirby Content Translator"
         api-namespace="__content-translator__"
-        :license-status="licenseStatus!"
+        :license-status="licenseStatus"
         pricing-url="https://kirby.tools/content-translator/buy"
       />
     </template>

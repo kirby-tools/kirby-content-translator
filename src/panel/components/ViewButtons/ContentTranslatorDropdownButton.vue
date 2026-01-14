@@ -86,7 +86,11 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslatorDropdownContent :context="context!" :props="props" />
+      <ContentTranslatorDropdownContent
+        v-if="context"
+        :context="context"
+        :props="props"
+      />
     </k-dropdown-content>
   </div>
 </template>

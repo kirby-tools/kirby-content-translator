@@ -131,7 +131,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
         >
           {{
             panel.t("johannschopplich.content-translator.translate", {
-              language: panel.language.code!.toUpperCase(),
+              language: panel.language.code?.toUpperCase(),
             })
           }}
         </k-button>
@@ -192,7 +192,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
           >
             {{
               panel.t("johannschopplich.content-translator.translate", {
-                language: panel.language.code!.toUpperCase(),
+                language: panel.language.code?.toUpperCase(),
               })
             }}
           </k-button>
