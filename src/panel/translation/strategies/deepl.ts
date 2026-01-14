@@ -34,7 +34,7 @@ export class DeepLStrategy implements TranslationStrategy {
   async execute(
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
-  ): Promise<string[]> {
+  ) {
     const { api } = window.panel;
 
     // Build index map to preserve original order

@@ -97,7 +97,7 @@ function collectFromField(
         fieldKey: key,
         fieldType: field.type as "text" | "writer" | "list",
       },
-      apply: (translatedText) => {
+      apply(translatedText) {
         obj[key] = translatedText;
       },
     });
@@ -115,7 +115,7 @@ function collectFromField(
         fieldKey: key,
         fieldType: field.type as "textarea" | "markdown",
       },
-      apply: (translatedText) => {
+      apply(translatedText) {
         obj[key] = translatedText;
       },
     });
@@ -134,7 +134,7 @@ function collectFromField(
         fieldKey: key,
         fieldType: "tags",
       },
-      apply: (translatedText) => {
+      apply(translatedText) {
         obj[key] = translatedText.split("|").map((tag) => tag.trim());
       },
     });
@@ -229,7 +229,7 @@ function collectFromTableField(
           fieldKey: `${key}[${rowIndex}][${colIndex}]`,
           fieldType: "table",
         },
-        apply: (translatedText) => {
+        apply(translatedText) {
           tableRef[rowIndex]![colIndex] = translatedText;
         },
       });

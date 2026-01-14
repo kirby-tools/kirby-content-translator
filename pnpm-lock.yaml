@@ -9,17 +9,17 @@ importers:
   .:
     devDependencies:
       '@ai-sdk/anthropic':
-        specifier: ^3.0.11
-        version: 3.0.11(zod@4.3.5)
+        specifier: ^3.0.12
+        version: 3.0.12(zod@4.3.5)
       '@ai-sdk/google':
+        specifier: ^3.0.7
+        version: 3.0.7(zod@4.3.5)
+      '@ai-sdk/mistral':
         specifier: ^3.0.6
         version: 3.0.6(zod@4.3.5)
-      '@ai-sdk/mistral':
-        specifier: ^3.0.5
-        version: 3.0.5(zod@4.3.5)
       '@ai-sdk/openai':
-        specifier: ^3.0.8
-        version: 3.0.8(zod@4.3.5)
+        specifier: ^3.0.9
+        version: 3.0.9(zod@4.3.5)
       '@ai-sdk/provider':
         specifier: ^3.0.2
         version: 3.0.2
@@ -28,16 +28,16 @@ importers:
         version: 6.7.3(@vue/compiler-sfc@2.7.16)(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)(vitest@4.0.17(@opentelemetry/api@1.9.0)(jiti@2.6.1)(sass@1.97.1)(yaml@2.8.2))
       '@kirby-tools/licensing':
         specifier: ^0.5.2
-        version: 0.5.2(kirbyuse@1.2.4)
+        version: 0.5.2(kirbyuse@1.2.7)
       '@sindresorhus/slugify':
         specifier: ^3.0.0
         version: 3.0.0
       ai:
-        specifier: ^6.0.29
-        version: 6.0.29(zod@4.3.5)
+        specifier: ^6.0.33
+        version: 6.0.33(zod@4.3.5)
       bumpp:
-        specifier: ^10.3.2
-        version: 10.3.2
+        specifier: ^10.4.0
+        version: 10.4.0
       eslint:
         specifier: ^9.39.2
         version: 9.39.2(jiti@2.6.1)
@@ -48,8 +48,8 @@ importers:
         specifier: ^3.4.1
         version: 3.4.1(jiti@2.6.1)(rollup@4.54.0)(yaml@2.8.2)
       kirbyuse:
-        specifier: ^1.2.4
-        version: 1.2.4
+        specifier: ^1.2.7
+        version: 1.2.7
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -72,7 +72,7 @@ importers:
         specifier: ~6.3.7
         version: 6.3.7(jiti@2.6.1)(sass@1.97.1)(yaml@2.8.2)
       vitest:
-        specifier: ^4.0.16
+        specifier: ^4.0.17
         version: 4.0.17(@opentelemetry/api@1.9.0)(jiti@2.6.1)(sass@1.97.1)(yaml@2.8.2)
       vue:
         specifier: ^2.7.16
@@ -80,44 +80,47 @@ importers:
       yaml:
         specifier: ^2.8.2
         version: 2.8.2
+      zod:
+        specifier: ^4.3.5
+        version: 4.3.5
       zx:
         specifier: ^8.8.5
         version: 8.8.5
 
 packages:
 
-  '@ai-sdk/anthropic@3.0.11':
-    resolution: {integrity: sha512-xCoH4I9xcncz3BbBdDkF87POLpDz4x0a5w591Ssax6IN/1FPg3hljOU7h54QMtehmDeP3ZSNZ//IW5J43qBKFA==}
+  '@ai-sdk/anthropic@3.0.12':
+    resolution: {integrity: sha512-1ygMQ2acJ9k+CPRuDiywtkuQwSdsZwAISgbRIayE3PF/Ct2b80c4iGS1CbycYMx+yswPyBMOuPTqebh9vvwMMg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/gateway@3.0.11':
-    resolution: {integrity: sha512-gLrgNXA95wdo/zAlA0miX/SJEYKSYCHg+e0Y/uQeABLScZAMjPw3jWaeANta/Db1T4xfi8cBvY3nnV8Pa27z+w==}
+  '@ai-sdk/gateway@3.0.13':
+    resolution: {integrity: sha512-g7nE4PFtngOZNZSy1lOPpkC+FAiHxqBJXqyRMEG7NUrEVZlz5goBdtHg1YgWRJIX776JTXAmbOI5JreAKVAsVA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/google@3.0.6':
-    resolution: {integrity: sha512-Nr7E+ouWd/bKO9SFlgLnJJ1+fiGHC07KAeFr08faT+lvkECWlxVox3aL0dec8uCgBDUghYbq7f4S5teUrCc+QQ==}
+  '@ai-sdk/google@3.0.7':
+    resolution: {integrity: sha512-GrmToTWMFJXma6DIEjbHBzTuAAiwkWg7CDIbrjKmUp7T8BiTo4ndNSs08xspe13Ast5Gx2FvLCHH0MYJM2RpOg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/mistral@3.0.5':
-    resolution: {integrity: sha512-ymrHvsVBcafjZmdjLY4677o9yUvRhht3Hbdz1kTCqAzpJ5bWlHQikU9KaA5EAE0fvArixQmUNpTxSXuI26VQ2g==}
+  '@ai-sdk/mistral@3.0.6':
+    resolution: {integrity: sha512-ne8UBWEpnmXY+MCo6nB0anl5JVRUO6gNGBLhBC2Bjql9C/lAL55bp8h95N3lSHKwZbhW6dkVFADwhJCP+DgLjQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai@3.0.8':
-    resolution: {integrity: sha512-tQIkTv+L4hSR3liciKw3J0siQ95dDxZ0+hX7jB3N35URTmeAD2h10VWjv4hf/LNiDizEmwI7Ejhf9lnrAfHVhg==}
+  '@ai-sdk/openai@3.0.9':
+    resolution: {integrity: sha512-azgo1gmAFwkCDHKWlv9goKBe7SOG5c8zxIX94SEf8748t+ZL0sjPH2RNXk7G6POaZ4A6Os4zhkUnx9KwSk9Bjw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.4':
-    resolution: {integrity: sha512-VxhX0B/dWGbpNHxrKCWUAJKXIXV015J4e7qYjdIU9lLWeptk0KMLGcqkB4wFxff5Njqur8dt8wRi1MN9lZtDqg==}
+  '@ai-sdk/provider-utils@4.0.5':
+    resolution: {integrity: sha512-Ow/X/SEkeExTTc1x+nYLB9ZHK2WUId8+9TlkamAx7Tl9vxU+cKzWx2dwjgMHeCN6twrgwkLrrtqckQeO4mxgVA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1007,8 +1010,8 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  ai@6.0.29:
-    resolution: {integrity: sha512-hwpgbPmiwHQCbMdVYZpnVV/v77Mt34nEHzv+2qWjGDjimic/110RBKP6jlpx7OcG8iwwmDF43Z8L8Dgf7FWLyg==}
+  ai@6.0.33:
+    resolution: {integrity: sha512-bVokbmy2E2QF6Efl+5hOJx5MRWoacZ/CZY/y1E+VcewknvGlgaiCzMu8Xgddz6ArFJjiMFNUPHKxAhIePE4rmg==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -1067,8 +1070,8 @@ packages:
     resolution: {integrity: sha512-bkXY9WsVpY7CvMhKSR6pZilZu9Ln5WDrKVBUXf2S443etkmEO4V58heTecXcUIsNsi4Rx8JUO4NfX1IcQl4deg==}
     engines: {node: '>=18.20'}
 
-  bumpp@10.3.2:
-    resolution: {integrity: sha512-yUUkVx5zpTywLNX97MlrqtpanI7eMMwFwLntWR2EBVDw3/Pm3aRIzCoDEGHATLIiHK9PuJC7xWI4XNWqXItSPg==}
+  bumpp@10.4.0:
+    resolution: {integrity: sha512-VzJhB4iyZ04w99HreEvXJY/lxzApnE/PRbcFY4cKnOUSRVbRbAf0AIU0DeavrkffW+mclJlkmnQYn9NdwcBk1g==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -1705,8 +1708,8 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
-  kirbyuse@1.2.4:
-    resolution: {integrity: sha512-sGdR7ROmN1hGgwmCu5mDW/mP/QMAhKt7Yd9y1pXNGa8OVowf2+sP/pHj+C9mBxuJtPtGE5tamhzLxJR742bO2g==}
+  kirbyuse@1.2.7:
+    resolution: {integrity: sha512-AVJyrfzD6UaMO1GSVBInZdmfp7vJTLh3cEC/GZrYb7swAGFnBXCN2CZDJ3L/Blc/UmUvKe+hDz6QUkFS4oKjZw==}
     peerDependencies:
       dayjs: ^1.0.0
       prosemirror-commands: ^1.7.1
@@ -2412,38 +2415,38 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/anthropic@3.0.11(zod@4.3.5)':
+  '@ai-sdk/anthropic@3.0.12(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       zod: 4.3.5
 
-  '@ai-sdk/gateway@3.0.11(zod@4.3.5)':
+  '@ai-sdk/gateway@3.0.13(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       '@vercel/oidc': 3.1.0
       zod: 4.3.5
 
-  '@ai-sdk/google@3.0.6(zod@4.3.5)':
+  '@ai-sdk/google@3.0.7(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       zod: 4.3.5
 
-  '@ai-sdk/mistral@3.0.5(zod@4.3.5)':
+  '@ai-sdk/mistral@3.0.6(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       zod: 4.3.5
 
-  '@ai-sdk/openai@3.0.8(zod@4.3.5)':
+  '@ai-sdk/openai@3.0.9(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       zod: 4.3.5
 
-  '@ai-sdk/provider-utils@4.0.4(zod@4.3.5)':
+  '@ai-sdk/provider-utils@4.0.5(zod@4.3.5)':
     dependencies:
       '@ai-sdk/provider': 3.0.2
       '@standard-schema/spec': 1.1.0
@@ -2886,9 +2889,9 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@kirby-tools/licensing@0.5.2(kirbyuse@1.2.4)':
+  '@kirby-tools/licensing@0.5.2(kirbyuse@1.2.7)':
     dependencies:
-      kirbyuse: 1.2.4
+      kirbyuse: 1.2.7
       vue: 2.7.16
 
   '@opentelemetry/api@1.9.0': {}
@@ -3320,11 +3323,11 @@ snapshots:
 
   acorn@8.15.0: {}
 
-  ai@6.0.29(zod@4.3.5):
+  ai@6.0.33(zod@4.3.5):
     dependencies:
-      '@ai-sdk/gateway': 3.0.11(zod@4.3.5)
+      '@ai-sdk/gateway': 3.0.13(zod@4.3.5)
       '@ai-sdk/provider': 3.0.2
-      '@ai-sdk/provider-utils': 4.0.4(zod@4.3.5)
+      '@ai-sdk/provider-utils': 4.0.5(zod@4.3.5)
       '@opentelemetry/api': 1.9.0
       zod: 4.3.5
 
@@ -3379,7 +3382,7 @@ snapshots:
 
   builtin-modules@5.0.0: {}
 
-  bumpp@10.3.2:
+  bumpp@10.4.0:
     dependencies:
       ansis: 4.2.0
       args-tokenizer: 0.3.0
@@ -4054,7 +4057,7 @@ snapshots:
       - tsx
       - yaml
 
-  kirbyuse@1.2.4:
+  kirbyuse@1.2.7:
     dependencies:
       kirby-types: 1.4.5(vue@2.7.16)
       vue: 2.7.16
