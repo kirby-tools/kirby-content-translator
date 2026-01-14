@@ -3,6 +3,7 @@ import type {
   TranslationStrategy,
   TranslationUnit,
 } from "../types";
+import { useApi } from "kirbyuse";
 import pAll from "p-all";
 import {
   TRANSLATE_API_ROUTE,
@@ -35,7 +36,7 @@ export class DeepLStrategy implements TranslationStrategy {
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
   ) {
-    const { api } = window.panel;
+    const api = useApi();
 
     // Build index map to preserve original order
     const indexMap = new Map<TranslationUnit, number>();

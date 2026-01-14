@@ -76,15 +76,7 @@ export interface CopilotThirdPartyApi {
   loadAISDK: () => Promise<AISDKModule>;
 }
 
-export function useCopilot(): Partial<CopilotThirdPartyApi> {
+export function resolveCopilot() {
   const panel = usePanel();
-  const { copilot } = panel.plugins.thirdParty;
-
-  if (!copilot) {
-    // eslint-disable-next-line no-console
-    console.log("Kirby Copilot is not installed");
-    return {};
-  }
-
-  return copilot;
+  return panel.plugins.thirdParty.copilot as CopilotThirdPartyApi | undefined;
 }
