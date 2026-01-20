@@ -70,7 +70,7 @@ export function useContentTranslator() {
     translateSlug.value = toBool(options.slug ?? context.config.slug, false);
     shouldConfirm.value = toBool(
       options.confirm ?? context.config.confirm,
-      true,
+      false,
     );
     fieldTypes.value = options.fieldTypes ??
       context.config.fieldTypes ?? [...DEFAULT_FIELD_TYPES];

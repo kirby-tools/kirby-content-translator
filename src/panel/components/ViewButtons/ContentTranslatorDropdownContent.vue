@@ -84,13 +84,9 @@ const initializationPromise = (async () => {
 })();
 
 async function handleImport(sourceLanguage?: PanelLanguageInfo) {
-  const text = sourceLanguage
-    ? panel.t("johannschopplich.content-translator.dialog.importFrom", {
-        language: sourceLanguage.name,
-      })
-    : panel.t("johannschopplich.content-translator.dialog.import", {
-        language: defaultLanguage.name,
-      });
+  const text = panel.t("johannschopplich.content-translator.dialog.import", {
+    language: sourceLanguage?.name ?? defaultLanguage.name,
+  });
 
   await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
     await initializationPromise;
