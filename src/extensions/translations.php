@@ -19,12 +19,13 @@ return array_replace_recursive(
             'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'Content can only be imported and translated for secondary languages.',
             'johannschopplich.content-translator.dialog.button.translate' => 'Translate',
             'johannschopplich.content-translator.dialog.provider' => 'Translation Provider',
-            'johannschopplich.content-translator.dialog.import' => 'The content of the current language will be overwritten with the content of the default language ({language}). Content changes are reversible. Continue?',
-            'johannschopplich.content-translator.dialog.importFrom' => 'The content of the current language will be overwritten with the content of <strong>{language}</strong>. Content changes are reversible. Continue?',
+            'johannschopplich.content-translator.dialog.import' => 'Content from <strong>{language}</strong> will overwrite the current content. Changes are reversible. Continue?',
             'johannschopplich.content-translator.dialog.batchTranslation' => 'Content from {language} will be translated and saved to all selected languages. This may take a few seconds.',
             'johannschopplich.content-translator.notification.imported' => 'Content imported',
             'johannschopplich.content-translator.notification.translated' => 'Content translated',
-            'johannschopplich.content-translator.notification.batchTranslated' => 'Content translated for all selected languages'
+            'johannschopplich.content-translator.notification.batchTranslated' => 'Content translated for selected languages',
+            'johannschopplich.content-translator.notification.translating' => 'Translating content…',
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Translating… {current}/{total} languages'
         ],
         'de' => [
             'johannschopplich.content-translator.label' => 'Content-Übersetzer',
@@ -40,12 +41,13 @@ return array_replace_recursive(
             'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'Content kann nur für sekundäre Sprachen importiert und übersetzt werden.',
             'johannschopplich.content-translator.dialog.button.translate' => 'Übersetzen',
             'johannschopplich.content-translator.dialog.provider' => 'Übersetzungsanbieter',
-            'johannschopplich.content-translator.dialog.import' => 'Der Content der aktuellen Sprache wird mit dem Content der Standardsprache ({language}) überschrieben. Content-Änderungen können rückgängig gemacht werden. Fortfahren?',
-            'johannschopplich.content-translator.dialog.importFrom' => 'Der Content der aktuellen Sprache wird mit dem Content von <strong>{language}</strong> überschrieben. Content-Änderungen können rückgängig gemacht werden. Fortfahren?',
+            'johannschopplich.content-translator.dialog.import' => 'Content von <strong>{language}</strong> überschreibt den aktuellen Content. Änderungen sind reversibel. Fortfahren?',
             'johannschopplich.content-translator.dialog.batchTranslation' => 'Content von {language} wird übersetzt und in alle ausgewählten Sprachen gespeichert. Dies kann einige Sekunden dauern.',
             'johannschopplich.content-translator.notification.imported' => 'Content importiert',
             'johannschopplich.content-translator.notification.translated' => 'Content übersetzt',
-            'johannschopplich.content-translator.notification.batchTranslated' => 'Content für alle ausgewählten Sekundärsprachen übersetzt'
+            'johannschopplich.content-translator.notification.batchTranslated' => 'Content für ausgewählte Sprachen übersetzt',
+            'johannschopplich.content-translator.notification.translating' => 'Content wird übersetzt…',
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Übersetze… {current}/{total} Sprachen'
         ],
         'fr' => [
             'johannschopplich.content-translator.label' => 'Traducteur de Contenu',
@@ -61,12 +63,13 @@ return array_replace_recursive(
             'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'Le contenu ne peut être importé et traduit que pour les langues secondaires.',
             'johannschopplich.content-translator.dialog.button.translate' => 'Traduire',
             'johannschopplich.content-translator.dialog.provider' => 'Fournisseur de traduction',
-            'johannschopplich.content-translator.dialog.import' => 'Le contenu de la langue actuelle sera écrasé par le contenu de la langue par défaut ({language}). Les modifications de contenu sont réversibles. Continuer?',
-            'johannschopplich.content-translator.dialog.importFrom' => 'Le contenu de la langue actuelle sera écrasé par le contenu de <strong>{language}</strong>. Les modifications de contenu sont réversibles. Continuer?',
+            'johannschopplich.content-translator.dialog.import' => 'Le contenu de <strong>{language}</strong> écrasera le contenu actuel. Les modifications sont réversibles. Continuer?',
             'johannschopplich.content-translator.dialog.batchTranslation' => 'Le contenu de {language} sera traduit et enregistré dans toutes les langues sélectionnées. Cela peut prendre quelques secondes.',
             'johannschopplich.content-translator.notification.imported' => 'Contenu importé',
             'johannschopplich.content-translator.notification.translated' => 'Contenu traduit',
-            'johannschopplich.content-translator.notification.batchTranslated' => 'Contenu traduit pour toutes les langues sélectionnées'
+            'johannschopplich.content-translator.notification.batchTranslated' => 'Contenu traduit pour les langues sélectionnées',
+            'johannschopplich.content-translator.notification.translating' => 'Traduction du contenu…',
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Traduction… {current}/{total} langues'
         ],
         'nl' => [
             'johannschopplich.content-translator.label' => 'Inhoud Vertaler',
@@ -82,12 +85,13 @@ return array_replace_recursive(
             'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'Inhoud kan alleen worden geïmporteerd en vertaald voor secundaire talen.',
             'johannschopplich.content-translator.dialog.button.translate' => 'Vertalen',
             'johannschopplich.content-translator.dialog.provider' => 'Vertaalprovider',
-            'johannschopplich.content-translator.dialog.import' => 'De inhoud van de huidige taal wordt overschreven met de inhoud van de standaardtaal ({language}). Inhoudswijzigingen zijn omkeerbaar. Doorgaan?',
-            'johannschopplich.content-translator.dialog.importFrom' => 'De inhoud van de huidige taal wordt overschreven met de inhoud van <strong>{language}</strong>. Inhoudswijzigingen zijn omkeerbaar. Doorgaan?',
+            'johannschopplich.content-translator.dialog.import' => 'Inhoud van <strong>{language}</strong> overschrijft de huidige inhoud. Wijzigingen zijn omkeerbaar. Doorgaan?',
             'johannschopplich.content-translator.dialog.batchTranslation' => 'Inhoud van {language} wordt vertaald en opgeslagen in alle geselecteerde talen. Dit kan enkele seconden duren.',
             'johannschopplich.content-translator.notification.imported' => 'Inhoud geïmporteerd',
             'johannschopplich.content-translator.notification.translated' => 'Inhoud vertaald',
-            'johannschopplich.content-translator.notification.batchTranslated' => 'Inhoud vertaald voor alle geselecteerde talen'
+            'johannschopplich.content-translator.notification.batchTranslated' => 'Inhoud vertaald voor geselecteerde talen',
+            'johannschopplich.content-translator.notification.translating' => 'Inhoud wordt vertaald…',
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Vertalen… {current}/{total} talen'
         ],
         'pt_PT' => [
             'johannschopplich.content-translator.label' => 'Tradutor de Conteúdo',
@@ -103,12 +107,13 @@ return array_replace_recursive(
             'johannschopplich.content-translator.help.disabledDefaultLanguage' => 'O conteúdo só pode ser importado e traduzido para idiomas secundários.',
             'johannschopplich.content-translator.dialog.button.translate' => 'Traduzir',
             'johannschopplich.content-translator.dialog.provider' => 'Fornecedor de tradução',
-            'johannschopplich.content-translator.dialog.import' => 'O conteúdo do idioma atual será substituído pelo conteúdo do idioma por defeito ({language}). As alterações no conteúdo são reversíveis. Continuar?',
-            'johannschopplich.content-translator.dialog.importFrom' => 'O conteúdo do idioma atual será substituído pelo conteúdo de <strong>{language}</strong>. As alterações no conteúdo são reversíveis. Continuar?',
+            'johannschopplich.content-translator.dialog.import' => 'Conteúdo de <strong>{language}</strong> irá substituir o conteúdo atual. As alterações são reversíveis. Continuar?',
             'johannschopplich.content-translator.dialog.batchTranslation' => 'O conteúdo de {language} será traduzido e guardado em todos os idiomas selecionados. Isto pode demorar alguns segundos.',
             'johannschopplich.content-translator.notification.imported' => 'Conteúdo importado',
             'johannschopplich.content-translator.notification.translated' => 'Conteúdo traduzido',
-            'johannschopplich.content-translator.notification.batchTranslated' => 'Conteúdo traduzido para todos os idiomas selecionados'
+            'johannschopplich.content-translator.notification.batchTranslated' => 'Conteúdo traduzido para os idiomas selecionados',
+            'johannschopplich.content-translator.notification.translating' => 'A traduzir conteúdo…',
+            'johannschopplich.content-translator.notification.batchTranslating' => 'A traduzir… {current}/{total} idiomas'
         ]
     ]
 );
