@@ -12,9 +12,10 @@ import type {
   CollectorOptions,
   CollectorResult,
 } from "./types";
+import { isObject } from "utilful";
 import * as yaml from "yaml";
 import { flattenTabFields, isBlockTranslatable } from "../utils/fields";
-import { isObject } from "../utils/shared";
+import { shouldSkipTranslation } from "./utils";
 
 interface CollectorContext {
   options: CollectorOptions;
@@ -88,7 +89,7 @@ function collectFromField(
   // Text-like fields: batch translation
   if (["list", "text", "writer"].includes(field.type)) {
     const text = value as string;
-    if (!text) return;
+    if (!text || shouldSkipTranslation(text)) return;
 
     context.translations.push({
       unit: {

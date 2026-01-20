@@ -58,8 +58,8 @@ final class Translator
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
-        if (empty(trim($text))) {
-            return '';
+        if (self::shouldSkipTranslation($text)) {
+            return $text;
         }
 
         $result = self::translateTexts([$text], $targetLanguage, $sourceLanguage);
@@ -246,7 +246,8 @@ final class Translator
         $canBatch = !$translateFn || !is_callable($translateFn);
 
         foreach ($obj as $key => $value) {
-            if (empty($value)) {
+            // Skip empty values (strict check)
+            if ($value === null || $value === '' || $value === []) {
                 continue;
             }
             if (!isset($fields[$key])) {
@@ -284,6 +285,11 @@ final class Translator
 
             // Handle text-like fields
             if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'writer'], true)) {
+                // Skip non-translatable values
+                if (is_string($obj[$key]) && self::shouldSkipTranslation($obj[$key])) {
+                    continue;
+                }
+
                 if ($canBatch) {
                     $collector['pointers'][] = [$key, &$obj];
                     $collector['texts'][] = $obj[$key];
@@ -377,5 +383,34 @@ final class Translator
         }
 
         return $blockFields;
+    }
+
+    /**
+     * Checks if a string value should be skipped from translation.
+     *
+     * Returns `true` for:
+     * - Empty or whitespace-only strings
+     * - Pure numeric values (integers, floats, scientific notation)
+     * - Pure URLs (`http://` or `https://`)
+     */
+    private static function shouldSkipTranslation(string $text): bool
+    {
+        $trimmedValue = trim($text);
+
+        if ($trimmedValue === '') {
+            return true;
+        }
+
+        // Pure numeric (including negative, floats, scientific notation)
+        if (preg_match('/^-?\d+(\.\d+)?(e[+-]?\d+)?$/i', $trimmedValue)) {
+            return true;
+        }
+
+        // Pure URL
+        if (preg_match('/^https?:\/\/\S+$/i', $trimmedValue)) {
+            return true;
+        }
+
+        return false;
     }
 }

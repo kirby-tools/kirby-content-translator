@@ -425,6 +425,52 @@ describe("collectTranslations", () => {
       expect(translations[0].unit.text).toBe("Valid");
     });
 
+    it("skips pure numeric values", () => {
+      const content = {
+        integer: "123",
+        float: "45.67",
+        negative: "-99",
+        scientific: "1.5e10",
+        valid: "Product 123",
+      };
+      const fields = {
+        integer: field({ type: "text", name: "text" }),
+        float: field({ type: "text", name: "text" }),
+        negative: field({ type: "text", name: "text" }),
+        scientific: field({ type: "text", name: "text" }),
+        valid: field({ type: "text", name: "text" }),
+      };
+
+      const { translations } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+      });
+
+      expect(translations).toHaveLength(1);
+      expect(translations[0].unit.text).toBe("Product 123");
+    });
+
+    it("skips URL values", () => {
+      const content = {
+        https: "https://example.com",
+        http: "http://localhost:3000/path?query=1",
+        withText: "Visit https://example.com today",
+      };
+      const fields = {
+        https: field({ type: "text", name: "text" }),
+        http: field({ type: "text", name: "text" }),
+        withText: field({ type: "text", name: "text" }),
+      };
+
+      const { translations } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+      });
+
+      expect(translations).toHaveLength(1);
+      expect(translations[0].unit.text).toBe("Visit https://example.com today");
+    });
+
     it("skips whitespace-only textarea content", () => {
       const content = { intro: "   ", description: "" };
       const fields = {

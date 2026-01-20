@@ -71,6 +71,9 @@ importers:
       ufo:
         specifier: ^1.6.3
         version: 1.6.3
+      utilful:
+        specifier: ^2.5.1
+        version: 2.5.1
       vite:
         specifier: ~6.3.7
         version: 6.3.7(jiti@2.6.1)(sass@1.97.2)(yaml@2.8.2)
@@ -2295,6 +2298,9 @@ packages:
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  utilful@2.5.1:
+    resolution: {integrity: sha512-5iYmmt6TbpLjIG6lx9jlWP/F5dMpqMjd0bxmnWFKY2iBSKPWvvsB7cXWTgaKF3Z6MOuakren/3hJxH7z8ZhoLg==}
 
   vite-plugin-full-reload@1.2.0:
     resolution: {integrity: sha512-kz18NW79x0IHbxRSHm0jttP4zoO9P9gXh+n6UTwlNKnviTTEpOlum6oS9SmecrTtSr+muHEn5TUuC75UovQzcA==}
@@ -4789,6 +4795,8 @@ snapshots:
       punycode: 2.3.1
 
   util-deprecate@1.0.2: {}
+
+  utilful@2.5.1: {}
 
   vite-plugin-full-reload@1.2.0:
     dependencies:

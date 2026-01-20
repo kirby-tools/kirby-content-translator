@@ -4,7 +4,7 @@ import type {
   KirbyFieldProps,
   KirbyLayoutFieldProps,
 } from "kirby-types";
-import { isObject } from "./shared";
+import { isObject } from "utilful";
 
 /**
  * Checks if a block is translatable based on its content structure and visibility

@@ -354,7 +354,7 @@ final class TranslatorTest extends TestCase
         );
     }
 
-    public function testTranslateContentDoesNotTranslateUntranslatableFields(): void
+    public function testSkipsFieldsWithTranslateFalse(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -417,7 +417,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Writer content', $translator->model()->content('en')->get('writer')->value());
     }
 
-    public function testTranslateBlocksContent(): void
+    public function testTraversesBlocksRecursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -428,10 +428,20 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Block heading', $blocks[1]['content']['title']);
         // Level field should exist but may be empty if not set properly
         $this->assertArrayHasKey('level', $blocks[1]['content']);
+    }
+
+    public function testSkipsHiddenBlocks(): void
+    {
+        $page = $this->app->page('home');
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value());
+        // Hidden block should not be translated
         $this->assertSame('Hidden block content', $blocks[2]['content']['text']);
     }
 
-    public function testTranslateStructureContent(): void
+    public function testTraversesStructureRecursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -444,7 +454,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Description 2', $structure[1]['description']);
     }
 
-    public function testTranslateObjectContent(): void
+    public function testTraversesObjectRecursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -455,7 +465,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Object description', $object['description']);
     }
 
-    public function testTranslateLayoutFields(): void
+    public function testTraversesLayoutRecursively(): void
     {
         $page = $this->app->page('about');
         $translator = new Translator($page);
@@ -480,7 +490,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame('Do not translate', $translator->model()->content('en')->get('untranslatableText')->value());
     }
 
-    public function testIncludeFieldsConfiguration(): void
+    public function testRespectsIncludeFieldsFilter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -492,7 +502,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame('tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
-    public function testExcludeFieldsConfiguration(): void
+    public function testRespectsExcludeFieldsFilter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -504,15 +514,55 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
-    // Edge cases
-    public function testTranslateEmptyFields(): void
+    // Edge cases and skipping values
+    public function testSkipsEmptyValues(): void
     {
-        $page = $this->app->page('home');
-        $translator = new Translator($page);
-
-        // Test with empty content strings
-        $result = $translator->translateText('', 'de');
+        $result = Translator::translateText('', 'de');
         $this->assertSame('', $result);
+
+        $result = Translator::translateText('   ', 'de');
+        $this->assertSame('   ', $result);
+    }
+
+    public function testSkipsWhitespaceOnlyContent(): void
+    {
+        $result = Translator::translateText('   ', 'de');
+        $this->assertSame('   ', $result);
+
+        $result = Translator::translateText("\n\t", 'de');
+        $this->assertSame("\n\t", $result);
+    }
+
+    public function testSkipsPureNumericValues(): void
+    {
+        $result = Translator::translateText('123', 'de');
+        $this->assertSame('123', $result);
+
+        $result = Translator::translateText('45.67', 'de');
+        $this->assertSame('45.67', $result);
+
+        $result = Translator::translateText('-99', 'de');
+        $this->assertSame('-99', $result);
+
+        $result = Translator::translateText('1.5e10', 'de');
+        $this->assertSame('1.5e10', $result);
+
+        // Should translate: contains text
+        $result = Translator::translateText('Product 123', 'de');
+        $this->assertSame('[de]Product 123', $result);
+    }
+
+    public function testSkipsUrlValues(): void
+    {
+        $result = Translator::translateText('https://example.com', 'de');
+        $this->assertSame('https://example.com', $result);
+
+        $result = Translator::translateText('http://localhost:3000/path?query=1', 'de');
+        $this->assertSame('http://localhost:3000/path?query=1', $result);
+
+        // Should translate: contains additional text
+        $result = Translator::translateText('Visit https://example.com today', 'de');
+        $this->assertSame('[de]Visit https://example.com today', $result);
     }
 
     public function testModelMethod(): void
