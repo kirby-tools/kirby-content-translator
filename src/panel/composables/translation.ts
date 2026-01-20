@@ -451,10 +451,10 @@ async function translateText(
   },
 ): Promise<string> {
   const strategy = provider === "ai" ? new AIStrategy() : new DeepLStrategy();
-  const results = await strategy.execute(
-    [{ text, mode: "batch", fieldType: "text" }],
-    { sourceLanguage, targetLanguage },
-  );
+  const results = await strategy.execute([{ text, mode: "batch" }], {
+    sourceLanguage,
+    targetLanguage,
+  });
   return results[0] ?? text;
 }
 

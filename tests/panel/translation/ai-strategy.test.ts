@@ -36,8 +36,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title", fieldType: "text" },
-        { text: "World", mode: "batch", fieldKey: "body", fieldType: "text" },
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "batch", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -52,7 +52,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
 
       await strategy.execute(units, defaultOptions);
@@ -71,7 +71,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
 
       await strategy.execute(units, defaultOptions);
@@ -92,7 +92,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
 
       await strategy.execute(units, {
@@ -114,7 +114,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
 
       await strategy.execute(units, {
@@ -136,8 +136,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "First", mode: "batch", fieldKey: "a", fieldType: "text" },
-        { text: "Second", mode: "batch", fieldKey: "b", fieldType: "text" },
+        { text: "First", mode: "batch", fieldKey: "a" },
+        { text: "Second", mode: "batch", fieldKey: "b" },
       ];
 
       await strategy.execute(units, defaultOptions);
@@ -163,7 +163,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
       const kirbyTags = { link: ["text", "title"] };
 
@@ -188,7 +188,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
       const kirbyTags = { link: ["text"] };
 
@@ -212,9 +212,9 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "1", mode: "batch", fieldKey: "a", fieldType: "text" },
-        { text: "2", mode: "batch", fieldKey: "b", fieldType: "text" },
-        { text: "3", mode: "batch", fieldKey: "c", fieldType: "text" },
+        { text: "1", mode: "batch", fieldKey: "a" },
+        { text: "2", mode: "batch", fieldKey: "b" },
+        { text: "3", mode: "batch", fieldKey: "c" },
       ];
 
       await strategy.execute(units, defaultOptions);
@@ -235,8 +235,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: largeText, mode: "batch", fieldKey: "a", fieldType: "text" },
-        { text: largeText, mode: "batch", fieldKey: "b", fieldType: "text" },
+        { text: largeText, mode: "batch", fieldKey: "a" },
+        { text: largeText, mode: "batch", fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -255,8 +255,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title", fieldType: "text" },
-        { text: "World", mode: "batch", fieldKey: "body", fieldType: "text" },
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "batch", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -279,8 +279,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: largeText, mode: "batch", fieldKey: "a", fieldType: "text" },
-        { text: largeText, mode: "batch", fieldKey: "b", fieldType: "text" },
+        { text: largeText, mode: "batch", fieldKey: "a" },
+        { text: largeText, mode: "batch", fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -299,7 +299,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Test", mode: "batch", fieldKey: "title" },
       ];
 
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
@@ -316,27 +316,22 @@ describe("AIStrategy", () => {
     it("handles all translation modes uniformly", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({
-          translations: ["Batch", "Kirby", "Plain"],
+          translations: ["Batch", "Kirby", "Single"],
         }),
       });
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "batch", mode: "batch", fieldKey: "a", fieldType: "text" },
-        {
-          text: "kirby",
-          mode: "kirbytext",
-          fieldKey: "b",
-          fieldType: "textarea",
-        },
-        { text: "plain", mode: "plain", fieldKey: "c", fieldType: "table" },
+        { text: "batch", mode: "batch", fieldKey: "a" },
+        { text: "kirby", mode: "kirbytext", fieldKey: "b" },
+        { text: "single", mode: "single", fieldKey: "c" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
       // All modes processed in single call (no mode-based grouping)
       expect(mockStreamText).toHaveBeenCalledOnce();
-      expect(results).toEqual(["Batch", "Kirby", "Plain"]);
+      expect(results).toEqual(["Batch", "Kirby", "Single"]);
     });
   });
 });

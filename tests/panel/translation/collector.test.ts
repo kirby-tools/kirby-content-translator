@@ -87,7 +87,7 @@ describe("collectTranslations", () => {
       expect(translations[0].unit.text).toBe("Red | Green | Blue");
     });
 
-    it("collects table cells as plain mode", () => {
+    it("collects table cells as single mode", () => {
       const content = {
         table: [
           ["A", "B"],
@@ -102,7 +102,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(4);
-      expect(translations.every((t) => t.unit.mode === "plain")).toBe(true);
+      expect(translations.every((t) => t.unit.mode === "single")).toBe(true);
       expect(translations.map((t) => t.unit.text)).toEqual([
         "A",
         "B",

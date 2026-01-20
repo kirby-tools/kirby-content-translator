@@ -50,7 +50,7 @@ export class DeepLStrategy implements TranslationStrategy {
     // Group units by mode
     const batchUnits = units.filter((unit) => unit.mode === "batch");
     const kirbytextUnits = units.filter((unit) => unit.mode === "kirbytext");
-    const plainUnits = units.filter((unit) => unit.mode === "plain");
+    const singleUnits = units.filter((unit) => unit.mode === "single");
 
     // Execute batch translation (single API call)
     if (batchUnits.length > 0) {
@@ -91,10 +91,10 @@ export class DeepLStrategy implements TranslationStrategy {
       }
     }
 
-    // Execute plain translations (parallel with concurrency limit)
-    if (plainUnits.length > 0) {
-      const plainResults = await pAll(
-        plainUnits.map((unit) => async () => {
+    // Execute single translations (parallel with concurrency limit)
+    if (singleUnits.length > 0) {
+      const singleResults = await pAll(
+        singleUnits.map((unit) => async () => {
           const response = await api.post<{ text: string }>(
             TRANSLATE_API_ROUTE,
             {
@@ -108,7 +108,7 @@ export class DeepLStrategy implements TranslationStrategy {
         { concurrency: this.concurrency },
       );
 
-      for (const { unit, text } of plainResults) {
+      for (const { unit, text } of singleResults) {
         results[indexMap.get(unit)!] = text;
       }
     }

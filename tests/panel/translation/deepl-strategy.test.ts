@@ -36,13 +36,8 @@ describe("DeepLStrategy", () => {
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title", fieldType: "text" },
-        {
-          text: "World",
-          mode: "batch",
-          fieldKey: "subtitle",
-          fieldType: "text",
-        },
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "batch", fieldKey: "subtitle" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -67,18 +62,8 @@ describe("DeepLStrategy", () => {
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        {
-          text: "First",
-          mode: "kirbytext",
-          fieldKey: "intro",
-          fieldType: "textarea",
-        },
-        {
-          text: "Second",
-          mode: "kirbytext",
-          fieldKey: "body",
-          fieldType: "markdown",
-        },
+        { text: "First", mode: "kirbytext", fieldKey: "intro" },
+        { text: "Second", mode: "kirbytext", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -96,12 +81,7 @@ describe("DeepLStrategy", () => {
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        {
-          text: "Text",
-          mode: "kirbytext",
-          fieldKey: "body",
-          fieldType: "textarea",
-        },
+        { text: "Text", mode: "kirbytext", fieldKey: "body" },
       ];
       const kirbyTags = { link: { attr: "href" } };
 
@@ -114,26 +94,16 @@ describe("DeepLStrategy", () => {
     });
   });
 
-  describe("plain mode", () => {
-    it("calls plain translate endpoint for each unit", async () => {
+  describe("single mode", () => {
+    it("calls translate endpoint for each unit", async () => {
       mockApiPost
         .mockResolvedValueOnce({ text: "Zelle1" })
         .mockResolvedValueOnce({ text: "Zelle2" });
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        {
-          text: "Cell1",
-          mode: "plain",
-          fieldKey: "table[0][0]",
-          fieldType: "table",
-        },
-        {
-          text: "Cell2",
-          mode: "plain",
-          fieldKey: "table[0][1]",
-          fieldType: "table",
-        },
+        { text: "Cell1", mode: "single", fieldKey: "table[0][0]" },
+        { text: "Cell2", mode: "single", fieldKey: "table[0][1]" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -152,28 +122,13 @@ describe("DeepLStrategy", () => {
       mockApiPost
         .mockResolvedValueOnce({ texts: ["Batch"] }) // batch
         .mockResolvedValueOnce({ text: "Kirby" }) // kirbytext
-        .mockResolvedValueOnce({ text: "Plain" }); // plain
+        .mockResolvedValueOnce({ text: "Single" }); // single
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        {
-          text: "Batch text",
-          mode: "batch",
-          fieldKey: "title",
-          fieldType: "text",
-        },
-        {
-          text: "Kirby text",
-          mode: "kirbytext",
-          fieldKey: "body",
-          fieldType: "textarea",
-        },
-        {
-          text: "Plain text",
-          mode: "plain",
-          fieldKey: "table[0][0]",
-          fieldType: "table",
-        },
+        { text: "Batch text", mode: "batch", fieldKey: "title" },
+        { text: "Kirby text", mode: "kirbytext", fieldKey: "body" },
+        { text: "Single text", mode: "single", fieldKey: "table[0][0]" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -186,24 +141,19 @@ describe("DeepLStrategy", () => {
       mockApiPost
         .mockResolvedValueOnce({ texts: ["B1", "B2"] }) // batch (indices 0, 2)
         .mockResolvedValueOnce({ text: "K1" }) // kirbytext (index 1)
-        .mockResolvedValueOnce({ text: "P1" }); // plain (index 3)
+        .mockResolvedValueOnce({ text: "S1" }); // single (index 3)
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "batch1", mode: "batch", fieldKey: "a", fieldType: "text" },
-        {
-          text: "kirby1",
-          mode: "kirbytext",
-          fieldKey: "b",
-          fieldType: "textarea",
-        },
-        { text: "batch2", mode: "batch", fieldKey: "c", fieldType: "text" },
-        { text: "plain1", mode: "plain", fieldKey: "d", fieldType: "table" },
+        { text: "batch1", mode: "batch", fieldKey: "a" },
+        { text: "kirby1", mode: "kirbytext", fieldKey: "b" },
+        { text: "batch2", mode: "batch", fieldKey: "c" },
+        { text: "single1", mode: "single", fieldKey: "d" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results).toEqual(["B1", "K1", "B2", "P1"]);
+      expect(results).toEqual(["B1", "K1", "B2", "S1"]);
     });
   });
 
@@ -213,7 +163,7 @@ describe("DeepLStrategy", () => {
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Hello", mode: "batch", fieldKey: "title" },
       ];
 
       await strategy.execute(units, {
@@ -234,7 +184,7 @@ describe("DeepLStrategy", () => {
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title", fieldType: "text" },
+        { text: "Hello", mode: "batch", fieldKey: "title" },
       ];
 
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(

@@ -95,7 +95,6 @@ function collectFromField(
         text,
         mode: "batch",
         fieldKey: key,
-        fieldType: field.type as "text" | "writer" | "list",
       },
       apply(translatedText) {
         obj[key] = translatedText;
@@ -113,7 +112,6 @@ function collectFromField(
         text,
         mode: "kirbytext",
         fieldKey: key,
-        fieldType: field.type as "textarea" | "markdown",
       },
       apply(translatedText) {
         obj[key] = translatedText;
@@ -132,7 +130,6 @@ function collectFromField(
         text,
         mode: "batch",
         fieldKey: key,
-        fieldType: "tags",
       },
       apply(translatedText) {
         obj[key] = translatedText.split("|").map((tag) => tag.trim());
@@ -225,9 +222,8 @@ function collectFromTableField(
       context.translations.push({
         unit: {
           text: cell,
-          mode: "plain",
+          mode: "single",
           fieldKey: `${key}[${rowIndex}][${colIndex}]`,
-          fieldType: "table",
         },
         apply(translatedText) {
           tableRef[rowIndex]![colIndex] = translatedText;

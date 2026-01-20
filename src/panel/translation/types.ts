@@ -3,29 +3,26 @@ import type { KirbyFieldProps } from "kirby-types";
 interface TranslationUnitBase {
   /** Text content to translate */
   text: string;
-  /** Field key, mostly for debugging purposes */
+  /** Field key for error reporting (e.g., 'title', 'blocks[0].text') */
   fieldKey?: string;
 }
 
 export interface BatchTranslationUnit extends TranslationUnitBase {
   mode: "batch";
-  fieldType: "text" | "writer" | "list" | "tags";
 }
 
 export interface KirbytextTranslationUnit extends TranslationUnitBase {
   mode: "kirbytext";
-  fieldType: "textarea" | "markdown";
 }
 
-export interface PlainTranslationUnit extends TranslationUnitBase {
-  mode: "plain";
-  fieldType: "table";
+export interface SingleTranslationUnit extends TranslationUnitBase {
+  mode: "single";
 }
 
 export type TranslationUnit =
   | BatchTranslationUnit
   | KirbytextTranslationUnit
-  | PlainTranslationUnit;
+  | SingleTranslationUnit;
 
 /**
  * Collected translation with its apply callback.
