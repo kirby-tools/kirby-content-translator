@@ -8,8 +8,6 @@ export const TRANSLATE_KIRBYTEXT_API_ROUTE =
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
-export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 2;
-
 export const TRANSLATION_PROVIDERS = ["deepl", "ai"] as const;
 
 export const DEFAULT_FIELD_TYPES = [
@@ -27,4 +25,4 @@ export const DEFAULT_FIELD_TYPES = [
   "table",
 ] as const;
 
-export type FieldType = (typeof DEFAULT_FIELD_TYPES)[number];
+export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 4;
