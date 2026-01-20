@@ -1,6 +1,5 @@
-import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
-import type { PluginConfig, TranslationProvider } from "../types";
+import type { TranslationProvider } from "../types";
 import type { PluginContextResponse } from "../utils/copilot";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
@@ -9,13 +8,13 @@ import { usePluginContext } from "./plugin";
 import { getProviderAvailability } from "./translation";
 
 const AI_TRANSLATION_COUNT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}aiTranslationCount`;
-const LICENSE_TOAST_THRESHOLD = 3;
+const LICENSE_TOAST_THRESHOLD = 2;
 
-const PROVIDER_LABELS: Record<string, string> = {
-  openai: "OpenAI",
-  anthropic: "Anthropic",
-  google: "Google",
-  mistral: "Mistral",
+const PROVIDER_CONFIG: Record<string, { label: string; icon: string }> = {
+  openai: { label: "OpenAI", icon: "content-translator-openai" },
+  anthropic: { label: "Anthropic", icon: "content-translator-anthropic" },
+  google: { label: "Google", icon: "content-translator-google" },
+  mistral: { label: "Mistral", icon: "content-translator-mixtral" },
 };
 
 export interface TranslationDialogResult {
@@ -53,22 +52,24 @@ export function useTranslationDialogs(options: {
   }
 
   /**
-   * Determines the available translation provider(s) based on the configuration.
+   * Determines the available translation provider(s) and builds the provider
+   * field definition for dialogs.
    */
-  async function getProviderConfig(config: PluginConfig) {
+  async function getProviderConfig() {
+    const context = await usePluginContext();
     const copilot = resolveCopilot();
     const { hasDefaultProvider, hasMultipleProviders } =
-      getProviderAvailability(config);
-
-    const defaultProviderLabel = config.translateFn
-      ? "johannschopplich.content-translator.provider.custom"
-      : "johannschopplich.content-translator.provider.deepl";
+      getProviderAvailability(context.config);
 
     const singleProvider: TranslationProvider = hasDefaultProvider
       ? "deepl"
       : "ai";
 
-    // Fetch Copilot context for provider name and license status
+    if (!hasMultipleProviders) {
+      return { singleProvider, providerField: undefined };
+    }
+
+    // Fetch Copilot context for provider name
     let copilotContext: PluginContextResponse | undefined;
     if (copilot) {
       try {
@@ -79,30 +80,43 @@ export function useTranslationDialogs(options: {
     }
 
     const aiProviderKey = copilotContext?.config?.provider;
-    const aiProviderLabel = aiProviderKey
-      ? (PROVIDER_LABELS[aiProviderKey] ?? aiProviderKey)
+    const aiProviderConfig = aiProviderKey
+      ? PROVIDER_CONFIG[aiProviderKey]
       : undefined;
 
-    return {
-      hasMultipleProviders,
-      defaultProviderLabel,
-      singleProvider,
-      aiProviderLabel,
+    const providerField = {
+      type: "toggles",
+      label: panel.t("johannschopplich.content-translator.dialog.provider"),
+      labels: true,
+      grow: true,
+      options: [
+        {
+          value: "deepl",
+          text: panel.t(
+            context.config.translateFn
+              ? "johannschopplich.content-translator.provider.custom"
+              : "johannschopplich.content-translator.provider.deepl",
+          ),
+          icon: "translate",
+        },
+        {
+          value: "ai",
+          text: aiProviderConfig?.label ?? aiProviderKey ?? "AI (Copilot)",
+          // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
+          icon: aiProviderConfig?.icon ?? "ai",
+        },
+      ],
     };
+
+    return { singleProvider, providerField };
   }
 
   async function openTranslationDialog(): Promise<
     TranslationDialogResult | undefined
   > {
-    const context = await usePluginContext();
-    const {
-      hasMultipleProviders,
-      defaultProviderLabel,
-      singleProvider,
-      aiProviderLabel,
-    } = await getProviderConfig(context.config);
+    const { singleProvider, providerField } = await getProviderConfig();
 
-    if (!hasMultipleProviders) {
+    if (!providerField) {
       return { provider: singleProvider };
     }
 
@@ -115,24 +129,7 @@ export function useTranslationDialogs(options: {
         ),
       },
       fields: {
-        provider: {
-          type: "toggles",
-          label: panel.t("johannschopplich.content-translator.dialog.provider"),
-          labels: true,
-          grow: true,
-          options: [
-            {
-              value: "deepl",
-              text: panel.t(defaultProviderLabel),
-              icon: "translate",
-            },
-            {
-              value: "ai",
-              text: aiProviderLabel ?? "AI",
-              icon: "content-translator-ai",
-            },
-          ],
-        },
+        provider: providerField,
       },
       value: {
         provider: options.defaultProvider,
@@ -147,13 +144,7 @@ export function useTranslationDialogs(options: {
   async function openBatchTranslationDialog(): Promise<
     BatchTranslationDialogResult | undefined
   > {
-    const context = await usePluginContext();
-    const {
-      hasMultipleProviders,
-      defaultProviderLabel,
-      singleProvider,
-      aiProviderLabel,
-    } = await getProviderConfig(context.config);
+    const { singleProvider, providerField } = await getProviderConfig();
 
     const result = await openFieldsDialog({
       submitButton: {
@@ -176,28 +167,7 @@ export function useTranslationDialogs(options: {
             { language: defaultLanguage.name },
           ),
         },
-        ...(hasMultipleProviders && {
-          provider: {
-            type: "toggles",
-            label: panel.t(
-              "johannschopplich.content-translator.dialog.provider",
-            ),
-            labels: true,
-            grow: true,
-            options: [
-              {
-                value: "deepl",
-                text: panel.t(defaultProviderLabel),
-                icon: "translate",
-              },
-              {
-                value: "ai",
-                text: aiProviderLabel ?? "AI",
-                icon: "content-translator-ai",
-              },
-            ],
-          },
-        }),
+        ...(providerField && { provider: providerField }),
       },
       value: {
         provider: options.defaultProvider,
