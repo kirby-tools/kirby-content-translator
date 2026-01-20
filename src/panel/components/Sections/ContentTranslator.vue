@@ -47,6 +47,7 @@ const {
   openConfirmableTextDialog,
   openTranslationDialog,
   openBatchTranslationDialog,
+  showCopilotLicenseToastOnce,
 } = useTranslationDialogs({
   defaultProvider: provider.value,
 });
@@ -81,6 +82,9 @@ async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
   if (result) {
     provider.value = result.provider;
     await translateModelContent(panel.language, sourceLanguage);
+    if (result.provider === "ai") {
+      showCopilotLicenseToastOnce();
+    }
   }
 }
 
@@ -89,6 +93,9 @@ async function handleBatchTranslate() {
   if (result) {
     provider.value = result.provider;
     await batchTranslateModelContent(result.languages);
+    if (result.provider === "ai") {
+      showCopilotLicenseToastOnce();
+    }
   }
 }
 </script>

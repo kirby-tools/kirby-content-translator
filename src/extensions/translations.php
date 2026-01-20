@@ -25,7 +25,8 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translated' => 'Content translated',
             'johannschopplich.content-translator.notification.batchTranslated' => 'Content translated for selected languages',
             'johannschopplich.content-translator.notification.translating' => 'Translating content…',
-            'johannschopplich.content-translator.notification.batchTranslating' => 'Translating… {current}/{total} languages'
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Translating… {current}/{total} languages',
+            'johannschopplich.content-translator.copilot.license.toast' => 'Like AI translations? Activate your Copilot license.'
         ],
         'de' => [
             'johannschopplich.content-translator.label' => 'Content-Übersetzer',
@@ -47,7 +48,8 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translated' => 'Content übersetzt',
             'johannschopplich.content-translator.notification.batchTranslated' => 'Content für ausgewählte Sprachen übersetzt',
             'johannschopplich.content-translator.notification.translating' => 'Content wird übersetzt…',
-            'johannschopplich.content-translator.notification.batchTranslating' => 'Übersetze… {current}/{total} Sprachen'
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Übersetze… {current}/{total} Sprachen',
+            'johannschopplich.content-translator.copilot.license.toast' => 'Gefallen dir KI-Übersetzungen? Aktiviere deine Copilot-Lizenz.'
         ],
         'fr' => [
             'johannschopplich.content-translator.label' => 'Traducteur de Contenu',
@@ -69,7 +71,8 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translated' => 'Contenu traduit',
             'johannschopplich.content-translator.notification.batchTranslated' => 'Contenu traduit pour les langues sélectionnées',
             'johannschopplich.content-translator.notification.translating' => 'Traduction du contenu…',
-            'johannschopplich.content-translator.notification.batchTranslating' => 'Traduction… {current}/{total} langues'
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Traduction… {current}/{total} langues',
+            'johannschopplich.content-translator.copilot.license.toast' => 'Vous aimez les traductions IA ? Activez votre licence Copilot.'
         ],
         'nl' => [
             'johannschopplich.content-translator.label' => 'Inhoud Vertaler',
@@ -91,7 +94,8 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translated' => 'Inhoud vertaald',
             'johannschopplich.content-translator.notification.batchTranslated' => 'Inhoud vertaald voor geselecteerde talen',
             'johannschopplich.content-translator.notification.translating' => 'Inhoud wordt vertaald…',
-            'johannschopplich.content-translator.notification.batchTranslating' => 'Vertalen… {current}/{total} talen'
+            'johannschopplich.content-translator.notification.batchTranslating' => 'Vertalen… {current}/{total} talen',
+            'johannschopplich.content-translator.copilot.license.toast' => 'Vind je AI-vertalingen fijn? Activeer je Copilot-licentie.'
         ],
         'pt_PT' => [
             'johannschopplich.content-translator.label' => 'Tradutor de Conteúdo',
@@ -113,7 +117,8 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translated' => 'Conteúdo traduzido',
             'johannschopplich.content-translator.notification.batchTranslated' => 'Conteúdo traduzido para os idiomas selecionados',
             'johannschopplich.content-translator.notification.translating' => 'A traduzir conteúdo…',
-            'johannschopplich.content-translator.notification.batchTranslating' => 'A traduzir… {current}/{total} idiomas'
+            'johannschopplich.content-translator.notification.batchTranslating' => 'A traduzir… {current}/{total} idiomas',
+            'johannschopplich.content-translator.copilot.license.toast' => 'Gosta de traduções IA? Ative a sua licença Copilot.'
         ]
     ]
 );

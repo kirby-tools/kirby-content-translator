@@ -1,8 +1,22 @@
+import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { PluginConfig, TranslationProvider } from "../types";
-import { useDialog, usePanel } from "kirbyuse";
+import type { PluginContextResponse } from "../utils/copilot";
+import { isLocalDev, useDialog, usePanel } from "kirbyuse";
+import { STORAGE_KEY_PREFIX } from "../constants";
+import { resolveCopilot } from "../utils/copilot";
 import { usePluginContext } from "./plugin";
 import { getProviderAvailability } from "./translation";
+
+const AI_TRANSLATION_COUNT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}aiTranslationCount`;
+const LICENSE_TOAST_THRESHOLD = 3;
+
+const PROVIDER_LABELS: Record<string, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  google: "Google",
+  mistral: "Mistral",
+};
 
 export interface TranslationDialogResult {
   provider: TranslationProvider;
@@ -41,7 +55,8 @@ export function useTranslationDialogs(options: {
   /**
    * Determines the available translation provider(s) based on the configuration.
    */
-  function getProviderConfig(config: PluginConfig) {
+  async function getProviderConfig(config: PluginConfig) {
+    const copilot = resolveCopilot();
     const { hasDefaultProvider, hasMultipleProviders } =
       getProviderAvailability(config);
 
@@ -53,10 +68,26 @@ export function useTranslationDialogs(options: {
       ? "deepl"
       : "ai";
 
+    // Fetch Copilot context for provider name and license status
+    let copilotContext: PluginContextResponse | undefined;
+    if (copilot) {
+      try {
+        copilotContext = await copilot.resolvePluginContext();
+      } catch {
+        // Copilot context not available
+      }
+    }
+
+    const aiProviderKey = copilotContext?.config?.provider;
+    const aiProviderLabel = aiProviderKey
+      ? (PROVIDER_LABELS[aiProviderKey] ?? aiProviderKey)
+      : undefined;
+
     return {
       hasMultipleProviders,
       defaultProviderLabel,
       singleProvider,
+      aiProviderLabel,
     };
   }
 
@@ -64,8 +95,12 @@ export function useTranslationDialogs(options: {
     TranslationDialogResult | undefined
   > {
     const context = await usePluginContext();
-    const { hasMultipleProviders, defaultProviderLabel, singleProvider } =
-      getProviderConfig(context.config);
+    const {
+      hasMultipleProviders,
+      defaultProviderLabel,
+      singleProvider,
+      aiProviderLabel,
+    } = await getProviderConfig(context.config);
 
     if (!hasMultipleProviders) {
       return { provider: singleProvider };
@@ -93,9 +128,7 @@ export function useTranslationDialogs(options: {
             },
             {
               value: "ai",
-              text: panel.t(
-                "johannschopplich.content-translator.provider.copilot",
-              ),
+              text: aiProviderLabel ?? "AI",
               icon: "content-translator-ai",
             },
           ],
@@ -115,8 +148,12 @@ export function useTranslationDialogs(options: {
     BatchTranslationDialogResult | undefined
   > {
     const context = await usePluginContext();
-    const { hasMultipleProviders, defaultProviderLabel, singleProvider } =
-      getProviderConfig(context.config);
+    const {
+      hasMultipleProviders,
+      defaultProviderLabel,
+      singleProvider,
+      aiProviderLabel,
+    } = await getProviderConfig(context.config);
 
     const result = await openFieldsDialog({
       submitButton: {
@@ -155,9 +192,7 @@ export function useTranslationDialogs(options: {
               },
               {
                 value: "ai",
-                text: panel.t(
-                  "johannschopplich.content-translator.provider.copilot",
-                ),
+                text: aiProviderLabel ?? "AI",
                 icon: "content-translator-ai",
               },
             ],
@@ -180,11 +215,47 @@ export function useTranslationDialogs(options: {
     }
   }
 
+  async function showCopilotLicenseToastOnce() {
+    if (isLocalDev()) return;
+
+    const copilot = resolveCopilot();
+    if (!copilot) return;
+
+    const storedValue = sessionStorage.getItem(
+      AI_TRANSLATION_COUNT_STORAGE_KEY,
+    );
+    if (storedValue === "done") return;
+
+    let translationCount = Number(storedValue) || 0;
+    translationCount++;
+    sessionStorage.setItem(
+      AI_TRANSLATION_COUNT_STORAGE_KEY,
+      String(translationCount),
+    );
+
+    if (translationCount < LICENSE_TOAST_THRESHOLD) return;
+
+    const context = await copilot.resolvePluginContext();
+
+    // Only show toast for unlicensed users
+    if (["inactive", "invalid"].includes(context.licenseStatus!)) {
+      panel.notification.info({
+        icon: "key",
+        message: panel.t(
+          "johannschopplich.content-translator.copilot.license.toast",
+        ),
+      });
+    }
+
+    sessionStorage.setItem(AI_TRANSLATION_COUNT_STORAGE_KEY, "done");
+  }
+
   return {
     defaultLanguage,
     translationLanguages,
     openConfirmableTextDialog,
     openTranslationDialog,
     openBatchTranslationDialog,
+    showCopilotLicenseToastOnce,
   };
 }
