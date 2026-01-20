@@ -7,6 +7,7 @@ namespace JohannSchopplich\Licensing;
 use Kirby\Plugin\License as KirbyLicense;
 use Kirby\Plugin\LicenseStatus as KirbyLicenseStatus;
 use Kirby\Plugin\Plugin;
+use Kirby\Toolkit\I18n;
 
 /**
  * Integrates the custom license system for Kirby Tools plugins with Kirby's plugin license system.
@@ -17,7 +18,7 @@ use Kirby\Plugin\Plugin;
  */
 class PluginLicense extends KirbyLicense
 {
-    public const LICENSE_NAME = 'Kirby Tools License';
+    public const LICENSE_NAME = 'Kirby Tools Plugin License';
     public const LICENSE_URL = 'https://kirby.tools/license';
 
     public function __construct(
@@ -25,7 +26,7 @@ class PluginLicense extends KirbyLicense
         protected string $packageName
     ) {
         $licenses = Licenses::read($packageName);
-        $status = $this->mapToKirbyStatus($licenses->getStatus());
+        $status = $this->toKirbyStatus($licenses->getStatus());
 
         parent::__construct(
             plugin: $plugin,
@@ -35,38 +36,45 @@ class PluginLicense extends KirbyLicense
         );
     }
 
-    protected function mapToKirbyStatus(string $customStatus): KirbyLicenseStatus
+    protected function toKirbyStatus(string $customStatus): KirbyLicenseStatus
     {
+        $dialogPrefix = PluginLicenseExtensions::toPackageSlug($this->packageName);
+
         return match ($customStatus) {
-            'active' => new KirbyLicenseStatus(
-                value: 'active',
-                label: 'Licensed',
+            LicenseStatus::ACTIVE => new KirbyLicenseStatus(
+                value: LicenseStatus::ACTIVE,
+                label: I18n::translate('kirby-tools.license.status.active'),
                 icon: 'check',
-                theme: 'positive'
+                theme: 'positive',
+                dialog: "{$dialogPrefix}/license"
             ),
-            'inactive' => new KirbyLicenseStatus(
+            LicenseStatus::INACTIVE => new KirbyLicenseStatus(
                 value: 'missing',
-                label: 'Please buy a license',
+                label: I18n::translate('kirby-tools.license.status.inactive'),
                 icon: 'key',
-                theme: 'love'
+                theme: 'love',
+                dialog: "{$dialogPrefix}/activate"
             ),
-            'invalid' => new KirbyLicenseStatus(
-                value: 'invalid',
-                label: 'Invalid license',
+            LicenseStatus::INVALID => new KirbyLicenseStatus(
+                value: LicenseStatus::INVALID,
+                label: I18n::translate('kirby-tools.license.status.invalid'),
                 icon: 'alert',
-                theme: 'negative'
+                theme: 'negative',
+                dialog: "{$dialogPrefix}/activate"
             ),
-            'incompatible' => new KirbyLicenseStatus(
-                value: 'incompatible',
-                label: 'Incompatible license',
+            LicenseStatus::INCOMPATIBLE => new KirbyLicenseStatus(
+                value: LicenseStatus::INCOMPATIBLE,
+                label: I18n::translate('kirby-tools.license.status.incompatible'),
                 icon: 'alert',
-                theme: 'negative'
+                theme: 'negative',
+                dialog: "{$dialogPrefix}/license"
             ),
-            'upgradeable' => new KirbyLicenseStatus(
-                value: 'upgradeable',
-                label: 'License upgrade available',
+            LicenseStatus::UPGRADEABLE => new KirbyLicenseStatus(
+                value: LicenseStatus::UPGRADEABLE,
+                label: I18n::translate('kirby-tools.license.status.upgradeable'),
                 icon: 'refresh',
-                theme: 'notice'
+                theme: 'notice',
+                dialog: "{$dialogPrefix}/license"
             ),
             default => new KirbyLicenseStatus(
                 value: 'unknown',

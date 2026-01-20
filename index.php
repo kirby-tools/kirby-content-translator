@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App as Kirby;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
@@ -7,6 +8,7 @@ use Kirby\Cms\Site;
 
 @include_once __DIR__ . '/vendor/autoload.php';
 
+$packageName = 'johannschopplich/kirby-content-translator';
 $pluginConfig = [
     'name' => 'johannschopplich/content-translator',
     'extends' => [
@@ -15,29 +17,32 @@ $pluginConfig = [
         'translations' => require __DIR__ . '/src/extensions/translations.php',
         'siteMethods' => [
             'translator' => function (array $options = []) {
-                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+                return new Translator($this, $options);
             }
         ],
         'pageMethods' => [
             'translator' => function (array $options = []) {
-                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+                return new Translator($this, $options);
             }
         ],
         'fileMethods' => [
             'translator' => function (array $options = []) {
-                return new \JohannSchopplich\ContentTranslator\Translator($this, $options);
+                return new Translator($this, $options);
             }
         ]
     ]
 ];
 
-if (class_exists('\Kirby\Plugin\License')) {
+if (class_exists('Kirby\Plugin\License')) {
+    $pluginConfig['extends']['areas'] = [
+        'system' => fn () => [
+            'dialogs' => \JohannSchopplich\Licensing\PluginLicenseExtensions::dialogs($packageName, 'Kirby Content Translator')
+        ]
+    ];
+
     Kirby::plugin(
         ...$pluginConfig,
-        license: fn ($plugin) => new \JohannSchopplich\Licensing\PluginLicense(
-            plugin: $plugin,
-            packageName: 'johannschopplich/kirby-content-translator'
-        )
+        license: fn ($plugin) => new \JohannSchopplich\Licensing\PluginLicense($plugin, $packageName)
     );
 } else {
     Kirby::plugin(...$pluginConfig);
