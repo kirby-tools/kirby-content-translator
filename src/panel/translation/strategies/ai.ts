@@ -95,7 +95,10 @@ export class AIStrategy implements TranslationStrategy {
           }
         }
       } catch (error) {
-        console.error("Failed to translate chunk:", error);
+        console.error(
+          `Failed to translate chunk (${chunk.map((unit) => unit.fieldKey).join(", ")})`,
+        );
+        console.error(error);
         // Keep original texts (already in results)
       }
     }
@@ -107,12 +110,14 @@ export class AIStrategy implements TranslationStrategy {
 function buildTranslationPrompt(
   texts: string[],
   options: TranslationExecutionOptions,
-): string {
+) {
   const { sourceLanguage, targetLanguage, kirbyTags } = options;
   const hasKirbyTags = kirbyTags && Object.keys(kirbyTags).length > 0;
 
   const lines = [
+    // 1. Instructions
     `Translate ${texts.length} text(s) ${sourceLanguage ? `from ${sourceLanguage} ` : ""}to ${targetLanguage}.`,
+    // 2. Kirby tags config
     hasKirbyTags &&
       `
 <kirby_tags>
@@ -121,6 +126,7 @@ ${JSON.stringify(kirbyTags, undefined, 2)}
 
 For these Kirby tag types, translate ONLY the listed attributes. Preserve all other attributes unchanged.
 `.trim(),
+    // 3. Texts to translate
     `
 <texts>
 ${texts.map((text, i) => `<item index="${i}">${text}</item>`).join("\n")}

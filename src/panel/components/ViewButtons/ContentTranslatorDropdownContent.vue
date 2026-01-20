@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { PanelLanguageInfo } from "kirby-types";
 import type { PropType } from "vue";
 import type { PluginContextResponse, TranslatorOptions } from "../../types";
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
@@ -35,6 +36,7 @@ const {
   importFrom,
   allowBatchTranslation,
   shouldConfirm,
+  provider,
 
   // Runtime state
   fields,
@@ -47,8 +49,13 @@ const {
   batchTranslateModelContent,
 } = useContentTranslator();
 
-const { openConfirmableTextDialog, openBatchTranslationDialog } =
-  useTranslationDialogs({ batchTranslateModelContent });
+const {
+  openConfirmableTextDialog,
+  openTranslationDialog,
+  openBatchTranslationDialog,
+} = useTranslationDialogs({
+  defaultProvider: provider.value,
+});
 
 if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
   panel.notification.error(
@@ -76,16 +83,37 @@ const initializationPromise = (async () => {
   }
 })();
 
-function withInitialization(fn: (...args: unknown[]) => void) {
-  return async (...args: unknown[]) => {
+async function handleImport(sourceLanguage?: PanelLanguageInfo) {
+  const text = sourceLanguage
+    ? panel.t("johannschopplich.content-translator.dialog.importFrom", {
+        language: sourceLanguage.name,
+      })
+    : panel.t("johannschopplich.content-translator.dialog.import", {
+        language: defaultLanguage.name,
+      });
+
+  await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
     await initializationPromise;
-    fn(...args);
-  };
+    await syncModelContent(sourceLanguage);
+  });
 }
 
-async function invokeWhenInitialized(fn?: () => void) {
+async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
   await initializationPromise;
-  fn?.();
+  const result = await openTranslationDialog();
+  if (result) {
+    provider.value = result.provider;
+    await translateModelContent(panel.language, sourceLanguage);
+  }
+}
+
+async function handleBatchTranslate() {
+  await initializationPromise;
+  const result = await openBatchTranslationDialog();
+  if (result) {
+    provider.value = result.provider;
+    await batchTranslateModelContent(result.languages);
+  }
 }
 </script>
 
@@ -99,15 +127,7 @@ async function invokeWhenInitialized(fn?: () => void) {
           )"
           :key="language.code"
           icon="import"
-          @click="
-            openConfirmableTextDialog(
-              panel.t('johannschopplich.content-translator.dialog.importFrom', {
-                language: language.name,
-              }),
-              shouldConfirm,
-              withInitialization(() => syncModelContent(language)),
-            )
-          "
+          @click="handleImport(language)"
         >
           {{
             panel.t("johannschopplich.content-translator.importFrom", {
@@ -117,18 +137,7 @@ async function invokeWhenInitialized(fn?: () => void) {
         </k-dropdown-item>
         <hr />
       </template>
-      <k-dropdown-item
-        icon="translate"
-        @click="
-          openConfirmableTextDialog(
-            panel.t('johannschopplich.content-translator.dialog.translate', {
-              language: panel.language.name,
-            }),
-            shouldConfirm,
-            withInitialization(() => translateModelContent(panel.language)),
-          )
-        "
-      >
+      <k-dropdown-item icon="translate" @click="handleTranslate()">
         {{
           panel.t("johannschopplich.content-translator.translate", {
             language: panel.language.code?.toUpperCase(),
@@ -138,7 +147,7 @@ async function invokeWhenInitialized(fn?: () => void) {
       <k-dropdown-item
         v-if="allowBatchTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="invokeWhenInitialized(openBatchTranslationDialog)"
+        @click="handleBatchTranslate()"
       >
         {{
           panel.t("johannschopplich.content-translator.batchTranslate", {
@@ -157,15 +166,7 @@ async function invokeWhenInitialized(fn?: () => void) {
         <k-dropdown-item
           :disabled="panel.language.default"
           icon="import"
-          @click="
-            openConfirmableTextDialog(
-              panel.t('johannschopplich.content-translator.dialog.import', {
-                language: defaultLanguage.name,
-              }),
-              shouldConfirm,
-              withInitialization(() => syncModelContent()),
-            )
-          "
+          @click="handleImport()"
         >
           {{ panel.t("johannschopplich.content-translator.import") }}
         </k-dropdown-item>
@@ -175,17 +176,7 @@ async function invokeWhenInitialized(fn?: () => void) {
         v-if="!allowBatchTranslation || !panel.language.default"
         :disabled="panel.language.default"
         icon="translate"
-        @click="
-          openConfirmableTextDialog(
-            panel.t('johannschopplich.content-translator.dialog.translate', {
-              language: panel.language.name,
-            }),
-            shouldConfirm,
-            withInitialization(() =>
-              translateModelContent(panel.language, defaultLanguage),
-            ),
-          )
-        "
+        @click="handleTranslate(defaultLanguage)"
       >
         {{
           panel.t("johannschopplich.content-translator.translate", {
@@ -196,7 +187,7 @@ async function invokeWhenInitialized(fn?: () => void) {
       <k-dropdown-item
         v-if="allowBatchTranslation && panel.language.default"
         icon="content-translator-global"
-        @click="invokeWhenInitialized(openBatchTranslationDialog)"
+        @click="handleBatchTranslate()"
       >
         {{
           panel.t("johannschopplich.content-translator.batchTranslate", {

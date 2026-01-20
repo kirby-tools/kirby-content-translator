@@ -5,12 +5,12 @@ export const TRANSLATE_BATCH_API_ROUTE =
   "__content-translator__/translate-batch";
 export const TRANSLATE_KIRBYTEXT_API_ROUTE =
   "__content-translator__/translate-kirbytext";
-export const TRANSLATE_CONTENT_API_ROUTE =
-  "__content-translator__/translate-content";
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
-export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 4;
+export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 2;
+
+export const TRANSLATION_PROVIDERS = ["deepl", "ai"] as const;
 
 export const DEFAULT_FIELD_TYPES = [
   "blocks",

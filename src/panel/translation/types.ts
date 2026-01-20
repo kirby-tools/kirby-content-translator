@@ -3,8 +3,8 @@ import type { KirbyFieldProps } from "kirby-types";
 interface TranslationUnitBase {
   /** Text content to translate */
   text: string;
-  /** Field key for debugging */
-  fieldKey: string;
+  /** Field key, mostly for debugging purposes */
+  fieldKey?: string;
 }
 
 export interface BatchTranslationUnit extends TranslationUnitBase {
@@ -51,7 +51,7 @@ export interface CollectorResult {
 export interface TranslationExecutionOptions {
   sourceLanguage?: string;
   targetLanguage: string;
-  kirbyTags: Record<string, unknown>;
+  kirbyTags?: Record<string, unknown>;
 }
 
 /**

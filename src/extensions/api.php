@@ -4,12 +4,13 @@ use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyPlugins\FieldResolver;
 use JohannSchopplich\Licensing\Licenses;
+use JohannSchopplich\Licensing\PluginLicenseExtensions;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;
-use Kirby\Exception\NotFoundException;
 
 return [
     'routes' => fn (App $kirby) => [
+        ...PluginLicenseExtensions::api('johannschopplich/kirby-content-translator'),
         [
             'pattern' => '__content-translator__/context',
             'method' => 'GET',
@@ -124,103 +125,6 @@ return [
                 return [
                     'text' => $translatedText
                 ];
-            }
-        ],
-        [
-            'pattern' => '__content-translator__/translate-content',
-            'method' => 'POST',
-            'action' => function () use ($kirby) {
-                $request = $kirby->request();
-                $id = $request->get('id');
-                $toLanguageCode = $request->get('selectedLanguage');
-                $translateTitle = $request->get('title', false);
-                $translateSlug = $request->get('slug', false);
-
-                // Section-specific options
-                $fieldTypes = $request->get('fieldTypes');
-                $includeFields = $request->get('includeFields');
-                $excludeFields = $request->get('excludeFields');
-                $kirbyTags = $request->get('kirbyTags');
-
-                if (!$id) {
-                    throw new BadMethodCallException('Missing "id" parameter');
-                }
-
-                if (!$toLanguageCode) {
-                    throw new BadMethodCallException('Missing "selectedLanguage" parameter');
-                }
-
-                $model = $id === 'site'
-                    ? $kirby->site()
-                    : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
-
-                $fromLanguageCode = $kirby->defaultLanguage()->code();
-
-                // Build translator options from section configuration
-                $translatorOptions = array_filter([
-                    'fieldTypes' => $fieldTypes,
-                    'includeFields' => $includeFields,
-                    'excludeFields' => $excludeFields,
-                    'kirbyTags' => $kirbyTags,
-                ]);
-
-                if ($model::CLASS_ALIAS === 'site') {
-                    /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $kirby->site()->translator($translatorOptions);
-                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
-                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateTitle) {
-                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    }
-                } elseif ($model::CLASS_ALIAS === 'page') {
-                    /** @var \Kirby\Cms\Page */
-                    $page = $kirby->page($id);
-
-                    if (!$page) {
-                        throw new NotFoundException('Cannot find page with id "' . $id . '"');
-                    }
-
-                    /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $page->translator($translatorOptions);
-                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
-                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateTitle) {
-                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    }
-                    if ($translateSlug) {
-                        $translator->translateSlug($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    }
-                } else {
-                    $pageId = dirname($id);
-                    $filename = basename($id);
-                    /** @var \Kirby\Cms\Page */
-                    $page = $kirby->page($pageId);
-                    $file = $page->file($filename) ?? $kirby->site()->file($filename);
-
-                    if (!$file) {
-                        throw new NotFoundException('Cannot find file with id "' . $id . '"');
-                    }
-
-                    /** @var \JohannSchopplich\ContentTranslator\Translator */
-                    $translator = $file->translator($translatorOptions);
-                    $translator->copyContent($toLanguageCode, $fromLanguageCode);
-                    $translator->translateContent($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    if ($translateTitle) {
-                        $translator->translateTitle($toLanguageCode, $toLanguageCode, $fromLanguageCode);
-                    }
-                }
-
-                return [
-                    'status' => 'ok'
-                ];
-            }
-        ],
-        [
-            'pattern' => '__content-translator__/activate',
-            'method' => 'POST',
-            'action' => function () {
-                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
-                return $licenses->activateFromRequest();
             }
         ]
     ]

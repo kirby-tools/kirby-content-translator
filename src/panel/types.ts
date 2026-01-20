@@ -1,8 +1,12 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { KirbyFieldProps } from "kirby-types";
+import type { TRANSLATION_PROVIDERS } from "./constants";
 
 /** Loose boolean type for raw props coming from PHP/YAML */
 type BooleanInput = boolean | string | number | null;
+
+/** Available translation providers */
+export type TranslationProvider = (typeof TRANSLATION_PROVIDERS)[number];
 
 export interface PluginConfig {
   import?: boolean;
@@ -15,6 +19,7 @@ export interface PluginConfig {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, KirbyTagConfig>;
+  /** Concurrency for batch translations */
   batchConcurrency?: number;
   /** Whether a custom translate function is configured */
   translateFn?: boolean;
@@ -56,6 +61,7 @@ export interface TranslatorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, KirbyTagConfig>;
+  provider?: TranslationProvider;
   /** Only available when passed from section computed props */
   fields?: Record<string, KirbyFieldProps>;
 }

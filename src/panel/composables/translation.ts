@@ -9,18 +9,20 @@ import type {
   KirbyTagConfig,
   PluginConfig,
   PluginContextResponse,
+  TranslationProvider,
   TranslatorOptions,
 } from "../types";
 import slugify from "@sindresorhus/slugify";
 import { ref, useContent, useI18n, usePanel } from "kirbyuse";
-import pMap from "p-map";
+import pAll from "p-all";
 import {
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
   DEFAULT_FIELD_TYPES,
   TRANSLATE_API_ROUTE,
-  TRANSLATE_CONTENT_API_ROUTE,
+  TRANSLATION_PROVIDERS,
 } from "../constants";
-import { DeepLStrategy, translateContent } from "../translation";
+import { AIStrategy, DeepLStrategy, translateContent } from "../translation";
+import { resolveCopilot } from "../utils/copilot";
 import { filterSyncableContent } from "../utils/filter";
 import { useModel } from "./model";
 
@@ -42,6 +44,7 @@ export function useContentTranslator() {
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
   const kirbyTags = ref<Record<string, KirbyTagConfig>>({});
+  const provider = ref<TranslationProvider>("deepl");
 
   // Runtime state
   const fields = ref<Record<string, KirbyFieldProps>>();
@@ -81,6 +84,27 @@ export function useContentTranslator() {
     homePageId.value = context.homePageId;
     errorPageId.value = context.errorPageId;
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
+
+    // Determine available providers and set initial provider
+    const { hasDefaultProvider, hasMultipleProviders } =
+      getProviderAvailability(context.config);
+
+    // Validate and set provider
+    const requestedProvider = isValidProvider(options.provider)
+      ? options.provider
+      : undefined;
+
+    if (requestedProvider === "ai" && hasMultipleProviders) {
+      provider.value = "ai";
+    } else if (requestedProvider === "deepl" && hasDefaultProvider) {
+      provider.value = "deepl";
+    } else if (!hasDefaultProvider) {
+      // Only AI available
+      provider.value = "ai";
+    } else {
+      // Default to DeepL (translateFn or DeepL API)
+      provider.value = "deepl";
+    }
   }
 
   async function syncModelContent(
@@ -150,9 +174,12 @@ export function useContentTranslator() {
       JSON.stringify(currentContent.value),
     );
 
+    const strategy =
+      provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
+
     try {
       await translateContent(contentCopy, {
-        strategy: new DeepLStrategy(),
+        strategy,
         sourceLanguage: sourceLanguage?.code ?? undefined,
         targetLanguage: targetLanguage.code!,
         fieldTypes: fieldTypes.value,
@@ -177,25 +204,24 @@ export function useContentTranslator() {
       !_isHomePage &&
       !_isErrorPage;
 
-    if (translateTitle.value || shouldTranslateSlug) {
-      const { text } = await panel.api.post<{ text: string }>(
-        TRANSLATE_API_ROUTE,
-        {
-          sourceLanguage: sourceLanguage?.code,
-          targetLanguage: targetLanguage.code,
-          text: panel.view.title,
-        },
-      );
+    if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
+      const translatedTitle = await translateTitleText(panel.view.title, {
+        provider: provider.value,
+        targetLanguage: targetLanguage.code!,
+        sourceLanguage: sourceLanguage?.code ?? undefined,
+      });
 
       if (translateTitle.value) {
-        await panel.api.patch(`${panel.view.path}/title`, { title: text });
+        await panel.api.patch(`${panel.view.path}/title`, {
+          title: translatedTitle,
+        });
       }
 
       // Translating the slug is only possible for non-default languages,
       // as the page folder would be renamed otherwise.
       // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
       if (shouldTranslateSlug) {
-        const slug = slugify(text);
+        const slug = slugify(translatedTitle);
         await panel.api.patch(`${panel.view.path}/slug`, { slug });
       }
 
@@ -217,26 +243,14 @@ export function useContentTranslator() {
     panel.view.isLoading = true;
 
     const defaultLanguageData = await getModelData();
+    const strategy =
+      provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
 
     try {
-      await pMap(
+      await batchTranslateLanguages(
         selectedLanguages,
-        (language) =>
-          panel.api.post(TRANSLATE_CONTENT_API_ROUTE, {
-            selectedLanguage: language.code,
-            id: defaultLanguageData.id ?? "site",
-            title: translateTitle.value,
-            slug: translateSlug.value,
-            fieldTypes: fieldTypes.value,
-            includeFields: includeFields.value,
-            excludeFields: excludeFields.value,
-            kirbyTags: kirbyTags.value,
-          }),
-        {
-          concurrency:
-            config.value?.batchConcurrency ||
-            DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
-        },
+        defaultLanguageData,
+        strategy,
       );
 
       panel.notification.success(
@@ -253,6 +267,90 @@ export function useContentTranslator() {
 
     // Reload will also end loading state
     await panel.view.reload();
+  }
+
+  async function batchTranslateLanguages(
+    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
+    defaultLanguageData: PanelModelData,
+    strategy: AIStrategy | DeepLStrategy,
+  ) {
+    const defaultLanguage = panel.languages.find((lang) => lang.default)!;
+    const modelApiPath = panel.view.path;
+    const concurrency =
+      config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY;
+
+    await pAll(
+      selectedLanguages.map((targetLanguage) => async () => {
+        const syncableContent = filterSyncableContent(
+          defaultLanguageData.content,
+          {
+            fields: fields.value!,
+            fieldTypes: fieldTypes.value,
+            includeFields: includeFields.value,
+            excludeFields: excludeFields.value,
+          },
+        );
+
+        const contentCopy = JSON.parse(JSON.stringify(syncableContent));
+
+        await translateContent(contentCopy, {
+          strategy,
+          sourceLanguage: defaultLanguage.code,
+          targetLanguage: targetLanguage.code!,
+          fieldTypes: fieldTypes.value,
+          includeFields: includeFields.value,
+          excludeFields: excludeFields.value,
+          kirbyTags: kirbyTags.value,
+          fields: fields.value!,
+        });
+
+        await panel.api.patch(modelApiPath, contentCopy, {
+          headers: { "x-language": targetLanguage.code! },
+          silent: true,
+        });
+
+        const _isHomePage = defaultLanguageData.id === homePageId.value;
+        const _isErrorPage = defaultLanguageData.id === errorPageId.value;
+
+        if (translateTitle.value) {
+          const translatedTitle = await translateTitleText(
+            defaultLanguageData.title,
+            {
+              provider: provider.value,
+              targetLanguage: targetLanguage.code!,
+              sourceLanguage: defaultLanguage.code,
+            },
+          );
+          await panel.api.patch(
+            `${modelApiPath}/title`,
+            { title: translatedTitle },
+            {
+              headers: { "x-language": targetLanguage.code! },
+              silent: true,
+            },
+          );
+
+          // Translate slug for non-home/error pages
+          if (
+            translateSlug.value &&
+            !targetLanguage.default &&
+            !_isHomePage &&
+            !_isErrorPage
+          ) {
+            const slug = slugify(translatedTitle);
+            await panel.api.patch(
+              `${modelApiPath}/slug`,
+              { slug },
+              {
+                headers: { "x-language": targetLanguage.code! },
+                silent: true,
+              },
+            );
+          }
+        }
+      }),
+      { concurrency },
+    );
   }
 
   async function isHomePage() {
@@ -278,6 +376,7 @@ export function useContentTranslator() {
     includeFields,
     excludeFields,
     kirbyTags,
+    provider,
 
     // Runtime state
     fields,
@@ -290,6 +389,54 @@ export function useContentTranslator() {
     translateModelContent,
     batchTranslateModelContent,
   };
+}
+
+export function getProviderAvailability(config: PluginConfig) {
+  const isCopilotAvailable = !!resolveCopilot();
+  const hasDefaultProvider = !!(config.translateFn || config.DeepL?.apiKey);
+
+  return {
+    hasDefaultProvider,
+    hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
+  };
+}
+
+async function translateTitleText(
+  text: string,
+  {
+    provider,
+    targetLanguage,
+    sourceLanguage,
+  }: {
+    provider: TranslationProvider;
+    targetLanguage: string;
+    sourceLanguage?: string;
+  },
+): Promise<string> {
+  const panel = usePanel();
+
+  if (provider === "ai") {
+    const strategy = new AIStrategy();
+    const results = await strategy.execute(
+      [{ text, mode: "batch", fieldType: "text" }],
+      { sourceLanguage, targetLanguage },
+    );
+    return results[0] ?? text;
+  }
+
+  const { text: translatedText } = await panel.api.post<{ text: string }>(
+    TRANSLATE_API_ROUTE,
+    {
+      sourceLanguage,
+      targetLanguage,
+      text,
+    },
+  );
+  return translatedText;
+}
+
+function isValidProvider(value: unknown): value is TranslationProvider {
+  return TRANSLATION_PROVIDERS.includes(value as TranslationProvider);
 }
 
 /**

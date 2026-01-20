@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { PanelLanguageInfo } from "kirby-types";
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import { ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
@@ -29,6 +30,7 @@ const {
   importFrom,
   allowBatchTranslation,
   shouldConfirm,
+  provider,
 
   // Runtime state
   config,
@@ -41,8 +43,13 @@ const {
   batchTranslateModelContent,
 } = useContentTranslator();
 
-const { openConfirmableTextDialog, openBatchTranslationDialog } =
-  useTranslationDialogs({ batchTranslateModelContent });
+const {
+  openConfirmableTextDialog,
+  openTranslationDialog,
+  openBatchTranslationDialog,
+} = useTranslationDialogs({
+  defaultProvider: provider.value,
+});
 
 (async () => {
   const { load } = useSection();
@@ -58,6 +65,36 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
 
   isInitialized.value = true;
 })();
+
+async function handleImport(sourceLanguage?: PanelLanguageInfo) {
+  const text = sourceLanguage
+    ? panel.t("johannschopplich.content-translator.dialog.importFrom", {
+        language: sourceLanguage.name,
+      })
+    : panel.t("johannschopplich.content-translator.dialog.import", {
+        language: defaultLanguage.name,
+      });
+
+  await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
+    await syncModelContent(sourceLanguage);
+  });
+}
+
+async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
+  const result = await openTranslationDialog();
+  if (result) {
+    provider.value = result.provider;
+    await translateModelContent(panel.language, sourceLanguage);
+  }
+}
+
+async function handleBatchTranslate() {
+  const result = await openBatchTranslationDialog();
+  if (result) {
+    provider.value = result.provider;
+    await batchTranslateModelContent(result.languages);
+  }
+}
 </script>
 
 <template>
@@ -97,16 +134,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
             :key="language.code"
             icon="import"
             variant="filled"
-            @click="
-              openConfirmableTextDialog(
-                panel.t(
-                  'johannschopplich.content-translator.dialog.importFrom',
-                  { language: language.name },
-                ),
-                shouldConfirm,
-                () => syncModelContent(language),
-              )
-            "
+            @click="handleImport(language)"
           >
             {{
               panel.t("johannschopplich.content-translator.importFrom", {
@@ -119,15 +147,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
           icon="translate"
           variant="filled"
           theme="notice-icon"
-          @click="
-            openConfirmableTextDialog(
-              panel.t('johannschopplich.content-translator.dialog.translate', {
-                language: panel.language.name,
-              }),
-              shouldConfirm,
-              () => translateModelContent(panel.language),
-            )
-          "
+          @click="handleTranslate()"
         >
           {{
             panel.t("johannschopplich.content-translator.translate", {
@@ -140,7 +160,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
           icon="content-translator-global"
           variant="filled"
           theme="notice-icon"
-          @click="openBatchTranslationDialog()"
+          @click="handleBatchTranslate()"
         >
           {{
             panel.t("johannschopplich.content-translator.batchTranslate", {
@@ -161,15 +181,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
             :disabled="panel.language.default"
             icon="import"
             variant="filled"
-            @click="
-              openConfirmableTextDialog(
-                panel.t('johannschopplich.content-translator.dialog.import', {
-                  language: defaultLanguage.name,
-                }),
-                shouldConfirm,
-                () => syncModelContent(),
-              )
-            "
+            @click="handleImport()"
           >
             {{ panel.t("johannschopplich.content-translator.import") }}
           </k-button>
@@ -179,16 +191,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
             icon="translate"
             variant="filled"
             theme="notice-icon"
-            @click="
-              openConfirmableTextDialog(
-                panel.t(
-                  'johannschopplich.content-translator.dialog.translate',
-                  { language: panel.language.name },
-                ),
-                shouldConfirm,
-                () => translateModelContent(panel.language, defaultLanguage),
-              )
-            "
+            @click="handleTranslate(defaultLanguage)"
           >
             {{
               panel.t("johannschopplich.content-translator.translate", {
@@ -201,7 +204,7 @@ const { openConfirmableTextDialog, openBatchTranslationDialog } =
             icon="content-translator-global"
             variant="filled"
             theme="notice-icon"
-            @click="openBatchTranslationDialog()"
+            @click="handleBatchTranslate()"
           >
             {{
               panel.t("johannschopplich.content-translator.batchTranslate", {

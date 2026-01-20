@@ -15,6 +15,7 @@
 .env
 .license
 .kirby-tools-licenses
+/playground/site/plugins/kirby-copilot
 /playground/public/media/*
 /playground/storage/accounts/*
 /playground/storage/cache/*

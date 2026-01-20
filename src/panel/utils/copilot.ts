@@ -4,7 +4,7 @@ import type {
 } from "@ai-sdk/provider";
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { Output as OutputNamespace, StreamTextResult, ToolSet } from "ai";
-import type { PluginAsset } from "kirbyuse";
+import type { LogLevel, PluginAsset } from "kirbyuse";
 import { usePanel } from "kirbyuse";
 
 export type AISDKModule = typeof import("@ai-sdk/anthropic") &
@@ -12,9 +12,6 @@ export type AISDKModule = typeof import("@ai-sdk/anthropic") &
   typeof import("@ai-sdk/mistral") &
   typeof import("@ai-sdk/openai") &
   typeof import("ai");
-
-export const LOG_LEVELS = ["error", "warn", "info", "debug"] as const;
-export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export const REASONING_EFFORTS = ["none", "low", "medium", "high"] as const;
 export type ReasoningEffort = (typeof REASONING_EFFORTS)[number];
@@ -40,7 +37,7 @@ export interface PluginConfig {
   reasoningEffort?: ReasoningEffort;
   excludedBlocks?: string[];
   completion?: false | CompletionConfig;
-  logLevel?: LogLevel;
+  logLevel?: "error" | "warn" | "info" | "debug";
 }
 
 /** Response from `__copilot__/context` API endpoint. */
@@ -56,8 +53,12 @@ export interface StreamTextOptions {
   output?: OutputNamespace.Output;
   responseFormat?: OutputFormat;
   files?: File[];
-  logLevel?: number;
+  logLevel?: LogLevel;
   abortSignal?: AbortSignal;
+  /** Inject a language model directly (useful for testing). */
+  model?: LanguageModelV3;
+  /** Inject provider options directly (useful for testing). */
+  providerOptions?: SharedV3ProviderOptions;
 }
 
 export interface ResolveLanguageModelResult {

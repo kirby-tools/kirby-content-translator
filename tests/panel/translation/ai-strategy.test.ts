@@ -197,7 +197,7 @@ describe("AIStrategy", () => {
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
           userPrompt: expect.stringContaining(
-            "Translate ONLY the listed attributes",
+            "translate ONLY the listed attributes",
           ),
         }),
       );
