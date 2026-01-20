@@ -18,7 +18,6 @@ import pAll from "p-all";
 import {
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
   DEFAULT_FIELD_TYPES,
-  TRANSLATE_API_ROUTE,
   TRANSLATION_PROVIDERS,
 } from "../constants";
 import { AIStrategy, DeepLStrategy, translateContent } from "../translation";
@@ -214,7 +213,7 @@ export function useContentTranslator() {
       !_isErrorPage;
 
     if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
-      const translatedTitle = await translateTitleText(panel.view.title, {
+      const translatedTitle = await translateText(panel.view.title, {
         provider: provider.value,
         targetLanguage: targetLanguage.code!,
         sourceLanguage: sourceLanguage?.code ?? undefined,
@@ -348,7 +347,7 @@ export function useContentTranslator() {
         const _isErrorPage = defaultLanguageData.id === errorPageId.value;
 
         if (translateTitle.value) {
-          const translatedTitle = await translateTitleText(
+          const translatedTitle = await translateText(
             defaultLanguageData.title,
             {
               provider: provider.value,
@@ -439,7 +438,7 @@ export function getProviderAvailability(config: PluginConfig) {
   };
 }
 
-async function translateTitleText(
+async function translateText(
   text: string,
   {
     provider,
@@ -451,26 +450,12 @@ async function translateTitleText(
     sourceLanguage?: string;
   },
 ): Promise<string> {
-  const panel = usePanel();
-
-  if (provider === "ai") {
-    const strategy = new AIStrategy();
-    const results = await strategy.execute(
-      [{ text, mode: "batch", fieldType: "text" }],
-      { sourceLanguage, targetLanguage },
-    );
-    return results[0] ?? text;
-  }
-
-  const { text: translatedText } = await panel.api.post<{ text: string }>(
-    TRANSLATE_API_ROUTE,
-    {
-      sourceLanguage,
-      targetLanguage,
-      text,
-    },
+  const strategy = provider === "ai" ? new AIStrategy() : new DeepLStrategy();
+  const results = await strategy.execute(
+    [{ text, mode: "batch", fieldType: "text" }],
+    { sourceLanguage, targetLanguage },
   );
-  return translatedText;
+  return results[0] ?? text;
 }
 
 function isValidProvider(value: unknown): value is TranslationProvider {
