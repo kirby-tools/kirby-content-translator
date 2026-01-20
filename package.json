@@ -27,7 +27,7 @@
     "ai": "^6.0.39",
     "bumpp": "^10.4.0",
     "eslint": "^9.39.2",
-    "kirby-types": "^1.4.5",
+    "kirby-types": "^1.4.6",
     "kirbyup": "^3.4.1",
     "kirbyuse": "^1.2.12",
     "mprocs": "^0.8.2",

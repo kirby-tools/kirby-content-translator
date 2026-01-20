@@ -170,6 +170,15 @@ export function useContentTranslator() {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
+    panel.notification.open({
+      message: panel.t(
+        "johannschopplich.content-translator.notification.translating",
+      ),
+      icon: "loader",
+      theme: "info",
+      timeout: false,
+    });
+
     const contentCopy: Record<string, unknown> = JSON.parse(
       JSON.stringify(currentContent.value),
     );
@@ -242,6 +251,18 @@ export function useContentTranslator() {
     if (panel.view.isLoading) return;
     panel.view.isLoading = true;
 
+    const total = selectedLanguages.length;
+
+    panel.notification.open({
+      message: panel.t(
+        "johannschopplich.content-translator.notification.batchTranslating",
+        { current: 0, total },
+      ),
+      icon: "loader",
+      theme: "info",
+      timeout: false,
+    });
+
     const defaultLanguageData = await getModelData();
     const strategy =
       provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
@@ -251,6 +272,17 @@ export function useContentTranslator() {
         selectedLanguages,
         defaultLanguageData,
         strategy,
+        (current, total) => {
+          panel.notification.open({
+            message: panel.t(
+              "johannschopplich.content-translator.notification.batchTranslating",
+              { current, total },
+            ),
+            icon: "loader",
+            theme: "info",
+            timeout: false,
+          });
+        },
       );
 
       panel.notification.success(
@@ -273,11 +305,14 @@ export function useContentTranslator() {
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
     defaultLanguageData: PanelModelData,
     strategy: AIStrategy | DeepLStrategy,
+    onProgress?: (completed: number, total: number) => void,
   ) {
     const defaultLanguage = panel.languages.find((lang) => lang.default)!;
     const modelApiPath = panel.view.path;
     const concurrency =
       config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY;
+
+    let completed = 0;
 
     await pAll(
       selectedLanguages.map((targetLanguage) => async () => {
@@ -348,6 +383,9 @@ export function useContentTranslator() {
             );
           }
         }
+
+        completed++;
+        onProgress?.(completed, selectedLanguages.length);
       }),
       { concurrency },
     );
