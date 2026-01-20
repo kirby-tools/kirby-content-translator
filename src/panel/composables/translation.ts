@@ -85,13 +85,11 @@ export function useContentTranslator() {
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
     // Determine available providers and set initial provider
-    const { hasDefaultProvider, hasMultipleProviders } =
-      getProviderAvailability(context.config);
-
-    // Validate and set provider
     const requestedProvider = isValidProvider(options.provider)
       ? options.provider
       : undefined;
+    const { hasDefaultProvider, hasMultipleProviders } =
+      getProviderAvailability(context.config);
 
     if (requestedProvider === "ai" && hasMultipleProviders) {
       provider.value = "ai";
