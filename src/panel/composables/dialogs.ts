@@ -11,10 +11,10 @@ const AI_TRANSLATION_COUNT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}aiTranslationCoun
 const LICENSE_TOAST_THRESHOLD = 2;
 
 const PROVIDER_CONFIG: Record<string, { label: string; icon: string }> = {
-  openai: { label: "OpenAI", icon: "content-translator-openai" },
-  anthropic: { label: "Anthropic", icon: "content-translator-anthropic" },
-  google: { label: "Google", icon: "content-translator-google" },
-  mistral: { label: "Mistral", icon: "content-translator-mixtral" },
+  openai: { label: "GPT (OpenAI)", icon: "content-translator-openai" },
+  anthropic: { label: "Claude", icon: "content-translator-anthropic" },
+  google: { label: "Gemini", icon: "content-translator-google" },
+  mistral: { label: "Mistral AI", icon: "content-translator-mixtral" },
 };
 
 export interface TranslationDialogResult {

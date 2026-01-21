@@ -1,5 +1,15 @@
 import type { KirbyFieldProps } from "kirby-types";
 
+/**
+ * Language identifier for translation operations.
+ */
+export interface TranslationLanguage {
+  /** Language code (e.g., `en`, `de`) */
+  code: string;
+  /** Display name (e.g., `English`, `German`) */
+  name: string;
+}
+
 interface TranslationUnitBase {
   /** Text content to translate */
   text: string;
@@ -46,8 +56,8 @@ export interface CollectorResult {
  * Options passed to the translation strategy during execution.
  */
 export interface TranslationExecutionOptions {
-  sourceLanguage?: string;
-  targetLanguage: string;
+  sourceLanguage?: TranslationLanguage;
+  targetLanguage: TranslationLanguage;
   kirbyTags?: Record<string, unknown>;
 }
 
@@ -80,7 +90,7 @@ export interface CollectorOptions {
  */
 export interface TranslateContentOptions extends CollectorOptions {
   strategy: TranslationStrategy;
-  sourceLanguage?: string;
-  targetLanguage: string;
+  sourceLanguage?: TranslationLanguage;
+  targetLanguage: TranslationLanguage;
   kirbyTags: Record<string, unknown>;
 }

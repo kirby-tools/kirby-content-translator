@@ -22,7 +22,7 @@ vi.mock("p-all", () => ({
 // eslint-disable-next-line test/prefer-lowercase-title
 describe("DeepLStrategy", () => {
   const defaultOptions = {
-    targetLanguage: "de",
+    targetLanguage: { code: "de", name: "German" },
     kirbyTags: {},
   };
 
@@ -168,7 +168,7 @@ describe("DeepLStrategy", () => {
 
       await strategy.execute(units, {
         ...defaultOptions,
-        sourceLanguage: "en",
+        sourceLanguage: { code: "en", name: "English" },
       });
 
       expect(mockApiPost).toHaveBeenCalledWith(

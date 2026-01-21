@@ -57,8 +57,8 @@ export class DeepLStrategy implements TranslationStrategy {
       const response = await api.post<{ texts: string[] }>(
         TRANSLATE_BATCH_API_ROUTE,
         {
-          sourceLanguage: options.sourceLanguage,
-          targetLanguage: options.targetLanguage,
+          sourceLanguage: options.sourceLanguage?.code,
+          targetLanguage: options.targetLanguage.code,
           texts: batchUnits.map((unit) => unit.text),
         },
       );
@@ -75,8 +75,8 @@ export class DeepLStrategy implements TranslationStrategy {
           const response = await api.post<{ text: string }>(
             TRANSLATE_KIRBYTEXT_API_ROUTE,
             {
-              sourceLanguage: options.sourceLanguage,
-              targetLanguage: options.targetLanguage,
+              sourceLanguage: options.sourceLanguage?.code,
+              targetLanguage: options.targetLanguage.code,
               text: unit.text,
               kirbyTags: options.kirbyTags,
             },
@@ -98,8 +98,8 @@ export class DeepLStrategy implements TranslationStrategy {
           const response = await api.post<{ text: string }>(
             TRANSLATE_API_ROUTE,
             {
-              sourceLanguage: options.sourceLanguage,
-              targetLanguage: options.targetLanguage,
+              sourceLanguage: options.sourceLanguage?.code,
+              targetLanguage: options.targetLanguage.code,
               text: unit.text,
             },
           );

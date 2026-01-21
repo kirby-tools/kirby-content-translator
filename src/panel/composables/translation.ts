@@ -186,8 +186,8 @@ export function useContentTranslator() {
     try {
       await translateContent(contentCopy, {
         strategy,
-        sourceLanguage: sourceLanguage?.code ?? undefined,
-        targetLanguage: targetLanguage.code!,
+        sourceLanguage,
+        targetLanguage,
         fieldTypes: fieldTypes.value,
         includeFields: includeFields.value,
         excludeFields: excludeFields.value,
@@ -213,8 +213,8 @@ export function useContentTranslator() {
     if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
       const translatedTitle = await translateText(panel.view.title, {
         provider: provider.value,
-        targetLanguage: targetLanguage.code!,
-        sourceLanguage: sourceLanguage?.code ?? undefined,
+        targetLanguage,
+        sourceLanguage,
       });
 
       if (translateTitle.value) {
@@ -327,8 +327,8 @@ export function useContentTranslator() {
 
         await translateContent(contentCopy, {
           strategy,
-          sourceLanguage: defaultLanguage.code,
-          targetLanguage: targetLanguage.code!,
+          sourceLanguage: defaultLanguage,
+          targetLanguage,
           fieldTypes: fieldTypes.value,
           includeFields: includeFields.value,
           excludeFields: excludeFields.value,
@@ -349,8 +349,8 @@ export function useContentTranslator() {
             defaultLanguageData.title,
             {
               provider: provider.value,
-              targetLanguage: targetLanguage.code!,
-              sourceLanguage: defaultLanguage.code,
+              targetLanguage,
+              sourceLanguage: defaultLanguage,
             },
           );
           await panel.api.patch(
@@ -444,8 +444,8 @@ async function translateText(
     sourceLanguage,
   }: {
     provider: TranslationProvider;
-    targetLanguage: string;
-    sourceLanguage?: string;
+    targetLanguage: PanelLanguageInfo | PanelLanguage;
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
   },
 ): Promise<string> {
   const strategy = provider === "ai" ? new AIStrategy() : new DeepLStrategy();

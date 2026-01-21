@@ -28,7 +28,7 @@ describe("translateContent (integration)", () => {
 
   const defaultOptions = {
     strategy,
-    targetLanguage: "de",
+    targetLanguage: { code: "de", name: "German" },
     fieldTypes: ["text", "textarea", "blocks", "structure"] as const,
     kirbyTags: {},
     fields: {} as Record<string, KirbyFieldProps>,
@@ -123,7 +123,7 @@ describe("translateContent (integration)", () => {
     await translateContent(content, {
       ...defaultOptions,
       fields,
-      sourceLanguage: "en",
+      sourceLanguage: { code: "en", name: "English" },
     });
 
     expect(mockApiPost).toHaveBeenCalledWith(

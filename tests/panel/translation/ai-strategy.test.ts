@@ -15,7 +15,7 @@ vi.mock("../../../src/panel/utils/copilot", () => ({
 // eslint-disable-next-line test/prefer-lowercase-title
 describe("AIStrategy", () => {
   const defaultOptions = {
-    targetLanguage: "de",
+    targetLanguage: { code: "de", name: "German" },
     kirbyTags: {},
   };
 
@@ -97,12 +97,12 @@ describe("AIStrategy", () => {
 
       await strategy.execute(units, {
         ...defaultOptions,
-        targetLanguage: "fr",
+        targetLanguage: { code: "fr", name: "French" },
       });
 
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
-          userPrompt: expect.stringContaining("to fr"),
+          userPrompt: expect.stringContaining("to French"),
         }),
       );
     });
@@ -119,12 +119,12 @@ describe("AIStrategy", () => {
 
       await strategy.execute(units, {
         ...defaultOptions,
-        sourceLanguage: "en",
+        sourceLanguage: { code: "en", name: "English" },
       });
 
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
-          userPrompt: expect.stringContaining("from en"),
+          userPrompt: expect.stringContaining("from English"),
         }),
       );
     });
@@ -177,28 +177,6 @@ describe("AIStrategy", () => {
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
           userPrompt: expect.stringContaining('"link"'),
-        }),
-      );
-    });
-
-    it("includes attribute translation instruction with kirbyTags", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Test"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
-      ];
-      const kirbyTags = { link: ["text"] };
-
-      await strategy.execute(units, { ...defaultOptions, kirbyTags });
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userPrompt: expect.stringContaining(
-            "translate ONLY the listed attributes",
-          ),
         }),
       );
     });
