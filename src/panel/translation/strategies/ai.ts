@@ -7,7 +7,7 @@ import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
 
 const MAX_BATCH_SIZE = 50;
-const MAX_CHARS_PER_BATCH = 50_000;
+const MAX_CHARS_PER_BATCH = 100_000;
 
 const TRANSLATION_SYSTEM_PROMPT = `
 You are a professional translator for a Kirby CMS website.
