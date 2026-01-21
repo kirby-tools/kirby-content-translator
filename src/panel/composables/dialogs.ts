@@ -86,7 +86,7 @@ export function useTranslationDialogs(options: {
 
     const providerField = {
       type: "toggles",
-      label: panel.t("johannschopplich.content-translator.dialog.provider"),
+      label: panel.t("johannschopplich.content-translator.dialog.translateWith"),
       labels: true,
       grow: true,
       options: [
