@@ -201,8 +201,8 @@ describe("AIStrategy", () => {
     });
 
     it("splits large content into multiple chunks", async () => {
-      // Create text that exceeds maximum character limit
-      const largeText = "x".repeat(30000);
+      // Create text that exceeds maximum character limit (100k)
+      const largeText = "x".repeat(60000);
       mockStreamText
         .mockResolvedValueOnce({
           output: Promise.resolve({ translations: ["A"] }),
@@ -248,7 +248,7 @@ describe("AIStrategy", () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
-      const largeText = "x".repeat(30000);
+      const largeText = "x".repeat(60000);
       mockStreamText
         .mockRejectedValueOnce(new Error("First chunk failed"))
         .mockResolvedValueOnce({
