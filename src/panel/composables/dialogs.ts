@@ -10,11 +10,23 @@ import { getProviderAvailability } from "./translation";
 const AI_TRANSLATION_COUNT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}aiTranslationCount`;
 const LICENSE_TOAST_THRESHOLD = 2;
 
-const PROVIDER_CONFIG: Record<string, { label: string; icon: string }> = {
-  openai: { label: "GPT (OpenAI)", icon: "content-translator-openai" },
-  anthropic: { label: "Claude", icon: "content-translator-anthropic" },
-  google: { label: "Gemini", icon: "content-translator-google" },
-  mistral: { label: "Mistral AI", icon: "content-translator-mixtral" },
+const PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
+  openai: {
+    labelKey: "johannschopplich.content-translator.provider.openai",
+    icon: "content-translator-openai",
+  },
+  anthropic: {
+    labelKey: "johannschopplich.content-translator.provider.anthropic",
+    icon: "content-translator-anthropic",
+  },
+  google: {
+    labelKey: "johannschopplich.content-translator.provider.google",
+    icon: "content-translator-google",
+  },
+  mistral: {
+    labelKey: "johannschopplich.content-translator.provider.mistral",
+    icon: "content-translator-mistral",
+  },
 };
 
 export interface TranslationDialogResult {
@@ -103,9 +115,9 @@ export function useTranslationDialogs(options: {
         },
         {
           value: "ai",
-          text:
-            aiProviderConfig?.label ??
-            panel.t("johannschopplich.content-translator.provider.copilot"),
+          text: aiProviderConfig
+            ? panel.t(aiProviderConfig.labelKey)
+            : panel.t("johannschopplich.content-translator.provider.copilot"),
           // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
           icon: aiProviderConfig?.icon ?? "ai",
         },

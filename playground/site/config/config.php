@@ -21,7 +21,7 @@ return [
     ],
 
     'johannschopplich.copilot' => [
-        'provider' => 'google',
+        'provider' => 'openai',
         'providers' => [
             'openai' => [
                 'model' => 'gpt-5.2',
