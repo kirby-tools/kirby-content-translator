@@ -86,7 +86,9 @@ export function useTranslationDialogs(options: {
 
     const providerField = {
       type: "toggles",
-      label: panel.t("johannschopplich.content-translator.dialog.translateWith"),
+      label: panel.t(
+        "johannschopplich.content-translator.dialog.translateWith",
+      ),
       labels: true,
       grow: true,
       options: [
@@ -101,7 +103,9 @@ export function useTranslationDialogs(options: {
         },
         {
           value: "ai",
-          text: aiProviderConfig?.label ?? aiProviderKey ?? "AI (Copilot)",
+          text:
+            aiProviderConfig?.label ??
+            panel.t("johannschopplich.content-translator.provider.copilot"),
           // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
           icon: aiProviderConfig?.icon ?? "ai",
         },
@@ -157,7 +161,7 @@ export function useTranslationDialogs(options: {
       fields: {
         languages: {
           type: "checkboxes",
-          label: `${panel.t("johannschopplich.content-translator.translateTo")}:`,
+          label: panel.t("johannschopplich.content-translator.translateTo"),
           options: translationLanguages.map((language) => ({
             value: language.code,
             text: language.name,
