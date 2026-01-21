@@ -25,4 +25,4 @@ export const DEFAULT_FIELD_TYPES = [
   "table",
 ] as const;
 
-export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 4;
+export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 2;
