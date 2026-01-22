@@ -312,4 +312,51 @@ describe("AIStrategy", () => {
       expect(results).toEqual(["Batch", "Kirby", "Single"]);
     });
   });
+
+  describe("abort signal", () => {
+    it("skips all chunks when signal is pre-aborted", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "batch", fieldKey: "body" },
+      ];
+
+      const results = await strategy.execute(units, {
+        ...defaultOptions,
+        signal: controller.signal,
+      });
+
+      expect(mockStreamText).not.toHaveBeenCalled();
+      expect(results).toEqual(["Hello", "World"]);
+    });
+
+    it("stops processing remaining chunks after abort", async () => {
+      const controller = new AbortController();
+      const largeText = "x".repeat(60000);
+
+      // First chunk succeeds, then abort
+      mockStreamText.mockImplementationOnce(async () => {
+        controller.abort();
+        return { output: Promise.resolve({ translations: ["First"] }) };
+      });
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: largeText, mode: "batch", fieldKey: "a" },
+        { text: largeText, mode: "batch", fieldKey: "b" },
+      ];
+
+      const results = await strategy.execute(units, {
+        ...defaultOptions,
+        signal: controller.signal,
+      });
+
+      expect(mockStreamText).toHaveBeenCalledOnce();
+      expect(results[0]).toBe("First");
+      expect(results[1]).toBe(largeText); // Original kept
+    });
+  });
 });

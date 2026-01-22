@@ -142,4 +142,27 @@ describe("translateContent (integration)", () => {
       translateContent(content, { ...defaultOptions, fields }),
     ).rejects.toThrow("Translation failed");
   });
+
+  describe("abort signal", () => {
+    it("returns original content when signal is pre-aborted", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const content = { title: "Hello", subtitle: "World" };
+      const fields = {
+        title: field({ type: "text", name: "text" }),
+        subtitle: field({ type: "text", name: "text" }),
+      };
+
+      const result = await translateContent(content, {
+        ...defaultOptions,
+        fields,
+        signal: controller.signal,
+      });
+
+      expect(mockApiPost).not.toHaveBeenCalled();
+      expect(result).toBe(content);
+      expect(content).toEqual({ title: "Hello", subtitle: "World" });
+    });
+  });
 });

@@ -1,11 +1,21 @@
-import type { TranslateContentOptions } from "./types";
+import type {
+  CollectorOptions,
+  TranslationLanguage,
+  TranslationStrategy,
+} from "./types";
 import { collectTranslations } from "./collector";
 
 export * from "./strategies";
 
 export async function translateContent(
   obj: Record<string, unknown>,
-  options: TranslateContentOptions,
+  options: CollectorOptions & {
+    strategy: TranslationStrategy;
+    sourceLanguage?: TranslationLanguage;
+    targetLanguage: TranslationLanguage;
+    kirbyTags: Record<string, unknown>;
+    signal?: AbortSignal;
+  },
 ): Promise<Record<string, unknown>> {
   const {
     strategy,
@@ -16,7 +26,10 @@ export async function translateContent(
     fieldTypes,
     includeFields = [],
     excludeFields = [],
+    signal,
   } = options;
+
+  if (signal?.aborted) return obj;
 
   // Phase 1: Collect translation units and finalizers
   const { translations, finalizers } = collectTranslations(obj, {
@@ -26,9 +39,7 @@ export async function translateContent(
     excludeFields,
   });
 
-  if (translations.length === 0) {
-    return obj;
-  }
+  if (translations.length === 0) return obj;
 
   // Phase 2: Execute translations via strategy
   const results = await strategy.execute(
@@ -37,8 +48,12 @@ export async function translateContent(
       sourceLanguage,
       targetLanguage,
       kirbyTags,
+      signal,
     },
   );
+
+  // Skip applying results if aborted during execution
+  if (signal?.aborted) return obj;
 
   // Phase 3: Apply results back to content
   for (const [index, { apply }] of translations.entries()) {

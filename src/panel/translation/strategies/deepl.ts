@@ -37,6 +37,7 @@ export class DeepLStrategy implements TranslationStrategy {
     options: TranslationExecutionOptions,
   ) {
     const api = useApi();
+    const { signal } = options;
 
     // Build index map to preserve original order
     const indexMap = new Map<TranslationUnit, number>();
@@ -53,7 +54,7 @@ export class DeepLStrategy implements TranslationStrategy {
     const singleUnits = units.filter((unit) => unit.mode === "single");
 
     // Execute batch translation (single API call)
-    if (batchUnits.length > 0) {
+    if (batchUnits.length > 0 && !signal?.aborted) {
       const response = await api.post<{ texts: string[] }>(
         TRANSLATE_BATCH_API_ROUTE,
         {
@@ -69,7 +70,7 @@ export class DeepLStrategy implements TranslationStrategy {
     }
 
     // Execute kirbytext translations (parallel with concurrency limit)
-    if (kirbytextUnits.length > 0) {
+    if (kirbytextUnits.length > 0 && !signal?.aborted) {
       const kirbytextResults = await pAll(
         kirbytextUnits.map((unit) => async () => {
           const response = await api.post<{ text: string }>(
@@ -83,7 +84,7 @@ export class DeepLStrategy implements TranslationStrategy {
           );
           return { unit, text: response.text };
         }),
-        { concurrency: this.concurrency },
+        { concurrency: this.concurrency, signal },
       );
 
       for (const { unit, text } of kirbytextResults) {
@@ -92,7 +93,7 @@ export class DeepLStrategy implements TranslationStrategy {
     }
 
     // Execute single translations (parallel with concurrency limit)
-    if (singleUnits.length > 0) {
+    if (singleUnits.length > 0 && !signal?.aborted) {
       const singleResults = await pAll(
         singleUnits.map((unit) => async () => {
           const response = await api.post<{ text: string }>(
@@ -105,7 +106,7 @@ export class DeepLStrategy implements TranslationStrategy {
           );
           return { unit, text: response.text };
         }),
-        { concurrency: this.concurrency },
+        { concurrency: this.concurrency, signal },
       );
 
       for (const { unit, text } of singleResults) {

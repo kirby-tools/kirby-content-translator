@@ -76,6 +76,7 @@ export class AIStrategy implements TranslationStrategy {
       throw new Error("Kirby Copilot plugin is required for AI translations");
     }
 
+    const { signal } = options;
     const { loadAISDK, streamText } = copilot;
     const { Output } = await loadAISDK();
 
@@ -86,6 +87,9 @@ export class AIStrategy implements TranslationStrategy {
     const chunks = chunkUnitsWithIndices(units);
 
     for (const chunk of chunks) {
+      // Stop processing if aborted
+      if (signal?.aborted) break;
+
       try {
         const schema = z.strictObject({
           translations: z.array(z.string()),

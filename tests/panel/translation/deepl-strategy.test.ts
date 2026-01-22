@@ -199,4 +199,50 @@ describe("DeepLStrategy", () => {
       expect(strategy).toBeInstanceOf(DeepLStrategy);
     });
   });
+
+  describe("abort signal", () => {
+    it("skips all API calls when signal is pre-aborted", async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "kirbytext", fieldKey: "body" },
+        { text: "Test", mode: "single", fieldKey: "cell" },
+      ];
+
+      const results = await strategy.execute(units, {
+        ...defaultOptions,
+        signal: controller.signal,
+      });
+
+      expect(mockApiPost).not.toHaveBeenCalled();
+      expect(results).toEqual(["Hello", "World", "Test"]);
+    });
+
+    it("skips remaining modes after signal is aborted", async () => {
+      const controller = new AbortController();
+
+      // Abort after batch completes
+      mockApiPost.mockImplementationOnce(async () => {
+        controller.abort();
+        return { texts: ["Hallo"] };
+      });
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+        { text: "World", mode: "kirbytext", fieldKey: "body" },
+      ];
+
+      const results = await strategy.execute(units, {
+        ...defaultOptions,
+        signal: controller.signal,
+      });
+
+      expect(mockApiPost).toHaveBeenCalledOnce();
+      expect(results).toEqual(["Hallo", "World"]);
+    });
+  });
 });

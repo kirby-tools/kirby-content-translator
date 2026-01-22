@@ -59,6 +59,7 @@ export interface TranslationExecutionOptions {
   sourceLanguage?: TranslationLanguage;
   targetLanguage: TranslationLanguage;
   kirbyTags?: Record<string, unknown>;
+  signal?: AbortSignal;
 }
 
 /**
@@ -83,14 +84,4 @@ export interface CollectorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   fields: Record<string, KirbyFieldProps>;
-}
-
-/**
- * Full options for the translateContent function.
- */
-export interface TranslateContentOptions extends CollectorOptions {
-  strategy: TranslationStrategy;
-  sourceLanguage?: TranslationLanguage;
-  targetLanguage: TranslationLanguage;
-  kirbyTags: Record<string, unknown>;
 }
