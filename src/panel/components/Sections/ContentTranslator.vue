@@ -5,7 +5,10 @@ import { ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
 import { useTranslationDialogs } from "../../composables/dialogs";
 import { usePluginContext } from "../../composables/plugin";
-import { useContentTranslator } from "../../composables/translation";
+import {
+  useContentTranslator,
+  useTranslationState,
+} from "../../composables/translation";
 
 const propsDefinition = {
   ...section,
@@ -20,6 +23,8 @@ export default {
 const props = defineProps(propsDefinition);
 
 const panel = usePanel();
+const { isTranslating } = useTranslationState();
+
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 const isInitialized = ref(false);
 
@@ -135,6 +140,7 @@ async function handleBatchTranslate() {
               (language) => language.code !== panel.language.code,
             )"
             :key="language.code"
+            :disabled="isTranslating"
             icon="import"
             variant="filled"
             @click="handleImport(language)"
@@ -147,7 +153,8 @@ async function handleBatchTranslate() {
           </k-button>
         </template>
         <k-button
-          icon="translate"
+          :disabled="isTranslating"
+          :icon="isTranslating ? 'loader' : 'translate'"
           variant="filled"
           theme="notice-icon"
           @click="handleTranslate()"
@@ -160,7 +167,8 @@ async function handleBatchTranslate() {
         </k-button>
         <k-button
           v-if="allowBatchTranslation && panel.language.default"
-          icon="content-translator-global"
+          :disabled="isTranslating"
+          :icon="isTranslating ? 'loader' : 'content-translator-global'"
           variant="filled"
           theme="notice-icon"
           @click="handleBatchTranslate()"
@@ -181,7 +189,7 @@ async function handleBatchTranslate() {
             v-if="
               allowImport && (!allowBatchTranslation || !panel.language.default)
             "
-            :disabled="panel.language.default"
+            :disabled="panel.language.default || isTranslating"
             icon="import"
             variant="filled"
             @click="handleImport()"
@@ -190,8 +198,8 @@ async function handleBatchTranslate() {
           </k-button>
           <k-button
             v-if="!allowBatchTranslation || !panel.language.default"
-            :disabled="panel.language.default"
-            icon="translate"
+            :disabled="panel.language.default || isTranslating"
+            :icon="isTranslating ? 'loader' : 'translate'"
             variant="filled"
             theme="notice-icon"
             @click="handleTranslate(defaultLanguage)"
@@ -204,7 +212,8 @@ async function handleBatchTranslate() {
           </k-button>
           <k-button
             v-if="allowBatchTranslation && panel.language.default"
-            icon="content-translator-global"
+            :disabled="isTranslating"
+            :icon="isTranslating ? 'loader' : 'content-translator-global'"
             variant="filled"
             theme="notice-icon"
             @click="handleBatchTranslate()"

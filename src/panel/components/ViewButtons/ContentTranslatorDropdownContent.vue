@@ -6,7 +6,10 @@ import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "../../composables/dialogs";
 import { useModel } from "../../composables/model";
-import { useContentTranslator } from "../../composables/translation";
+import {
+  useContentTranslator,
+  useTranslationState,
+} from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
 export default {
@@ -27,8 +30,10 @@ const props = defineProps({
 });
 
 const panel = usePanel();
-const defaultLanguage = panel.languages.find((language) => language.default)!;
 const { getModelData } = useModel();
+const { isTranslating } = useTranslationState();
+
+const defaultLanguage = panel.languages.find((language) => language.default)!;
 
 const {
   // Configuration state
@@ -129,6 +134,7 @@ async function handleBatchTranslate() {
             (language) => language.code !== panel.language.code,
           )"
           :key="language.code"
+          :disabled="isTranslating"
           icon="import"
           @click="handleImport(language)"
         >
@@ -140,7 +146,11 @@ async function handleBatchTranslate() {
         </k-dropdown-item>
         <hr />
       </template>
-      <k-dropdown-item icon="translate" @click="handleTranslate()">
+      <k-dropdown-item
+        :disabled="isTranslating"
+        icon="translate"
+        @click="handleTranslate()"
+      >
         {{
           panel.t("johannschopplich.content-translator.translate", {
             language: panel.language.code?.toUpperCase(),
@@ -149,6 +159,7 @@ async function handleBatchTranslate() {
       </k-dropdown-item>
       <k-dropdown-item
         v-if="allowBatchTranslation && panel.language.default"
+        :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
       >
@@ -167,7 +178,7 @@ async function handleBatchTranslate() {
         "
       >
         <k-dropdown-item
-          :disabled="panel.language.default"
+          :disabled="panel.language.default || isTranslating"
           icon="import"
           @click="handleImport()"
         >
@@ -177,7 +188,7 @@ async function handleBatchTranslate() {
       </template>
       <k-dropdown-item
         v-if="!allowBatchTranslation || !panel.language.default"
-        :disabled="panel.language.default"
+        :disabled="panel.language.default || isTranslating"
         icon="translate"
         @click="handleTranslate(defaultLanguage)"
       >
@@ -189,6 +200,7 @@ async function handleBatchTranslate() {
       </k-dropdown-item>
       <k-dropdown-item
         v-if="allowBatchTranslation && panel.language.default"
+        :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
       >

@@ -24,12 +24,25 @@ import { AIStrategy, DeepLStrategy, translateContent } from "../translation";
 import { resolveCopilot } from "../utils/copilot";
 import { filterSyncableContent } from "../utils/filter";
 import { useModel } from "./model";
+import { createGlobalState } from "./state";
+
+/**
+ * Global translation state shared across all component instances.
+ */
+export const useTranslationState = createGlobalState(() => {
+  const isTranslating = ref(false);
+
+  return {
+    isTranslating,
+  };
+});
 
 export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
   const { getModelData } = useModel();
+  const { isTranslating } = useTranslationState();
 
   // Configuration state
   const label = ref<string>();
@@ -164,8 +177,9 @@ export function useContentTranslator() {
     targetLanguage: PanelLanguageInfo | PanelLanguage,
     sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
-    if (panel.view.isLoading) return;
+    if (panel.view.isLoading || isTranslating.value) return;
     panel.view.isLoading = true;
+    isTranslating.value = true;
 
     panel.notification.open({
       message: panel.t(
@@ -176,14 +190,14 @@ export function useContentTranslator() {
       timeout: false,
     });
 
-    const contentCopy: Record<string, unknown> = JSON.parse(
-      JSON.stringify(currentContent.value),
-    );
-
-    const strategy =
-      provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
-
     try {
+      const contentCopy: Record<string, unknown> = JSON.parse(
+        JSON.stringify(currentContent.value),
+      );
+
+      const strategy =
+        provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
+
       await translateContent(contentCopy, {
         strategy,
         sourceLanguage,
@@ -194,59 +208,62 @@ export function useContentTranslator() {
         kirbyTags: kirbyTags.value,
         fields: fields.value!,
       });
+
+      await updateContent(contentCopy);
+      const _isHomePage = await isHomePage();
+      const _isErrorPage = await isErrorPage();
+      const shouldTranslateSlug =
+        translateSlug.value &&
+        !targetLanguage.default &&
+        !_isHomePage &&
+        !_isErrorPage;
+
+      if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
+        const translatedTitle = await translateText(panel.view.title, {
+          provider: provider.value,
+          targetLanguage,
+          sourceLanguage,
+        });
+
+        if (translateTitle.value) {
+          await panel.api.patch(`${panel.view.path}/title`, {
+            title: translatedTitle,
+          });
+        }
+
+        // Translating the slug is only possible for non-default languages,
+        // as the page folder would be renamed otherwise.
+        // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
+        if (shouldTranslateSlug) {
+          const slug = slugify(translatedTitle);
+          await panel.api.patch(`${panel.view.path}/slug`, { slug });
+        }
+
+        isTranslating.value = false;
+        // Reload will also end Panel loading state
+        await panel.view.reload();
+      } else {
+        isTranslating.value = false;
+        panel.view.isLoading = false;
+      }
+
+      panel.notification.success(
+        panel.t("johannschopplich.content-translator.notification.translated"),
+      );
     } catch (error) {
+      isTranslating.value = false;
       panel.view.isLoading = false;
       console.error("Failed to translate content:", error);
       panel.notification.error((error as Error).message);
-      return;
     }
-
-    await updateContent(contentCopy);
-    const _isHomePage = await isHomePage();
-    const _isErrorPage = await isErrorPage();
-    const shouldTranslateSlug =
-      translateSlug.value &&
-      !targetLanguage.default &&
-      !_isHomePage &&
-      !_isErrorPage;
-
-    if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
-      const translatedTitle = await translateText(panel.view.title, {
-        provider: provider.value,
-        targetLanguage,
-        sourceLanguage,
-      });
-
-      if (translateTitle.value) {
-        await panel.api.patch(`${panel.view.path}/title`, {
-          title: translatedTitle,
-        });
-      }
-
-      // Translating the slug is only possible for non-default languages,
-      // as the page folder would be renamed otherwise.
-      // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-      if (shouldTranslateSlug) {
-        const slug = slugify(translatedTitle);
-        await panel.api.patch(`${panel.view.path}/slug`, { slug });
-      }
-
-      // Reload will also end loading state
-      await panel.view.reload();
-    } else {
-      panel.view.isLoading = false;
-    }
-
-    panel.notification.success(
-      panel.t("johannschopplich.content-translator.notification.translated"),
-    );
   }
 
   async function batchTranslateModelContent(
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
   ) {
-    if (panel.view.isLoading) return;
+    if (panel.view.isLoading || isTranslating.value) return;
     panel.view.isLoading = true;
+    isTranslating.value = true;
 
     const total = selectedLanguages.length;
 
@@ -287,15 +304,16 @@ export function useContentTranslator() {
           "johannschopplich.content-translator.notification.batchTranslated",
         ),
       );
+
+      isTranslating.value = false;
+      // Reload will also end Panel loading state
+      await panel.view.reload();
     } catch (error) {
+      isTranslating.value = false;
       panel.view.isLoading = false;
       console.error("Failed to batch translate content:", error);
       panel.notification.error((error as Error).message);
-      return;
     }
-
-    // Reload will also end loading state
-    await panel.view.reload();
   }
 
   async function batchTranslateLanguages(

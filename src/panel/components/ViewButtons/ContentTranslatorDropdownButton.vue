@@ -7,6 +7,7 @@ import type {
 } from "../../types";
 import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
+import { useTranslationState } from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
 
 const props = defineProps({
@@ -60,12 +61,10 @@ const props = defineProps({
 
 const _isKirby5 = isKirby5();
 const panel = usePanel();
+const { isTranslating } = useTranslationState();
+
 const dropdownContent = ref();
 const context = ref<PluginContextResponse>();
-
-function toggle() {
-  dropdownContent.value.toggle();
-}
 
 (async () => {
   context.value = await usePluginContext();
@@ -76,6 +75,10 @@ function toggle() {
     );
   }
 })();
+
+function toggle() {
+  dropdownContent.value.toggle();
+}
 </script>
 
 <template>
@@ -85,7 +88,7 @@ function toggle() {
       :text="
         label || panel.t('johannschopplich.content-translator.viewButton.label')
       "
-      icon="content-translator-global"
+      :icon="isTranslating ? 'loader' : 'content-translator-global'"
       responsive="text"
       :theme="theme"
       variant="filled"
