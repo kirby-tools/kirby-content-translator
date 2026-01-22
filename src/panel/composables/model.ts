@@ -27,7 +27,7 @@ export function useModel() {
       id,
       { language: defaultLanguage?.code },
       undefined,
-      // Silent
+      // Avoid showing Panel loading indicator
       true,
     );
 

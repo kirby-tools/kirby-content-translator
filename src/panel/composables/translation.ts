@@ -130,7 +130,7 @@ export function useContentTranslator() {
         panel.view.path,
         { language: language.code },
         undefined,
-        // Silent
+        // Avoid showing Panel loading indicator
         true,
       );
       title = data.title;

@@ -79,7 +79,7 @@ const initializationPromise = (async () => {
     MODEL_FIELDS_API_ROUTE,
     { id: defaultLanguageData.id ?? "site" },
     undefined,
-    // Silent
+    // Avoid showing Panel loading indicator
     true,
   );
 
