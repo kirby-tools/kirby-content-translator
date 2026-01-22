@@ -52,24 +52,24 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.7.4",
-            "version_normalized": "0.7.4.0",
+            "version": "0.8.0",
+            "version_normalized": "0.8.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "eb9f866b5ad9df01f20ded1e752b4046ca938666"
+                "reference": "264afecb5c72e86ea52f6e7c792a5d611eb325f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/eb9f866b5ad9df01f20ded1e752b4046ca938666",
-                "reference": "eb9f866b5ad9df01f20ded1e752b4046ca938666",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/264afecb5c72e86ea52f6e7c792a5d611eb325f1",
+                "reference": "264afecb5c72e86ea52f6e7c792a5d611eb325f1",
                 "shasum": ""
             },
             "require-dev": {
                 "getkirby/cms": "^5",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2025-07-11T12:37:14+00:00",
+            "time": "2026-01-20T05:52:03+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -95,7 +95,7 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.7.4"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.8.0"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         }
