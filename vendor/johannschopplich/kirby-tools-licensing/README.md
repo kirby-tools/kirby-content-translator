@@ -25,7 +25,7 @@ The main licensing engine that:
 
 - Reads and writes license data to `.kirby-tools-licenses` file
 - Communicates with the Kirby Tools API at `https://repo.kirby.tools/api`
-- Validates license keys using the pattern `KT{version}-{hash}-{hash}`
+- Validates license keys using the pattern `KT{generation}-{hash}-{hash}`
 - Manages license status: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
 - Handles license activation via email and order ID
 

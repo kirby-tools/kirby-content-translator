@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-tools-licensing",
   "description": "License system backend for Kirby Tools plugins",
   "type": "library",
-  "version": "0.7.4",
+  "version": "0.8.0",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
   "authors": [
