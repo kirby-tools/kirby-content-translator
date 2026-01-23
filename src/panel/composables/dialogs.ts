@@ -7,7 +7,8 @@ import { resolveCopilot } from "../utils/copilot";
 import { usePluginContext } from "./plugin";
 import { getProviderAvailability } from "./translation";
 
-const AI_TRANSLATION_COUNT_STORAGE_KEY = `${STORAGE_KEY_PREFIX}aiTranslationCount`;
+const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}session$licenseToastCount`;
+const PROVIDER_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
 const LICENSE_TOAST_THRESHOLD = 2;
 
 const PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
@@ -38,9 +39,11 @@ export interface BatchTranslationDialogResult {
   languages: (PanelLanguageInfo | PanelLanguage)[];
 }
 
-export function useTranslationDialogs(options: {
+export interface TranslationDialogsOptions {
   defaultProvider: TranslationProvider;
-}) {
+}
+
+export function useTranslationDialogs(options: TranslationDialogsOptions) {
   const panel = usePanel();
   const { openFieldsDialog, openTextDialog } = useDialog();
 
@@ -148,11 +151,12 @@ export function useTranslationDialogs(options: {
         provider: providerField,
       },
       value: {
-        provider: options.defaultProvider,
+        provider: getStoredProvider(options),
       },
     });
 
     if (result?.provider) {
+      storeProviderPreference(result.provider);
       return { provider: result.provider };
     }
   }
@@ -186,12 +190,15 @@ export function useTranslationDialogs(options: {
         ...(providerField && { provider: providerField }),
       },
       value: {
-        provider: options.defaultProvider,
+        provider: getStoredProvider(options),
         languages: translationLanguages.map((language) => language.code),
       },
     });
 
     if (result?.languages?.length) {
+      if (result.provider) {
+        storeProviderPreference(result.provider);
+      }
       return {
         provider: result.provider ?? singleProvider,
         languages: translationLanguages.filter((language) =>
@@ -207,17 +214,12 @@ export function useTranslationDialogs(options: {
     const copilot = resolveCopilot();
     if (!copilot) return;
 
-    const storedValue = sessionStorage.getItem(
-      AI_TRANSLATION_COUNT_STORAGE_KEY,
-    );
+    const storedValue = sessionStorage.getItem(LICENSE_TOAST_COUNT_KEY);
     if (storedValue === "done") return;
 
     let translationCount = Number(storedValue) || 0;
     translationCount++;
-    sessionStorage.setItem(
-      AI_TRANSLATION_COUNT_STORAGE_KEY,
-      String(translationCount),
-    );
+    sessionStorage.setItem(LICENSE_TOAST_COUNT_KEY, String(translationCount));
 
     if (translationCount < LICENSE_TOAST_THRESHOLD) return;
 
@@ -233,7 +235,7 @@ export function useTranslationDialogs(options: {
       });
     }
 
-    sessionStorage.setItem(AI_TRANSLATION_COUNT_STORAGE_KEY, "done");
+    sessionStorage.setItem(LICENSE_TOAST_COUNT_KEY, "done");
   }
 
   return {
@@ -244,4 +246,18 @@ export function useTranslationDialogs(options: {
     openBatchTranslationDialog,
     showCopilotLicenseToastOnce,
   };
+}
+
+function getStoredProvider(
+  options: TranslationDialogsOptions,
+): TranslationProvider {
+  const providerPreference = localStorage.getItem(PROVIDER_PREFERENCE_KEY);
+  if (providerPreference === "deepl" || providerPreference === "ai") {
+    return providerPreference;
+  }
+  return options.defaultProvider;
+}
+
+function storeProviderPreference(provider: TranslationProvider) {
+  localStorage.setItem(PROVIDER_PREFERENCE_KEY, provider);
 }
