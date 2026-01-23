@@ -7,4 +7,6 @@ procs:
   composer:
     shell: composer dev
     stop: SIGKILL
+    env:
+      DEMO: "false"
     autostart: true
