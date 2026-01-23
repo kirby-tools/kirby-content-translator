@@ -39,11 +39,7 @@ export interface BatchTranslationDialogResult {
   languages: (PanelLanguageInfo | PanelLanguage)[];
 }
 
-export interface TranslationDialogsOptions {
-  defaultProvider: TranslationProvider;
-}
-
-export function useTranslationDialogs(options: TranslationDialogsOptions) {
+export function useTranslationDialogs() {
   const panel = usePanel();
   const { openFieldsDialog, openTextDialog } = useDialog();
 
@@ -66,77 +62,13 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
     if (isOk) callback?.();
   }
 
-  /**
-   * Determines the available translation provider(s) and builds the provider
-   * field definition for dialogs.
-   */
-  async function getProviderConfig() {
-    const context = await usePluginContext();
-    const copilot = resolveCopilot();
-    const { hasDefaultProvider, hasMultipleProviders } =
-      getProviderAvailability(context.config);
-
-    const singleProvider: TranslationProvider = hasDefaultProvider
-      ? "deepl"
-      : "ai";
-
-    if (!hasMultipleProviders) {
-      return { singleProvider, providerField: undefined };
-    }
-
-    // Fetch Copilot context for provider name
-    let copilotContext: PluginContextResponse | undefined;
-    if (copilot) {
-      try {
-        copilotContext = await copilot.resolvePluginContext();
-      } catch {
-        // Copilot context not available
-      }
-    }
-
-    const aiProviderKey = copilotContext?.config?.provider;
-    const aiProviderConfig = aiProviderKey
-      ? PROVIDER_CONFIG[aiProviderKey]
-      : undefined;
-
-    const providerField = {
-      type: "toggles",
-      label: panel.t(
-        "johannschopplich.content-translator.dialog.translateWith",
-      ),
-      labels: true,
-      grow: true,
-      options: [
-        {
-          value: "deepl",
-          text: panel.t(
-            context.config.translateFn
-              ? "johannschopplich.content-translator.provider.custom"
-              : "johannschopplich.content-translator.provider.deepl",
-          ),
-          icon: "translate",
-        },
-        {
-          value: "ai",
-          text: aiProviderConfig
-            ? panel.t(aiProviderConfig.labelKey)
-            : panel.t("johannschopplich.content-translator.provider.copilot"),
-          // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
-          icon: aiProviderConfig?.icon ?? "ai",
-        },
-      ],
-    };
-
-    return { singleProvider, providerField };
-  }
-
   async function openTranslationDialog(): Promise<
     TranslationDialogResult | undefined
   > {
-    const { singleProvider, providerField } = await getProviderConfig();
+    const { provider, providerField } = await getProviderConfig();
 
     if (!providerField) {
-      return { provider: singleProvider };
+      return { provider };
     }
 
     const result = await openFieldsDialog({
@@ -151,7 +83,7 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
         provider: providerField,
       },
       value: {
-        provider: getStoredProvider(options),
+        provider,
       },
     });
 
@@ -164,7 +96,7 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
   async function openBatchTranslationDialog(): Promise<
     BatchTranslationDialogResult | undefined
   > {
-    const { singleProvider, providerField } = await getProviderConfig();
+    const { provider, providerField } = await getProviderConfig();
 
     const result = await openFieldsDialog({
       submitButton: {
@@ -190,7 +122,7 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
         ...(providerField && { provider: providerField }),
       },
       value: {
-        provider: getStoredProvider(options),
+        provider,
         languages: translationLanguages.map((language) => language.code),
       },
     });
@@ -200,7 +132,7 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
         storeProviderPreference(result.provider);
       }
       return {
-        provider: result.provider ?? singleProvider,
+        provider: result.provider ?? provider,
         languages: translationLanguages.filter((language) =>
           result.languages.includes(language.code),
         ),
@@ -248,14 +180,96 @@ export function useTranslationDialogs(options: TranslationDialogsOptions) {
   };
 }
 
-function getStoredProvider(
-  options: TranslationDialogsOptions,
-): TranslationProvider {
-  const providerPreference = localStorage.getItem(PROVIDER_PREFERENCE_KEY);
-  if (providerPreference === "deepl" || providerPreference === "ai") {
-    return providerPreference;
+/**
+ * Determines the available translation provider(s) and builds the
+ * provider field definition for dialogs.
+ */
+async function getProviderConfig() {
+  const panel = usePanel();
+  const context = await usePluginContext();
+  const copilot = resolveCopilot();
+
+  const { isCopilotAvailable, hasDefaultProvider, hasMultipleProviders } =
+    getProviderAvailability(context.config);
+
+  const provider = getValidStoredProvider({
+    isCopilotAvailable,
+    hasDefaultProvider,
+  });
+
+  if (!hasMultipleProviders) {
+    return { provider, providerField: undefined };
   }
-  return options.defaultProvider;
+
+  // Fetch Copilot context for provider name
+  let copilotContext: PluginContextResponse | undefined;
+  if (copilot) {
+    try {
+      copilotContext = await copilot.resolvePluginContext();
+    } catch {
+      // Copilot context not available
+    }
+  }
+
+  const aiProviderKey = copilotContext?.config?.provider;
+  const aiProviderConfig = aiProviderKey
+    ? PROVIDER_CONFIG[aiProviderKey]
+    : undefined;
+
+  const providerField = {
+    type: "toggles",
+    label: panel.t("johannschopplich.content-translator.dialog.translateWith"),
+    labels: true,
+    grow: true,
+    options: [
+      {
+        value: "deepl",
+        text: panel.t(
+          context.config.translateFn
+            ? "johannschopplich.content-translator.provider.custom"
+            : "johannschopplich.content-translator.provider.deepl",
+        ),
+        icon: "translate",
+      },
+      {
+        value: "ai",
+        text: aiProviderConfig
+          ? panel.t(aiProviderConfig.labelKey)
+          : panel.t("johannschopplich.content-translator.provider.copilot"),
+        // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
+        icon: aiProviderConfig?.icon ?? "ai",
+      },
+    ],
+  };
+
+  return { provider, providerField };
+}
+
+/**
+ * Validates the stored provider preference against current availability.
+ *
+ * @remarks
+ * Returns a valid provider, falling back if the stored one is no longer available.
+ */
+function getValidStoredProvider(availability: {
+  isCopilotAvailable: boolean;
+  hasDefaultProvider: boolean;
+}): TranslationProvider {
+  const storedProvider = localStorage.getItem(PROVIDER_PREFERENCE_KEY);
+
+  // Validate stored preference is still available
+  if (storedProvider === "ai" && availability.isCopilotAvailable) {
+    return "ai";
+  }
+  if (storedProvider === "deepl" && availability.hasDefaultProvider) {
+    return "deepl";
+  }
+
+  // Fall back to first available provider
+  if (availability.hasDefaultProvider) return "deepl";
+  if (availability.isCopilotAvailable) return "ai";
+
+  return "deepl";
 }
 
 function storeProviderPreference(provider: TranslationProvider) {

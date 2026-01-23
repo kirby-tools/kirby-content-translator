@@ -64,6 +64,7 @@ export function useContentTranslator() {
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
   const licenseStatus = ref<LicenseStatus>();
+  const hasAnyProvider = ref(false);
 
   function initializeConfig(
     context: PluginContextResponse,
@@ -101,8 +102,9 @@ export function useContentTranslator() {
     const requestedProvider = isValidProvider(options.provider)
       ? options.provider
       : undefined;
-    const { hasDefaultProvider, hasMultipleProviders } =
-      getProviderAvailability(context.config);
+    const availability = getProviderAvailability(context.config);
+    const { hasDefaultProvider, hasMultipleProviders } = availability;
+    hasAnyProvider.value = availability.hasAnyProvider;
 
     if (requestedProvider === "ai" && hasMultipleProviders) {
       provider.value = "ai";
@@ -433,8 +435,8 @@ export function useContentTranslator() {
 
     // Runtime state
     fields,
-    config,
     licenseStatus,
+    hasAnyProvider,
 
     // Methods
     initializeConfig,
@@ -449,8 +451,10 @@ export function getProviderAvailability(config: PluginConfig) {
   const hasDefaultProvider = !!(config.translateFn || config.DeepL?.apiKey);
 
   return {
+    isCopilotAvailable,
     hasDefaultProvider,
     hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
+    hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
   };
 }
 

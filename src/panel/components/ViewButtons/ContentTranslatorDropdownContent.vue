@@ -7,6 +7,7 @@ import { usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "../../composables/dialogs";
 import { useModel } from "../../composables/model";
 import {
+  getProviderAvailability,
   useContentTranslator,
   useTranslationState,
 } from "../../composables/translation";
@@ -59,13 +60,12 @@ const {
   openTranslationDialog,
   openBatchTranslationDialog,
   showCopilotLicenseToastOnce,
-} = useTranslationDialogs({
-  defaultProvider: provider.value,
-});
+} = useTranslationDialogs();
 
-if (!props.context.config.translateFn && !props.context.config.DeepL?.apiKey) {
+const { hasAnyProvider } = getProviderAvailability(props.context.config);
+if (!hasAnyProvider) {
   panel.notification.error(
-    'Either a custom "johannschopplich.content-translator.translateFn" or the "johannschopplich.content-translator.DeepL.apiKey" plugin option is required.',
+    'Either a custom "johannschopplich.content-translator.translateFn" or the "johannschopplich.content-translator.DeepL.apiKey" plugin option is required. Alternatively, install Kirby Copilot for AI-powered translations.',
   );
 }
 

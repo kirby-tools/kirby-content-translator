@@ -38,8 +38,8 @@ const {
   provider,
 
   // Runtime state
-  config,
   licenseStatus,
+  hasAnyProvider,
 
   // Methods
   initializeConfig,
@@ -53,9 +53,7 @@ const {
   openTranslationDialog,
   openBatchTranslationDialog,
   showCopilotLicenseToastOnce,
-} = useTranslationDialogs({
-  defaultProvider: provider.value,
-});
+} = useTranslationDialogs();
 
 (async () => {
   const { load } = useSection();
@@ -121,14 +119,12 @@ async function handleBatchTranslate() {
         This section requires multi-language support to be enabled.
       </k-text>
     </k-box>
-    <k-box
-      v-else-if="!config?.translateFn && !config?.DeepL?.apiKey"
-      theme="empty"
-    >
+    <k-box v-else-if="!hasAnyProvider" theme="empty">
       <k-text>
         Either a custom <code>translateFn</code> or <code>DeepL.apiKey</code> in
         the <code>johannschopplich.content-translator</code> plugin
-        configuration is required.
+        configuration is required. Alternatively, install Kirby Copilot for
+        AI-powered translations.
       </k-text>
     </k-box>
 
