@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-content-translator",
   "description": "Content translation with DeepL – in the Panel or via CLI commands",
   "type": "kirby-plugin",
-  "version": "3.9.0",
+  "version": "3.9.1",
   "keywords": [
     "content",
     "DeepL",
