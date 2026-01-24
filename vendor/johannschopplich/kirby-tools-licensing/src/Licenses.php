@@ -4,17 +4,10 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\Licensing;
 
-use Composer\Semver\Semver;
 use JohannSchopplich\Licensing\Http\HttpClientInterface;
-use JohannSchopplich\Licensing\Http\KirbyHttpClient;
-use Kirby\Cms\App;
-use Kirby\Data\Json;
-use Kirby\Exception\LogicException;
-use Kirby\Http\Request;
-use Throwable;
 
 /**
- * Manages licenses for Kirby Tools plugins.
+ * Facade for managing licenses for Kirby Tools plugins.
  *
  * If you're here to learn all about how licenses are managed in Kirby Tools,
  * you're in the right place.
@@ -30,241 +23,90 @@ use Throwable;
  */
 class Licenses
 {
-    protected const LICENSE_PATTERN = '!^KT(\d+)-\w+-\w+$!';
-    protected const API_URL = 'https://repo.kirby.tools/api';
-    protected string $licenseFile;
-
-    public const LICENSE_FILE = '.kirby-tools-licenses';
+    protected LicenseRepository $repository;
+    protected LicenseValidator $validator;
+    protected LicenseActivator $activator;
 
     public function __construct(
-        protected array $licenses,
         protected string $packageName,
-        protected HttpClientInterface|null $httpClient = null
+        HttpClientInterface|null $httpClient = null
     ) {
-        $this->licenseFile = dirname(App::instance()->root('license')) . '/' . static::LICENSE_FILE;
-        $this->httpClient = $httpClient ?? new KirbyHttpClient();
+        $this->repository = new LicenseRepository();
+        $this->validator = new LicenseValidator($packageName);
+        $this->activator = new LicenseActivator(
+            $packageName,
+            $this->repository,
+            $this->validator,
+            $httpClient
+        );
     }
 
     public static function read(string $packageName, array $options = []): static
     {
-        try {
-            $licenses = Json::read(dirname(App::instance()->root('license')) . '/' . static::LICENSE_FILE);
-        } catch (Throwable) {
-            $licenses = [];
-        }
-
         $instance = new static(
-            licenses: $licenses,
             packageName: $packageName,
             httpClient: $options['httpClient'] ?? null
         );
-        $instance->refresh();
+        $instance->activator->refresh();
 
         return $instance;
     }
 
+    /**
+     * @return string One of: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
+     */
     public function getStatus(): string
     {
-        $licenseKey = $this->getLicenseKey();
+        return $this->getStatusEnum()->value;
+    }
+
+    public function getStatusEnum(): LicenseStatus
+    {
+        $licenseKey = $this->repository->getLicenseKey($this->packageName);
 
         if ($licenseKey === null) {
-            return LicenseStatus::INACTIVE;
+            return LicenseStatus::Inactive;
         }
 
-        if (!$this->isValid($licenseKey)) {
-            return LicenseStatus::INVALID;
+        if (!$this->validator->isValid($licenseKey)) {
+            return LicenseStatus::Invalid;
         }
 
-        $compatibility = $this->getLicenseCompatibility();
+        $compatibility = $this->repository->getLicenseCompatibility($this->packageName);
 
-        if ($this->isCompatible($compatibility)) {
-            return LicenseStatus::ACTIVE;
+        if ($this->validator->isCompatible($compatibility)) {
+            return LicenseStatus::Active;
         }
 
-        if ($this->isUpgradeable($compatibility)) {
-            return LicenseStatus::UPGRADEABLE;
+        if ($this->validator->isUpgradeable($compatibility)) {
+            return LicenseStatus::Upgradeable;
         }
 
-        return LicenseStatus::INCOMPATIBLE;
+        return LicenseStatus::Incompatible;
     }
 
     public function getLicense(): array|null
     {
-        $licenseKey = $this->getLicenseKey();
+        $licenseKey = $this->repository->getLicenseKey($this->packageName);
 
-        if ($licenseKey === null || !$this->isValid($licenseKey)) {
+        if ($licenseKey === null || !$this->validator->isValid($licenseKey)) {
             return null;
         }
 
         return [
             'key' => $licenseKey,
-            'generation' => $this->getLicenseGeneration(),
-            'compatibility' => $this->getLicenseCompatibility()
+            'generation' => $this->validator->getLicenseGeneration($licenseKey),
+            'compatibility' => $this->repository->getLicenseCompatibility($this->packageName)
         ];
-    }
-
-    public function getLicenseKey(): string|null
-    {
-        return $this->licenses[$this->packageName]['licenseKey'] ?? null;
-    }
-
-    public function getLicenseGeneration(): int|null
-    {
-        $licenseKey = $this->getLicenseKey();
-
-        if (preg_match(static::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
-            return (int)$matches[1];
-        }
-
-        return null;
-    }
-
-    public function getLicenseCompatibility(): string|null
-    {
-        return $this->licenses[$this->packageName]['licenseCompatibility'] ?? null;
-    }
-
-    public function getPluginVersion(): string|null
-    {
-        // Map package name to Kirby plugin name by removing the vendor prefix
-        $kirbyPluginName = str_replace('/kirby-', '/', $this->packageName);
-
-        return App::instance()->plugin($kirbyPluginName)?->version();
     }
 
     public function isActivated(): bool
     {
-        return $this->isValid($this->getLicenseKey()) && $this->isCompatible($this->getLicenseCompatibility());
+        return $this->activator->isActivated();
     }
 
-    public function isValid(string|null $licenseKey): bool
+    public function activateFromRequest(): array
     {
-        return $licenseKey !== null && preg_match(static::LICENSE_PATTERN, $licenseKey) === 1;
-    }
-
-    public function isCompatible(string|null $versionConstraint): bool
-    {
-        $version = $this->getPluginVersion();
-
-        if ($version !== null && str_starts_with($version, 'dev-')) {
-            throw new LogicException('Development versions are not supported');
-        }
-
-        return $versionConstraint !== null
-            && $version !== null
-            && Semver::satisfies($version, $versionConstraint);
-    }
-
-    public function isUpgradeable(string|null $versionConstraint): bool
-    {
-        if ($versionConstraint === null) {
-            return false;
-        }
-
-        $version = $this->getPluginVersion();
-        if ($version === null) {
-            return false;
-        }
-
-        // Parse version constraint to get major versions
-        $constraints = explode('||', $versionConstraint);
-        $maxLicensedMajor = 0;
-
-        foreach ($constraints as $constraint) {
-            $constraint = trim($constraint);
-            if (preg_match('/\^(\d+)/', $constraint, $matches)) {
-                $maxLicensedMajor = max($maxLicensedMajor, (int)$matches[1]);
-            }
-        }
-
-        // Get current version major
-        if (preg_match('/^(\d+)\./', $version, $matches)) {
-            $currentMajor = (int)$matches[1];
-            // If current major is higher than max supported major, it's upgradeable
-            return $currentMajor > $maxLicensedMajor;
-        }
-
-        return false;
-    }
-
-    public function activate(string $email, string|int $orderId): void
-    {
-        if ($this->isActivated()) {
-            throw new LogicException('License key already activated');
-        }
-
-        $response = $this->request('auth/activate', [
-            'method' => 'POST',
-            'data' => [
-                'email' => $email,
-                'orderId' => $orderId
-            ]
-        ]);
-
-        if ($response['packageName'] !== $this->packageName) {
-            throw new LogicException('License key not valid for this plugin');
-        }
-
-        $compatibility = $response['licenseCompatibility'];
-
-        if (!$this->isCompatible($compatibility)) {
-            if ($this->isUpgradeable($compatibility)) {
-                throw new LogicException('License key not valid for this plugin version, please upgrade your license');
-            }
-
-            throw new LogicException('License key not valid for this plugin version');
-        }
-
-        $this->update($this->packageName, $response);
-    }
-
-    public function activateFromRequest(Request|null $request = null): array
-    {
-        $request = $request ?? App::instance()->request();
-        $email = $request->get('email');
-        $orderId = $request->get('orderId');
-
-        if (!$email || !$orderId) {
-            throw new LogicException('Missing license registration parameters "email" or "orderId"');
-        }
-
-        $this->activate($email, $orderId);
-
-        return [
-            'code' => 200,
-            'status' => 'ok',
-            'message' => 'License key successfully activated'
-        ];
-    }
-
-    public function update(string $packageName, array $data): void
-    {
-        $this->licenses[$packageName] = [
-            'licenseKey' => $data['licenseKey'],
-            'licenseCompatibility' => $data['licenseCompatibility'],
-            'pluginVersion' => $this->getPluginVersion(),
-            'createdAt' => $data['order']['createdAt']
-        ];
-
-        Json::write($this->licenseFile, $this->licenses);
-    }
-
-    protected function refresh(): void
-    {
-        $currentVersion = $this->licenses[$this->packageName]['pluginVersion'] ?? null;
-
-        // If the plugin version has changed, refresh the license data for the package
-        if (
-            $this->isValid($this->getLicenseKey()) &&
-            $this->getPluginVersion() !== $currentVersion
-        ) {
-            $response = $this->request('licenses/' . $this->getLicenseKey() . '/package');
-            $this->update($this->packageName, $response);
-        }
-    }
-
-    protected function request(string $path, array $options = []): array
-    {
-        return $this->httpClient->request(static::API_URL . '/' . $path, $options);
+        return $this->activator->activateFromRequest();
     }
 }
