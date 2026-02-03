@@ -3,6 +3,7 @@
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyPlugins\FieldResolver;
+use JohannSchopplich\KirbyPlugins\ModelResolver;
 use JohannSchopplich\Licensing\Licenses;
 use JohannSchopplich\Licensing\PluginLicenseExtensions;
 use Kirby\Cms\App;
@@ -44,9 +45,7 @@ return [
             'method' => 'GET',
             'action' => function () use ($kirby) {
                 $id = $kirby->request()->query()->get('id');
-                $model = $id === 'site'
-                    ? $kirby->site()
-                    : $kirby->page($id, drafts: true) ?? $kirby->file($id, drafts: true);
+                $model = ModelResolver::resolveFromId($id);
 
                 return FieldResolver::resolveModelFields($model);
             }
