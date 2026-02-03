@@ -1,24 +1,19 @@
 [![Kirby Content Translator](./.github/social-card.png)](https://kirby.tools/content-translator)
 
-# Kirby Content Translator (Pro)
+# Kirby Content Translator
 
-Why spend hours manually translating content field by field when you can automate the process with Kirby Content Translator? This plugin allows you to translate the entire content of any page with a single click. It supports all fields, including nested structures, objects, blocks, and more. You can also automatically import content from the primary language into secondary languages. Kirby Content Translator is the ultimate tool for translating content in Kirby CMS.
-
-With a single click in the Kirby Panel, an editor can save time translating a page into another language by:
-
-1. Copying content from the primary language to the currently active language.
-2. Then, recursively translating the imported content (which is still in the primary language) into the currently active language.
-
-This plugin is the evolution of the now deprecated [Kirby Content Translator v1](https://github.com/johannschopplich/kirby-content-translator) plugin. While you can still use the first version of the plugin, it will no longer receive updates or support. We recommend upgrading to the new Kirby Content Translator (Pro) plugin to benefit from the latest features and improvements, such as better support for nested fields and the PHP API.
+The Kirby Content Translator plugin empowers editors to translate content from one language to another with a single click. Add the Panel view button to any page, file, or site blueprint and translate content directly in the Kirby Panel using [DeepL](https://www.deepl.com) or AI.
 
 ## Features
 
-- 🥟 One-click translation of content in the Panel
-- ↩️ One-click content duplication from primary language to secondary languages
-- 🤿 Recursive translation of nested structures, objects, blocks, etc.
-- 👩‍🔧 [Programmatic API for developers](https://kirby.tools/docs/content-translator/php-api) – integrate content translation in CLI commands and all your custom workflows
-- 🌾 Supports `blocks`, `layout`, `list`, `object`, `structure`, `text`, `textarea`, `writer` fields
-- 🧩 Use DeepL API or custom translation service
+- 🖱️ **One-Click Translation**: Translate content directly from the Panel header with the view button.
+- 📦 **Batch Translation**: Translate to multiple languages simultaneously from the default language.
+- 📄 **All Content Types**: Translate pages, files (metadata), and site content.
+- 🧩 **Structure-Aware**: Supports blocks, layouts, structures, objects, and nested fields.
+- 🏷️ **KirbyTags Support**: Selectively translate KirbyTag attributes while preserving URLs and UUIDs.
+- ⚡ **PHP API**: Automate translations with CLI commands or custom workflows.
+- 🪝 **Hooks System**: Customize translation behavior with before/after hooks.
+- 🔌 **Multiple Providers**: Built-in DeepL support, AI translation via Kirby Copilot, or custom translation services.
 
 ## Licensing
 

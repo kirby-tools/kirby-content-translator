@@ -1,6 +1,6 @@
 {
   "name": "johannschopplich/kirby-content-translator",
-  "description": "Content translation with DeepL – in the Panel or via CLI commands",
+  "description": "DeepL & AI-powered content translation for Kirby CMS",
   "type": "kirby-plugin",
   "version": "3.9.1",
   "keywords": [
