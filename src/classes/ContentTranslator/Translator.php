@@ -56,6 +56,11 @@ final class Translator
         $this->kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
     }
 
+    public function model(): Site|Page|File
+    {
+        return $this->model;
+    }
+
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
         if (self::shouldSkipTranslation($text)) {
@@ -233,11 +238,6 @@ final class Translator
 
             $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
         });
-    }
-
-    public function model(): Site|Page|File
-    {
-        return $this->model;
     }
 
     private function collectTranslatableFields(array &$obj, array $fields, array &$collector, $isRecursive = false): array
