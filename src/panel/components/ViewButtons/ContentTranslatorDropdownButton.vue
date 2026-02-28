@@ -89,7 +89,7 @@ function toggle() {
         label || panel.t('johannschopplich.content-translator.viewButton.label')
       "
       :icon="isTranslating ? 'loader' : 'content-translator-global'"
-      responsive="text"
+      responsive
       :theme="theme"
       variant="filled"
       size="sm"
