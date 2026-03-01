@@ -27,6 +27,11 @@ export interface PluginConfig {
   DeepL?: {
     apiKey?: boolean;
   };
+  /** AI translation configuration */
+  ai?: {
+    /** Custom system prompt to replace the default translation instructions */
+    systemPrompt?: string;
+  };
   /** @deprecated Will be removed in Kirby 6 release */
   viewButton?: boolean;
 }
@@ -61,6 +66,8 @@ export interface TranslatorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, KirbyTagConfig>;
+  /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`) */
+  systemPrompt?: string;
   provider?: TranslationProvider;
   /** Only available when passed from section computed props */
   fields?: Record<string, KirbyFieldProps>;

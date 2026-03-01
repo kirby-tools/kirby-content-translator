@@ -6,6 +6,14 @@ import type {
 import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
 
+export interface AIStrategyOptions {
+  /**
+   * Custom system prompt for the AI translation.
+   * @default Built-in translation system prompt
+   */
+  systemPrompt?: string;
+}
+
 const MAX_BATCH_SIZE = 50;
 const MAX_CHARS_PER_BATCH = 100_000;
 
@@ -63,6 +71,12 @@ Before returning, verify your translations array has exactly the same number of 
  * Uses structured outputs with Zod schemas for reliable JSON responses.
  */
 export class AIStrategy implements TranslationStrategy {
+  private systemPrompt: string;
+
+  constructor(options: AIStrategyOptions = {}) {
+    this.systemPrompt = options.systemPrompt || TRANSLATION_SYSTEM_PROMPT;
+  }
+
   async execute(
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
@@ -96,7 +110,7 @@ export class AIStrategy implements TranslationStrategy {
             chunk.map(({ unit }) => unit.text),
             options,
           ),
-          systemPrompt: TRANSLATION_SYSTEM_PROMPT.trim(),
+          systemPrompt: this.systemPrompt.trim(),
           output: Output.object({ schema }),
         });
 

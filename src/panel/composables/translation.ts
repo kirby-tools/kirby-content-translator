@@ -57,6 +57,7 @@ export function useContentTranslator() {
   const excludeFields = ref<string[]>([]);
   const kirbyTags = ref<Record<string, KirbyTagConfig>>({});
   const provider = ref<TranslationProvider>("deepl");
+  const systemPrompt = ref<string>();
 
   // Runtime state
   const fields = ref<Record<string, KirbyFieldProps>>();
@@ -92,6 +93,9 @@ export function useContentTranslator() {
     excludeFields.value =
       options.excludeFields ?? context.config.excludeFields ?? [];
     kirbyTags.value = options.kirbyTags ?? context.config.kirbyTags ?? {};
+    systemPrompt.value =
+      options.systemPrompt ?? context.config.ai?.systemPrompt ?? undefined;
+
     fields.value = options.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
@@ -198,7 +202,9 @@ export function useContentTranslator() {
       );
 
       const strategy =
-        provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
+        provider.value === "ai"
+          ? new AIStrategy({ systemPrompt: systemPrompt.value })
+          : new DeepLStrategy();
 
       await translateContent(contentCopy, {
         strategy,
@@ -225,6 +231,7 @@ export function useContentTranslator() {
           provider: provider.value,
           targetLanguage,
           sourceLanguage,
+          systemPrompt: systemPrompt.value,
         });
 
         if (translateTitle.value) {
@@ -281,7 +288,9 @@ export function useContentTranslator() {
 
     const defaultLanguageData = await getModelData();
     const strategy =
-      provider.value === "ai" ? new AIStrategy() : new DeepLStrategy();
+      provider.value === "ai"
+        ? new AIStrategy({ systemPrompt: systemPrompt.value })
+        : new DeepLStrategy();
 
     try {
       await batchTranslateLanguages(
@@ -371,6 +380,7 @@ export function useContentTranslator() {
               provider: provider.value,
               targetLanguage,
               sourceLanguage: defaultLanguage,
+              systemPrompt: systemPrompt.value,
             },
           );
           await panel.api.patch(
@@ -464,13 +474,16 @@ async function translateText(
     provider,
     targetLanguage,
     sourceLanguage,
+    systemPrompt,
   }: {
     provider: TranslationProvider;
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+    systemPrompt?: string;
   },
 ): Promise<string> {
-  const strategy = provider === "ai" ? new AIStrategy() : new DeepLStrategy();
+  const strategy =
+    provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
   const results = await strategy.execute([{ text, mode: "batch" }], {
     sourceLanguage,
     targetLanguage,
