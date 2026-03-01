@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'johannschopplich/kirby-content-translator',
-        'pretty_version' => '3.9.1',
-        'version' => '3.9.1.0',
+        'pretty_version' => '3.9.2',
+        'version' => '3.9.2.0',
         'reference' => null,
         'type' => 'kirby-plugin',
         'install_path' => __DIR__ . '/../../',
@@ -20,8 +20,8 @@
             'dev_requirement' => false,
         ),
         'johannschopplich/kirby-content-translator' => array(
-            'pretty_version' => '3.9.1',
-            'version' => '3.9.1.0',
+            'pretty_version' => '3.9.2',
+            'version' => '3.9.2.0',
             'reference' => null,
             'type' => 'kirby-plugin',
             'install_path' => __DIR__ . '/../../',
@@ -29,9 +29,9 @@
             'dev_requirement' => false,
         ),
         'johannschopplich/kirby-tools-licensing' => array(
-            'pretty_version' => '0.8.0',
-            'version' => '0.8.0.0',
-            'reference' => '264afecb5c72e86ea52f6e7c792a5d611eb325f1',
+            'pretty_version' => '0.8.2',
+            'version' => '0.8.2.0',
+            'reference' => '66ed0583848275dcaf792246ceccd1dd47f67ff0',
             'type' => 'library',
             'install_path' => __DIR__ . '/../johannschopplich/kirby-tools-licensing',
             'aliases' => array(),
