@@ -2,8 +2,8 @@
 
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
-use JohannSchopplich\KirbyPlugins\FieldResolver;
-use JohannSchopplich\KirbyPlugins\ModelResolver;
+use JohannSchopplich\KirbyTools\FieldResolver;
+use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\Licenses;
 use JohannSchopplich\Licensing\PluginLicenseExtensions;
 use Kirby\Cms\App;

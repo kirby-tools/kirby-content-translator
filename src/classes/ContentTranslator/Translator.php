@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator;
 
-use JohannSchopplich\KirbyPlugins\FieldResolver;
+use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;

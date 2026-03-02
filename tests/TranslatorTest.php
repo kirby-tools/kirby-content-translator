@@ -3,7 +3,7 @@
 declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translator;
-use JohannSchopplich\KirbyPlugins\FieldResolver;
+use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;

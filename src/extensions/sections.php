@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\KirbyPlugins\FieldResolver;
+use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Toolkit\I18n;
 
 return [
