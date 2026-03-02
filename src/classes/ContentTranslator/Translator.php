@@ -369,9 +369,9 @@ final class Translator
     private function isBlockTranslatable(array $block): bool
     {
         return isset($block['content']) &&
-            A::isAssociative($block['content'])
-            && isset($block['id'])
-            && ($block['isHidden'] ?? false) !== true;
+            A::isAssociative($block['content']) &&
+            isset($block['id']) &&
+            ($block['isHidden'] ?? false) !== true;
     }
 
     private function flattenTabFields(array $fieldsets, array $block): array

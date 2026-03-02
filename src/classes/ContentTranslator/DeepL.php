@@ -115,7 +115,6 @@ class DeepL
 
     /**
      * @param array<string> $texts
-     * @return array
      */
     private function buildRequestOptions(array $texts): array
     {

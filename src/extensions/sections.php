@@ -50,9 +50,9 @@ return [
             'provider' => function ($provider = null) {
                 if (!is_string($provider)) {
                     return null;
-                    }
+                }
 
-                    return in_array($provider, ['deepl', 'ai'], true) ? $provider : null;
+                return in_array($provider, ['deepl', 'ai'], true) ? $provider : null;
             },
             'systemPrompt' => fn ($systemPrompt = null) => is_string($systemPrompt) ? trim($systemPrompt) : null
         ],
