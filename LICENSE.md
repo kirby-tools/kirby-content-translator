@@ -1,13 +1,13 @@
 # Kirby Tools Plugin License Agreement
 
 Published: 2024-03-03
-Last updated: 2025-12-21
+Last updated: 2026-03-11
 
 ## License Summary (non-binding)
 
 This summary is provided for convenience only. **The full Agreement below is legally binding and controls** in case of any conflict.
 
-This Agreement applies to the proprietary Kirby Tools plugin(s) ("Plugins") by Johann Schopplich ("Licensor") that you purchase or otherwise lawfully obtain from the Licensor or an Authorized Reseller (e.g. Lemon Squeezy), unless you have a separate written agreement with the Licensor.
+This Agreement applies to the proprietary Kirby Tools plugin(s) ("Plugins") by Johann Schopplich ("Licensor") that you purchase or otherwise lawfully obtain from the Licensor or an Authorized Reseller (e.g. Paddle), unless you have a separate written agreement with the Licensor.
 
 **Each Plugin is licensed separately.** Purchasing a license for one Plugin does not grant rights to any other Plugin.
 
@@ -46,7 +46,7 @@ In this Agreement, "you" refers to the Licensee and any person who accesses or u
 
 - **"Licensor"** means Johann Schopplich (kirby.tools).
 - **"Licensee"** means the individual or legal entity that purchased the Plugins (or was designated as the license holder during purchase).
-- **"Authorized Reseller"** means a reseller authorized by the Licensor to sell the Plugins (e.g. Lemon Squeezy).
+- **"Authorized Reseller"** means a reseller authorized by the Licensor to sell the Plugins (e.g. Paddle).
 - **"Plugin"** means a single proprietary Kirby Tools plugin product, such as Kirby Content Translator, Kirby Copilot, Kirby SEO Audit, or any other Kirby Tools plugin sold under this Agreement.
 - **"Plugins"** means the Plugin(s) that you lawfully obtained under this Agreement (including any updates you are entitled to).
 - **"License Key"** means a license key or token issued for a Plugin, which may be required for activation and may determine which versions you can use.
@@ -63,7 +63,7 @@ In this Agreement, "you" refers to the Licensee and any person who accesses or u
 
 ## 3. Payment Processing
 
-Payments for the Plugins may be processed by the Licensor and/or by an Authorized Reseller acting as Merchant of Record (e.g. Lemon Squeezy). Billing and checkout are handled by the Merchant of Record under their terms and policies.
+Payments for the Plugins may be processed by the Licensor and/or by an Authorized Reseller acting as Merchant of Record (e.g. Paddle). Billing and checkout are handled by the Merchant of Record under their terms and policies.
 
 ## 4. Grant of License
 
@@ -230,7 +230,7 @@ The Licensor complies with the General Data Protection Regulation (GDPR). Person
 
 ## 23. Contact Information
 
-For questions regarding your purchase, payment processing, refunds, or customer service inquiries, please note that the order process may be conducted by an Authorized Reseller (e.g. Lemon Squeezy).
+For questions regarding your purchase, payment processing, refunds, or customer service inquiries, please note that the order process may be conducted by an Authorized Reseller (e.g. Paddle).
 
 For questions regarding this License Agreement, please contact the Licensor at:
 
