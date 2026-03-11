@@ -11,9 +11,11 @@ export function shouldSkipTranslation(value: string): boolean {
   if (!trimmedValue) return true;
 
   // Pure numeric (including negative, floats, scientific notation)
+  // eslint-disable-next-line e18e/prefer-static-regex
   if (/^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i.test(trimmedValue)) return true;
 
   // Pure URL
+  // eslint-disable-next-line e18e/prefer-static-regex
   if (/^https?:\/\/\S+$/i.test(trimmedValue)) return true;
 
   return false;

@@ -144,11 +144,13 @@ describe("AIStrategy", () => {
 
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line e18e/prefer-static-regex
           userPrompt: expect.stringMatching(/<item index="0">First<\/item>/),
         }),
       );
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
+          // eslint-disable-next-line e18e/prefer-static-regex
           userPrompt: expect.stringMatching(/<item index="1">Second<\/item>/),
         }),
       );
