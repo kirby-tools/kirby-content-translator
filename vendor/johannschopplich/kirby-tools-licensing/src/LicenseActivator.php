@@ -75,7 +75,7 @@ class LicenseActivator
      */
     public function activateFromRequest(Request|null $request = null): array
     {
-        $request = $request ?? App::instance()->request();
+        $request ??= App::instance()->request();
         $email = $request->get('email');
         $orderId = $request->get('orderId');
 
@@ -119,8 +119,8 @@ class LicenseActivator
         $licenseKey = $this->repository->getLicenseKey($this->packageName);
         $compatibility = $this->repository->getLicenseCompatibility($this->packageName);
 
-        return $this->validator->isValid($licenseKey)
-            && $this->validator->isCompatible($compatibility);
+        return $this->validator->isValid($licenseKey) &&
+            $this->validator->isCompatible($compatibility);
     }
 
     /**

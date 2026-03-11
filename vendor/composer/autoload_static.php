@@ -14,6 +14,7 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         'J' =>
         array (
             'JohannSchopplich\\Licensing\\' => 27,
+            'JohannSchopplich\\KirbyTools\\' => 28,
             'JohannSchopplich\\' => 17,
         ),
     );
@@ -27,6 +28,10 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         array (
             0 => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src',
         ),
+        'JohannSchopplich\\KirbyTools\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src',
+        ),
         'JohannSchopplich\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src/classes',
@@ -38,8 +43,8 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
         'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
-        'JohannSchopplich\\KirbyPlugins\\FieldResolver' => __DIR__ . '/../..' . '/src/classes/KirbyPlugins/FieldResolver.php',
-        'JohannSchopplich\\KirbyPlugins\\ModelResolver' => __DIR__ . '/../..' . '/src/classes/KirbyPlugins/ModelResolver.php',
+        'JohannSchopplich\\KirbyTools\\FieldResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
+        'JohannSchopplich\\KirbyTools\\ModelResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
         'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',
         'JohannSchopplich\\Licensing\\Http\\KirbyHttpClient' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Http/KirbyHttpClient.php',
         'JohannSchopplich\\Licensing\\LicenseActivator' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/LicenseActivator.php',

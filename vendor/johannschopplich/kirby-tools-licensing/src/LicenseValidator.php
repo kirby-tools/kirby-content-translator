@@ -42,9 +42,9 @@ class LicenseValidator
             throw new LogicException('Development versions are not supported');
         }
 
-        return $versionConstraint !== null
-            && $version !== null
-            && Semver::satisfies($version, $versionConstraint);
+        return $versionConstraint !== null &&
+            $version !== null &&
+            Semver::satisfies($version, $versionConstraint);
     }
 
     /**
