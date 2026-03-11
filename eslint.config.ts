@@ -12,13 +12,19 @@ export default antfu({
     vueVersion: 2,
   },
   ignores: ["**/assets/**", "**/vendor/**", "index.js"],
-}).append({
-  files: ["**/*.vue"],
-  rules: {
-    // Ignore rules clashing with Prettier
-    "vue/html-closing-bracket-newline": "off",
-    "vue/html-indent": "off",
-    "vue/html-self-closing": "off",
-    "vue/singleline-html-element-content-newline": "off",
-  },
-});
+})
+  .append({
+    rules: {
+      "e18e/prefer-static-regex": "off",
+    },
+  })
+  .append({
+    files: ["**/*.vue"],
+    rules: {
+      // Ignore rules clashing with Prettier
+      "vue/html-closing-bracket-newline": "off",
+      "vue/html-indent": "off",
+      "vue/html-self-closing": "off",
+      "vue/singleline-html-element-content-newline": "off",
+    },
+  });
