@@ -5,13 +5,13 @@ use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\Licenses;
-use JohannSchopplich\Licensing\PluginLicenseExtensions;
+use JohannSchopplich\Licensing\LicensePanel;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;
 
 return [
     'routes' => fn (App $kirby) => [
-        ...PluginLicenseExtensions::api('johannschopplich/kirby-content-translator'),
+        ...LicensePanel::api('johannschopplich/kirby-content-translator'),
         [
             'pattern' => '__content-translator__/context',
             'method' => 'GET',

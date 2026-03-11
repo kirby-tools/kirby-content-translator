@@ -36,7 +36,7 @@ $pluginConfig = [
 if (class_exists('Kirby\Plugin\License')) {
     $pluginConfig['extends']['areas'] = [
         'system' => fn () => [
-            'dialogs' => \JohannSchopplich\Licensing\PluginLicenseExtensions::dialogs($packageName, 'Kirby Content Translator')
+            'dialogs' => \JohannSchopplich\Licensing\LicensePanel::dialogs($packageName, 'Kirby Content Translator')
         ]
     ];
 

@@ -1,9 +1,9 @@
 <?php
 
-use JohannSchopplich\Licensing\PluginLicenseExtensions;
+use JohannSchopplich\Licensing\LicensePanel;
 
 return array_replace_recursive(
-    PluginLicenseExtensions::translations(),
+    LicensePanel::translations(),
     [
         'en' => [
             'johannschopplich.content-translator.label' => 'Content Translator',
