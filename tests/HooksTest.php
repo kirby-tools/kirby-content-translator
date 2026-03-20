@@ -4,12 +4,12 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
 
-/**
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- */
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class HooksTest extends TestCase
 {
     public function testBeforeHookModifiesText(): void
