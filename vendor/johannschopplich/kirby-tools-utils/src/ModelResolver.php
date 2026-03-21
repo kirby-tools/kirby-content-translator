@@ -29,7 +29,9 @@ final class ModelResolver
      * Resolves a model from a Panel view path.
      *
      * @param string $path The Panel view path (e.g., `site`, `pages/xxx`, `pages/xxx/files/yyy`)
-     * @return ModelWithContent|null The resolved model or null if not found
+     * @return ModelWithContent|null The resolved model or null if the path pattern is unrecognized
+     *
+     * @throws \Kirby\Exception\NotFoundException If the matched model does not exist or is not accessible
      */
     public static function resolveFromPath(string $path): ModelWithContent|null
     {

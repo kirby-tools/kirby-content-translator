@@ -10,7 +10,8 @@ use Kirby\Form\Form;
 final class FieldResolver
 {
     /**
-     * Resolves blueprint fields from a model
+     * Resolves blueprint field definitions from a model, excluding
+     * `title` and `slug` fields and stripping field values.
      */
     public static function resolveModelFields(ModelWithContent $model): array
     {

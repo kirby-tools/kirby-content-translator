@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-tools-utils",
   "description": "Shared utility classes for Kirby Tools plugins",
   "type": "library",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
   "authors": [
@@ -13,9 +13,11 @@
     }
   ],
   "require-dev": {
-    "getkirby/cms": "^5"
+    "getkirby/cms": "^5",
+    "phpunit/phpunit": "^12"
   },
   "scripts": {
+    "test": "phpunit",
     "csfix": "@php tools/phpcs/vendor/bin/php-cs-fixer fix"
   },
   "autoload": {

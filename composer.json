@@ -30,7 +30,7 @@
     "getkirby/cms": "^5",
     "getkirby/cli": "^1",
     "vlucas/phpdotenv": "^5",
-    "phpunit/phpunit": "^11"
+    "phpunit/phpunit": "^12"
   },
   "scripts": {
     "dev": [
