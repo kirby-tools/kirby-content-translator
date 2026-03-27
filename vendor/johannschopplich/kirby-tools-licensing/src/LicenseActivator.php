@@ -128,6 +128,18 @@ class LicenseActivator
      */
     protected function request(string $path, array $options = []): array
     {
+        $headers = $options['headers'] ?? [];
+
+        if (($pluginVersion = LicenseUtils::getPluginVersion($this->packageName)) !== null) {
+            $headers['X-Plugin-Version'] = $pluginVersion;
+        }
+
+        if (($kirbyVersion = App::instance()->version()) !== null) {
+            $headers['X-Kirby-Version'] = $kirbyVersion;
+        }
+
+        $options['headers'] = $headers;
+
         return $this->httpClient->request(static::API_URL . '/' . $path, $options);
     }
 }

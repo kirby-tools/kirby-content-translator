@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3b2679793bf9a6fb82cef03105586bf0",
+    "content-hash": "d4e48f493bc0061a0d7f9408bc2d52b6",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -55,16 +55,16 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.8.3",
+            "version": "0.8.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "ef3cc0fe39865555b89a4d0399ab5b05f5fa314d"
+                "reference": "50fa638e37cfbcf350e2ed9c183299d3127756f1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/ef3cc0fe39865555b89a4d0399ab5b05f5fa314d",
-                "reference": "ef3cc0fe39865555b89a4d0399ab5b05f5fa314d",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/50fa638e37cfbcf350e2ed9c183299d3127756f1",
+                "reference": "50fa638e37cfbcf350e2ed9c183299d3127756f1",
                 "shasum": ""
             },
             "require-dev": {
@@ -95,9 +95,9 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.8.3"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.8.4"
             },
-            "time": "2026-03-11T06:05:31+00:00"
+            "time": "2026-03-26T10:51:18+00:00"
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
@@ -475,16 +475,16 @@
         },
         {
             "name": "getkirby/cms",
-            "version": "5.3.2",
+            "version": "5.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/getkirby/kirby.git",
-                "reference": "bbb64db1516140fe43f54667af10a011a67cb3b5"
+                "reference": "90c285c0c479ecbf2724c620e7e50f94008b9da4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/getkirby/kirby/zipball/bbb64db1516140fe43f54667af10a011a67cb3b5",
-                "reference": "bbb64db1516140fe43f54667af10a011a67cb3b5",
+                "url": "https://api.github.com/repos/getkirby/kirby/zipball/90c285c0c479ecbf2724c620e7e50f94008b9da4",
+                "reference": "90c285c0c479ecbf2724c620e7e50f94008b9da4",
                 "shasum": ""
             },
             "require": {
@@ -571,7 +571,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-03-03T13:05:51+00:00"
+            "time": "2026-03-26T11:15:44+00:00"
         },
         {
             "name": "graham-campbell/result-type",

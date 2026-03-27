@@ -10,6 +10,7 @@ return array(
     'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\KirbyText' => $baseDir . '/src/classes/ContentTranslator/KirbyText.php',
     'JohannSchopplich\\ContentTranslator\\Translator' => $baseDir . '/src/classes/ContentTranslator/Translator.php',
+    'JohannSchopplich\\KirbyTools\\FieldNormalizer' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
     'JohannSchopplich\\KirbyTools\\FieldResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
     'JohannSchopplich\\KirbyTools\\ModelResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
     'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',

@@ -43,6 +43,7 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
         'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
+        'JohannSchopplich\\KirbyTools\\FieldNormalizer' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
         'JohannSchopplich\\KirbyTools\\FieldResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
         'JohannSchopplich\\KirbyTools\\ModelResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
         'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',
