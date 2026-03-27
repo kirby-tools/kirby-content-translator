@@ -51,10 +51,10 @@ export function useTranslationDialogs() {
   async function openConfirmableTextDialog(
     text: string,
     shouldConfirm?: boolean,
-    callback?: () => void,
+    callback?: () => void | Promise<void>,
   ) {
     if (!shouldConfirm) {
-      callback?.();
+      await callback?.();
       return;
     }
 
