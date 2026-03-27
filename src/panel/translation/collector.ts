@@ -37,7 +37,21 @@ export function collectTranslations(
     finalizers: [],
   };
 
-  collectFromObject(obj, options.fields, context);
+  // Apply include/exclude filters by narrowing the top-level fields
+  const { includeFields = [], excludeFields = [] } = options;
+  let { fields } = options;
+
+  if (includeFields.length || excludeFields.length) {
+    fields = Object.fromEntries(
+      Object.entries(fields).filter(([key]) => {
+        if (includeFields.length && !includeFields.includes(key)) return false;
+        if (excludeFields.length && excludeFields.includes(key)) return false;
+        return true;
+      }),
+    );
+  }
+
+  collectFromObject(obj, fields, context);
 
   return {
     translations: context.translations,
@@ -50,11 +64,7 @@ function collectFromObject(
   fields: Record<string, KirbyFieldProps>,
   context: CollectorContext,
 ) {
-  const {
-    fieldTypes,
-    includeFields = [],
-    excludeFields = [],
-  } = context.options;
+  const { fieldTypes } = context.options;
 
   for (const key in obj) {
     const value = obj[key];
@@ -70,10 +80,6 @@ function collectFromObject(
 
     // Skip field types not in translatable list
     if (!fieldTypes.includes(fields[key].type)) continue;
-
-    // Apply include/exclude filters
-    if (includeFields.length && !includeFields.includes(key)) continue;
-    if (excludeFields.length && excludeFields.includes(key)) continue;
 
     collectFromField(obj, key, value, fields[key], context);
   }

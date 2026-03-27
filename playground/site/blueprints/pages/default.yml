@@ -10,6 +10,7 @@ buttons:
 tabs:
   blocks:
     label: Blocks
+    icon: dashboard
     columns:
       - width: 2/3
         fields:
@@ -27,10 +28,12 @@ tabs:
             type: content-translator
             label: Content Translator
             title: true
-            # slug: true
+            includeFields:
+              - blocks01
 
   nestedFields:
     label: Nested Fields
+    icon: layers
     columns:
       - width: 2/3
         fields:
@@ -46,16 +49,6 @@ tabs:
                 fields:
                   text:
                     type: textarea
-          entries01:
-            type: entries
-            field:
-              type: select
-              options:
-                design: Design
-                architecture: Architecture
-                photography: Photography
-                3d: 3D
-                web: Web
           tags01:
             type: tags
             label: Tags Field
@@ -65,4 +58,6 @@ tabs:
             type: content-translator
             label: Content Translator
             title: true
-            # slug: true
+            includeFields:
+              - object01
+              - tags01

@@ -382,6 +382,28 @@ describe("collectTranslations", () => {
       expect(translations[0].unit.text).toBe("Hello");
     });
 
+    it("traverses structure inner fields when includeFields is set", () => {
+      const content = {
+        title: "Hello",
+        items: [{ label: "One" }, { label: "Two" }],
+      };
+      const fields = {
+        title: field({ type: "text", name: "text" }),
+        items: structureField("items", {
+          label: field({ type: "text", name: "label" }),
+        }),
+      };
+
+      const { translations } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+        includeFields: ["items"],
+      });
+
+      expect(translations).toHaveLength(2);
+      expect(translations.map((t) => t.unit.text)).toEqual(["One", "Two"]);
+    });
+
     it("skips fields not in fieldTypes list", () => {
       const content = { title: "Hello" };
       const fields = { title: field({ type: "text", name: "text" }) };

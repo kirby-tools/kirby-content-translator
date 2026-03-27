@@ -514,6 +514,23 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
+    public function testTraversesStructureWithIncludeFieldsFilter(): void
+    {
+        $page = $this->app->page('home');
+        $translator = new Translator($page, [
+            'includeFields' => ['structure']
+        ]);
+        $translator->translateContent('en', 'de');
+
+        // Inner field names (`heading`, `description`) must not be checked against `includeFields`
+        $structure = Yaml::decode($translator->model()->content('en')->get('structure')->value());
+        $this->assertSame('[de]Section 1', $structure[0]['heading']);
+        $this->assertSame('[de]Description 1', $structure[0]['description']);
+
+        // Other top-level fields must **not** be translated
+        $this->assertSame('Welcome to our website', $translator->model()->content('en')->get('text')->value());
+    }
+
     // Edge cases and skipping values
     public function testSkipsEmptyValues(): void
     {

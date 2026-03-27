@@ -148,8 +148,17 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
 
+            // Apply include/exclude filters by narrowing the top-level fields
+            $fields = $this->fields;
+            if (!empty($this->includeFields)) {
+                $fields = array_intersect_key($fields, array_flip($this->includeFields));
+            }
+            if (!empty($this->excludeFields)) {
+                $fields = array_diff_key($fields, array_flip($this->excludeFields));
+            }
+
             $collector = ['texts' => [], 'pointers' => [], 'encodeFields' => []];
-            $this->collectTranslatableFields($content, $this->fields, $collector);
+            $this->collectTranslatableFields($content, $fields, $collector);
 
             // Batch translation for all collected texts
             if (!empty($collector['texts'])) {
@@ -260,13 +269,6 @@ final class Translator
                 continue;
             }
 
-            // Include/exclude fields
-            if (!empty($this->includeFields) && !in_array($key, $this->includeFields)) {
-                continue;
-            }
-            if (!empty($this->excludeFields) && in_array($key, $this->excludeFields)) {
-                continue;
-            }
 
             $needsJsonEncoding = false;
             $needsYamlEncoding = false;

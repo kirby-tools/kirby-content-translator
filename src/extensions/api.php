@@ -4,8 +4,8 @@ use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
-use JohannSchopplich\Licensing\Licenses;
 use JohannSchopplich\Licensing\LicensePanel;
+use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
 use Kirby\Exception\BadMethodCallException;
 
