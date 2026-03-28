@@ -7,6 +7,7 @@ use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class TranslatorTest extends TestCase
@@ -283,23 +284,26 @@ final class TranslatorTest extends TestCase
         App::destroy();
     }
 
-    // Static method tests
-    public function testTranslateTextWithEmptyString(): void
+    #[Test]
+    public function translate_text_with_empty_string(): void
     {
         $this->assertSame('', Translator::translateText('', 'de'));
     }
 
-    public function testTranslateTextWithCustomFunction(): void
+    #[Test]
+    public function translate_text_with_custom_function(): void
     {
         $this->assertSame('[de]hello', Translator::translateText('hello', 'de'));
     }
 
-    public function testTranslateTextWithSourceLanguage(): void
+    #[Test]
+    public function translate_text_with_source_language(): void
     {
         $this->assertSame('[de]hello', Translator::translateText('hello', 'de', 'en'));
     }
 
-    public function testResolveModelFields(): void
+    #[Test]
+    public function resolve_model_fields(): void
     {
         $page = $this->app->page('home');
         $fields = FieldResolver::resolveModelFields($page);
@@ -312,8 +316,8 @@ final class TranslatorTest extends TestCase
         $this->assertArrayNotHasKey('value', $fields['text'] ?? []); // Value should be removed
     }
 
-    // Content copying tests
-    public function testCopyContent(): void
+    #[Test]
+    public function copy_content(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -329,8 +333,8 @@ final class TranslatorTest extends TestCase
         );
     }
 
-    // Content translation tests
-    public function testTranslateContent(): void
+    #[Test]
+    public function translate_content(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -342,7 +346,8 @@ final class TranslatorTest extends TestCase
         );
     }
 
-    public function testTranslateContentWithSourceLanguage(): void
+    #[Test]
+    public function translate_content_with_source_language(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -354,7 +359,8 @@ final class TranslatorTest extends TestCase
         );
     }
 
-    public function testSkipsFieldsWithTranslateFalse(): void
+    #[Test]
+    public function skips_fields_with_translate_false(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -366,8 +372,8 @@ final class TranslatorTest extends TestCase
         );
     }
 
-    // Title translation tests
-    public function testTranslateTitle(): void
+    #[Test]
+    public function translate_title(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -376,7 +382,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Home', $translator->model()->title()->value());
     }
 
-    public function testTranslateTitleWithSourceLanguage(): void
+    #[Test]
+    public function translate_title_with_source_language(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -385,8 +392,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Home', $translator->model()->title()->value());
     }
 
-    // Slug translation tests
-    public function testDoNotTranslateHomePageSlug(): void
+    #[Test]
+    public function does_not_translate_home_page_slug(): void
     {
         $page = $this->app->page('home');
         $originalSlug = $page->slug('en');
@@ -396,7 +403,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame($originalSlug, $translator->model()->slug('en'));
     }
 
-    public function testTranslateRegularPageSlug(): void
+    #[Test]
+    public function translate_regular_page_slug(): void
     {
         $page = $this->app->page('about');
         $translator = new Translator($page);
@@ -405,8 +413,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('de-about', $translator->model()->slug('en'));
     }
 
-    // Field type tests
-    public function testTranslateTextFieldTypes(): void
+    #[Test]
+    public function translate_text_field_types(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -417,7 +425,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Writer content', $translator->model()->content('en')->get('writer')->value());
     }
 
-    public function testTraversesBlocksRecursively(): void
+    #[Test]
+    public function traverses_blocks_recursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -430,7 +439,8 @@ final class TranslatorTest extends TestCase
         $this->assertArrayHasKey('level', $blocks[1]['content']);
     }
 
-    public function testSkipsHiddenBlocks(): void
+    #[Test]
+    public function skips_hidden_blocks(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -441,7 +451,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('Hidden block content', $blocks[2]['content']['text']);
     }
 
-    public function testTraversesStructureRecursively(): void
+    #[Test]
+    public function traverses_structure_recursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -454,7 +465,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Description 2', $structure[1]['description']);
     }
 
-    public function testTraversesObjectRecursively(): void
+    #[Test]
+    public function traverses_object_recursively(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -465,7 +477,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Object description', $object['description']);
     }
 
-    public function testTraversesLayoutRecursively(): void
+    #[Test]
+    public function traverses_layout_recursively(): void
     {
         $page = $this->app->page('about');
         $translator = new Translator($page);
@@ -475,8 +488,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
     }
 
-    // Configuration tests
-    public function testCustomFieldTypeConfiguration(): void
+    #[Test]
+    public function custom_field_type_configuration(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -490,7 +503,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('Do not translate', $translator->model()->content('en')->get('untranslatableText')->value());
     }
 
-    public function testRespectsIncludeFieldsFilter(): void
+    #[Test]
+    public function respects_include_fields_filter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -502,7 +516,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
-    public function testRespectsExcludeFieldsFilter(): void
+    #[Test]
+    public function respects_exclude_fields_filter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -514,7 +529,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
-    public function testTraversesStructureWithIncludeFieldsFilter(): void
+    #[Test]
+    public function traverses_structure_with_include_fields_filter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
@@ -531,8 +547,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('Welcome to our website', $translator->model()->content('en')->get('text')->value());
     }
 
-    // Edge cases and skipping values
-    public function testSkipsEmptyValues(): void
+    #[Test]
+    public function skips_empty_values(): void
     {
         $result = Translator::translateText('', 'de');
         $this->assertSame('', $result);
@@ -541,7 +557,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('   ', $result);
     }
 
-    public function testSkipsWhitespaceOnlyContent(): void
+    #[Test]
+    public function skips_whitespace_only_content(): void
     {
         $result = Translator::translateText('   ', 'de');
         $this->assertSame('   ', $result);
@@ -550,7 +567,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame("\n\t", $result);
     }
 
-    public function testSkipsPureNumericValues(): void
+    #[Test]
+    public function skips_pure_numeric_values(): void
     {
         $result = Translator::translateText('123', 'de');
         $this->assertSame('123', $result);
@@ -569,7 +587,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Product 123', $result);
     }
 
-    public function testSkipsUrlValues(): void
+    #[Test]
+    public function skips_url_values(): void
     {
         $result = Translator::translateText('https://example.com', 'de');
         $this->assertSame('https://example.com', $result);
@@ -582,7 +601,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame('[de]Visit https://example.com today', $result);
     }
 
-    public function testModelMethod(): void
+    #[Test]
+    public function model_returns_original_page(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
@@ -590,8 +610,8 @@ final class TranslatorTest extends TestCase
         $this->assertSame($page, $translator->model());
     }
 
-    // KirbyTags translation tests
-    public function testKirbyTagsTranslationWithEmptyConfig(): void
+    #[Test]
+    public function kirby_tags_translation_with_empty_config(): void
     {
         $page = $this->app->page('kirbytags');
         $translator = new Translator($page);
@@ -604,7 +624,8 @@ final class TranslatorTest extends TestCase
         $this->assertStringNotContainsString('[de]our website', $content); // KirbyTag content should not be translated
     }
 
-    public function testKirbyTagsLinkTranslation(): void
+    #[Test]
+    public function kirby_tags_link_translation(): void
     {
         $page = $this->app->page('kirbytags');
         $translator = new Translator($page, [
@@ -622,7 +643,8 @@ final class TranslatorTest extends TestCase
         $this->assertStringContainsString('[de]Visit', $content);
     }
 
-    public function testKirbyTagsEmailTranslation(): void
+    #[Test]
+    public function kirby_tags_email_translation(): void
     {
         $page = $this->app->page('home');
         $content = $page->content('en')->get('text')->value();
@@ -638,5 +660,4 @@ final class TranslatorTest extends TestCase
 
         $this->assertStringContainsString('[de]Welcome to our website', $translatedContent);
     }
-
 }

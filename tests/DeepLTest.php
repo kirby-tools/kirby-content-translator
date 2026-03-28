@@ -6,6 +6,7 @@ use JohannSchopplich\ContentTranslator\DeepL;
 use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 final class DeepLTest extends TestCase
@@ -40,7 +41,8 @@ final class DeepLTest extends TestCase
         App::destroy();
     }
 
-    public function testConstructorThrowsExceptionWithoutApiKey(): void
+    #[Test]
+    public function constructor_throws_exception_without_api_key(): void
     {
         new App([
             'options' => [
@@ -54,7 +56,8 @@ final class DeepLTest extends TestCase
         new DeepL();
     }
 
-    public function testInstanceReturnsSingleton(): void
+    #[Test]
+    public function instance_returns_singleton(): void
     {
         $instance1 = DeepL::instance();
         $instance2 = DeepL::instance();
@@ -62,7 +65,8 @@ final class DeepLTest extends TestCase
         $this->assertSame($instance1, $instance2);
     }
 
-    public function testTranslateManyWithEmptyArray(): void
+    #[Test]
+    public function translate_many_with_empty_array(): void
     {
         $deepL = DeepL::instance();
         $result = $deepL->translateMany([], 'de');
@@ -70,7 +74,8 @@ final class DeepLTest extends TestCase
         $this->assertSame([], $result);
     }
 
-    public function testTranslateManyThrowsExceptionForUnsupportedTargetLanguage(): void
+    #[Test]
+    public function translate_many_throws_exception_for_unsupported_target_language(): void
     {
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('not supported by the DeepL API');
@@ -79,7 +84,8 @@ final class DeepLTest extends TestCase
         $deepL->translateMany(['Hello'], 'invalid');
     }
 
-    public function testValidatesAndNormalizesLanguages(): void
+    #[Test]
+    public function validates_and_normalizes_languages(): void
     {
         // Test with EN-GB locale (should resolve to EN-GB)
         new App([
@@ -110,7 +116,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('EN-GB', $target);
     }
 
-    public function testIgnoresUnsupportedSourceLanguage(): void
+    #[Test]
+    public function ignores_unsupported_source_language(): void
     {
         $deepL = DeepL::instance();
 
@@ -124,7 +131,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('DE', $target);
     }
 
-    public function testResolvesApiUrlForFreeAccount(): void
+    #[Test]
+    public function resolves_api_url_for_free_account(): void
     {
         new App([
             'options' => [
@@ -145,7 +153,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('https://api-free.deepl.com', $url);
     }
 
-    public function testResolvesApiUrlForProAccount(): void
+    #[Test]
+    public function resolves_api_url_for_pro_account(): void
     {
         new App([
             'options' => [
@@ -166,7 +175,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('https://api.deepl.com', $url);
     }
 
-    public function testBuildsRequestOptionsWithNoTranslateTags(): void
+    #[Test]
+    public function builds_request_options_with_no_translate_tags(): void
     {
         $deepL = DeepL::instance();
 
@@ -188,7 +198,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('html', $originalOptions['tag_handling'], 'Original options should remain unchanged');
     }
 
-    public function testTranslateDelegatesToTranslateMany(): void
+    #[Test]
+    public function translate_delegates_to_translate_many(): void
     {
         $mockDeepL = $this->getMockBuilder(DeepL::class)
             ->disableOriginalConstructor()
@@ -205,7 +216,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('Hallo Welt', $result);
     }
 
-    public function testResolveLanguageCodeWithRegionalLocale(): void
+    #[Test]
+    public function resolve_language_code_with_regional_locale(): void
     {
         new App([
             'languages' => [
@@ -243,7 +255,8 @@ final class DeepLTest extends TestCase
         $this->assertSame('PT-BR', $result);
     }
 
-    public function testSupportsAllLanguages(): void
+    #[Test]
+    public function supports_all_languages(): void
     {
         $deepL = DeepL::instance();
         $supportedTargetLanguages = ['DE', 'EN', 'FR', 'ES', 'IT', 'JA', 'NL', 'PL', 'PT', 'RU', 'ZH'];

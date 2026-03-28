@@ -6,13 +6,15 @@ use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
 final class HooksTest extends TestCase
 {
-    public function testBeforeHookModifiesText(): void
+    #[Test]
+    public function before_hook_modifies_text(): void
     {
         $app = new App([
             'languages' => [
@@ -52,7 +54,8 @@ final class HooksTest extends TestCase
         $this->assertSame('[de]HELLO', $translator->model()->content('en')->get('text')->value());
     }
 
-    public function testAfterHookModifiesTranslatedText(): void
+    #[Test]
+    public function after_hook_modifies_translated_text(): void
     {
         $app = new App([
             'languages' => [
@@ -92,7 +95,8 @@ final class HooksTest extends TestCase
         $this->assertSame('[de]Hello (translated)', $translator->model()->content('en')->get('text')->value());
     }
 
-    public function testBeforeAndAfterHooksTogether(): void
+    #[Test]
+    public function before_and_after_hooks_together(): void
     {
         $app = new App([
             'languages' => [
@@ -133,7 +137,8 @@ final class HooksTest extends TestCase
         $this->assertSame('[DE]HELLO!', $translator->model()->content('en')->get('text')->value());
     }
 
-    public function testHooksReceiveCorrectParameters(): void
+    #[Test]
+    public function hooks_receive_correct_parameters(): void
     {
         $beforeParams = [];
         $afterParams = [];
@@ -191,7 +196,8 @@ final class HooksTest extends TestCase
         $this->assertSame('en', $afterParams['sourceLanguage']);
     }
 
-    public function testHooksWorkWithStaticTranslateTextMethod(): void
+    #[Test]
+    public function hooks_work_with_static_translate_text_method(): void
     {
         $hookCalled = false;
 
@@ -214,5 +220,4 @@ final class HooksTest extends TestCase
         $this->assertTrue($hookCalled);
         $this->assertSame('[de]Hello modified', $result);
     }
-
 }

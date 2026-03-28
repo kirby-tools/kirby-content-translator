@@ -9,6 +9,7 @@ use Kirby\Data\Json;
 use Kirby\Data\Yaml;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
@@ -293,7 +294,8 @@ final class BatchTranslationTest extends TestCase
         $instanceProperty->setValue(null, $mockDeepL);
     }
 
-    public function testBatchesMultipleFieldsIntoSingleCall(): void
+    #[Test]
+    public function batches_multiple_fields_into_single_call(): void
     {
         $translateManyCallCount = 0;
         $batchSizes = [];
@@ -318,7 +320,8 @@ final class BatchTranslationTest extends TestCase
         $this->assertSame('[de]tag1, tag2', $model->content('en')->get('tags')->value());
     }
 
-    public function testNestedBlocksAreBatched(): void
+    #[Test]
+    public function nested_blocks_are_batched(): void
     {
         $collectedTexts = [];
 
@@ -344,7 +347,8 @@ final class BatchTranslationTest extends TestCase
         $this->assertSame('[de]Nested block text', $nestedBlocks[0]['content']['text']);
     }
 
-    public function testLayoutBlocksAreBatched(): void
+    #[Test]
+    public function layout_blocks_are_batched(): void
     {
         $collectedTexts = [];
 
@@ -365,7 +369,8 @@ final class BatchTranslationTest extends TestCase
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
     }
 
-    public function testStructureFieldsAreBatched(): void
+    #[Test]
+    public function structure_fields_are_batched(): void
     {
         $collectedTexts = [];
 
@@ -388,7 +393,8 @@ final class BatchTranslationTest extends TestCase
         $this->assertSame('[de]Description 1', $structure[0]['description']);
     }
 
-    public function testObjectFieldsAreBatched(): void
+    #[Test]
+    public function object_fields_are_batched(): void
     {
         $collectedTexts = [];
 
@@ -411,7 +417,8 @@ final class BatchTranslationTest extends TestCase
         $this->assertSame('[de]Object description', $object['description']);
     }
 
-    public function testLargeNumberOfFieldsAreBatchedInSingleCall(): void
+    #[Test]
+    public function large_number_of_fields_are_batched_in_single_call(): void
     {
         // Create 60 fields to test that all are sent in one call
         $fields = [];
