@@ -23,7 +23,7 @@
   ],
   "require": {
     "getkirby/composer-installer": "^1",
-    "johannschopplich/kirby-tools-licensing": "^0.8",
+    "johannschopplich/kirby-tools-licensing": "^0.9",
     "johannschopplich/kirby-tools-utils": "^0.1"
   },
   "require-dev": {
