@@ -41,6 +41,9 @@ importers:
       eslint:
         specifier: ^10.1.0
         version: 10.1.0(jiti@2.6.1)
+      jiti:
+        specifier: ^2.6.1
+        version: 2.6.1
       kirby-types:
         specifier: ^1.4.7
         version: 1.4.7(vue@2.7.16)
