@@ -35,7 +35,7 @@ class LicenseActivator
     /**
      * Activates a license with the given credentials.
      */
-    public function activate(string $email, string|int $orderId): void
+    public function activate(string $email, string $licenseKey): void
     {
         if ($this->isActivated()) {
             throw new LogicException('License key already activated');
@@ -45,7 +45,7 @@ class LicenseActivator
             'method' => 'POST',
             'data' => [
                 'email' => $email,
-                'orderId' => $orderId
+                'licenseKey' => $licenseKey
             ]
         ]);
 
@@ -77,13 +77,13 @@ class LicenseActivator
     {
         $request ??= App::instance()->request();
         $email = $request->get('email');
-        $orderId = $request->get('orderId');
+        $licenseKey = $request->get('licenseKey');
 
-        if (!$email || !$orderId) {
-            throw new LogicException('Missing license registration parameters "email" or "orderId"');
+        if (!$email || !$licenseKey) {
+            throw new LogicException('Missing license registration parameters "email" or "licenseKey"');
         }
 
-        $this->activate($email, $orderId);
+        $this->activate($email, $licenseKey);
 
         return [
             'code' => 200,

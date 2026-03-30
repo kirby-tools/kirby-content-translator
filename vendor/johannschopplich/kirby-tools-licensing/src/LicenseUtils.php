@@ -50,15 +50,19 @@ class LicenseUtils
     }
 
     /**
-     * Formats a compatibility string like `^1 || ^2 || ^3` into `v1, v2, v3`.
+     * Formats a compatibility string like `^1 || ^2 || ^3` into `v1–v3`.
      */
     public static function formatCompatibility(string $compatibility): string
     {
         $versions = array_map(
-            fn ($part) => 'v' . (int)preg_replace('/\D/', '', trim($part)),
+            fn ($part) => (int)preg_replace('/\D/', '', trim($part)),
             explode('||', $compatibility)
         );
 
-        return implode(', ', $versions);
+        if (count($versions) <= 1) {
+            return 'v' . $versions[0];
+        }
+
+        return 'v' . $versions[0] . "\u{2013}" . 'v' . end($versions);
     }
 }
