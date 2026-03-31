@@ -6,7 +6,7 @@
 
 # Vendor files
 /node_modules
-# /vendor
+/vendor
 
 # Build files
 /index.dev.mjs
