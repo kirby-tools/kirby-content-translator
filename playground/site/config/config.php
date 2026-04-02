@@ -11,7 +11,7 @@ return [
 
     'panel' => [
         'css' => array_filter([
-            env('DEMO', false) ? 'assets/panel-demo.css' : false
+            env('PLAYGROUND') !== false ? 'assets/panel-demo.css' : null
         ]),
         'favicon' => 'favicon.ico',
         'vue' => [
