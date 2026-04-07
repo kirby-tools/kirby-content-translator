@@ -23,7 +23,7 @@ return [
         'provider' => 'openai',
         'providers' => [
             'openai' => [
-                'model' => 'gpt-5.2',
+                'model' => 'gpt-5.4',
                 'apiKey' => env('OPENAI_API_KEY', 'YOUR_API_KEY')
             ],
             'google' => [
