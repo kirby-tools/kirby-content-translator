@@ -317,12 +317,14 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function copy_content(): void
+    public function copy_content_from_default_language_deletes_target_translation(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page);
         $translator->copyContent('de', 'en');
 
+        // Content file should be deleted, content inherits from default language
+        $this->assertFalse($translator->model()->version()->exists('de'));
         $this->assertSame(
             'Welcome to our website',
             $translator->model()->content('de')->get('text')->value()
@@ -330,6 +332,44 @@ final class TranslatorTest extends TestCase
         $this->assertSame(
             'Do not translate',
             $translator->model()->content('de')->get('untranslatableText')->value()
+        );
+    }
+
+    #[Test]
+    public function copy_content_from_non_default_language_copies_content(): void
+    {
+        $page = $this->app->page('home');
+
+        // First create French content to copy from
+        $page = $this->app->impersonate('kirby', fn () => $page->update([
+            'text' => 'Bienvenue sur notre site',
+        ], 'fr'));
+
+        $translator = new Translator($page);
+        $translator->copyContent('de', 'fr');
+
+        // Content should be copied (not deleted) since source is non-default
+        $this->assertSame(
+            'Bienvenue sur notre site',
+            $translator->model()->content('de')->get('text')->value()
+        );
+    }
+
+    #[Test]
+    public function translate_content_works_after_copy_from_default_language(): void
+    {
+        $page = $this->app->page('home');
+        $translator = new Translator($page);
+
+        // Copy from default deletes target translation
+        $translator->copyContent('de', 'en');
+        $this->assertFalse($translator->model()->version()->exists('de'));
+
+        // Translate should read inherited content and write translated result
+        $translator->translateContent('de', 'de', 'en');
+        $this->assertSame(
+            '[de]Welcome to our website',
+            $translator->model()->content('de')->get('text')->value()
         );
     }
 

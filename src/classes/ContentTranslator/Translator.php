@@ -124,6 +124,20 @@ final class Translator
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
     {
         $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
+            $defaultLanguage = $this->kirby->defaultLanguage();
+
+            // When copying from the default language to a secondary language,
+            // delete the target content file so Kirby's built-in inheritance
+            // keeps it in sync with the default language automatically.
+            if (
+                $defaultLanguage !== null &&
+                $defaultLanguage->code() === $fromLanguageCode &&
+                $defaultLanguage->code() !== $toLanguageCode
+            ) {
+                $this->model->version()->delete($toLanguageCode);
+                return;
+            }
+
             $content = [];
 
             foreach ($this->fields as $field => $props) {
