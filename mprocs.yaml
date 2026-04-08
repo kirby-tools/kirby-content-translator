@@ -8,5 +8,5 @@ procs:
     shell: composer dev
     stop: SIGKILL
     env:
-      DEMO: "false"
+      PLAYGROUND: "false"
     autostart: true
