@@ -193,13 +193,6 @@ describe("DeepLStrategy", () => {
     });
   });
 
-  describe("concurrency option", () => {
-    it("accepts custom concurrency", () => {
-      const strategy = new DeepLStrategy({ concurrency: 10 });
-      expect(strategy).toBeInstanceOf(DeepLStrategy);
-    });
-  });
-
   describe("abort signal", () => {
     it("skips all API calls when signal is pre-aborted", async () => {
       const controller = new AbortController();

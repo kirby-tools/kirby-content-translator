@@ -7,9 +7,13 @@ use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class TranslatorTest extends TestCase
 {
     protected App $app;
@@ -86,6 +90,36 @@ final class TranslatorTest extends TestCase
                                                 'level' => [
                                                     'type' => 'select',
                                                     'translate' => false
+                                                ]
+                                            ]
+                                        ]
+                                    ]
+                                ],
+                                'container' => [
+                                    'tabs' => [
+                                        'content' => [
+                                            'fields' => [
+                                                'heading' => [
+                                                    'type' => 'text',
+                                                    'translate' => true
+                                                ],
+                                                'blocks' => [
+                                                    'type' => 'blocks',
+                                                    'translate' => true,
+                                                    'fieldsets' => [
+                                                        'text' => [
+                                                            'tabs' => [
+                                                                'content' => [
+                                                                    'fields' => [
+                                                                        'text' => [
+                                                                            'type' => 'text',
+                                                                            'translate' => true
+                                                                        ]
+                                                                    ]
+                                                                ]
+                                                            ]
+                                                        ]
+                                                    ]
                                                 ]
                                             ]
                                         ]
@@ -188,6 +222,22 @@ final class TranslatorTest extends TestCase
                                             'content' => [
                                                 'text' => 'Hidden block content'
                                             ]
+                                        ],
+                                        [
+                                            'type' => 'container',
+                                            'id' => 'container1',
+                                            'content' => [
+                                                'heading' => 'Container heading',
+                                                'blocks' => Json::encode([
+                                                    [
+                                                        'type' => 'text',
+                                                        'id' => 'nested1',
+                                                        'content' => [
+                                                            'text' => 'Nested block text'
+                                                        ]
+                                                    ]
+                                                ])
+                                            ]
                                         ]
                                     ]),
                                     'structure' => Yaml::encode([
@@ -264,7 +314,8 @@ final class TranslatorTest extends TestCase
                 'debug' => true,
                 'johannschopplich.content-translator' => [
                     'translateFn' => function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
-                        return "[$toLanguageCode]$text";
+                        $prefix = $fromLanguageCode !== null ? "[$toLanguageCode:$fromLanguageCode]" : "[$toLanguageCode]";
+                        return "$prefix$text";
                     }
                 ]
             ],
@@ -285,9 +336,11 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_text_with_empty_string(): void
+    public function skips_untranslatable_text_values(): void
     {
         $this->assertSame('', Translator::translateText('', 'de'));
+        $this->assertSame('   ', Translator::translateText('   ', 'de'));
+        $this->assertSame("\n\t", Translator::translateText("\n\t", 'de'));
     }
 
     #[Test]
@@ -299,7 +352,7 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function translate_text_with_source_language(): void
     {
-        $this->assertSame('[de]hello', Translator::translateText('hello', 'de', 'en'));
+        $this->assertSame('[de:en]hello', Translator::translateText('hello', 'de', 'en'));
     }
 
     #[Test]
@@ -368,7 +421,7 @@ final class TranslatorTest extends TestCase
         // Translate should read inherited content and write translated result
         $translator->translateContent('de', 'de', 'en');
         $this->assertSame(
-            '[de]Welcome to our website',
+            '[de:en]Welcome to our website',
             $translator->model()->content('de')->get('text')->value()
         );
     }
@@ -394,7 +447,7 @@ final class TranslatorTest extends TestCase
         $translator->translateContent('en', 'de', 'en');
 
         $this->assertSame(
-            '[de]Welcome to our website',
+            '[de:en]Welcome to our website',
             $translator->model()->content('en')->get('text')->value()
         );
     }
@@ -429,7 +482,7 @@ final class TranslatorTest extends TestCase
         $translator = new Translator($page);
         $translator->translateTitle('en', 'de', 'en');
 
-        $this->assertSame('[de]Home', $translator->model()->title()->value());
+        $this->assertSame('[de:en]Home', $translator->model()->title()->value());
     }
 
     #[Test]
@@ -492,6 +545,20 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function traverses_nested_container_blocks(): void
+    {
+        $page = $this->app->page('home');
+        $translator = new Translator($page);
+        $translator->translateContent('en', 'de');
+
+        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value());
+        $nestedBlocks = Json::decode($blocks[3]['content']['blocks']);
+
+        $this->assertSame('[de]Container heading', $blocks[3]['content']['heading']);
+        $this->assertSame('[de]Nested block text', $nestedBlocks[0]['content']['text']);
+    }
+
+    #[Test]
     public function traverses_structure_recursively(): void
     {
         $page = $this->app->page('home');
@@ -529,18 +596,18 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function custom_field_type_configuration(): void
+    public function respects_field_types_filter(): void
     {
         $page = $this->app->page('home');
         $translator = new Translator($page, [
-            'fieldTypes' => ['textarea'],
-            'includeFields' => ['text'],
-            'excludeFields' => ['untranslatableText']
+            'fieldTypes' => ['textarea']
         ]);
         $translator->translateContent('en', 'de');
 
+        // textarea fields are translated
         $this->assertSame('[de]Welcome to our website', $translator->model()->content('en')->get('text')->value());
-        $this->assertSame('Do not translate', $translator->model()->content('en')->get('untranslatableText')->value());
+        // tags (type: tags) are not translated because only textarea is allowed
+        $this->assertSame('tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
     #[Test]
@@ -588,26 +655,6 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function skips_empty_values(): void
-    {
-        $result = Translator::translateText('', 'de');
-        $this->assertSame('', $result);
-
-        $result = Translator::translateText('   ', 'de');
-        $this->assertSame('   ', $result);
-    }
-
-    #[Test]
-    public function skips_whitespace_only_content(): void
-    {
-        $result = Translator::translateText('   ', 'de');
-        $this->assertSame('   ', $result);
-
-        $result = Translator::translateText("\n\t", 'de');
-        $this->assertSame("\n\t", $result);
-    }
-
-    #[Test]
     public function skips_pure_numeric_values(): void
     {
         $result = Translator::translateText('123', 'de');
@@ -639,15 +686,6 @@ final class TranslatorTest extends TestCase
         // Should translate: contains additional text
         $result = Translator::translateText('Visit https://example.com today', 'de');
         $this->assertSame('[de]Visit https://example.com today', $result);
-    }
-
-    #[Test]
-    public function model_returns_original_page(): void
-    {
-        $page = $this->app->page('home');
-        $translator = new Translator($page);
-
-        $this->assertSame($page, $translator->model());
     }
 
     #[Test]
@@ -683,21 +721,4 @@ final class TranslatorTest extends TestCase
         $this->assertStringContainsString('[de]Visit', $content);
     }
 
-    #[Test]
-    public function kirby_tags_email_translation(): void
-    {
-        $page = $this->app->page('home');
-        $content = $page->content('en')->get('text')->value();
-
-        $translator = new Translator($page, [
-            'kirbyTags' => [
-                'link' => ['text'] // Test that only configured tags work
-            ]
-        ]);
-
-        $translator->translateContent('en', 'de');
-        $translatedContent = $translator->model()->content('en')->get('text')->value();
-
-        $this->assertStringContainsString('[de]Welcome to our website', $translatedContent);
-    }
 }

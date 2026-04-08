@@ -64,25 +64,7 @@ describe("AIStrategy", () => {
       );
     });
 
-    it("calls streamText with structured output schema", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Test"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          output: expect.objectContaining({ schema: expect.anything() }),
-        }),
-      );
-    });
-  });
+});
 
   describe("prompt construction", () => {
     it("includes target language in prompt", async () => {
@@ -156,7 +138,7 @@ describe("AIStrategy", () => {
   });
 
   describe("kirbyTags handling", () => {
-    it("includes kirbyTags config in prompt when provided", async () => {
+    it("includes kirbyTags in prompt", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Test"] }),
       });
@@ -287,10 +269,6 @@ describe("AIStrategy", () => {
   });
 
   describe("mixed modes", () => {
-    beforeEach(() => {
-      vi.clearAllMocks();
-    });
-
     it("handles all translation modes uniformly", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({

@@ -143,6 +143,23 @@ describe("translateContent (integration)", () => {
     ).rejects.toThrow("Translation failed");
   });
 
+  it("translates YAML-encoded table end-to-end", async () => {
+    mockApiPost
+      .mockResolvedValueOnce({ text: "X" })
+      .mockResolvedValueOnce({ text: "Y" });
+
+    const content = { table: "-\n  - A\n  - B" };
+    const fields = { table: field({ type: "table", name: "table" }) };
+
+    await translateContent(content, {
+      ...defaultOptions,
+      fieldTypes: [...defaultOptions.fieldTypes, "table"],
+      fields,
+    });
+
+    expect(content.table).toBe("-\n  - X\n  - Y");
+  });
+
   describe("abort signal", () => {
     it("returns original content when signal is pre-aborted", async () => {
       const controller = new AbortController();
