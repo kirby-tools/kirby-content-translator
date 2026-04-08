@@ -21,11 +21,11 @@ final class KirbyText
 
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, array $kirbyTags = []): string
     {
-        if (empty(trim($text))) {
+        if (trim($text) === '') {
             return '';
         }
 
-        if (!empty($kirbyTags)) {
+        if ($kirbyTags !== []) {
             $text = preg_replace_callback(
                 self::KIRBY_TAGS_REGEX,
                 fn (array $matches) => self::translateKirbyTag($matches[0], $targetLanguage, $sourceLanguage, $kirbyTags),
@@ -48,7 +48,7 @@ final class KirbyText
             $tagType = $tag->type();
             $translatableAttributes = $kirbyTags[$tagType] ?? null;
 
-            if (empty($translatableAttributes)) {
+            if ($translatableAttributes === null) {
                 return '<span translate="no">' . $tagString . '</span>';
             }
 

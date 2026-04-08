@@ -22,15 +22,8 @@ class DeepL
     private const MAX_RETRY_DELAY_MS = 8000;
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
-    private array $requestOptions = [
-        // Enable HTML tag handling by default for the Writer field
-        'tag_handling' => 'html',
-        // HTML tag handling sets `split_sentences=nonewlines`, which breaks
-        // markdown content. Therefore, we need to set it back to `1` to
-        // split sentences on punctuation and on newlines.
-        'split_sentences' => '1'
-    ];
-    private string|null $apiKey;
+    private readonly array $requestOptions;
+    private readonly string|null $apiKey;
     private static DeepL|null $instance;
 
     public function __construct()
@@ -44,7 +37,14 @@ class DeepL
 
         $this->apiKey = $apiKey;
         $this->requestOptions = A::merge(
-            $this->requestOptions,
+            [
+                // Enable HTML tag handling by default for the Writer field
+                'tag_handling' => 'html',
+                // HTML tag handling sets `split_sentences=nonewlines`, which breaks
+                // markdown content. Therefore, we need to set it back to `1` to
+                // split sentences on punctuation and on newlines.
+                'split_sentences' => '1'
+            ],
             $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
         );
     }
@@ -66,7 +66,7 @@ class DeepL
      */
     public function translateMany(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
     {
-        if (empty($texts)) {
+        if ($texts === []) {
             return [];
         }
 
@@ -135,7 +135,7 @@ class DeepL
      * @param array<string> $texts
      * @see https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
      */
-    private function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
+    protected function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
     {
         $response = $this->withRetry(
             function () use ($texts, $targetLanguage, $sourceLanguage, $requestOptions) {

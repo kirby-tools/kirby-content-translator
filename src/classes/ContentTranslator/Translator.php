@@ -14,46 +14,25 @@ use Kirby\Toolkit\A;
 
 final class Translator
 {
-    private App $kirby;
+    private readonly App $kirby;
     private Site|Page|File $model;
     private string|null $targetLanguage;
     private string|null $sourceLanguage;
-    private array $fields;
-    private array $fieldTypes;
-    private array $includeFields;
-    private array $excludeFields;
-    private array $kirbyTags;
+    private readonly array $fields;
+    private readonly TranslatorConfig $config;
+    private readonly array $kirbyTags;
 
-    public function __construct(Site|Page|File $model, array $options = [])
-    {
+    public function __construct(
+        Site|Page|File $model,
+        array $options = []
+    ) {
         $this->kirby = $model->kirby();
         $this->model = $model;
         $this->fields = FieldResolver::resolveModelFields($model);
-        $config = $model->kirby()->option('johannschopplich.content-translator', []);
+        $this->config = TranslatorConfig::fromOptions($options);
 
-        $this->fieldTypes = $options['fieldTypes'] ?? $config['fieldTypes'] ?? [
-            'blocks',
-            'layout',
-            'list',
-            'object',
-            'structure',
-            'tags',
-            'text',
-            'textarea',
-            'writer',
-            // Community plugins
-            'markdown',
-            'table'
-        ];
-        $this->includeFields = $options['includeFields'] ?? $config['includeFields'] ?? [];
-        $this->excludeFields = $options['excludeFields'] ?? $config['excludeFields'] ?? [];
-
-        // Lowercase fields keys, sine the Kirby Panel content object keys are lowercase
-        $this->fieldTypes = array_map('strtolower', $this->fieldTypes);
-        $this->includeFields = array_map('strtolower', $this->includeFields);
-        $this->excludeFields = array_map('strtolower', $this->excludeFields);
-
-        $this->kirbyTags = $options['kirbyTags'] ?? $config['kirbyTags'] ?? [];
+        $pluginConfig = $this->kirby->option('johannschopplich.content-translator', []);
+        $this->kirbyTags = $options['kirbyTags'] ?? $pluginConfig['kirbyTags'] ?? [];
     }
 
     public function model(): Site|Page|File
@@ -77,7 +56,7 @@ final class Translator
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
     {
-        if (empty($texts)) {
+        if ($texts === []) {
             return [];
         }
 
@@ -143,11 +122,7 @@ final class Translator
             $content = [];
 
             foreach ($this->fields as $field => $props) {
-                if (
-                    in_array($props['type'], $this->fieldTypes, true) &&
-                    (empty($this->includeFields) || in_array($field, $this->includeFields, true)) &&
-                    (empty($this->excludeFields) || !in_array($field, $this->excludeFields, true))
-                ) {
+                if ($this->config->isTranslatable($field, $props)) {
                     $content[$field] = $this->model->content($fromLanguageCode)->get($field)->value();
                 }
             }
@@ -164,20 +139,18 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $content = $this->model->content($contentLanguageCode)->toArray();
 
-            // Apply include/exclude filters by narrowing the top-level fields
-            $fields = $this->fields;
-            if (!empty($this->includeFields)) {
-                $fields = array_intersect_key($fields, array_flip($this->includeFields));
-            }
-            if (!empty($this->excludeFields)) {
-                $fields = array_diff_key($fields, array_flip($this->excludeFields));
-            }
+            // Filter top-level fields by type, include/exclude, and translate flag
+            $fields = array_filter(
+                $this->fields,
+                fn ($props, $key) => $this->config->isTranslatable($key, $props),
+                ARRAY_FILTER_USE_BOTH
+            );
 
             $collector = ['texts' => [], 'pointers' => [], 'encodeFields' => []];
             $this->collectTranslatableFields($content, $fields, $collector);
 
             // Batch translation for all collected texts
-            if (!empty($collector['texts'])) {
+            if ($collector['texts'] !== []) {
                 // Apply before hook to all texts
                 $textsToTranslate = array_map(
                     fn ($text) => $this->kirby->apply('content-translator.translate:before', [
@@ -281,7 +254,7 @@ final class Translator
             if (!($fields[$key]['translate'] ?? true)) {
                 continue;
             }
-            if (!in_array($fields[$key]['type'], $this->fieldTypes, true)) {
+            if (!in_array($fields[$key]['type'], $this->config->fieldTypes, true)) {
                 continue;
             }
 
