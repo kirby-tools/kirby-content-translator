@@ -126,6 +126,7 @@ describe("collectTranslations", () => {
     });
   });
 
+  // eslint-disable-next-line test/prefer-lowercase-title
   describe("YAML table serialization", () => {
     it("serializes translations back to YAML format", () => {
       const yamlTable = "-\n  - A\n  - B";
