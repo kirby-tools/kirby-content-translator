@@ -1,6 +1,9 @@
 import type { PanelModelData } from "kirby-types";
 import { usePanel } from "kirbyuse";
 
+const FILE_MODEL_PATH_PATTERN =
+  /^(?:account|pages\/[^/]+|site|users\/[^/]+)\/files\//;
+
 const modelDataCache = new Map<string, PanelModelData>();
 let isListenerRegistered = false;
 
@@ -39,8 +42,18 @@ export function useModel() {
     modelDataCache.delete(panel.view.path);
   }
 
+  function isFileModel() {
+    return FILE_MODEL_PATH_PATTERN.test(panel.view.path);
+  }
+
+  function isSiteModel() {
+    return panel.view.path === "site";
+  }
+
   return {
     getModelData,
     clearModelData,
+    isFileModel,
+    isSiteModel,
   };
 }

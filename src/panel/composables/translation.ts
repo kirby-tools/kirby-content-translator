@@ -38,7 +38,7 @@ export function useContentTranslator() {
   const panel = usePanel();
   const { currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
-  const { getModelData } = useModel();
+  const { getModelData, isFileModel, isSiteModel } = useModel();
   const { isTranslating } = useTranslationState();
 
   // Configuration state
@@ -162,20 +162,24 @@ export function useContentTranslator() {
     await updateContent(syncableContent);
     const _isHomePage = await isHomePage();
     const _isErrorPage = await isErrorPage();
-    const shouldTranslateSlug =
+    const _isFileModel = isFileModel();
+    const canTranslateTitle = translateTitle.value && !_isFileModel;
+    const canTranslateSlug =
       translateSlug.value &&
       !language?.default &&
       !_isHomePage &&
-      !_isErrorPage;
+      !_isErrorPage &&
+      !_isFileModel &&
+      !isSiteModel();
 
-    if (translateTitle.value) {
+    if (canTranslateTitle) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
-    if (shouldTranslateSlug) {
+    if (canTranslateSlug) {
       const slug = slugify(title);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
-    if (translateTitle.value || shouldTranslateSlug) {
+    if (canTranslateTitle || canTranslateSlug) {
       await panel.view.reload();
     }
 
@@ -225,13 +229,17 @@ export function useContentTranslator() {
       await updateContent(contentCopy);
       const _isHomePage = await isHomePage();
       const _isErrorPage = await isErrorPage();
-      const shouldTranslateSlug =
+      const _isFileModel = isFileModel();
+      const canTranslateTitle = translateTitle.value && !_isFileModel;
+      const canTranslateSlug =
         translateSlug.value &&
         !targetLanguage.default &&
         !_isHomePage &&
-        !_isErrorPage;
+        !_isErrorPage &&
+        !_isFileModel &&
+        !isSiteModel();
 
-      if ((translateTitle.value || shouldTranslateSlug) && panel.view.title) {
+      if ((canTranslateTitle || canTranslateSlug) && panel.view.title) {
         const translatedTitle = await translateText(panel.view.title, {
           provider: provider.value,
           targetLanguage,
@@ -239,7 +247,7 @@ export function useContentTranslator() {
           systemPrompt: systemPrompt.value,
         });
 
-        if (translateTitle.value) {
+        if (canTranslateTitle) {
           await panel.api.patch(`${panel.view.path}/title`, {
             title: translatedTitle,
           });
@@ -248,7 +256,7 @@ export function useContentTranslator() {
         // Translating the slug is only possible for non-default languages,
         // as the page folder would be renamed otherwise.
         // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-        if (shouldTranslateSlug) {
+        if (canTranslateSlug) {
           const slug = slugify(translatedTitle);
           await panel.api.patch(`${panel.view.path}/slug`, { slug });
         }
@@ -377,8 +385,17 @@ export function useContentTranslator() {
 
         const _isHomePage = defaultLanguageData.id === homePageId.value;
         const _isErrorPage = defaultLanguageData.id === errorPageId.value;
+        const _isFileModel = isFileModel();
+        const canTranslateTitle = translateTitle.value && !_isFileModel;
+        const canTranslateSlug =
+          translateSlug.value &&
+          !targetLanguage.default &&
+          !_isHomePage &&
+          !_isErrorPage &&
+          !_isFileModel &&
+          !isSiteModel();
 
-        if (translateTitle.value) {
+        if (canTranslateTitle) {
           const translatedTitle = await translateText(
             defaultLanguageData.title,
             {
@@ -398,12 +415,7 @@ export function useContentTranslator() {
           );
 
           // Translate slug for non-home/error pages
-          if (
-            translateSlug.value &&
-            !targetLanguage.default &&
-            !_isHomePage &&
-            !_isErrorPage
-          ) {
+          if (canTranslateSlug) {
             const slug = slugify(translatedTitle);
             await panel.api.patch(
               `${modelApiPath}/slug`,
