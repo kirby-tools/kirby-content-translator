@@ -24,8 +24,8 @@ interface CollectorContext {
 }
 
 /**
- * Traverse content and collect all translatable text.
- * Returns translation units with apply callbacks and post-translation finalizers.
+ * Walks content and returns translatable units with their
+ * apply callbacks and post-translation finalizers.
  */
 export function collectTranslations(
   obj: Record<string, unknown>,
@@ -69,16 +69,9 @@ function collectFromObject(
   for (const key in obj) {
     const value = obj[key];
 
-    // Skip empty values
     if (value === null || value === undefined || value === "") continue;
-
-    // Skip undefined field definitions
     if (!fields[key]) continue;
-
-    // Skip non-translatable fields
     if (fields[key].translate === false) continue;
-
-    // Skip field types not in translatable list
     if (!fieldTypes.includes(fields[key].type)) continue;
 
     collectFromField(obj, key, value, fields[key], context);

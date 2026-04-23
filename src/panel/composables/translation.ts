@@ -26,9 +26,6 @@ import { filterSyncableContent } from "../utils/filter";
 import { useModel } from "./model";
 import { createGlobalState } from "./state";
 
-/**
- * Global translation state shared across all component instances.
- */
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
 
@@ -504,7 +501,12 @@ function isValidProvider(value: unknown): value is TranslationProvider {
 }
 
 /**
- * Normalize boolean values from YAML/PHP to JavaScript booleans
+ * Coerces loose boolean values from YAML/PHP into real JavaScript booleans.
+ *
+ * @remarks
+ * Treats `"true"` and `"1"` (and numeric `1`) as `true`; anything nullish
+ * falls back to `defaultValue`. Used by `initializeConfig()` to normalize
+ * section/view button props before the composable consumes them.
  */
 function toBool(value: unknown, defaultValue = false) {
   if (value == null) return defaultValue;

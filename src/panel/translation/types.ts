@@ -1,8 +1,6 @@
 import type { KirbyFieldProps } from "kirby-types";
 
-/**
- * Language identifier for translation operations.
- */
+/** Language identifier for translation operations. */
 export interface TranslationLanguage {
   /** Language code (e.g., `en`, `de`) */
   code: string;
@@ -34,27 +32,21 @@ export type TranslationUnit =
   | KirbytextTranslationUnit
   | SingleTranslationUnit;
 
-/**
- * Collected translation with its apply callback.
- */
+/** A translation unit paired with a callback that writes the result back. */
 export interface CollectedTranslation {
   unit: TranslationUnit;
   /** Callback to apply the translated text to the original content */
   apply: (translatedText: string) => void;
 }
 
-/**
- * Output of the collector: translations to execute and finalizers to run after.
- */
+/** Collector output: translation units plus post-translation finalizers. */
 export interface CollectorResult {
   translations: CollectedTranslation[];
   /** Post-translation callbacks (e.g., YAML serialization) */
   finalizers: (() => void)[];
 }
 
-/**
- * Options passed to the translation strategy during execution.
- */
+/** Options passed to a translation strategy during execution. */
 export interface TranslationExecutionOptions {
   sourceLanguage?: TranslationLanguage;
   targetLanguage: TranslationLanguage;
@@ -62,23 +54,16 @@ export interface TranslationExecutionOptions {
   signal?: AbortSignal;
 }
 
-/**
- * Strategy interface for translation implementations.
- */
+/** Strategy interface for translation implementations. */
 export interface TranslationStrategy {
-  /**
-   * Execute translation for the given units.
-   * Returns translated texts in the same order as input units.
-   */
+  /** Translates `units` and returns results in the same order as the input. */
   execute: (
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
   ) => Promise<string[]>;
 }
 
-/**
- * Options for the content collector.
- */
+/** Options for the content collector. */
 export interface CollectorOptions {
   fieldTypes: string[] | readonly string[];
   includeFields?: string[];

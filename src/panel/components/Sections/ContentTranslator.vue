@@ -228,12 +228,10 @@ async function handleBatchTranslate() {
         theme="none"
         :text="
           panel.t(
-            'johannschopplich.content-translator.help.disabledDefaultLanguage',
+            'johannschopplich.content-translator.help.defaultLanguageInfo',
           )
         "
-        :style="{
-          marginTop: 'var(--spacing-1)',
-        }"
+        class="kct-mt-[var(--spacing-1)]"
       />
     </template>
   </k-section>

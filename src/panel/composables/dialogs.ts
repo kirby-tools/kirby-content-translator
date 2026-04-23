@@ -76,7 +76,7 @@ export function useTranslationDialogs() {
         icon: "translate",
         theme: "positive",
         text: panel.t(
-          "johannschopplich.content-translator.dialog.button.translate",
+          "johannschopplich.content-translator.dialog.translate",
         ),
       },
       fields: {
@@ -103,7 +103,7 @@ export function useTranslationDialogs() {
         icon: "translate",
         theme: "positive",
         text: panel.t(
-          "johannschopplich.content-translator.dialog.button.translate",
+          "johannschopplich.content-translator.dialog.translate",
         ),
       },
       fields: {
@@ -115,7 +115,7 @@ export function useTranslationDialogs() {
             text: language.name,
           })),
           help: panel.t(
-            "johannschopplich.content-translator.dialog.batchTranslation",
+            "johannschopplich.content-translator.dialog.batchHelp",
             { language: defaultLanguage.name },
           ),
         },
@@ -249,7 +249,8 @@ async function getProviderConfig() {
  * Validates the stored provider preference against current availability.
  *
  * @remarks
- * Returns a valid provider, falling back if the stored one is no longer available.
+ * Returns the stored preference when it's still available, otherwise falls
+ * back to the first available provider.
  */
 function getValidStoredProvider(availability: {
   isCopilotAvailable: boolean;

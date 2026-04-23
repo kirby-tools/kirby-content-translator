@@ -48,12 +48,7 @@ export interface PluginContextResponse {
   licenseStatus?: LicenseStatus;
 }
 
-/**
- * Translator options as received from section/view button props.
- *
- * @remarks
- * Boolean fields accept loose types that are normalized by `initializeConfig()`.
- */
+/** Translator options from section/view button props. */
 export interface TranslatorOptions {
   label?: string;
   import?: BooleanInput;

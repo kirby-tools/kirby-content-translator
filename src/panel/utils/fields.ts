@@ -7,14 +7,14 @@ import type {
 import { isObject } from "utilful";
 
 /**
- * Checks if a block is translatable based on its content structure and visibility
+ * Checks if a block is translatable based on its content structure and visibility.
  */
 export function isBlockTranslatable(block: KirbyBlock) {
   return isObject(block.content) && !!block.id && block.isHidden !== true;
 }
 
 /**
- * Flattens tab fields from fieldsets into a single object
+ * Merges all tab fields of a block's fieldset into a single flat record.
  */
 export function flattenTabFields(
   fieldsets:

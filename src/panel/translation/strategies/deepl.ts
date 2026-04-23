@@ -23,7 +23,8 @@ export interface DeepLStrategyOptions {
  * DeepL translation strategy.
  *
  * @remarks
- * Groups translations by mode and executes them with appropriate endpoints.
+ * Groups translations by mode and executes them against the matching
+ * endpoints, honouring `concurrency` for parallel requests.
  */
 export class DeepLStrategy implements TranslationStrategy {
   private concurrency: number;
