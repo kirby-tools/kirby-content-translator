@@ -175,7 +175,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function partially_translated_page_returns_correct_counts(): void
+    public function partially_translated_page_counts_only_filled_fields(): void
     {
         $page = $this->app->page('partially-translated');
         $status = new TranslationStatus(new Pages([$page]));
@@ -191,7 +191,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function untranslated_page_returns_zero_filled(): void
+    public function untranslated_page_returns_zero_translated_fields(): void
     {
         $page = $this->app->page('untranslated');
         $status = new TranslationStatus(new Pages([$page]));
@@ -204,18 +204,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function translate_false_fields_are_excluded(): void
-    {
-        $page = $this->app->page('fully-translated');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
-
-        // Only text and tags should be counted (not untranslatable)
-        $this->assertSame(2, $pageStatus['de']['totalFields']);
-    }
-
-    #[Test]
-    public function pages_with_no_translatable_fields_are_excluded(): void
+    public function skips_pages_without_translatable_fields(): void
     {
         $page = $this->app->page('no-fields');
         $status = new TranslationStatus(new Pages([$page]));
@@ -225,7 +214,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function include_fields_filter_works(): void
+    public function respects_include_fields_filter(): void
     {
         $page = $this->app->page('fully-translated');
         $status = new TranslationStatus(new Pages([$page]), [
@@ -239,7 +228,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function exclude_fields_filter_works(): void
+    public function respects_exclude_fields_filter(): void
     {
         $page = $this->app->page('fully-translated');
         $status = new TranslationStatus(new Pages([$page]), [
@@ -253,7 +242,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function default_language_is_excluded_from_results(): void
+    public function excludes_default_language_from_results(): void
     {
         $page = $this->app->page('fully-translated');
         $status = new TranslationStatus(new Pages([$page]));
@@ -265,7 +254,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_aggregates_correctly(): void
+    public function tree_status_aggregates_language_totals(): void
     {
         $pages = $this->app->site()->index();
         $status = new TranslationStatus($pages);
@@ -280,7 +269,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_percentage_calculation(): void
+    public function tree_status_calculates_percentage_per_language(): void
     {
         $pages = $this->app->site()->index();
         $status = new TranslationStatus($pages);
@@ -296,7 +285,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_incomplete_pages_are_correct(): void
+    public function tree_status_lists_incomplete_pages(): void
     {
         $pages = $this->app->site()->index();
         $status = new TranslationStatus($pages);
@@ -310,7 +299,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function pages_scope_filter_works(): void
+    public function respects_custom_pages_scope(): void
     {
         // Only include fully-translated page
         $pages = new Pages([$this->app->page('fully-translated')]);
@@ -325,7 +314,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_with_empty_pages_returns_sensible_defaults(): void
+    public function tree_status_reports_full_completion_when_no_pages(): void
     {
         $status = new TranslationStatus(new Pages([]));
         $result = $status->treeStatus();
@@ -339,5 +328,131 @@ final class TranslationStatusTest extends TestCase
             $this->assertSame(0, $language['translatedFields']);
             $this->assertSame(100, $language['percentage']);
         }
+    }
+
+    #[Test]
+    public function tree_status_emits_is_fully_untranslated_flag(): void
+    {
+        $app = new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch'],
+                ['code' => 'fr', 'name' => 'Français']
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'all-missing',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hello']]
+                        ]
+                    ],
+                    [
+                        'slug' => 'one-missing',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hello']],
+                            ['code' => 'de', 'content' => ['text' => 'hallo']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $status = new TranslationStatus($app->site()->index());
+        $entries = array_column($status->treeStatus()['tree'], null, 'id');
+
+        $this->assertTrue($entries['all-missing']['isFullyUntranslated']);
+        $this->assertFalse($entries['one-missing']['isFullyUntranslated']);
+    }
+
+    #[Test]
+    public function counts_empty_blocks_field_as_untranslated(): void
+    {
+        $app = new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch']
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'blocks' => ['type' => 'blocks', 'translate' => true]
+                    ]
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'page',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['blocks' => '[{"id":"x","type":"text","content":{"text":"hi"}}]']],
+                            ['code' => 'de', 'content' => ['blocks' => '[]']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $page = $app->page('page');
+        $status = new TranslationStatus(new Pages([$page]));
+        $pageStatus = $status->pageStatus($page);
+
+        $this->assertSame(1, $pageStatus['de']['totalFields']);
+        $this->assertSame(0, $pageStatus['de']['translatedFields']);
+    }
+
+    #[Test]
+    public function tree_status_includes_ancestors_of_incomplete_pages(): void
+    {
+        $app = new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch']
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'parent',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hi']],
+                            ['code' => 'de', 'content' => ['text' => 'hallo']]
+                        ],
+                        'children' => [
+                            [
+                                'slug' => 'child',
+                                'template' => 'default',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['text' => 'hi']]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $status = new TranslationStatus($app->site()->index());
+        $tree = $status->treeStatus()['tree'];
+
+        // Parent appears because its descendant is incomplete, even though the parent itself is fully translated
+        $this->assertCount(1, $tree);
+        $this->assertSame('parent', $tree[0]['id']);
+        $this->assertTrue($tree[0]['hasChildren']);
+        $this->assertSame(1, $tree[0]['incompleteDescendants']);
+        $this->assertNull($tree[0]['missing']);
     }
 }

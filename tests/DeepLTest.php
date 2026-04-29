@@ -115,7 +115,7 @@ final class DeepLTest extends TestCase
     // -----------------------------------------------------------------------
 
     #[Test]
-    public function translate_many_with_empty_array(): void
+    public function translate_many_returns_empty_for_empty_input(): void
     {
         $deepL = DeepL::instance();
         $result = $deepL->translateMany([], 'de');

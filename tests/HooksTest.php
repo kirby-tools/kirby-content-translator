@@ -96,7 +96,7 @@ final class HooksTest extends TestCase
     }
 
     #[Test]
-    public function before_and_after_hooks_together(): void
+    public function applies_both_before_and_after_hooks(): void
     {
         $app = new App([
             'languages' => [
@@ -197,7 +197,7 @@ final class HooksTest extends TestCase
     }
 
     #[Test]
-    public function hooks_work_with_static_translate_text_method(): void
+    public function static_translate_text_invokes_hooks(): void
     {
         $hookCalled = false;
 
