@@ -4,8 +4,7 @@ import { isKirby5 } from "kirbyuse";
 import ContentTranslator from "./components/Sections/ContentTranslator.vue";
 // @ts-ignore - Vue component
 import ContentTranslatorDropdownButton from "./components/ViewButtons/ContentTranslatorDropdownButton.vue";
-// @ts-ignore - Vue component
-import LanguagesViewWrapper from "./components/Views/LanguagesViewWrapper.vue";
+import LanguagesViewWrapper from "./components/Views/LanguagesViewWrapper";
 import { icons } from "./config/icons";
 import { legacyViewButtonMixin } from "./legacy";
 
