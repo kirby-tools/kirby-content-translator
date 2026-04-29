@@ -109,11 +109,6 @@ final class KirbyText
         return '(' . implode(' ', $parts) . ')';
     }
 
-    // `<span translate="no">` is a probabilistic hint, not a structural guarantee:
-    // a deterministic translator (DeepL) honours it, but an LLM-backed `translateFn`
-    // can still mangle wrapped content.
-    // Panel translations now extract tags structurally in JS; the PHP path
-    // remains hint-based until a `KirbyText::split()` / `restore()` refactor lands.
     private static function translateWithProtectedTags(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
         $protectedText = preg_replace_callback(
