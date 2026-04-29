@@ -6,7 +6,6 @@ import type {
   PanelModelData,
 } from "kirby-types";
 import type {
-  KirbyTagConfig,
   PluginConfig,
   PluginContextResponse,
   TranslationProvider,
@@ -52,7 +51,7 @@ export function useContentTranslator() {
   const fieldTypes = ref<string[]>([]);
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
-  const kirbyTags = ref<Record<string, KirbyTagConfig>>({});
+  const kirbyTags = ref<Record<string, string[]>>({});
   const provider = ref<TranslationProvider>("deepl");
   const systemPrompt = ref<string>();
 

@@ -13,7 +13,7 @@ export async function translateContent(
     strategy: TranslationStrategy;
     sourceLanguage?: TranslationLanguage;
     targetLanguage: TranslationLanguage;
-    kirbyTags: Record<string, unknown>;
+    kirbyTags?: Record<string, string[]>;
     signal?: AbortSignal;
   },
 ): Promise<Record<string, unknown>> {
@@ -37,6 +37,7 @@ export async function translateContent(
     fieldTypes,
     includeFields,
     excludeFields,
+    kirbyTags,
   });
 
   if (translations.length === 0) return obj;
@@ -47,7 +48,6 @@ export async function translateContent(
     {
       sourceLanguage,
       targetLanguage,
-      kirbyTags,
       signal,
     },
   );

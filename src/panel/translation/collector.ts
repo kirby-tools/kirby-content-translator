@@ -15,6 +15,7 @@ import type {
 import { isObject } from "utilful";
 import * as yaml from "yaml";
 import { flattenTabFields, isBlockTranslatable } from "../utils/fields";
+import { splitKirbyText } from "./kirby-text";
 import { shouldSkipTranslation } from "./utils";
 
 interface CollectorContext {
@@ -102,20 +103,30 @@ function collectFromField(
     });
   }
 
-  // Markdown/textarea: KirbyText translation
+  // Markdown/textarea: split out KirbyTags for structural protection,
+  // emit each translatable fragment as a batch unit, and reassemble in
+  // a finalizer once all translations come back.
   else if (["textarea", "markdown"].includes(field.type)) {
     const text = value as string;
     if (!text?.trim()) return;
 
-    context.translations.push({
-      unit: {
-        text,
-        mode: "kirbytext",
-        fieldKey: key,
-      },
-      apply(translatedText) {
-        obj[key] = translatedText;
-      },
+    const { fragments, restore } = splitKirbyText(
+      text,
+      context.options.kirbyTags ?? {},
+    );
+    const translated: string[] = Array.from({ length: fragments.length });
+
+    for (const [i, fragment] of fragments.entries()) {
+      context.translations.push({
+        unit: { text: fragment, mode: "batch", fieldKey: key },
+        apply(translatedText) {
+          translated[i] = translatedText;
+        },
+      });
+    }
+
+    context.finalizers.push(() => {
+      obj[key] = restore(translated);
     });
   }
 

@@ -54,23 +54,50 @@ describe("collectTranslations", () => {
       ]);
     });
 
-    it("collects textarea and markdown fields as kirbytext mode", () => {
-      const content = { intro: "First", description: "Second" };
+    it("expands textarea fields into batch units with KirbyTag protection", () => {
+      const content = { intro: "Visit (link: /a text: site)" };
       const fields = {
         intro: field({ type: "textarea", name: "textarea" }),
+      };
+
+      const { translations, finalizers } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+        kirbyTags: { link: ["text"] },
+      });
+
+      expect(translations).toHaveLength(2);
+      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
+      expect(translations.map((t) => t.unit.text)).toContain("site");
+
+      translations[0]!.apply(translations[0]!.unit.text);
+      translations[1]!.apply("Seite");
+      for (const finalize of finalizers) finalize();
+
+      expect(content.intro).toBe("Visit (link: /a text: Seite)");
+    });
+
+    it("protects markdown fields when no kirbyTags config is provided", () => {
+      const content = { description: "Hello (link: /a text: world)!" };
+      const fields = {
         description: field({ type: "markdown", name: "markdown" }),
       };
 
-      const { translations } = collectTranslations(content, {
+      const { translations, finalizers } = collectTranslations(content, {
         ...defaultOptions,
         fields,
       });
 
-      expect(translations).toHaveLength(2);
-      expect(translations.map((t) => t.unit.mode)).toEqual([
-        "kirbytext",
-        "kirbytext",
-      ]);
+      expect(translations).toHaveLength(1);
+      expect(translations[0]!.unit.mode).toBe("batch");
+      expect(translations[0]!.unit.text).not.toContain("link");
+
+      translations[0]!.apply(
+        translations[0]!.unit.text.replace("Hello", "Hallo"),
+      );
+      for (const finalize of finalizers) finalize();
+
+      expect(content.description).toBe("Hallo (link: /a text: world)!");
     });
 
     it("collects tags as batch mode with joined text", () => {
@@ -83,8 +110,8 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.mode).toBe("batch");
-      expect(translations[0].unit.text).toBe("Red | Green | Blue");
+      expect(translations[0]!.unit.mode).toBe("batch");
+      expect(translations[0]!.unit.text).toBe("Red | Green | Blue");
     });
 
     it("collects table cells as single mode", () => {
@@ -139,11 +166,11 @@ describe("collectTranslations", () => {
       });
 
       // Apply translations
-      translations[0].apply("X");
-      translations[1].apply("Y");
+      translations[0]!.apply("X");
+      translations[1]!.apply("Y");
 
       // Run finalizer
-      finalizers[0]();
+      finalizers[0]!();
 
       expect(content.table).toBe("-\n  - X\n  - Y");
     });
@@ -158,11 +185,11 @@ describe("collectTranslations", () => {
         fields,
       });
 
-      translations[0].apply("1");
-      translations[1].apply("2");
-      translations[2].apply("3");
-      translations[3].apply("4");
-      finalizers[0]();
+      translations[0]!.apply("1");
+      translations[1]!.apply("2");
+      translations[2]!.apply("3");
+      translations[3]!.apply("4");
+      finalizers[0]!();
 
       expect(content.table).toBe('-\n  - "1"\n  - "2"\n-\n  - "3"\n  - "4"');
     });
@@ -202,7 +229,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Nested");
+      expect(translations[0]!.unit.text).toBe("Nested");
     });
 
     it("traverses blocks fields recursively", () => {
@@ -262,7 +289,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Visible");
+      expect(translations[0]!.unit.text).toBe("Visible");
     });
 
     it("skips blocks with unknown fieldset type", () => {
@@ -294,7 +321,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Known");
+      expect(translations[0]!.unit.text).toBe("Known");
     });
 
     it("traverses layout columns recursively", () => {
@@ -328,7 +355,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Column");
+      expect(translations[0]!.unit.text).toBe("Column");
     });
   });
 
@@ -346,7 +373,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Hello");
+      expect(translations[0]!.unit.text).toBe("Hello");
     });
 
     it("respects includeFields filter", () => {
@@ -363,7 +390,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Hello");
+      expect(translations[0]!.unit.text).toBe("Hello");
     });
 
     it("respects excludeFields filter", () => {
@@ -380,7 +407,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Hello");
+      expect(translations[0]!.unit.text).toBe("Hello");
     });
 
     it("traverses structure inner fields when includeFields is set", () => {
@@ -430,37 +457,51 @@ describe("collectTranslations", () => {
       expect(translations).toHaveLength(1);
     });
 
-    it("skips empty values", () => {
-      const content = { a: "", b: null, c: undefined, d: "Valid" };
-      const fields = {
-        a: field({ type: "text", name: "text" }),
-        b: field({ type: "text", name: "text" }),
-        c: field({ type: "text", name: "text" }),
-        d: field({ type: "text", name: "text" }),
-      };
+    it.each([
+      // Falsy / empty values
+      { kind: "empty string", fieldType: "text", value: "" },
+      { kind: "null value", fieldType: "text", value: null },
+      { kind: "undefined value", fieldType: "text", value: undefined },
+      // Numeric-only strings carry no translatable prose
+      { kind: "pure integer", fieldType: "text", value: "123" },
+      { kind: "decimal", fieldType: "text", value: "45.67" },
+      { kind: "negative number", fieldType: "text", value: "-99" },
+      { kind: "scientific notation", fieldType: "text", value: "1.5e10" },
+      // URL-only strings
+      { kind: "https URL", fieldType: "text", value: "https://example.com" },
+      {
+        kind: "http URL with path",
+        fieldType: "text",
+        value: "http://localhost:3000/path?query=1",
+      },
+      // Whitespace / structural empties
+      { kind: "whitespace-only textarea", fieldType: "textarea", value: "   " },
+      { kind: "empty markdown", fieldType: "markdown", value: "" },
+      { kind: "empty tags array", fieldType: "tags", value: [] },
+      {
+        kind: "empty table cells",
+        fieldType: "table",
+        value: [["", "  ", null]],
+      },
+    ])("skips $kind", ({ fieldType, value }) => {
+      const content = { x: value };
+      const fields = { x: field({ type: fieldType, name: fieldType }) };
 
       const { translations } = collectTranslations(content, {
         ...defaultOptions,
         fields,
       });
 
-      expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Valid");
+      expect(translations).toHaveLength(0);
     });
 
-    it("skips pure numeric values", () => {
+    it("translates non-empty content alongside skipped values", () => {
       const content = {
-        integer: "123",
-        float: "45.67",
-        negative: "-99",
-        scientific: "1.5e10",
-        valid: "Product 123",
+        skipped: "123",
+        valid: "Visit https://example.com today",
       };
       const fields = {
-        integer: field({ type: "text", name: "text" }),
-        float: field({ type: "text", name: "text" }),
-        negative: field({ type: "text", name: "text" }),
-        scientific: field({ type: "text", name: "text" }),
+        skipped: field({ type: "text", name: "text" }),
         valid: field({ type: "text", name: "text" }),
       };
 
@@ -470,67 +511,9 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Product 123");
-    });
-
-    it("skips URL values", () => {
-      const content = {
-        https: "https://example.com",
-        http: "http://localhost:3000/path?query=1",
-        withText: "Visit https://example.com today",
-      };
-      const fields = {
-        https: field({ type: "text", name: "text" }),
-        http: field({ type: "text", name: "text" }),
-        withText: field({ type: "text", name: "text" }),
-      };
-
-      const { translations } = collectTranslations(content, {
-        ...defaultOptions,
-        fields,
-      });
-
-      expect(translations).toHaveLength(1);
-      expect(translations[0].unit.text).toBe("Visit https://example.com today");
-    });
-
-    it("skips whitespace-only textarea content", () => {
-      const content = { intro: "   ", description: "" };
-      const fields = {
-        intro: field({ type: "textarea", name: "textarea" }),
-        description: field({ type: "markdown", name: "markdown" }),
-      };
-
-      const { translations } = collectTranslations(content, {
-        ...defaultOptions,
-        fields,
-      });
-
-      expect(translations).toHaveLength(0);
-    });
-
-    it("skips empty tags array", () => {
-      const content = { colors: [] };
-      const fields = { colors: field({ type: "tags", name: "tags" }) };
-
-      const { translations } = collectTranslations(content, {
-        ...defaultOptions,
-        fields,
-      });
-
-      expect(translations).toHaveLength(0);
-    });
-
-    it("skips empty table cells", () => {
-      const content = { table: [["", "  ", null]] };
-      const fields = { table: field({ type: "table", name: "table" }) };
-
-      const { translations } = collectTranslations(content, {
-        ...defaultOptions,
-        fields,
-      });
-
-      expect(translations).toHaveLength(0);
+      expect(translations[0]!.unit.text).toBe(
+        "Visit https://example.com today",
+      );
     });
   });
 
@@ -543,7 +526,7 @@ describe("collectTranslations", () => {
         ...defaultOptions,
         fields,
       });
-      translations[0].apply("Hallo");
+      translations[0]!.apply("Hallo");
 
       expect(content.title).toBe("Hallo");
     });
@@ -556,7 +539,7 @@ describe("collectTranslations", () => {
         ...defaultOptions,
         fields,
       });
-      translations[0].apply("Rot | Grün");
+      translations[0]!.apply("Rot | Grün");
 
       expect(content.colors).toEqual(["Rot", "Grün"]);
     });
@@ -573,9 +556,9 @@ describe("collectTranslations", () => {
         ...defaultOptions,
         fields,
       });
-      translations[0].apply("Eins");
+      translations[0]!.apply("Eins");
 
-      expect(content.items[0].label).toBe("Eins");
+      expect(content.items[0]!.label).toBe("Eins");
     });
 
     it("applies translations to table cells", () => {
@@ -592,10 +575,10 @@ describe("collectTranslations", () => {
         fields,
       });
 
-      translations[0].apply("1");
-      translations[1].apply("2");
-      translations[2].apply("3");
-      translations[3].apply("4");
+      translations[0]!.apply("1");
+      translations[1]!.apply("2");
+      translations[2]!.apply("3");
+      translations[3]!.apply("4");
 
       expect(content.table).toEqual([
         ["1", "2"],

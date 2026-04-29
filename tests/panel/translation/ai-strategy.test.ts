@@ -63,8 +63,7 @@ describe("AIStrategy", () => {
         }),
       );
     });
-
-});
+  });
 
   describe("prompt construction", () => {
     it("includes target language in prompt", async () => {
@@ -132,33 +131,6 @@ describe("AIStrategy", () => {
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
           userPrompt: expect.stringMatching(/<item index="1">Second<\/item>/),
-        }),
-      );
-    });
-  });
-
-  describe("kirbyTags handling", () => {
-    it("includes kirbyTags in prompt", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Test"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
-      ];
-      const kirbyTags = { link: ["text", "title"] };
-
-      await strategy.execute(units, { ...defaultOptions, kirbyTags });
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userPrompt: expect.stringContaining("<kirby_tags>"),
-        }),
-      );
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userPrompt: expect.stringContaining('"link"'),
         }),
       );
     });
@@ -251,6 +223,44 @@ describe("AIStrategy", () => {
     });
   });
 
+  describe("placeholder validation", () => {
+    it("keeps source text and warns when placeholder count drops", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["Click here"] }),
+      });
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Click <c0/> now", mode: "batch", fieldKey: "body" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual(["Click <c0/> now"]);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("body"));
+      warnSpy.mockRestore();
+    });
+
+    it("accepts translation when placeholder count matches", async () => {
+      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["Klick <c0/> jetzt"] }),
+      });
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Click <c0/> now", mode: "batch", fieldKey: "body" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual(["Klick <c0/> jetzt"]);
+      expect(warnSpy).not.toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+  });
+
   describe("copilot availability", () => {
     it("throws when copilot is not available", async () => {
       const { resolveCopilot } =
@@ -269,25 +279,24 @@ describe("AIStrategy", () => {
   });
 
   describe("mixed modes", () => {
-    it("handles all translation modes uniformly", async () => {
+    it("handles batch and single modes uniformly", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({
-          translations: ["Batch", "Kirby", "Single"],
+          translations: ["Batch", "Single"],
         }),
       });
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
         { text: "batch", mode: "batch", fieldKey: "a" },
-        { text: "kirby", mode: "kirbytext", fieldKey: "b" },
-        { text: "single", mode: "single", fieldKey: "c" },
+        { text: "single", mode: "single", fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
       // All modes processed in single call (no mode-based grouping)
       expect(mockStreamText).toHaveBeenCalledOnce();
-      expect(results).toEqual(["Batch", "Kirby", "Single"]);
+      expect(results).toEqual(["Batch", "Single"]);
     });
   });
 

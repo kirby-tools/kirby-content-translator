@@ -3,8 +3,6 @@ export const MODEL_FIELDS_API_ROUTE = "__content-translator__/model-fields";
 export const TRANSLATE_API_ROUTE = "__content-translator__/translate";
 export const TRANSLATE_BATCH_API_ROUTE =
   "__content-translator__/translate-batch";
-export const TRANSLATE_KIRBYTEXT_API_ROUTE =
-  "__content-translator__/translate-kirbytext";
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 

@@ -18,7 +18,7 @@ export interface PluginConfig {
   fieldTypes?: string[];
   includeFields?: string[];
   excludeFields?: string[];
-  kirbyTags?: Record<string, KirbyTagConfig>;
+  kirbyTags?: Record<string, string[]>;
   /** Concurrency for batch translations */
   batchConcurrency?: number;
   /** Whether a custom translate function is configured */
@@ -34,10 +34,6 @@ export interface PluginConfig {
   };
   /** @deprecated Will be removed in Kirby 6 release */
   viewButton?: boolean;
-}
-
-export interface KirbyTagConfig {
-  [key: string]: unknown;
 }
 
 /** Response from `__content-translator__/context` API endpoint. */
@@ -60,7 +56,7 @@ export interface TranslatorOptions {
   fieldTypes?: string[];
   includeFields?: string[];
   excludeFields?: string[];
-  kirbyTags?: Record<string, KirbyTagConfig>;
+  kirbyTags?: Record<string, string[]>;
   /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`) */
   systemPrompt?: string;
   provider?: TranslationProvider;

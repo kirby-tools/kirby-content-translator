@@ -54,46 +54,6 @@ describe("DeepLStrategy", () => {
     });
   });
 
-  describe("kirbytext mode", () => {
-    it("calls kirbytext endpoint for each unit", async () => {
-      mockApiPost
-        .mockResolvedValueOnce({ text: "Erster" })
-        .mockResolvedValueOnce({ text: "Zweiter" });
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "First", mode: "kirbytext", fieldKey: "intro" },
-        { text: "Second", mode: "kirbytext", fieldKey: "body" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(mockApiPost).toHaveBeenCalledTimes(2);
-      expect(mockApiPost).toHaveBeenCalledWith(
-        "__content-translator__/translate-kirbytext",
-        expect.objectContaining({ text: "First" }),
-      );
-      expect(results).toEqual(["Erster", "Zweiter"]);
-    });
-
-    it("passes kirbyTags to kirbytext endpoint", async () => {
-      mockApiPost.mockResolvedValueOnce({ text: "Translated" });
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Text", mode: "kirbytext", fieldKey: "body" },
-      ];
-      const kirbyTags = { link: { attr: "href" } };
-
-      await strategy.execute(units, { ...defaultOptions, kirbyTags });
-
-      expect(mockApiPost).toHaveBeenCalledWith(
-        "__content-translator__/translate-kirbytext",
-        expect.objectContaining({ kirbyTags }),
-      );
-    });
-  });
-
   describe("single mode", () => {
     it("calls translate endpoint for each unit", async () => {
       mockApiPost
@@ -118,42 +78,38 @@ describe("DeepLStrategy", () => {
   });
 
   describe("mixed modes", () => {
-    it("handles all modes in single execution", async () => {
+    it("handles batch and single modes in single execution", async () => {
       mockApiPost
         .mockResolvedValueOnce({ texts: ["Batch"] }) // batch
-        .mockResolvedValueOnce({ text: "Kirby" }) // kirbytext
         .mockResolvedValueOnce({ text: "Single" }); // single
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
         { text: "Batch text", mode: "batch", fieldKey: "title" },
-        { text: "Kirby text", mode: "kirbytext", fieldKey: "body" },
         { text: "Single text", mode: "single", fieldKey: "table[0][0]" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(mockApiPost).toHaveBeenCalledTimes(3);
-      expect(results).toHaveLength(3);
+      expect(mockApiPost).toHaveBeenCalledTimes(2);
+      expect(results).toHaveLength(2);
     });
 
     it("preserves original order regardless of mode", async () => {
       mockApiPost
-        .mockResolvedValueOnce({ texts: ["B1", "B2"] }) // batch (indices 0, 2)
-        .mockResolvedValueOnce({ text: "K1" }) // kirbytext (index 1)
-        .mockResolvedValueOnce({ text: "S1" }); // single (index 3)
+        .mockResolvedValueOnce({ texts: ["B1", "B2"] }) // batch (indices 0, 1)
+        .mockResolvedValueOnce({ text: "S1" }); // single (index 2)
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
         { text: "batch1", mode: "batch", fieldKey: "a" },
-        { text: "kirby1", mode: "kirbytext", fieldKey: "b" },
-        { text: "batch2", mode: "batch", fieldKey: "c" },
-        { text: "single1", mode: "single", fieldKey: "d" },
+        { text: "batch2", mode: "batch", fieldKey: "b" },
+        { text: "single1", mode: "single", fieldKey: "c" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results).toEqual(["B1", "K1", "B2", "S1"]);
+      expect(results).toEqual(["B1", "B2", "S1"]);
     });
   });
 
@@ -201,7 +157,6 @@ describe("DeepLStrategy", () => {
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
         { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "kirbytext", fieldKey: "body" },
         { text: "Test", mode: "single", fieldKey: "cell" },
       ];
 
@@ -211,7 +166,7 @@ describe("DeepLStrategy", () => {
       });
 
       expect(mockApiPost).not.toHaveBeenCalled();
-      expect(results).toEqual(["Hello", "World", "Test"]);
+      expect(results).toEqual(["Hello", "Test"]);
     });
 
     it("skips remaining modes after signal is aborted", async () => {
@@ -226,7 +181,7 @@ describe("DeepLStrategy", () => {
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
         { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "kirbytext", fieldKey: "body" },
+        { text: "World", mode: "single", fieldKey: "cell" },
       ];
 
       const results = await strategy.execute(units, {

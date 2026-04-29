@@ -1,4 +1,5 @@
 import type { KirbyFieldProps } from "kirby-types";
+import type { TranslationStrategy } from "../../../src/panel/translation/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   DeepLStrategy,
@@ -53,9 +54,9 @@ describe("translateContent (integration)", () => {
   });
 
   it("translates nested content end-to-end", async () => {
-    mockApiPost
-      .mockResolvedValueOnce({ texts: ["Titel", "Eins", "Zwei"] }) // batch
-      .mockResolvedValueOnce({ text: "Beschreibung" }); // kirbytext
+    mockApiPost.mockResolvedValueOnce({
+      texts: ["Titel", "Beschreibung", "Eins", "Zwei"],
+    });
 
     const content = {
       title: "Title",
@@ -98,7 +99,7 @@ describe("translateContent (integration)", () => {
 
     await translateContent(content, { ...defaultOptions, fields });
 
-    expect(content.blocks[0].content.text).toBe("Überschrift");
+    expect(content.blocks[0]!.content.text).toBe("Überschrift");
   });
 
   it("returns original object when nothing to translate", async () => {
@@ -158,6 +159,36 @@ describe("translateContent (integration)", () => {
     });
 
     expect(content.table).toBe("-\n  - X\n  - Y");
+  });
+
+  it("hides KirbyTag structure from the translator", async () => {
+    const seenInputs: string[] = [];
+    const spyStrategy: TranslationStrategy = {
+      async execute(units) {
+        for (const unit of units) seenInputs.push(unit.text);
+        return units.map((u) => u.text);
+      },
+    };
+
+    const content = {
+      body: "Welcome (button: /start text: Start icon: arrow style: outline) home.",
+    };
+    const fields = {
+      body: field({ type: "textarea", name: "textarea" }),
+    };
+
+    await translateContent(content, {
+      strategy: spyStrategy,
+      targetLanguage: { code: "de", name: "German" },
+      fieldTypes: ["textarea"] as const,
+      kirbyTags: { button: ["text"] },
+      fields,
+    });
+
+    expect(seenInputs.join("\n")).not.toMatch(
+      /icon|style|\/start|arrow|outline/,
+    );
+    expect(seenInputs).toContain("Start");
   });
 
   describe("abort signal", () => {

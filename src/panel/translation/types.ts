@@ -19,18 +19,11 @@ export interface BatchTranslationUnit extends TranslationUnitBase {
   mode: "batch";
 }
 
-export interface KirbytextTranslationUnit extends TranslationUnitBase {
-  mode: "kirbytext";
-}
-
 export interface SingleTranslationUnit extends TranslationUnitBase {
   mode: "single";
 }
 
-export type TranslationUnit =
-  | BatchTranslationUnit
-  | KirbytextTranslationUnit
-  | SingleTranslationUnit;
+export type TranslationUnit = BatchTranslationUnit | SingleTranslationUnit;
 
 /** A translation unit paired with a callback that writes the result back. */
 export interface CollectedTranslation {
@@ -50,7 +43,6 @@ export interface CollectorResult {
 export interface TranslationExecutionOptions {
   sourceLanguage?: TranslationLanguage;
   targetLanguage: TranslationLanguage;
-  kirbyTags?: Record<string, unknown>;
   signal?: AbortSignal;
 }
 
@@ -69,4 +61,6 @@ export interface CollectorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   fields: Record<string, KirbyFieldProps>;
+  /** Translatable KirbyTag attributes per tag type, e.g. `{ link: ["text"] }`. */
+  kirbyTags?: Record<string, string[]>;
 }

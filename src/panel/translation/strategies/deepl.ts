@@ -8,7 +8,6 @@ import pAll from "p-all";
 import {
   TRANSLATE_API_ROUTE,
   TRANSLATE_BATCH_API_ROUTE,
-  TRANSLATE_KIRBYTEXT_API_ROUTE,
 } from "../../constants";
 
 export interface DeepLStrategyOptions {
@@ -51,7 +50,6 @@ export class DeepLStrategy implements TranslationStrategy {
 
     // Group units by mode
     const batchUnits = units.filter((unit) => unit.mode === "batch");
-    const kirbytextUnits = units.filter((unit) => unit.mode === "kirbytext");
     const singleUnits = units.filter((unit) => unit.mode === "single");
 
     // Execute batch translation (single API call)
@@ -67,29 +65,6 @@ export class DeepLStrategy implements TranslationStrategy {
 
       for (const [i, unit] of batchUnits.entries()) {
         results[indexMap.get(unit)!] = response.texts[i]!;
-      }
-    }
-
-    // Execute kirbytext translations (parallel with concurrency limit)
-    if (kirbytextUnits.length > 0 && !signal?.aborted) {
-      const kirbytextResults = await pAll(
-        kirbytextUnits.map((unit) => async () => {
-          const response = await api.post<{ text: string }>(
-            TRANSLATE_KIRBYTEXT_API_ROUTE,
-            {
-              sourceLanguage: options.sourceLanguage?.code,
-              targetLanguage: options.targetLanguage.code,
-              text: unit.text,
-              kirbyTags: options.kirbyTags,
-            },
-          );
-          return { unit, text: response.text };
-        }),
-        { concurrency: this.concurrency, signal },
-      );
-
-      for (const { unit, text } of kirbytextResults) {
-        results[indexMap.get(unit)!] = text;
       }
     }
 

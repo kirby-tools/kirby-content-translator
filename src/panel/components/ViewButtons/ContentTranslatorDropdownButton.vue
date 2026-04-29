@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type {
-  KirbyTagConfig,
   PluginContextResponse,
   TranslationProvider,
 } from "../../types";
@@ -47,7 +46,7 @@ const props = defineProps({
     type: Array as PropType<string[]>,
   },
   kirbyTags: {
-    type: Object as PropType<Record<string, KirbyTagConfig>>,
+    type: Object as PropType<Record<string, string[]>>,
   },
   provider: {
     type: String as PropType<TranslationProvider>,
