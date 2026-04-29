@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\TranslationStatus;
 use Kirby\Cms\App;
+use Kirby\Cms\Blueprint;
 use Kirby\Cms\Pages;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -333,6 +334,9 @@ final class TranslationStatusTest extends TestCase
     #[Test]
     public function tree_status_emits_is_fully_untranslated_flag(): void
     {
+        // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
+        Blueprint::$loaded = [];
+
         $app = new App([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
@@ -375,6 +379,9 @@ final class TranslationStatusTest extends TestCase
     #[Test]
     public function counts_empty_blocks_field_as_untranslated(): void
     {
+        // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
+        Blueprint::$loaded = [];
+
         $app = new App([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
@@ -412,6 +419,9 @@ final class TranslationStatusTest extends TestCase
     #[Test]
     public function tree_status_includes_ancestors_of_incomplete_pages(): void
     {
+        // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
+        Blueprint::$loaded = [];
+
         $app = new App([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
