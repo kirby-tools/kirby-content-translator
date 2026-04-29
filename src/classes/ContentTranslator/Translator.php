@@ -31,8 +31,8 @@ final class Translator
         $this->fields = FieldResolver::resolveModelFields($model);
         $this->config = TranslatorConfig::fromOptions($options);
 
-        $pluginConfig = $this->kirby->option('johannschopplich.content-translator', []);
-        $this->kirbyTags = $options['kirbyTags'] ?? $pluginConfig['kirbyTags'] ?? [];
+        $this->kirbyTags = $options['kirbyTags']
+            ?? $this->kirby->option('johannschopplich.content-translator.kirbyTags', []);
     }
 
     public function model(): Site|Page|File

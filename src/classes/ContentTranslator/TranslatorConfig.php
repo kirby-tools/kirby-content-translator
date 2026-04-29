@@ -17,10 +17,10 @@ final readonly class TranslatorConfig
 
     public static function fromOptions(array $options = []): static
     {
-        $config = App::instance()->option('johannschopplich.content-translator', []);
+        $kirby = App::instance();
 
         return new static(
-            fieldTypes: array_map('strtolower', $options['fieldTypes'] ?? $config['fieldTypes'] ?? [
+            fieldTypes: array_map('strtolower', $options['fieldTypes'] ?? $kirby->option('johannschopplich.content-translator.fieldTypes', [
                 'blocks',
                 'layout',
                 'list',
@@ -33,9 +33,9 @@ final readonly class TranslatorConfig
                 // Community plugins
                 'markdown',
                 'table'
-            ]),
-            includeFields: array_map('strtolower', $options['includeFields'] ?? $config['includeFields'] ?? []),
-            excludeFields: array_map('strtolower', $options['excludeFields'] ?? $config['excludeFields'] ?? []),
+            ])),
+            includeFields: array_map('strtolower', $options['includeFields'] ?? $kirby->option('johannschopplich.content-translator.includeFields', [])),
+            excludeFields: array_map('strtolower', $options['excludeFields'] ?? $kirby->option('johannschopplich.content-translator.excludeFields', [])),
         );
     }
 

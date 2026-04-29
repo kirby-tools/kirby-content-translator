@@ -63,3 +63,32 @@ export interface TranslatorOptions {
   /** Only available when passed from section computed props */
   fields?: Record<string, KirbyFieldProps>;
 }
+
+export interface TranslationLanguageStatus {
+  code: string;
+  name: string;
+  totalFields: number;
+  translatedFields: number;
+  percentage: number;
+  incompletePageCount: number;
+}
+
+export interface TranslationTreeEntry {
+  id: string;
+  label: string;
+  icon: string | null;
+  link: string;
+  hasChildren: boolean;
+  incompleteDescendants: number;
+  missing: { code: string; name: string }[] | null;
+  isFullyUntranslated: boolean;
+  open: boolean;
+  loading?: boolean;
+  children?: TranslationTreeEntry[];
+}
+
+/** Response from `__content-translator__/status` API endpoint. */
+export interface TranslationStatusResponse {
+  languages: TranslationLanguageStatus[];
+  tree: TranslationTreeEntry[];
+}

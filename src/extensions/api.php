@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\KirbyText;
+use JohannSchopplich\ContentTranslator\TranslationStatus;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
@@ -99,31 +99,28 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/translate-kirbytext',
-            'method' => 'POST',
+            'pattern' => '__content-translator__/status',
+            'method' => 'GET',
             'action' => function () use ($kirby) {
-                $request = $kirby->request();
-                $text = $request->get('text');
-                $sourceLanguage = $request->get('sourceLanguage');
-                $targetLanguage = $request->get('targetLanguage');
-                $kirbyTags = $request->get(
-                    'kirbyTags',
-                    $kirby->option('johannschopplich.content-translator.kirbyTags', [])
-                );
+                $statusConfig = $kirby->option('johannschopplich.content-translator.status', true);
 
-                if (!$text) {
-                    throw new BadMethodCallException('Missing "text" parameter');
+                if ($statusConfig === false || $statusConfig === []) {
+                    return null;
                 }
 
-                if (!$targetLanguage) {
-                    throw new BadMethodCallException('Missing "targetLanguage" parameter');
+                $pagesQuery = is_array($statusConfig) ? ($statusConfig['pages'] ?? null) : null;
+                $pages = ($pagesQuery && is_callable($pagesQuery))
+                    ? $pagesQuery()
+                    : $kirby->site()->index();
+
+                $status = new TranslationStatus($pages);
+                $parent = $kirby->request()->get('parent');
+
+                if ($parent !== null) {
+                    return ['children' => $status->treeChildren($parent)];
                 }
 
-                $translatedText = KirbyText::translateText($text, $targetLanguage, $sourceLanguage, $kirbyTags);
-
-                return [
-                    'text' => $translatedText
-                ];
+                return $status->treeStatus();
             }
         ]
     ]
