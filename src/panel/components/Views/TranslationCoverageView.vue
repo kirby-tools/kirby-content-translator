@@ -71,7 +71,7 @@ onMounted(async () => {
           >
             <TranslationRing :value="stat.percentage" />
             <span
-              class="kct-absolute kct-text-[length:var(--text-lg)] kct-font-[number:var(--font-bold)]"
+              class="kct-[font-weight:var(--font-bold)] kct-absolute kct-text-[length:var(--text-lg)]"
             >
               {{ stat.value }}
             </span>

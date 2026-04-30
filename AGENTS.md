@@ -7,6 +7,7 @@ Commercial Kirby CMS plugin for translating content between languages using Deep
 - Panel: Vue 2.7 with Composition API (`<script setup>`, composables)
 - Build: kirbyup (Vite-based bundler for Kirby Panel plugins)
 - Vue utilities: kirbyuse (provides `usePanel`, `useSection`, `useContent`, etc.)
+- Styles: UnoCSS with `presetWind3` (Tailwind v3-compatible utilities, prefixed with `kct-`)
 - PHP: Kirby 4/5 compatible
 
 ## Commands
