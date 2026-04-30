@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-use JohannSchopplich\ContentTranslator\TranslationStatus;
+use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use Kirby\Cms\App;
 use Kirby\Cms\Blueprint;
 use Kirby\Cms\Pages;
@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class TranslationStatusTest extends TestCase
+final class TranslationCoverageTest extends TestCase
 {
     protected App $app;
 
@@ -166,100 +166,100 @@ final class TranslationStatusTest extends TestCase
     public function fully_translated_page_returns_100_percent(): void
     {
         $page = $this->app->page('fully-translated');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(2, $pageStatus['de']['totalFields']);
-        $this->assertSame(2, $pageStatus['de']['translatedFields']);
-        $this->assertSame(2, $pageStatus['fr']['totalFields']);
-        $this->assertSame(2, $pageStatus['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['totalFields']);
+        $this->assertSame(2, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
+        $this->assertSame(2, $pageCoverage['fr']['translatedFields']);
     }
 
     #[Test]
     public function partially_translated_page_counts_only_filled_fields(): void
     {
         $page = $this->app->page('partially-translated');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
         // DE: text filled, tags empty
-        $this->assertSame(2, $pageStatus['de']['totalFields']);
-        $this->assertSame(1, $pageStatus['de']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['totalFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
 
         // FR: text empty, tags empty
-        $this->assertSame(2, $pageStatus['fr']['totalFields']);
-        $this->assertSame(0, $pageStatus['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
+        $this->assertSame(0, $pageCoverage['fr']['translatedFields']);
     }
 
     #[Test]
     public function untranslated_page_returns_zero_translated_fields(): void
     {
         $page = $this->app->page('untranslated');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(2, $pageStatus['de']['totalFields']);
-        $this->assertSame(0, $pageStatus['de']['translatedFields']);
-        $this->assertSame(2, $pageStatus['fr']['totalFields']);
-        $this->assertSame(0, $pageStatus['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['totalFields']);
+        $this->assertSame(0, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
+        $this->assertSame(0, $pageCoverage['fr']['translatedFields']);
     }
 
     #[Test]
     public function skips_pages_without_translatable_fields(): void
     {
         $page = $this->app->page('no-fields');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame([], $pageStatus);
+        $this->assertSame([], $pageCoverage);
     }
 
     #[Test]
     public function respects_include_fields_filter(): void
     {
         $page = $this->app->page('fully-translated');
-        $status = new TranslationStatus(new Pages([$page]), [
+        $coverage = new TranslationCoverage(new Pages([$page]), [
             'includeFields' => ['text']
         ]);
-        $pageStatus = $status->pageStatus($page);
+        $pageCoverage = $coverage->pageCoverage($page);
 
         // Only text should be counted
-        $this->assertSame(1, $pageStatus['de']['totalFields']);
-        $this->assertSame(1, $pageStatus['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['totalFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
     }
 
     #[Test]
     public function respects_exclude_fields_filter(): void
     {
         $page = $this->app->page('fully-translated');
-        $status = new TranslationStatus(new Pages([$page]), [
+        $coverage = new TranslationCoverage(new Pages([$page]), [
             'excludeFields' => ['tags']
         ]);
-        $pageStatus = $status->pageStatus($page);
+        $pageCoverage = $coverage->pageCoverage($page);
 
         // Only text should be counted (tags excluded)
-        $this->assertSame(1, $pageStatus['de']['totalFields']);
-        $this->assertSame(1, $pageStatus['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['totalFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
     }
 
     #[Test]
     public function excludes_default_language_from_results(): void
     {
         $page = $this->app->page('fully-translated');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertArrayNotHasKey('en', $pageStatus);
-        $this->assertArrayHasKey('de', $pageStatus);
-        $this->assertArrayHasKey('fr', $pageStatus);
+        $this->assertArrayNotHasKey('en', $pageCoverage);
+        $this->assertArrayHasKey('de', $pageCoverage);
+        $this->assertArrayHasKey('fr', $pageCoverage);
     }
 
     #[Test]
-    public function tree_status_aggregates_language_totals(): void
+    public function tree_coverage_aggregates_language_totals(): void
     {
         $pages = $this->app->site()->index();
-        $status = new TranslationStatus($pages);
-        $result = $status->treeStatus();
+        $coverage = new TranslationCoverage($pages);
+        $result = $coverage->treeCoverage();
 
         $this->assertCount(2, $result['languages']);
 
@@ -270,11 +270,11 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_calculates_percentage_per_language(): void
+    public function tree_coverage_calculates_percentage_per_language(): void
     {
         $pages = $this->app->site()->index();
-        $status = new TranslationStatus($pages);
-        $result = $status->treeStatus();
+        $coverage = new TranslationCoverage($pages);
+        $result = $coverage->treeCoverage();
 
         $languages = array_column($result['languages'], null, 'code');
 
@@ -286,11 +286,11 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_lists_incomplete_pages(): void
+    public function tree_coverage_lists_incomplete_pages(): void
     {
         $pages = $this->app->site()->index();
-        $status = new TranslationStatus($pages);
-        $result = $status->treeStatus();
+        $coverage = new TranslationCoverage($pages);
+        $result = $coverage->treeCoverage();
 
         $incompleteIds = array_column($result['tree'], 'id');
 
@@ -304,8 +304,8 @@ final class TranslationStatusTest extends TestCase
     {
         // Only include fully-translated page
         $pages = new Pages([$this->app->page('fully-translated')]);
-        $status = new TranslationStatus($pages);
-        $result = $status->treeStatus();
+        $coverage = new TranslationCoverage($pages);
+        $result = $coverage->treeCoverage();
 
         $languages = array_column($result['languages'], null, 'code');
 
@@ -315,10 +315,10 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_reports_full_completion_when_no_pages(): void
+    public function tree_coverage_reports_full_completion_when_no_pages(): void
     {
-        $status = new TranslationStatus(new Pages([]));
-        $result = $status->treeStatus();
+        $coverage = new TranslationCoverage(new Pages([]));
+        $result = $coverage->treeCoverage();
 
         $this->assertIsArray($result['languages']);
         $this->assertEmpty($result['tree']);
@@ -332,7 +332,7 @@ final class TranslationStatusTest extends TestCase
     }
 
     #[Test]
-    public function tree_status_emits_is_fully_untranslated_flag(): void
+    public function tree_coverage_emits_is_fully_untranslated_flag(): void
     {
         // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
         Blueprint::$loaded = [];
@@ -369,8 +369,8 @@ final class TranslationStatusTest extends TestCase
             ]
         ]);
 
-        $status = new TranslationStatus($app->site()->index());
-        $entries = array_column($status->treeStatus()['tree'], null, 'id');
+        $coverage = new TranslationCoverage($app->site()->index());
+        $entries = array_column($coverage->treeCoverage()['tree'], null, 'id');
 
         $this->assertTrue($entries['all-missing']['isFullyUntranslated']);
         $this->assertFalse($entries['one-missing']['isFullyUntranslated']);
@@ -409,15 +409,15 @@ final class TranslationStatusTest extends TestCase
         ]);
 
         $page = $app->page('page');
-        $status = new TranslationStatus(new Pages([$page]));
-        $pageStatus = $status->pageStatus($page);
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(1, $pageStatus['de']['totalFields']);
-        $this->assertSame(0, $pageStatus['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['totalFields']);
+        $this->assertSame(0, $pageCoverage['de']['translatedFields']);
     }
 
     #[Test]
-    public function tree_status_includes_ancestors_of_incomplete_pages(): void
+    public function tree_coverage_includes_ancestors_of_incomplete_pages(): void
     {
         // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
         Blueprint::$loaded = [];
@@ -455,8 +455,8 @@ final class TranslationStatusTest extends TestCase
             ]
         ]);
 
-        $status = new TranslationStatus($app->site()->index());
-        $tree = $status->treeStatus()['tree'];
+        $coverage = new TranslationCoverage($app->site()->index());
+        $tree = $coverage->treeCoverage()['tree'];
 
         // Parent appears because its descendant is incomplete, even though the parent itself is fully translated
         $this->assertCount(1, $tree);

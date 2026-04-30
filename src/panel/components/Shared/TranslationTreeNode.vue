@@ -26,7 +26,7 @@ const arrowIcon = computed(() => {
 
 function formatDescendantCount(count: number) {
   return formatPlural(
-    panel.t("johannschopplich.content-translator.status.pagesIncomplete", {
+    panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
       count,
     }),
     count,
@@ -70,7 +70,7 @@ function navigateToLanguage(code: string) {
         class="kct-flex kct-shrink-0 kct-items-center kct-gap-[var(--tags-gap)]"
       >
         <k-tag
-          v-if="item.incompleteDescendants > 0"
+          v-if="item.incompleteDescendants > 0 && !item.open"
           :text="formatDescendantCount(item.incompleteDescendants)"
           theme="light"
         />
@@ -78,14 +78,16 @@ function navigateToLanguage(code: string) {
           <k-tag
             v-if="item.isFullyUntranslated"
             :text="
-              panel.t('johannschopplich.content-translator.status.untranslated')
+              panel.t('johannschopplich.content-translator.coverage.untranslated')
             "
+            theme="light"
           />
           <template v-else>
             <k-tag
               v-for="lang in item.missing"
               :key="lang.code"
               :text="lang.code.toUpperCase()"
+              theme="light"
               @click.native.stop="navigateToLanguage(lang.code)"
             />
           </template>

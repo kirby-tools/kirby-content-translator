@@ -11,7 +11,7 @@ use Kirby\Cms\Page;
 use Kirby\Cms\Pages;
 use Kirby\Content\Content;
 
-final readonly class TranslationStatus
+final readonly class TranslationCoverage
 {
     private App $kirby;
     private TranslatorConfig $config;
@@ -24,7 +24,7 @@ final readonly class TranslationStatus
         $this->config = TranslatorConfig::fromOptions($options);
     }
 
-    public function treeStatus(): array
+    public function treeCoverage(): array
     {
         $treeIndex = $this->treeIndex();
 
@@ -81,10 +81,10 @@ final readonly class TranslationStatus
     /**
      * @return array<string, array{totalFields: int, translatedFields: int}>
      */
-    public function pageStatus(Page $page): array
+    public function pageCoverage(Page $page): array
     {
         $cache = $this->kirby->cache('pages');
-        $cacheKey = 'johannschopplich.content-translator.status.' . $page->id();
+        $cacheKey = 'johannschopplich.content-translator.coverage.' . $page->id();
 
         $cached = $cache->get($cacheKey);
         if ($cached !== null) {
@@ -99,14 +99,14 @@ final readonly class TranslationStatus
 
         $totalFields = count($translatableFields);
         $defaultLanguage = $this->kirby->defaultLanguage();
-        $status = [];
+        $coverage = [];
 
         foreach ($this->kirby->languages() as $language) {
             if ($language->code() === $defaultLanguage->code()) {
                 continue;
             }
 
-            $status[$language->code()] = $this->languageStatus(
+            $coverage[$language->code()] = $this->languageCoverage(
                 $page,
                 $language,
                 $translatableFields,
@@ -114,9 +114,9 @@ final readonly class TranslationStatus
             );
         }
 
-        $cache->set($cacheKey, $status);
+        $cache->set($cacheKey, $coverage);
 
-        return $status;
+        return $coverage;
     }
 
     /**
@@ -161,23 +161,23 @@ final readonly class TranslationStatus
 
         // Iterate all pages to find incomplete ones and aggregate language stats
         foreach ($this->pages as $page) {
-            $pageStatus = $this->pageStatus($page);
+            $pageCoverage = $this->pageCoverage($page);
 
-            if ($pageStatus === []) {
+            if ($pageCoverage === []) {
                 continue;
             }
 
             $missingLanguages = [];
 
-            foreach ($pageStatus as $langCode => $status) {
+            foreach ($pageCoverage as $langCode => $coverage) {
                 if (!isset($languages[$langCode])) {
                     continue;
                 }
 
-                $languages[$langCode]['totalFields'] += $status['totalFields'];
-                $languages[$langCode]['translatedFields'] += $status['translatedFields'];
+                $languages[$langCode]['totalFields'] += $coverage['totalFields'];
+                $languages[$langCode]['translatedFields'] += $coverage['translatedFields'];
 
-                if ($status['translatedFields'] < $status['totalFields']) {
+                if ($coverage['translatedFields'] < $coverage['totalFields']) {
                     $languages[$langCode]['incompletePageCount']++;
                     $missingLanguages[] = [
                         'code' => $langCode,
@@ -272,7 +272,7 @@ final readonly class TranslationStatus
     /**
      * @return array{totalFields: int, translatedFields: int}
      */
-    private function languageStatus(
+    private function languageCoverage(
         Page $page,
         Language $language,
         array $translatableFields,

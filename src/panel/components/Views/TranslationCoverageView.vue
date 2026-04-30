@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslationLanguageStatus } from "../../types";
+import type { TranslationLanguageCoverage } from "../../types";
 import { computed, onMounted, provide, ref, useApi, usePanel } from "kirbyuse";
 import {
   TOGGLE_INJECTION_KEY,
@@ -13,7 +13,7 @@ const panel = usePanel();
 const api = useApi();
 
 const isLoading = ref(true);
-const languages = ref<TranslationLanguageStatus[]>([]);
+const languages = ref<TranslationLanguageCoverage[]>([]);
 const { tree, setTree, toggle } = useTranslationTree();
 provide(TOGGLE_INJECTION_KEY, toggle);
 
@@ -23,7 +23,7 @@ const stats = computed(() =>
     value: `${lang.percentage}%`,
     label: lang.name,
     info: formatPlural(
-      panel.t("johannschopplich.content-translator.status.pagesIncomplete", {
+      panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
         count: lang.incompletePageCount,
       }),
       lang.incompletePageCount,
@@ -33,8 +33,8 @@ const stats = computed(() =>
   })),
 );
 
-async function fetchStatus() {
-  const response = await api.get("__content-translator__/status");
+async function fetchCoverage() {
+  const response = await api.get("__content-translator__/coverage");
   if (!response) return;
   languages.value = response.languages;
   setTree(response.tree);
@@ -42,7 +42,7 @@ async function fetchStatus() {
 
 onMounted(async () => {
   try {
-    await fetchStatus();
+    await fetchCoverage();
   } catch {
   } finally {
     isLoading.value = false;
@@ -56,7 +56,7 @@ onMounted(async () => {
     class="kct-mt-[var(--columns-block-gap)]"
   >
     <k-section
-      :headline="panel.t('johannschopplich.content-translator.status.title')"
+      :headline="panel.t('johannschopplich.content-translator.coverage.title')"
     >
       <dl class="k-stats">
         <div
@@ -82,12 +82,14 @@ onMounted(async () => {
     </k-section>
 
     <k-section
-      :headline="panel.t('johannschopplich.content-translator.status.todo')"
+      :headline="
+        panel.t('johannschopplich.content-translator.coverage.pagesToTranslate')
+      "
     >
       <TranslationTree v-if="tree.length > 0" :items="tree" />
       <k-empty v-else icon="check">
         {{
-          panel.t("johannschopplich.content-translator.status.allTranslated")
+          panel.t("johannschopplich.content-translator.coverage.allTranslated")
         }}
       </k-empty>
     </k-section>

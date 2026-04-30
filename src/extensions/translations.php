@@ -31,12 +31,12 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translating' => 'Translating content…',
             'johannschopplich.content-translator.notification.batchTranslating' => 'Translating {current}/{total} languages…',
             'johannschopplich.content-translator.copilot.license.toast' => 'Like AI translations? Activate your Copilot license.',
-            'johannschopplich.content-translator.status.title' => 'Translation Status',
-            'johannschopplich.content-translator.status.pagesIncomplete' => '{count} incomplete page | {count} incomplete pages',
-            'johannschopplich.content-translator.status.allTranslated' => 'All content is translated',
-            'johannschopplich.content-translator.status.todo' => 'Missing Translations',
-            'johannschopplich.content-translator.status.untranslated' => 'Untranslated',
-            'johannschopplich.content-translator.status.loadError' => 'Could not load pages'
+            'johannschopplich.content-translator.coverage.title' => 'Translation Coverage',
+            'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} incomplete page | {count} incomplete pages',
+            'johannschopplich.content-translator.coverage.allTranslated' => 'All content is translated',
+            'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Pages to Translate',
+            'johannschopplich.content-translator.coverage.untranslated' => 'Untranslated',
+            'johannschopplich.content-translator.coverage.loadError' => 'Could not load pages'
         ],
         'de' => [
             'johannschopplich.content-translator.label' => 'Content-Übersetzer',
@@ -64,12 +64,12 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translating' => 'Content wird übersetzt…',
             'johannschopplich.content-translator.notification.batchTranslating' => 'Übersetze {current}/{total} Sprachen…',
             'johannschopplich.content-translator.copilot.license.toast' => 'Gefallen dir KI-Übersetzungen? Aktiviere deine Copilot-Lizenz.',
-            'johannschopplich.content-translator.status.title' => 'Übersetzungsstatus',
-            'johannschopplich.content-translator.status.pagesIncomplete' => '{count} unvollständige Seite | {count} unvollständige Seiten',
-            'johannschopplich.content-translator.status.allTranslated' => 'Alle Inhalte sind übersetzt',
-            'johannschopplich.content-translator.status.todo' => 'Fehlende Übersetzungen',
-            'johannschopplich.content-translator.status.untranslated' => 'Nicht übersetzt',
-            'johannschopplich.content-translator.status.loadError' => 'Seiten konnten nicht geladen werden'
+            'johannschopplich.content-translator.coverage.title' => 'Übersetzungsabdeckung',
+            'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} unvollständige Seite | {count} unvollständige Seiten',
+            'johannschopplich.content-translator.coverage.allTranslated' => 'Alle Inhalte sind übersetzt',
+            'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Zu übersetzende Seiten',
+            'johannschopplich.content-translator.coverage.untranslated' => 'Nicht übersetzt',
+            'johannschopplich.content-translator.coverage.loadError' => 'Seiten konnten nicht geladen werden'
         ],
         'fr' => [
             'johannschopplich.content-translator.label' => 'Traducteur de Contenu',
@@ -97,12 +97,12 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translating' => 'Traduction du contenu…',
             'johannschopplich.content-translator.notification.batchTranslating' => 'Traduction {current}/{total} langues…',
             'johannschopplich.content-translator.copilot.license.toast' => 'Vous aimez les traductions IA ? Activez votre licence Copilot.',
-            'johannschopplich.content-translator.status.title' => 'Statut des traductions',
-            'johannschopplich.content-translator.status.pagesIncomplete' => '{count} page incomplète | {count} pages incomplètes',
-            'johannschopplich.content-translator.status.allTranslated' => 'Tout le contenu est traduit',
-            'johannschopplich.content-translator.status.todo' => 'Traductions manquantes',
-            'johannschopplich.content-translator.status.untranslated' => 'Non traduit',
-            'johannschopplich.content-translator.status.loadError' => 'Impossible de charger les pages'
+            'johannschopplich.content-translator.coverage.title' => 'Couverture des traductions',
+            'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} page incomplète | {count} pages incomplètes',
+            'johannschopplich.content-translator.coverage.allTranslated' => 'Tout le contenu est traduit',
+            'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Pages à traduire',
+            'johannschopplich.content-translator.coverage.untranslated' => 'Non traduit',
+            'johannschopplich.content-translator.coverage.loadError' => 'Impossible de charger les pages'
         ],
         'nl' => [
             'johannschopplich.content-translator.label' => 'Inhoud Vertaler',
@@ -130,12 +130,12 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translating' => 'Inhoud wordt vertaald…',
             'johannschopplich.content-translator.notification.batchTranslating' => 'Vertalen {current}/{total} talen…',
             'johannschopplich.content-translator.copilot.license.toast' => 'Vind je AI-vertalingen fijn? Activeer je Copilot-licentie.',
-            'johannschopplich.content-translator.status.title' => 'Vertaalstatus',
-            'johannschopplich.content-translator.status.pagesIncomplete' => '{count} onvolledige pagina | {count} onvolledige pagina\'s',
-            'johannschopplich.content-translator.status.allTranslated' => 'Alle inhoud is vertaald',
-            'johannschopplich.content-translator.status.todo' => 'Ontbrekende vertalingen',
-            'johannschopplich.content-translator.status.untranslated' => 'Niet vertaald',
-            'johannschopplich.content-translator.status.loadError' => 'Pagina\'s konden niet worden geladen'
+            'johannschopplich.content-translator.coverage.title' => 'Vertaaldekking',
+            'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} onvolledige pagina | {count} onvolledige pagina\'s',
+            'johannschopplich.content-translator.coverage.allTranslated' => 'Alle inhoud is vertaald',
+            'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Te vertalen pagina\'s',
+            'johannschopplich.content-translator.coverage.untranslated' => 'Niet vertaald',
+            'johannschopplich.content-translator.coverage.loadError' => 'Pagina\'s konden niet worden geladen'
         ],
         'pt_PT' => [
             'johannschopplich.content-translator.label' => 'Tradutor de Conteúdo',
@@ -163,12 +163,12 @@ return array_replace_recursive(
             'johannschopplich.content-translator.notification.translating' => 'A traduzir conteúdo…',
             'johannschopplich.content-translator.notification.batchTranslating' => 'A traduzir {current}/{total} idiomas…',
             'johannschopplich.content-translator.copilot.license.toast' => 'Gosta de traduções IA? Ative a sua licença Copilot.',
-            'johannschopplich.content-translator.status.title' => 'Estado das traduções',
-            'johannschopplich.content-translator.status.pagesIncomplete' => '{count} página incompleta | {count} páginas incompletas',
-            'johannschopplich.content-translator.status.allTranslated' => 'Todo o conteúdo está traduzido',
-            'johannschopplich.content-translator.status.todo' => 'Traduções em falta',
-            'johannschopplich.content-translator.status.untranslated' => 'Não traduzido',
-            'johannschopplich.content-translator.status.loadError' => 'Não foi possível carregar as páginas'
+            'johannschopplich.content-translator.coverage.title' => 'Cobertura das traduções',
+            'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} página incompleta | {count} páginas incompletas',
+            'johannschopplich.content-translator.coverage.allTranslated' => 'Todo o conteúdo está traduzido',
+            'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Páginas para traduzir',
+            'johannschopplich.content-translator.coverage.untranslated' => 'Não traduzido',
+            'johannschopplich.content-translator.coverage.loadError' => 'Não foi possível carregar as páginas'
         ]
     ]
 );

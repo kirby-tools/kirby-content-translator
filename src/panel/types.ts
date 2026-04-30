@@ -64,7 +64,7 @@ export interface TranslatorOptions {
   fields?: Record<string, KirbyFieldProps>;
 }
 
-export interface TranslationLanguageStatus {
+export interface TranslationLanguageCoverage {
   code: string;
   name: string;
   totalFields: number;
@@ -83,12 +83,12 @@ export interface TranslationTreeEntry {
   missing: { code: string; name: string }[] | null;
   isFullyUntranslated: boolean;
   open: boolean;
-  loading?: boolean;
-  children?: TranslationTreeEntry[];
+  loading: boolean;
+  children: TranslationTreeEntry[] | null;
 }
 
-/** Response from `__content-translator__/status` API endpoint. */
-export interface TranslationStatusResponse {
-  languages: TranslationLanguageStatus[];
+/** Response from `__content-translator__/coverage` API endpoint. */
+export interface TranslationCoverageResponse {
+  languages: TranslationLanguageCoverage[];
   tree: TranslationTreeEntry[];
 }

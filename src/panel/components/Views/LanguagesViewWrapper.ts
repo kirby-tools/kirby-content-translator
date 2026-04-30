@@ -8,7 +8,7 @@ import type {
 } from "vue";
 import { isLocalDev } from "kirbyuse";
 // @ts-ignore - Vue component
-import TranslationStatusView from "./TranslationStatusView.vue";
+import TranslationCoverageView from "./TranslationCoverageView.vue";
 
 type ResolvedExtends = VueConstructor & { options: ComponentOptions<Vue> };
 
@@ -23,10 +23,10 @@ export default {
     const vnode = parentRender.call(this, h);
 
     if (vnode.componentOptions?.children) {
-      vnode.componentOptions.children.push(h(TranslationStatusView));
+      vnode.componentOptions.children.push(h(TranslationCoverageView));
     } else if (isLocalDev()) {
       console.warn(
-        "[kirby-content-translator] Cannot inject TranslationStatusView into k-languages-view: parent render shape changed.",
+        "[kirby-content-translator] Cannot inject TranslationCoverageView into k-languages-view: parent render shape changed.",
       );
     }
 

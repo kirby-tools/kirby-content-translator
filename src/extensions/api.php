@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\TranslationStatus;
+use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
@@ -99,28 +99,28 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/status',
+            'pattern' => '__content-translator__/coverage',
             'method' => 'GET',
             'action' => function () use ($kirby) {
-                $statusConfig = $kirby->option('johannschopplich.content-translator.status', true);
+                $coverageConfig = $kirby->option('johannschopplich.content-translator.coverage', true);
 
-                if ($statusConfig === false || $statusConfig === []) {
+                if ($coverageConfig === false || $coverageConfig === []) {
                     return null;
                 }
 
-                $pagesQuery = is_array($statusConfig) ? ($statusConfig['pages'] ?? null) : null;
+                $pagesQuery = is_array($coverageConfig) ? ($coverageConfig['pages'] ?? null) : null;
                 $pages = ($pagesQuery && is_callable($pagesQuery))
                     ? $pagesQuery()
                     : $kirby->site()->index();
 
-                $status = new TranslationStatus($pages);
+                $coverage = new TranslationCoverage($pages);
                 $parent = $kirby->request()->get('parent');
 
                 if ($parent !== null) {
-                    return ['children' => $status->treeChildren($parent)];
+                    return ['children' => $coverage->treeChildren($parent)];
                 }
 
-                return $status->treeStatus();
+                return $coverage->treeCoverage();
             }
         ]
     ]
