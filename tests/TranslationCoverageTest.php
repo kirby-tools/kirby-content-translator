@@ -332,7 +332,7 @@ final class TranslationCoverageTest extends TestCase
     }
 
     #[Test]
-    public function tree_coverage_emits_is_fully_untranslated_flag(): void
+    public function tree_coverage_reports_missing_languages_per_page(): void
     {
         // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
         Blueprint::$loaded = [];
@@ -372,8 +372,14 @@ final class TranslationCoverageTest extends TestCase
         $coverage = new TranslationCoverage($app->site()->index());
         $entries = array_column($coverage->treeCoverage()['tree'], null, 'id');
 
-        $this->assertTrue($entries['all-missing']['isFullyUntranslated']);
-        $this->assertFalse($entries['one-missing']['isFullyUntranslated']);
+        $this->assertSame(
+            ['de', 'fr'],
+            array_column($entries['all-missing']['missing'], 'code')
+        );
+        $this->assertSame(
+            ['fr'],
+            array_column($entries['one-missing']['missing'], 'code')
+        );
     }
 
     #[Test]

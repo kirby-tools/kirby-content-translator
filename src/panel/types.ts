@@ -81,7 +81,6 @@ export interface TranslationTreeEntry {
   hasChildren: boolean;
   incompleteDescendants: number;
   missing: { code: string; name: string }[] | null;
-  isFullyUntranslated: boolean;
   open: boolean;
   loading: boolean;
   children: TranslationTreeEntry[] | null;

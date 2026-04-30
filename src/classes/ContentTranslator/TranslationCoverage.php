@@ -38,7 +38,7 @@ final readonly class TranslationCoverage
      * Returns pruned tree children for a given parent page.
      * Only includes pages that are incomplete or are ancestors of incomplete pages.
      *
-     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendants: int, missing: array|null, isFullyUntranslated: bool}>
+     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendants: int, missing: array|null}>
      */
     public function treeChildren(string|null $parentId, array|null $treeIndex = null): array
     {
@@ -61,8 +61,6 @@ final readonly class TranslationCoverage
                 continue;
             }
 
-            $incomplete = $treeIndex['incompleteIds'][$childId] ?? null;
-
             $entries[] = [
                 'id' => $childId,
                 'label' => $child->title()->value(),
@@ -70,8 +68,7 @@ final readonly class TranslationCoverage
                 'link' => $child->panel()->url(true),
                 'hasChildren' => $this->hasVisibleChildren($child, $treeIndex),
                 'incompleteDescendants' => $treeIndex['descendantCounts'][$childId] ?? 0,
-                'missing' => $incomplete['missing'] ?? null,
-                'isFullyUntranslated' => $incomplete['isFullyUntranslated'] ?? false,
+                'missing' => $treeIndex['incompleteIds'][$childId]['missing'] ?? null,
             ];
         }
 
@@ -154,8 +151,6 @@ final readonly class TranslationCoverage
             ];
         }
 
-        $languageCount = count($languages);
-
         // Iterate all pages to find incomplete ones and aggregate language stats
         foreach ($this->pages as $page) {
             $pageCoverage = $this->pageCoverage($page);
@@ -186,7 +181,6 @@ final readonly class TranslationCoverage
             if ($missingLanguages !== []) {
                 $incompleteIds[$page->id()] = [
                     'missing' => $missingLanguages,
-                    'isFullyUntranslated' => count($missingLanguages) === $languageCount,
                 ];
             }
         }

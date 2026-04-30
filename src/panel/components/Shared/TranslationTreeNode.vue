@@ -24,14 +24,14 @@ const arrowIcon = computed(() => {
   return props.item.open ? "angle-down" : "angle-right";
 });
 
-function formatDescendantCount(count: number) {
-  return formatPlural(
+const descendantLabel = computed(() =>
+  formatPlural(
     panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
-      count,
+      count: props.item.incompleteDescendants,
     }),
-    count,
-  );
-}
+    props.item.incompleteDescendants,
+  ),
+);
 
 function navigate() {
   panel.view.open(props.item.link);
@@ -64,34 +64,27 @@ function navigateToLanguage(code: string) {
       <button class="k-tree-folder" type="button" @click="navigate">
         <k-icon-frame :icon="item.icon ?? 'page'" />
         <span class="k-tree-folder-label">{{ item.label }}</span>
+        <span
+          v-if="item.incompleteDescendants > 0"
+          class="kct-shrink-0 kct-text-[length:var(--text-xs)] kct-tabular-nums kct-text-[color:var(--color-text-dimmed)]"
+          :aria-label="descendantLabel"
+          :title="descendantLabel"
+        >
+          ↳ {{ item.incompleteDescendants }}
+        </span>
       </button>
 
       <span
-        class="kct-flex kct-shrink-0 kct-items-center kct-gap-[var(--tags-gap)]"
+        v-if="item.missing && item.missing.length > 0"
+        class="kct-flex kct-shrink-0 kct-items-center kct-gap-[var(--spacing-2px)]"
       >
         <k-tag
-          v-if="item.incompleteDescendants > 0 && !item.open"
-          :text="formatDescendantCount(item.incompleteDescendants)"
+          v-for="lang in item.missing"
+          :key="lang.code"
+          :text="lang.code.toUpperCase()"
           theme="light"
+          @click.native.stop="navigateToLanguage(lang.code)"
         />
-        <template v-if="item.missing">
-          <k-tag
-            v-if="item.isFullyUntranslated"
-            :text="
-              panel.t('johannschopplich.content-translator.coverage.untranslated')
-            "
-            theme="light"
-          />
-          <template v-else>
-            <k-tag
-              v-for="lang in item.missing"
-              :key="lang.code"
-              :text="lang.code.toUpperCase()"
-              theme="light"
-              @click.native.stop="navigateToLanguage(lang.code)"
-            />
-          </template>
-        </template>
       </span>
     </p>
 

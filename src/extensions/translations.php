@@ -35,7 +35,6 @@ return array_replace_recursive(
             'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} incomplete page | {count} incomplete pages',
             'johannschopplich.content-translator.coverage.allTranslated' => 'All content is translated',
             'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Pages to Translate',
-            'johannschopplich.content-translator.coverage.untranslated' => 'Untranslated',
             'johannschopplich.content-translator.coverage.loadError' => 'Could not load pages'
         ],
         'de' => [
@@ -68,7 +67,6 @@ return array_replace_recursive(
             'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} unvollständige Seite | {count} unvollständige Seiten',
             'johannschopplich.content-translator.coverage.allTranslated' => 'Alle Inhalte sind übersetzt',
             'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Zu übersetzende Seiten',
-            'johannschopplich.content-translator.coverage.untranslated' => 'Nicht übersetzt',
             'johannschopplich.content-translator.coverage.loadError' => 'Seiten konnten nicht geladen werden'
         ],
         'fr' => [
@@ -101,7 +99,6 @@ return array_replace_recursive(
             'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} page incomplète | {count} pages incomplètes',
             'johannschopplich.content-translator.coverage.allTranslated' => 'Tout le contenu est traduit',
             'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Pages à traduire',
-            'johannschopplich.content-translator.coverage.untranslated' => 'Non traduit',
             'johannschopplich.content-translator.coverage.loadError' => 'Impossible de charger les pages'
         ],
         'nl' => [
@@ -134,7 +131,6 @@ return array_replace_recursive(
             'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} onvolledige pagina | {count} onvolledige pagina\'s',
             'johannschopplich.content-translator.coverage.allTranslated' => 'Alle inhoud is vertaald',
             'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Te vertalen pagina\'s',
-            'johannschopplich.content-translator.coverage.untranslated' => 'Niet vertaald',
             'johannschopplich.content-translator.coverage.loadError' => 'Pagina\'s konden niet worden geladen'
         ],
         'pt_PT' => [
@@ -167,7 +163,6 @@ return array_replace_recursive(
             'johannschopplich.content-translator.coverage.pagesIncomplete' => '{count} página incompleta | {count} páginas incompletas',
             'johannschopplich.content-translator.coverage.allTranslated' => 'Todo o conteúdo está traduzido',
             'johannschopplich.content-translator.coverage.pagesToTranslate' => 'Páginas para traduzir',
-            'johannschopplich.content-translator.coverage.untranslated' => 'Não traduzido',
             'johannschopplich.content-translator.coverage.loadError' => 'Não foi possível carregar as páginas'
         ]
     ]
