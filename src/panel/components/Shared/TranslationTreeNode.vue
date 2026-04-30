@@ -33,6 +33,10 @@ const descendantLabel = computed(() =>
   ),
 );
 
+const hasCounter = computed(
+  () => props.item.incompleteDescendants > 0 && !props.item.open,
+);
+
 function navigate() {
   panel.view.open(props.item.link);
 }
@@ -65,12 +69,13 @@ function navigateToLanguage(code: string) {
         <k-icon-frame :icon="item.icon ?? 'page'" />
         <span class="k-tree-folder-label">{{ item.label }}</span>
         <span
-          v-if="item.incompleteDescendants > 0 && !item.open"
-          class="kct-shrink-0 kct-text-[length:var(--text-xs)] kct-text-[color:var(--color-text-dimmed)] kct-tabular-nums"
-          :aria-label="descendantLabel"
+          v-if="hasCounter"
+          class="k-button-badge kct-static kct-transform-none kct-shadow-none"
+          data-theme="passive"
           :title="descendantLabel"
+          :aria-label="descendantLabel"
         >
-          ↳ {{ item.incompleteDescendants }}
+          {{ item.incompleteDescendants }}
         </span>
       </button>
 
