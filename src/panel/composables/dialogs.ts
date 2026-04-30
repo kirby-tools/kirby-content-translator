@@ -7,8 +7,9 @@ import { resolveCopilot } from "../utils/copilot";
 import { usePluginContext } from "./plugin";
 import { getProviderAvailability } from "./translation";
 
-const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}session$licenseToastCount`;
+const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}licenseToastCount`;
 const PROVIDER_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
+const BATCH_LANGUAGES_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$batchLanguages`;
 const LICENSE_TOAST_THRESHOLD = 2;
 
 const PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
@@ -123,11 +124,14 @@ export function useTranslationDialogs() {
       },
       value: {
         provider,
-        languages: translationLanguages.map((language) => language.code),
+        languages: getValidStoredBatchLanguages(
+          translationLanguages.map((language) => language.code),
+        ),
       },
     });
 
     if (result?.languages?.length) {
+      storeBatchLanguagesPreference(result.languages);
       if (result.provider) {
         storeProviderPreference(result.provider);
       }
@@ -275,4 +279,29 @@ function getValidStoredProvider(availability: {
 
 function storeProviderPreference(provider: TranslationProvider) {
   localStorage.setItem(PROVIDER_PREFERENCE_KEY, provider);
+}
+
+function getValidStoredBatchLanguages(availableCodes: string[]): string[] {
+  const storedValue = localStorage.getItem(BATCH_LANGUAGES_PREFERENCE_KEY);
+  if (!storedValue) return availableCodes;
+
+  try {
+    const parsedValue = JSON.parse(storedValue);
+    if (!Array.isArray(parsedValue)) return availableCodes;
+
+    const validCodes = parsedValue.filter(
+      (code): code is string =>
+        typeof code === "string" && availableCodes.includes(code),
+    );
+    return validCodes.length > 0 ? validCodes : availableCodes;
+  } catch {
+    return availableCodes;
+  }
+}
+
+function storeBatchLanguagesPreference(languages: string[]) {
+  localStorage.setItem(
+    BATCH_LANGUAGES_PREFERENCE_KEY,
+    JSON.stringify(languages),
+  );
 }
