@@ -22,12 +22,16 @@ const stats = computed(() =>
     code: lang.code,
     value: `${lang.percentage}%`,
     label: lang.name,
-    info: formatPlural(
-      panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
-        count: lang.incompletePageCount,
-      }),
-      lang.incompletePageCount,
-    ),
+    info:
+      lang.incompletePageCount > 0
+        ? formatPlural(
+            panel.t(
+              "johannschopplich.content-translator.coverage.pagesIncomplete",
+              { count: lang.incompletePageCount },
+            ),
+            lang.incompletePageCount,
+          )
+        : panel.t("johannschopplich.content-translator.coverage.allTranslated"),
     theme: lang.percentage >= 100 ? "positive" : "info",
     percentage: lang.percentage,
   })),
@@ -82,16 +86,12 @@ onMounted(async () => {
     </k-section>
 
     <k-section
+      v-if="tree.length > 0"
       :headline="
         panel.t('johannschopplich.content-translator.coverage.pagesToTranslate')
       "
     >
-      <TranslationTree v-if="tree.length > 0" :items="tree" />
-      <k-empty v-else icon="check">
-        {{
-          panel.t("johannschopplich.content-translator.coverage.allTranslated")
-        }}
-      </k-empty>
+      <TranslationTree :items="tree" />
     </k-section>
   </div>
 </template>
