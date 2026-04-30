@@ -417,6 +417,90 @@ final class TranslationCoverageTest extends TestCase
     }
 
     #[Test]
+    public function skips_pages_with_empty_default_language_content(): void
+    {
+        // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
+        Blueprint::$loaded = [];
+
+        $app = new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch']
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'stub',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => '']],
+                            ['code' => 'de', 'content' => ['text' => 'irrelevant']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $page = $app->page('stub');
+        $coverage = new TranslationCoverage(new Pages([$page]));
+
+        // No translatable fields are filled at the source, so the page is omitted
+        $this->assertSame([], $coverage->pageCoverage($page));
+
+        // And it must not show up in the tree
+        $tree = $coverage->treeCoverage()['tree'];
+        $this->assertSame([], $tree);
+    }
+
+    #[Test]
+    public function excludes_unfilled_default_fields_from_total(): void
+    {
+        // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache
+        Blueprint::$loaded = [];
+
+        $app = new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch']
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'text' => ['type' => 'text', 'translate' => true],
+                        'tags' => ['type' => 'tags', 'translate' => true]
+                    ]
+                ]
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'partial-source',
+                        'template' => 'default',
+                        'translations' => [
+                            // Only `text` is filled at the source; `tags` is empty
+                            ['code' => 'en', 'content' => ['text' => 'hello', 'tags' => '']],
+                            ['code' => 'de', 'content' => ['text' => 'hallo', 'tags' => 'tag1']]
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        $page = $app->page('partial-source');
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $pageCoverage = $coverage->pageCoverage($page);
+
+        // `tags` is empty in default and so dropped from total; DE has `text` translated
+        $this->assertSame(1, $pageCoverage['de']['totalFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
+    }
+
+    #[Test]
     public function tree_coverage_includes_ancestors_of_incomplete_pages(): void
     {
         // Drop setUp's `pages/default` from Kirby's process-wide blueprint cache

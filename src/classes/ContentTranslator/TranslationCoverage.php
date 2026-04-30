@@ -91,14 +91,14 @@ final readonly class TranslationCoverage
             return $cached;
         }
 
-        $translatableFields = $this->translatableFields($page);
+        $defaultLanguage = $this->kirby->defaultLanguage();
+        $translatableFields = $this->translatableFields($page, $defaultLanguage);
 
         if ($translatableFields === []) {
             return [];
         }
 
         $totalFields = count($translatableFields);
-        $defaultLanguage = $this->kirby->defaultLanguage();
         $coverage = [];
 
         foreach ($this->kirby->languages() as $language) {
@@ -119,9 +119,6 @@ final readonly class TranslationCoverage
         return $coverage;
     }
 
-    /**
-     * Returns the tree index from cache or computes it fresh.
-     */
     private function treeIndex(): array
     {
         $cache = $this->kirby->cache('pages');
@@ -253,20 +250,41 @@ final readonly class TranslationCoverage
     }
 
     /**
+     * Returns top-level translatable field keys that are non-empty in
+     * the default language. The denominator is content-driven so that
+     * stub pages without source data don't get flagged as untranslated.
+     *
      * @return array<string>
      */
-    private function translatableFields(Page $page): array
+    private function translatableFields(Page $page, Language $defaultLanguage): array
     {
-        $fields = FieldResolver::resolveModelFields($page);
-        $translatable = [];
+        // Read raw default-language content _without_ fallback so the
+        // denominator reflects only fields actually filled at the source.
+        if (!$page->version()->exists($defaultLanguage)) {
+            return [];
+        }
 
-        foreach ($fields as $key => $props) {
-            if ($this->config->isTranslatable($key, $props)) {
-                $translatable[] = $key;
+        $fields = $page->version()->read($defaultLanguage);
+
+        if ($fields === null) {
+            return [];
+        }
+
+        $defaultContent = new Content(parent: $page, data: $fields, normalize: false);
+        $blueprintFields = FieldResolver::resolveModelFields($page);
+        $translatableFields = [];
+
+        foreach ($blueprintFields as $key => $props) {
+            if (!$this->config->isTranslatable($key, $props)) {
+                continue;
+            }
+
+            if ($defaultContent->get($key)->isNotEmpty()) {
+                $translatableFields[] = $key;
             }
         }
 
-        return $translatable;
+        return $translatableFields;
     }
 
     /**
