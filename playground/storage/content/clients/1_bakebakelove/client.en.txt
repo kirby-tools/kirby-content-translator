@@ -1,0 +1,50 @@
+Title: BakeBakeLove
+
+----
+
+Link: https://bakebakelove.example.com
+
+----
+
+Email: bakebakelove@example.com
+
+----
+
+Contact:
+
+name: Jennifer
+email: jennifer@example.com
+phone: 1234 5678
+
+----
+
+Notes: 
+
+----
+
+Clientid: 2
+
+----
+
+Vip: false
+
+----
+
+Vatid: 
+
+----
+
+Address:
+
+street: Sesamestreet 1
+zip: "1234"
+city: Gotham
+country: Narnia
+
+----
+
+Phone: 
+
+----
+
+Uuid: zQbIunQLQdqIfqte

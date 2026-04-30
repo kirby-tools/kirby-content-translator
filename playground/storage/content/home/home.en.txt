@@ -1,0 +1,68 @@
+Title: Home
+
+----
+
+Heading: We are a digital product agency that focuses on strategy and design.
+
+----
+
+Cover: - file://WbpPZiMOsNcoSedv
+
+----
+
+Featuredprojectsheading: Featured work
+
+----
+
+Featuredprojects:
+
+- page://XIjHqXtH9ulA2EeN
+- page://3bxHZwWeSc3CE8FX
+- page://oPgW0pm14TCyiE43
+
+----
+
+Shuffleprojects: false
+
+----
+
+Maxprojects: 3
+
+----
+
+Featuredclientsheading: Our clients
+
+----
+
+Featuredclients:
+
+- page://zQbIunQLQdqIfqte
+- page://HDn0X1SDpuaROq4S
+- page://2Zb53fOotnor1Yvh
+- page://ftGPxUUKD3sfAL1c
+- page://Avbz51V1rF7TePlQ
+- page://N7X3pEfEoRXQddV4
+
+----
+
+Shuffleclients: true
+
+----
+
+Maxclients: 6
+
+----
+
+Contactheading: Let's work together
+
+----
+
+Contacttext: <p>We would love to work with you, because that will probably earn us some money and after all this is a capitalist world and money sounds great.</p>
+
+----
+
+Contactaddress: agency@example.com
+
+----
+
+Uuid: 6fX1fzF2j3Hqo9RQ

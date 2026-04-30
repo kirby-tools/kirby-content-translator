@@ -1,0 +1,23 @@
+title: Image
+
+accept:
+  type: image
+
+columns:
+  - width: 2/3
+    fields:
+      alt:
+        label: Alt text
+        type: text
+      caption:
+        label: Caption
+        type: textarea
+        size: small
+
+  - width: 1/3
+    sections:
+      contentTranslator:
+        type: content-translator
+        label: Content Translator
+        title: true
+        slug: true

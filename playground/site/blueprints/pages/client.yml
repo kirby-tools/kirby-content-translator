@@ -1,0 +1,80 @@
+title: Client
+icon: 🦹🏼‍♀️
+num: zero
+
+status:
+  draft:
+    label: Upcoming
+    text: We are probably going to work for this client soon
+  unlisted:
+    label: Archived
+    text: We are no longer working for this client
+  listed:
+    label: Current
+    text: Active client with current projects
+
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
+columns:
+  main:
+    width: 2/3
+    fields:
+      link:
+        label: Company Website
+        type: url
+        width: 1/2
+      email:
+        label: Company Email
+        type: email
+        width: 1/2
+      contact:
+        label: Contact person
+        type: object
+        fields:
+          name:
+            type: text
+          email:
+            type: email
+          phone:
+            type: tel
+      notes:
+        label: Notes
+        type: writer
+      clientId:
+        label: Client ID
+        type: text
+        width: 1/3
+      vip:
+        label: VIP
+        type: toggle
+        width: 1/3
+        text:
+          - "No"
+          - "Yes"
+      vatId:
+        label: VAT ID
+        type: text
+        width: 1/3
+
+  sidebar:
+    width: 1/3
+    sections:
+      files:
+        headline: Logo
+        max: 1
+        layout: cardlets
+        template: agency-client-logo
+        info: "{{ file.dimensions }}"
+        image:
+          back: white
+          ratio: 1/1
+      projects:
+        create: false
+        type: pages
+        query: page.projects
+

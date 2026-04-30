@@ -1,0 +1,57 @@
+title: Project
+icon: 🌆
+
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
+columns:
+  - width: 2/3
+    sections:
+      content:
+        type: fields
+        fields:
+          category:
+            type: select
+            options:
+              - Branding
+              - Editorial
+              - Fashion
+              - Photography
+              - Product Design
+              - Web
+            width: 1/2
+          client:
+            type: pages
+            query: kirby.page("clients").childrenAndDrafts
+            subpages: false
+            multiple: false
+            image:
+              back: white
+            width: 1/2
+          link:
+            type: url
+          text:
+            label: Description
+            type: writer
+  - width: 1/3
+    sections:
+      caseStudies:
+        type: pages
+        template: case-study
+        create: case-study
+      cover:
+        type: files
+        template: agency-project-cover
+        layout: cards
+        size: large
+        image:
+          cover: true
+          ratio: 4/3
+      gallery:
+        type: files
+        template: agency-project-image
+        layout: list

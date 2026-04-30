@@ -1,0 +1,41 @@
+Title: SpaceCube
+
+----
+
+Link: https://spacecube.example.com
+
+----
+
+Email: spacecube@example.com
+
+----
+
+Contact: 
+
+----
+
+Notes: 
+
+----
+
+Clientid: 12
+
+----
+
+Vip: false
+
+----
+
+Vatid: 
+
+----
+
+Phone: 
+
+----
+
+Address: 
+
+----
+
+Uuid: ftGPxUUKD3sfAL1c

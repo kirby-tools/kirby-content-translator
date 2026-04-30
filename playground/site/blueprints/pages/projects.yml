@@ -1,0 +1,37 @@
+title: Projects
+icon: 🌆
+
+status:
+  draft: Locked
+  unlisted: Locked
+  listed: Locked
+
+options:
+  title: false
+  status: false
+  duplicate: false
+  url: false
+  delete: false
+
+buttons:
+  - preview
+  - settings
+  - content-translator
+  - languages
+  - status
+
+sections:
+  drafts:
+    extends: sections/agency/projects
+    layout: list
+    headline: Drafts
+    status: draft
+  inReview:
+    extends: sections/agency/projects
+    layout: list
+    headline: Client approval needed
+    status: unlisted
+  projects:
+    extends: sections/agency/projects
+    headline: Published
+    status: listed

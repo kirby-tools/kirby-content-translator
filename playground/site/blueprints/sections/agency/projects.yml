@@ -1,0 +1,12 @@
+type: pages
+headline: Projects
+parent: site.find("projects")
+size: small
+info: "{{ page.category }}"
+layout: cards
+template: project
+empty: No projects yet
+image:
+  query: page.cover
+  cover: true
+  ratio: 5/4
