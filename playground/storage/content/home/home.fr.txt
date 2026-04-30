@@ -1,0 +1,64 @@
+Title: Accueil
+
+----
+
+Heading: Nous sommes une agence de produits numériques axée sur la stratégie et le design.
+
+----
+
+Cover: - file://WbpPZiMOsNcoSedv
+
+----
+
+Featuredprojectsheading: Travaux à la une
+
+----
+
+Featuredprojects:
+
+- page://XIjHqXtH9ulA2EeN
+- page://3bxHZwWeSc3CE8FX
+- page://oPgW0pm14TCyiE43
+
+----
+
+Shuffleprojects: false
+
+----
+
+Maxprojects: 3
+
+----
+
+Featuredclientsheading: Nos clients
+
+----
+
+Featuredclients:
+
+- page://zQbIunQLQdqIfqte
+- page://HDn0X1SDpuaROq4S
+- page://2Zb53fOotnor1Yvh
+- page://ftGPxUUKD3sfAL1c
+- page://Avbz51V1rF7TePlQ
+- page://N7X3pEfEoRXQddV4
+
+----
+
+Shuffleclients: true
+
+----
+
+Maxclients: 6
+
+----
+
+Contactheading: Travaillons ensemble
+
+----
+
+Contacttext: <p>Nous serions ravis de travailler avec vous, car cela nous rapportera probablement de l'argent et, après tout, nous vivons dans un monde capitaliste et l'argent, c'est génial.</p>
+
+----
+
+Contactaddress: agency@example.com

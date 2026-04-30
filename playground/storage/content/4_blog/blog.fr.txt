@@ -1,0 +1,29 @@
+Title: Blog
+
+----
+
+Heading: Autour du monde
+
+----
+
+Subheading: en 90 façons
+
+----
+
+Limit: 10
+
+----
+
+Dateformat: d M, Y
+
+----
+
+Fediverse: https://mastodon.social/@getkirby
+
+----
+
+Instagram: getkirby
+
+----
+
+Description: Comme Medium, mais en mieux

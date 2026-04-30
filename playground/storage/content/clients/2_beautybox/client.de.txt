@@ -1,0 +1,46 @@
+Title: BeautyBox
+
+----
+
+Link: https://beautybox.example.com
+
+----
+
+Email: beautybox@example.com
+
+----
+
+Contact:
+
+name: Peter
+email: peter@example.com
+phone: 1234 5678
+
+----
+
+Notes:
+
+----
+
+Clientid: 3
+
+----
+
+Vip: false
+
+----
+
+Vatid:
+
+----
+
+Address:
+
+street: Elmstreet 1
+zip: "56381"
+city: Hogwarts
+country: Middle Earth
+
+----
+
+Phone:

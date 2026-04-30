@@ -41,7 +41,7 @@ columns:
           date:
             type: date
             time: false
-            display: "DD.MM.YYYY"
+            display: DD.MM.YYYY
             default: now
             required: true
           author:
