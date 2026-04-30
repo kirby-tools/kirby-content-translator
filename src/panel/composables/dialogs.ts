@@ -76,7 +76,7 @@ export function useTranslationDialogs() {
         icon: "translate",
         theme: "positive",
         text: panel.t(
-          "johannschopplich.content-translator.dialog.translate",
+          "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
       fields: {
@@ -103,7 +103,7 @@ export function useTranslationDialogs() {
         icon: "translate",
         theme: "positive",
         text: panel.t(
-          "johannschopplich.content-translator.dialog.translate",
+          "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
       fields: {
@@ -162,7 +162,7 @@ export function useTranslationDialogs() {
       panel.notification.info({
         icon: "key",
         message: panel.t(
-          "johannschopplich.content-translator.copilot.license.toast",
+          "johannschopplich.content-translator.copilot.licenseToast",
         ),
       });
     }
@@ -218,7 +218,7 @@ async function getProviderConfig() {
 
   const providerField = {
     type: "toggles",
-    label: panel.t("johannschopplich.content-translator.dialog.translateWith"),
+    label: panel.t("johannschopplich.content-translator.dialog.providerLabel"),
     labels: true,
     grow: true,
     options: [

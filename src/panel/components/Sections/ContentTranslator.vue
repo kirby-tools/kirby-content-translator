@@ -71,7 +71,7 @@ const {
 })();
 
 async function handleImport(sourceLanguage?: PanelLanguageInfo) {
-  const text = panel.t("johannschopplich.content-translator.dialog.import", {
+  const text = panel.t("johannschopplich.content-translator.dialog.importConfirmation", {
     language: sourceLanguage?.name ?? defaultLanguage.name,
   });
 
