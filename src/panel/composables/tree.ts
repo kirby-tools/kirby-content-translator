@@ -30,13 +30,13 @@ export function useTranslationTree() {
       item.loading = true;
 
       try {
-        const response = await api.get("__content-translator__/status", {
+        const response = await api.get("__content-translator__/coverage", {
           parent: item.id,
         });
         item.children = response.children.map(initEntry);
       } catch {
         panel.notification.error(
-          panel.t("johannschopplich.content-translator.status.loadError"),
+          panel.t("johannschopplich.content-translator.coverage.loadError"),
         );
         return;
       } finally {
@@ -55,5 +55,7 @@ export function useTranslationTree() {
 }
 function initEntry(entry: TranslationTreeEntry): TranslationTreeEntry {
   entry.open = false;
+  entry.loading = false;
+  entry.children = entry.children ?? null;
   return entry;
 }
