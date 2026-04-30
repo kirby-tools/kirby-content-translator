@@ -16,9 +16,10 @@ return [
         $targetLanguage = $cli->arg('language');
 
         $siteChildren = $kirby->site()->children();
+        $titles = array_map('strval', $siteChildren->pluck('title'));
         $input = $cli->radio(
             'Which page should be translated?',
-            $siteChildren->pluck('title')
+            $titles
         );
         $response = $input->prompt();
         $cli->success('Selected page: ' . $response);
