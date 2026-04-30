@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace JohannSchopplich\Licensing;
 
 use Composer\Semver\Semver;
-use Kirby\Exception\LogicException;
 
 /**
  * Validates license keys and version compatibility for Kirby Tools plugins.
@@ -14,12 +13,12 @@ use Kirby\Exception\LogicException;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class LicenseValidator
+final class LicenseValidator
 {
-    protected const LICENSE_PATTERN = '!^KT(\d+)-\w+-\w+$!';
+    private const LICENSE_PATTERN = '!^KT(\d+)-\w+-\w+$!';
 
     public function __construct(
-        protected string $packageName
+        private readonly string $packageName
     ) {
     }
 
@@ -28,7 +27,7 @@ class LicenseValidator
      */
     public function isValid(string|null $licenseKey): bool
     {
-        return $licenseKey !== null && preg_match(static::LICENSE_PATTERN, $licenseKey) === 1;
+        return $licenseKey !== null && preg_match(self::LICENSE_PATTERN, $licenseKey) === 1;
     }
 
     /**
@@ -37,10 +36,6 @@ class LicenseValidator
     public function isCompatible(string|null $versionConstraint): bool
     {
         $version = $this->getPluginVersion();
-
-        if ($version !== null && str_starts_with($version, 'dev-')) {
-            throw new LogicException('Development versions are not supported');
-        }
 
         return $versionConstraint !== null &&
             $version !== null &&
@@ -87,7 +82,7 @@ class LicenseValidator
      */
     public function getLicenseGeneration(string|null $licenseKey): int|null
     {
-        if ($licenseKey !== null && preg_match(static::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
+        if ($licenseKey !== null && preg_match(self::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
             return (int)$matches[1];
         }
 

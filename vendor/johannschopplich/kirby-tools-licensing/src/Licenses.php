@@ -21,14 +21,14 @@ use JohannSchopplich\Licensing\Http\HttpClientInterface;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class Licenses
+final class Licenses
 {
-    protected LicenseRepository $repository;
-    protected LicenseValidator $validator;
-    protected LicenseActivator $activator;
+    private readonly LicenseRepository $repository;
+    private readonly LicenseValidator $validator;
+    private readonly LicenseActivator $activator;
 
     public function __construct(
-        protected string $packageName,
+        private readonly string $packageName,
         HttpClientInterface|null $httpClient = null
     ) {
         $this->repository = new LicenseRepository();
@@ -43,7 +43,7 @@ class Licenses
 
     public static function read(string $packageName, array $options = []): static
     {
-        $instance = new static(
+        $instance = new self(
             packageName: $packageName,
             httpClient: $options['httpClient'] ?? null
         );

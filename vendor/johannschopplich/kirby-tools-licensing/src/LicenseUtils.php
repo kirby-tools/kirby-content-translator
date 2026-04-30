@@ -13,7 +13,7 @@ use Kirby\Cms\App;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class LicenseUtils
+final class LicenseUtils
 {
     /**
      * Gets the current plugin version for a package.
@@ -46,7 +46,7 @@ class LicenseUtils
      */
     public static function toApiPrefix(string $packageName): string
     {
-        return '__' . static::toPluginId($packageName) . '__';
+        return '__' . self::toPluginId($packageName) . '__';
     }
 
     /**

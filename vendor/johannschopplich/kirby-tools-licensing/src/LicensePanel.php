@@ -15,7 +15,7 @@ use Throwable;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class LicensePanel
+final class LicensePanel
 {
     /**
      * Maps exception messages from license activation to translation keys.
@@ -42,7 +42,7 @@ class LicensePanel
                         return $licenses->activateFromRequest();
                     } catch (Throwable $e) {
                         $message = $e->getMessage();
-                        $translationKey = LicensePanel::ACTIVATION_ERROR_KEYS[$message] ?? null;
+                        $translationKey = self::ACTIVATION_ERROR_KEYS[$message] ?? null;
 
                         throw new InvalidArgumentException(
                             $translationKey ? I18n::translate($translationKey) : $message
@@ -189,7 +189,7 @@ class LicensePanel
                         $licenses->activateFromRequest();
                     } catch (Throwable $e) {
                         $message = $e->getMessage();
-                        $translationKey = LicensePanel::ACTIVATION_ERROR_KEYS[$message] ?? null;
+                        $translationKey = self::ACTIVATION_ERROR_KEYS[$message] ?? null;
 
                         throw new InvalidArgumentException(
                             $translationKey ? I18n::translate($translationKey) : $message

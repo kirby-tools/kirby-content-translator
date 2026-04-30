@@ -15,16 +15,16 @@ use Throwable;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class LicenseRepository
+final class LicenseRepository
 {
     public const LICENSE_FILE = '.kirby-tools-licenses';
 
-    protected string $licenseFile;
-    protected array|null $cache = null;
+    private readonly string $licenseFile;
+    private array|null $cache = null;
 
     public function __construct()
     {
-        $this->licenseFile = dirname(App::instance()->root('license')) . '/' . static::LICENSE_FILE;
+        $this->licenseFile = dirname(App::instance()->root('license')) . '/' . self::LICENSE_FILE;
     }
 
     /**

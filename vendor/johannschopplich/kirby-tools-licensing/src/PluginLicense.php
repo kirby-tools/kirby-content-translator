@@ -16,27 +16,27 @@ use Kirby\Toolkit\I18n;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class PluginLicense extends KirbyLicense
+final class PluginLicense extends KirbyLicense
 {
     public const LICENSE_NAME = 'Kirby Tools Plugin License';
     public const LICENSE_URL = 'https://kirby.tools/license';
 
     public function __construct(
         Plugin $plugin,
-        protected string $packageName
+        private readonly string $packageName
     ) {
         $licenses = Licenses::read($packageName);
         $status = $this->toKirbyStatus($licenses->getStatusEnum());
 
         parent::__construct(
             plugin: $plugin,
-            name: static::LICENSE_NAME,
-            link: static::LICENSE_URL,
+            name: self::LICENSE_NAME,
+            link: self::LICENSE_URL,
             status: $status
         );
     }
 
-    protected function toKirbyStatus(LicenseStatus $customStatus): KirbyLicenseStatus
+    private function toKirbyStatus(LicenseStatus $customStatus): KirbyLicenseStatus
     {
         $dialogPrefix = LicenseUtils::toPackageSlug($this->packageName);
 

@@ -14,7 +14,7 @@ namespace JohannSchopplich\Licensing;
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
  */
-class PluginLicenseExtensions
+final class PluginLicenseExtensions
 {
     /**
      * Maps exception messages from license activation to translation keys.

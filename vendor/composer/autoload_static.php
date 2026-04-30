@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit592cf057cc504881c1cc974db07f279e
+class ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -42,7 +42,9 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
+        'JohannSchopplich\\ContentTranslator\\TranslationCoverage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslationCoverage.php',
         'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
+        'JohannSchopplich\\ContentTranslator\\TranslatorConfig' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslatorConfig.php',
         'JohannSchopplich\\KirbyTools\\FieldNormalizer' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
         'JohannSchopplich\\KirbyTools\\FieldResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
         'JohannSchopplich\\KirbyTools\\ModelResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
@@ -66,9 +68,9 @@ class ComposerStaticInit592cf057cc504881c1cc974db07f279e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit592cf057cc504881c1cc974db07f279e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit592cf057cc504881c1cc974db07f279e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit592cf057cc504881c1cc974db07f279e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$classMap;
 
         }, null, ClassLoader::class);
     }
