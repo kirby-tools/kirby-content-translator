@@ -65,7 +65,7 @@ function navigateToLanguage(code: string) {
         <k-icon-frame :icon="item.icon ?? 'page'" />
         <span class="k-tree-folder-label">{{ item.label }}</span>
         <span
-          v-if="item.incompleteDescendants > 0"
+          v-if="item.incompleteDescendants > 0 && !item.open"
           class="kct-shrink-0 kct-text-[length:var(--text-xs)] kct-text-[color:var(--color-text-dimmed)] kct-tabular-nums"
           :aria-label="descendantLabel"
           :title="descendantLabel"
