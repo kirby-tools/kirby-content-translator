@@ -53,16 +53,16 @@ final class KirbyText
             $proseParts[] = '<c' . count($tagSlots) . '/>';
 
             $tag = self::parseKirbyTag(substr($text, $start, $end - $start));
-            $translatable = $kirbyTags[$tag['type']] ?? [];
+            $translatableAttrs = $kirbyTags[$tag['type']] ?? [];
             $attrIndices = [];
 
-            if (in_array('value', $translatable, true) && $tag['value'] !== null && $tag['value'] !== '') {
+            if (in_array('value', $translatableAttrs, true) && $tag['value'] !== null && $tag['value'] !== '') {
                 $attrIndices['value'] = count($attrValues);
                 $attrValues[] = $tag['value'];
             }
 
             foreach ($tag['attrs'] as [$name, $val]) {
-                if (in_array($name, $translatable, true) && $val !== '') {
+                if (in_array($name, $translatableAttrs, true) && $val !== '') {
                     $attrIndices[$name] = count($attrValues);
                     $attrValues[] = $val;
                 }
@@ -76,15 +76,15 @@ final class KirbyText
         $fragments = [implode('', $proseParts), ...$attrValues];
         $expectedLength = count($fragments);
 
-        $restore = static function (array $translated) use ($tagSlots, $expectedLength): string {
-            if (count($translated) !== $expectedLength) {
+        $restore = static function (array $translatedFragments) use ($tagSlots, $expectedLength): string {
+            if (count($translatedFragments) !== $expectedLength) {
                 throw new LogicException(
-                    message: 'Expected ' . $expectedLength . ' translated fragments, got ' . count($translated)
+                    message: 'Expected ' . $expectedLength . ' translated fragments, got ' . count($translatedFragments)
                 );
             }
 
-            $translatedProse = $translated[0];
-            $translatedAttrs = array_slice($translated, 1);
+            $translatedProse = $translatedFragments[0];
+            $translatedAttrs = array_slice($translatedFragments, 1);
 
             return preg_replace_callback(
                 self::PLACEHOLDER_PATTERN,
@@ -160,9 +160,9 @@ final class KirbyText
     /**
      * Parses a single KirbyTag string into type, optional value and ordered attrs.
      */
-    private static function parseKirbyTag(string $raw): array
+    private static function parseKirbyTag(string $rawTag): array
     {
-        $body = substr($raw, 1, -1);
+        $body = substr($rawTag, 1, -1);
         $colonIdx = strpos($body, ':');
         if ($colonIdx === false) {
             return ['type' => strtolower(trim($body)), 'value' => null, 'attrs' => []];

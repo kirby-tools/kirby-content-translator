@@ -83,9 +83,9 @@ final readonly class TranslationCoverage
         $cache = $this->kirby->cache('pages');
         $cacheKey = 'johannschopplich.content-translator.coverage.' . $page->id();
 
-        $cached = $cache->get($cacheKey);
-        if ($cached !== null) {
-            return $cached;
+        $cachedCoverage = $cache->get($cacheKey);
+        if ($cachedCoverage !== null) {
+            return $cachedCoverage;
         }
 
         $defaultLanguage = $this->kirby->defaultLanguage();
@@ -121,17 +121,11 @@ final readonly class TranslationCoverage
         $cache = $this->kirby->cache('pages');
         $cacheKey = 'johannschopplich.content-translator.treeIndex';
 
-        $cached = $cache->get($cacheKey);
-
-        if ($cached !== null) {
-            return $cached;
+        $cachedTreeIndex = $cache->get($cacheKey);
+        if ($cachedTreeIndex !== null) {
+            return $cachedTreeIndex;
         }
 
-        return $this->computeTreeIndex();
-    }
-
-    private function computeTreeIndex(): array
-    {
         $defaultLanguage = $this->kirby->defaultLanguage();
         $languages = [];
         $incompleteIds = [];
@@ -221,13 +215,7 @@ final readonly class TranslationCoverage
             'descendantCounts' => $descendantCounts,
         ];
 
-        // 5-minute TTL is a belt-and-braces safety net;
-        // Kirby's ModelCommit::after() flushes the `pages` cache on every save.
-        $this->kirby->cache('pages')->set(
-            'johannschopplich.content-translator.treeIndex',
-            $treeIndex,
-            5
-        );
+        $cache->set($cacheKey, $treeIndex, 5);
 
         return $treeIndex;
     }
@@ -253,7 +241,7 @@ final readonly class TranslationCoverage
     private function translatableFields(Page $page, Language $defaultLanguage): array
     {
         // Read raw default-language content _without_ fallback so the
-        // denominator reflects only fields actually filled at the source.
+        // denominator reflects only fields actually filled at the source
         if (!$page->version()->exists($defaultLanguage)) {
             return [];
         }
