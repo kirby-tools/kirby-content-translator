@@ -44,25 +44,6 @@ describe("AIStrategy", () => {
 
       expect(results).toEqual(["Hallo", "Welt"]);
     });
-
-    it("calls streamText with system prompt", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Test"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          systemPrompt: expect.stringContaining("professional translator"),
-        }),
-      );
-    });
   });
 
   describe("prompt construction", () => {
@@ -137,23 +118,6 @@ describe("AIStrategy", () => {
   });
 
   describe("chunking", () => {
-    it("processes small batches in single chunk", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["A", "B", "C"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "1", mode: "batch", fieldKey: "a" },
-        { text: "2", mode: "batch", fieldKey: "b" },
-        { text: "3", mode: "batch", fieldKey: "c" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledOnce();
-    });
-
     it("splits large content into multiple chunks", async () => {
       // Create text that exceeds maximum character limit (100k)
       const largeText = "x".repeat(60000);

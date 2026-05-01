@@ -137,7 +137,10 @@ describe("collectTranslations", () => {
         "D",
       ]);
     });
+  });
 
+  // eslint-disable-next-line test/prefer-lowercase-title
+  describe("YAML table serialization", () => {
     it("registers finalizer for YAML-encoded tables", () => {
       const yamlTable = "-\n  - A\n  - B";
       const content = { table: yamlTable };
@@ -151,10 +154,7 @@ describe("collectTranslations", () => {
       expect(translations).toHaveLength(2);
       expect(finalizers).toHaveLength(1);
     });
-  });
 
-  // eslint-disable-next-line test/prefer-lowercase-title
-  describe("YAML table serialization", () => {
     it("serializes translations back to YAML format", () => {
       const yamlTable = "-\n  - A\n  - B";
       const content = { table: yamlTable };
@@ -359,7 +359,7 @@ describe("collectTranslations", () => {
     });
   });
 
-  describe("filtering", () => {
+  describe("field filtering", () => {
     it("skips fields with translate: false", () => {
       const content = { title: "Hello", slug: "hello" };
       const fields = {
@@ -456,7 +456,9 @@ describe("collectTranslations", () => {
 
       expect(translations).toHaveLength(1);
     });
+  });
 
+  describe("value filtering", () => {
     it.each([
       // Falsy / empty values
       { kind: "empty string", fieldType: "text", value: "" },

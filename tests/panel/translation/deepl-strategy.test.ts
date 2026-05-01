@@ -111,6 +111,22 @@ describe("DeepLStrategy", () => {
 
       expect(results).toEqual(["B1", "B2", "S1"]);
     });
+
+    it("preserves original order when single precedes batch", async () => {
+      mockApiPost
+        .mockResolvedValueOnce({ texts: ["B"] }) // batch (original index 1)
+        .mockResolvedValueOnce({ text: "S" }); // single (original index 0)
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "single", mode: "single", fieldKey: "a" },
+        { text: "batch", mode: "batch", fieldKey: "b" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual(["S", "B"]);
+    });
   });
 
   describe("source language", () => {

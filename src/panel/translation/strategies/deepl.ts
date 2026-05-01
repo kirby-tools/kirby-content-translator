@@ -39,18 +39,18 @@ export class DeepLStrategy implements TranslationStrategy {
     const api = useApi();
     const { signal } = options;
 
-    // Build index map to preserve original order
-    const indexMap = new Map<TranslationUnit, number>();
-    for (const [index, unit] of units.entries()) {
-      indexMap.set(unit, index);
-    }
-
     // Initialize results array with original texts (fallback for empty)
     const results: string[] = units.map((unit) => unit.text);
 
-    // Group units by mode
-    const batchUnits = units.filter((unit) => unit.mode === "batch");
-    const singleUnits = units.filter((unit) => unit.mode === "single");
+    // Partition by mode, carrying original indices for write-back
+    const batchUnits: { unit: TranslationUnit; originalIndex: number }[] = [];
+    const singleUnits: { unit: TranslationUnit; originalIndex: number }[] = [];
+
+    for (const [originalIndex, unit] of units.entries()) {
+      if (unit.mode === "batch") batchUnits.push({ unit, originalIndex });
+      else if (unit.mode === "single")
+        singleUnits.push({ unit, originalIndex });
+    }
 
     // Execute batch translation (single API call)
     if (batchUnits.length > 0 && !signal?.aborted) {
@@ -59,19 +59,19 @@ export class DeepLStrategy implements TranslationStrategy {
         {
           sourceLanguage: options.sourceLanguage?.code,
           targetLanguage: options.targetLanguage.code,
-          texts: batchUnits.map((unit) => unit.text),
+          texts: batchUnits.map(({ unit }) => unit.text),
         },
       );
 
-      for (const [i, unit] of batchUnits.entries()) {
-        results[indexMap.get(unit)!] = response.texts[i]!;
+      for (const [i, { originalIndex }] of batchUnits.entries()) {
+        results[originalIndex] = response.texts[i]!;
       }
     }
 
     // Execute single translations (parallel with concurrency limit)
     if (singleUnits.length > 0 && !signal?.aborted) {
       const singleResults = await pAll(
-        singleUnits.map((unit) => async () => {
+        singleUnits.map(({ unit, originalIndex }) => async () => {
           const response = await api.post<{ text: string }>(
             TRANSLATE_API_ROUTE,
             {
@@ -80,13 +80,13 @@ export class DeepLStrategy implements TranslationStrategy {
               text: unit.text,
             },
           );
-          return { unit, text: response.text };
+          return { originalIndex, text: response.text };
         }),
         { concurrency: this.concurrency, signal },
       );
 
-      for (const { unit, text } of singleResults) {
-        results[indexMap.get(unit)!] = text;
+      for (const { originalIndex, text } of singleResults) {
+        results[originalIndex] = text;
       }
     }
 
