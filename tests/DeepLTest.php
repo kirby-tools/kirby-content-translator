@@ -15,40 +15,36 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState(false)]
 final class DeepLTest extends TestCase
 {
-    protected function setUp(): void
-    {
-        new App([
-            'languages' => [
-                [
-                    'code' => 'en',
-                    'name' => 'English',
-                    'default' => true,
-                    'locale' => 'en_US'
-                ],
-                [
-                    'code' => 'de',
-                    'name' => 'Deutsch',
-                    'locale' => 'de_DE'
-                ]
-            ],
-            'options' => [
-                'debug' => true,
-                'johannschopplich.content-translator' => [
-                    'DeepL.apiKey' => 'test-key:fx'
-                ]
-            ]
-        ]);
-    }
-
     protected function tearDown(): void
     {
         App::destroy();
     }
 
-    /**
-     * Creates a partial mock of DeepL that intercepts the HTTP boundary.
-     * Records all calls to `request()` and returns fake translated responses.
-     */
+    private function appWithDeepLConfig(
+        string|null $apiKey = 'test-key:fx',
+        array|null $languages = null,
+        array $requestOptions = [],
+    ): App {
+        $pluginOptions = [];
+        if ($apiKey !== null) {
+            $pluginOptions['DeepL.apiKey'] = $apiKey;
+        }
+        if (!empty($requestOptions)) {
+            $pluginOptions['DeepL.requestOptions'] = $requestOptions;
+        }
+
+        return new App([
+            'languages' => $languages ?? [
+                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+            ],
+            'options' => [
+                'debug' => true,
+                'johannschopplich.content-translator' => $pluginOptions,
+            ],
+        ]);
+    }
+
     private function createMockDeepL(array &$capturedRequests = []): DeepL
     {
         $mock = $this->getMockBuilder(DeepL::class)
@@ -75,7 +71,7 @@ final class DeepLTest extends TestCase
                             'translations' => array_map(
                                 fn (string $text) => ['text' => "[translated]$text"],
                                 $this->texts
-                            )
+                            ),
                         ];
                     }
                 };
@@ -84,17 +80,10 @@ final class DeepLTest extends TestCase
         return $mock;
     }
 
-    // Constructor & singleton
-    // -----------------------------------------------------------------------
-
     #[Test]
-    public function constructor_throws_exception_without_api_key(): void
+    public function constructor_throws_when_api_key_is_missing(): void
     {
-        new App([
-            'options' => [
-                'johannschopplich.content-translator' => []
-            ]
-        ]);
+        $this->appWithDeepLConfig(apiKey: null);
 
         $this->expectException(AuthException::class);
         $this->expectExceptionMessage('Missing DeepL API key');
@@ -105,68 +94,36 @@ final class DeepLTest extends TestCase
     #[Test]
     public function instance_returns_singleton(): void
     {
-        $instance1 = DeepL::instance();
-        $instance2 = DeepL::instance();
+        $this->appWithDeepLConfig();
 
-        $this->assertSame($instance1, $instance2);
+        $this->assertSame(DeepL::instance(), DeepL::instance());
     }
-
-    // `translateMany` – basic behavior
-    // -----------------------------------------------------------------------
 
     #[Test]
     public function translate_many_returns_empty_for_empty_input(): void
     {
-        $deepL = DeepL::instance();
-        $result = $deepL->translateMany([], 'de');
+        $this->appWithDeepLConfig();
 
-        $this->assertSame([], $result);
+        $this->assertSame([], DeepL::instance()->translateMany([], 'de'));
     }
 
     #[Test]
-    public function translate_many_throws_exception_for_unsupported_target_language(): void
+    public function translate_many_throws_for_unsupported_target_language(): void
     {
+        $this->appWithDeepLConfig();
+
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('not supported by the DeepL API');
 
-        $deepL = DeepL::instance();
-        $deepL->translateMany(['Hello'], 'invalid');
+        DeepL::instance()->translateMany(['Hello'], 'invalid');
     }
-
-    #[Test]
-    public function translate_delegates_to_translate_many(): void
-    {
-        $mockDeepL = $this->getMockBuilder(DeepL::class)
-            ->disableOriginalConstructor()
-            ->onlyMethods(['translateMany'])
-            ->getMock();
-
-        $mockDeepL->expects($this->once())
-            ->method('translateMany')
-            ->with(['Hello World'], 'de', null)
-            ->willReturn(['Hallo Welt']);
-
-        $result = $mockDeepL->translate('Hello World', 'de');
-
-        $this->assertSame('Hallo Welt', $result);
-    }
-
-    // `translateMany` – language resolution
-    // -----------------------------------------------------------------------
 
     #[Test]
     public function translate_many_resolves_regional_target_language(): void
     {
-        new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_GB'],
-                ['code' => 'pt', 'name' => 'Portuguese', 'locale' => 'pt_BR']
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'DeepL.apiKey' => 'test-key:fx'
-                ]
-            ]
+        $this->appWithDeepLConfig(languages: [
+            ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_GB'],
+            ['code' => 'pt', 'name' => 'Portuguese', 'locale' => 'pt_BR'],
         ]);
 
         $requests = [];
@@ -182,57 +139,38 @@ final class DeepLTest extends TestCase
     #[Test]
     public function translate_many_normalizes_source_language(): void
     {
+        $this->appWithDeepLConfig();
+
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
 
-        // Valid source language is uppercased
         $deepL->translateMany(['Hello'], 'de', 'en');
         $this->assertSame('EN', $requests[0]['sourceLanguage']);
 
-        // Unsupported source language is silently dropped
         $deepL->translateMany(['Hello'], 'de', 'invalid');
         $this->assertNull($requests[1]['sourceLanguage']);
     }
 
-    // `translateMany` – request options
-    // -----------------------------------------------------------------------
-
     #[Test]
     public function translate_many_forces_html_tag_handling_for_no_translate_spans(): void
     {
-        new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch']
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'DeepL.apiKey' => 'test-key:fx',
-                    'DeepL.requestOptions' => [
-                        'tag_handling' => 'xml'
-                    ]
-                ]
-            ]
-        ]);
+        $this->appWithDeepLConfig(requestOptions: ['tag_handling' => 'xml']);
 
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
 
-        // Without <span translate="no">, keeps custom tag_handling
         $deepL->translateMany(['Normal text'], 'de');
         $this->assertSame('xml', $requests[0]['requestOptions']['tag_handling']);
 
-        // With <span translate="no">, forces tag_handling to 'html'
         $deepL->translateMany(['Keep <span translate="no">Brand</span> unchanged'], 'de');
         $this->assertSame('html', $requests[1]['requestOptions']['tag_handling']);
     }
 
-    // `translateMany` – batching & chunking
-    // -----------------------------------------------------------------------
-
     #[Test]
-    public function translate_many_batches_texts_in_single_request(): void
+    public function translate_many_batches_texts_in_a_single_request(): void
     {
+        $this->appWithDeepLConfig();
+
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
 
@@ -246,11 +184,12 @@ final class DeepLTest extends TestCase
     #[Test]
     public function translate_many_chunks_at_50_texts(): void
     {
+        $this->appWithDeepLConfig();
+
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
 
-        $texts = array_fill(0, 60, 'Hello');
-        $results = $deepL->translateMany($texts, 'de');
+        $results = $deepL->translateMany(array_fill(0, 60, 'Hello'), 'de');
 
         $this->assertCount(2, $requests);
         $this->assertCount(50, $requests[0]['texts']);

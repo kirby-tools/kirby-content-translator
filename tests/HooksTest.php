@@ -13,18 +13,31 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState(false)]
 final class HooksTest extends TestCase
 {
-    #[Test]
-    public function before_hook_modifies_text(): void
+    protected function tearDown(): void
     {
-        $app = new App([
+        App::destroy();
+    }
+
+    private static function pluginOptions(): array
+    {
+        return [
+            'johannschopplich.content-translator' => [
+                'translateFn' => fn (string $text, string $lang) => "[$lang]$text",
+            ],
+        ];
+    }
+
+    private function appWithHomePage(array $hooks = [], string $homeText = 'Hello'): App
+    {
+        return new App([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch']
+                ['code' => 'de', 'name' => 'Deutsch'],
             ],
             'blueprints' => [
                 'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
-                ]
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
             ],
             'site' => [
                 'children' => [
@@ -32,23 +45,24 @@ final class HooksTest extends TestCase
                         'slug' => 'home',
                         'template' => 'default',
                         'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'Hello']]
-                        ]
-                    ]
-                ]
+                            ['code' => 'en', 'content' => ['text' => $homeText]],
+                        ],
+                    ],
+                ],
             ],
-            'hooks' => [
-                'content-translator.translate:before' => fn ($text) => strtoupper($text)
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn ($text, $lang) => "[$lang]$text"
-                ]
-            ]
+            'hooks' => $hooks,
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    #[Test]
+    public function before_hook_modifies_text_before_translation(): void
+    {
+        $app = $this->appWithHomePage([
+            'content-translator.translate:before' => fn ($text) => strtoupper($text),
         ]);
 
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de');
 
         $this->assertSame('[de]HELLO', $translator->model()->content('en')->get('text')->value());
@@ -57,39 +71,11 @@ final class HooksTest extends TestCase
     #[Test]
     public function after_hook_modifies_translated_text(): void
     {
-        $app = new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch']
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
-                ]
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'Hello']]
-                        ]
-                    ]
-                ]
-            ],
-            'hooks' => [
-                'content-translator.translate:after' => fn ($text) => $text . ' (translated)'
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn ($text, $lang) => "[$lang]$text"
-                ]
-            ]
+        $app = $this->appWithHomePage([
+            'content-translator.translate:after' => fn ($text) => $text . ' (translated)',
         ]);
 
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de');
 
         $this->assertSame('[de]Hello (translated)', $translator->model()->content('en')->get('text')->value());
@@ -98,102 +84,54 @@ final class HooksTest extends TestCase
     #[Test]
     public function applies_both_before_and_after_hooks(): void
     {
-        $app = new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch']
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
-                ]
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'hello']]
-                        ]
-                    ]
-                ]
-            ],
-            'hooks' => [
+        $app = $this->appWithHomePage(
+            hooks: [
                 'content-translator.translate:before' => fn ($text) => trim($text) . '!',
-                'content-translator.translate:after' => fn ($text) => strtoupper($text)
+                'content-translator.translate:after' => fn ($text) => strtoupper($text),
             ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn ($text, $lang) => "[$lang]$text"
-                ]
-            ]
-        ]);
+            homeText: 'hello',
+        );
 
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de');
 
         $this->assertSame('[DE]HELLO!', $translator->model()->content('en')->get('text')->value());
     }
 
     #[Test]
-    public function hooks_receive_correct_parameters(): void
+    public function hooks_receive_full_payload(): void
     {
         $beforeParams = [];
         $afterParams = [];
 
-        $app = new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch']
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]]
-                ]
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'Hello']]
-                        ]
-                    ]
-                ]
-            ],
-            'hooks' => [
-                'content-translator.translate:before' => function ($text, $targetLanguage, $sourceLanguage, $type) use (&$beforeParams) {
-                    $beforeParams = compact('text', 'targetLanguage', 'sourceLanguage', 'type');
-                    return $text;
-                },
-                'content-translator.translate:after' => function ($text, $originalText, $targetLanguage, $sourceLanguage, $type) use (&$afterParams) {
-                    $afterParams = compact('text', 'originalText', 'targetLanguage', 'sourceLanguage', 'type');
-                    return $text;
-                }
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn ($text, $lang) => "[{$lang}]{$text}"
-                ]
-            ]
+        $app = $this->appWithHomePage([
+            'content-translator.translate:before' => function ($text, $targetLanguage, $sourceLanguage, $type) use (&$beforeParams) {
+                $beforeParams = compact('text', 'targetLanguage', 'sourceLanguage', 'type');
+                return $text;
+            },
+            'content-translator.translate:after' => function ($text, $originalText, $targetLanguage, $sourceLanguage, $type) use (&$afterParams) {
+                $afterParams = compact('text', 'originalText', 'targetLanguage', 'sourceLanguage', 'type');
+                return $text;
+            },
         ]);
 
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de', 'en');
 
-        $this->assertSame('Hello', $beforeParams['text']);
-        $this->assertSame('de', $beforeParams['targetLanguage']);
-        $this->assertSame('en', $beforeParams['sourceLanguage']);
-        $this->assertSame('text', $beforeParams['type']);
+        $this->assertSame([
+            'text' => 'Hello',
+            'targetLanguage' => 'de',
+            'sourceLanguage' => 'en',
+            'type' => 'text',
+        ], $beforeParams);
 
-        $this->assertSame('[de]Hello', $afterParams['text']);
-        $this->assertSame('Hello', $afterParams['originalText']);
-        $this->assertSame('de', $afterParams['targetLanguage']);
-        $this->assertSame('en', $afterParams['sourceLanguage']);
+        $this->assertSame([
+            'text' => '[de]Hello',
+            'originalText' => 'Hello',
+            'targetLanguage' => 'de',
+            'sourceLanguage' => 'en',
+            'type' => 'text',
+        ], $afterParams);
     }
 
     #[Test]
@@ -206,13 +144,9 @@ final class HooksTest extends TestCase
                 'content-translator.translate:before' => function ($text) use (&$hookCalled) {
                     $hookCalled = true;
                     return $text . ' modified';
-                }
+                },
             ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn ($text, $lang) => "[{$lang}]{$text}"
-                ]
-            ]
+            'options' => self::pluginOptions(),
         ]);
 
         $result = Translator::translateText('Hello', 'de');
