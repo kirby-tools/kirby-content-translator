@@ -80,144 +80,133 @@ final readonly class TranslationCoverage
      */
     public function pageCoverage(Page $page): array
     {
-        $cache = $this->kirby->cache('pages');
-        $cacheKey = 'johannschopplich.content-translator.coverage.' . $page->id();
+        return $this->kirby->cache('pages')->getOrSet(
+            'johannschopplich.content-translator.coverage.' . $page->id(),
+            function () use ($page): array {
+                $defaultLanguage = $this->kirby->defaultLanguage();
+                $translatableFields = $this->translatableFields($page, $defaultLanguage);
 
-        $cachedCoverage = $cache->get($cacheKey);
-        if ($cachedCoverage !== null) {
-            return $cachedCoverage;
-        }
+                if ($translatableFields === []) {
+                    return [];
+                }
 
-        $defaultLanguage = $this->kirby->defaultLanguage();
-        $translatableFields = $this->translatableFields($page, $defaultLanguage);
+                $totalFields = count($translatableFields);
+                $coverage = [];
 
-        if ($translatableFields === []) {
-            return [];
-        }
+                foreach ($this->kirby->languages() as $language) {
+                    if ($language->code() === $defaultLanguage->code()) {
+                        continue;
+                    }
 
-        $totalFields = count($translatableFields);
-        $coverage = [];
+                    $coverage[$language->code()] = $this->languageCoverage(
+                        $page,
+                        $language,
+                        $translatableFields,
+                        $totalFields
+                    );
+                }
 
-        foreach ($this->kirby->languages() as $language) {
-            if ($language->code() === $defaultLanguage->code()) {
-                continue;
+                return $coverage;
             }
-
-            $coverage[$language->code()] = $this->languageCoverage(
-                $page,
-                $language,
-                $translatableFields,
-                $totalFields
-            );
-        }
-
-        $cache->set($cacheKey, $coverage);
-
-        return $coverage;
+        );
     }
 
     private function treeIndex(): array
     {
-        $cache = $this->kirby->cache('pages');
-        $cacheKey = 'johannschopplich.content-translator.treeIndex';
+        return $this->kirby->cache('pages')->getOrSet(
+            'johannschopplich.content-translator.treeIndex',
+            function (): array {
+                $defaultLanguage = $this->kirby->defaultLanguage();
+                $languages = [];
+                $incompleteIds = [];
 
-        $cachedTreeIndex = $cache->get($cacheKey);
-        if ($cachedTreeIndex !== null) {
-            return $cachedTreeIndex;
-        }
+                // Initialize per-language counters
+                foreach ($this->kirby->languages() as $language) {
+                    if ($language->code() === $defaultLanguage->code()) {
+                        continue;
+                    }
 
-        $defaultLanguage = $this->kirby->defaultLanguage();
-        $languages = [];
-        $incompleteIds = [];
-
-        // Initialize per-language counters
-        foreach ($this->kirby->languages() as $language) {
-            if ($language->code() === $defaultLanguage->code()) {
-                continue;
-            }
-
-            $languages[$language->code()] = [
-                'code' => $language->code(),
-                'name' => $language->name(),
-                'totalFields' => 0,
-                'translatedFields' => 0,
-                'incompletePageCount' => 0,
-            ];
-        }
-
-        // Iterate all pages to find incomplete ones and aggregate language stats
-        foreach ($this->pages as $page) {
-            $pageCoverage = $this->pageCoverage($page);
-
-            if ($pageCoverage === []) {
-                continue;
-            }
-
-            $missingLanguages = [];
-
-            foreach ($pageCoverage as $langCode => $coverage) {
-                if (!isset($languages[$langCode])) {
-                    continue;
-                }
-
-                $languages[$langCode]['totalFields'] += $coverage['totalFields'];
-                $languages[$langCode]['translatedFields'] += $coverage['translatedFields'];
-
-                if ($coverage['translatedFields'] < $coverage['totalFields']) {
-                    $languages[$langCode]['incompletePageCount']++;
-                    $missingLanguages[] = [
-                        'code' => $langCode,
-                        'name' => $languages[$langCode]['name'],
+                    $languages[$language->code()] = [
+                        'code' => $language->code(),
+                        'name' => $language->name(),
+                        'totalFields' => 0,
+                        'translatedFields' => 0,
+                        'incompletePageCount' => 0,
                     ];
                 }
-            }
 
-            if ($missingLanguages !== []) {
-                $incompleteIds[$page->id()] = [
-                    'missing' => $missingLanguages,
+                // Iterate all pages to find incomplete ones and aggregate language stats
+                foreach ($this->pages as $page) {
+                    $pageCoverage = $this->pageCoverage($page);
+
+                    if ($pageCoverage === []) {
+                        continue;
+                    }
+
+                    $missingLanguages = [];
+
+                    foreach ($pageCoverage as $langCode => $coverage) {
+                        if (!isset($languages[$langCode])) {
+                            continue;
+                        }
+
+                        $languages[$langCode]['totalFields'] += $coverage['totalFields'];
+                        $languages[$langCode]['translatedFields'] += $coverage['translatedFields'];
+
+                        if ($coverage['translatedFields'] < $coverage['totalFields']) {
+                            $languages[$langCode]['incompletePageCount']++;
+                            $missingLanguages[] = [
+                                'code' => $langCode,
+                                'name' => $languages[$langCode]['name'],
+                            ];
+                        }
+                    }
+
+                    if ($missingLanguages !== []) {
+                        $incompleteIds[$page->id()] = [
+                            'missing' => $missingLanguages,
+                        ];
+                    }
+                }
+
+                // Compute percentages
+                foreach ($languages as &$lang) {
+                    $lang['percentage'] = $lang['totalFields'] > 0
+                        ? (int)round($lang['translatedFields'] / $lang['totalFields'] * 100)
+                        : 100;
+                }
+
+                // Compute ancestor IDs and descendant counts from incomplete page IDs
+                $ancestorIds = [];
+                $descendantCounts = [];
+
+                foreach (array_keys($incompleteIds) as $id) {
+                    $parts = explode('/', $id);
+                    $path = '';
+
+                    for ($i = 0, $count = count($parts) - 1; $i < $count; $i++) {
+                        $path = $path === '' ? $parts[$i] : $path . '/' . $parts[$i];
+                        $ancestorIds[$path] = true;
+                        $descendantCounts[$path] = ($descendantCounts[$path] ?? 0) + 1;
+                    }
+                }
+
+                // Visible IDs = incomplete pages + their ancestors (paths shown in pruned tree)
+                $visibleIds = $ancestorIds;
+
+                foreach (array_keys($incompleteIds) as $id) {
+                    $visibleIds[$id] = true;
+                }
+
+                return [
+                    'languages' => array_values($languages),
+                    'incompleteIds' => $incompleteIds,
+                    'visibleIds' => $visibleIds,
+                    'descendantCounts' => $descendantCounts,
                 ];
-            }
-        }
-
-        // Compute percentages
-        foreach ($languages as &$lang) {
-            $lang['percentage'] = $lang['totalFields'] > 0
-                ? (int)round($lang['translatedFields'] / $lang['totalFields'] * 100)
-                : 100;
-        }
-
-        // Compute ancestor IDs and descendant counts from incomplete page IDs
-        $ancestorIds = [];
-        $descendantCounts = [];
-
-        foreach (array_keys($incompleteIds) as $id) {
-            $parts = explode('/', $id);
-            $path = '';
-
-            for ($i = 0, $count = count($parts) - 1; $i < $count; $i++) {
-                $path = $path === '' ? $parts[$i] : $path . '/' . $parts[$i];
-                $ancestorIds[$path] = true;
-                $descendantCounts[$path] = ($descendantCounts[$path] ?? 0) + 1;
-            }
-        }
-
-        // Visible IDs = incomplete pages + their ancestors (paths shown in pruned tree)
-        $visibleIds = $ancestorIds;
-
-        foreach (array_keys($incompleteIds) as $id) {
-            $visibleIds[$id] = true;
-        }
-
-        $treeIndex = [
-            'languages' => array_values($languages),
-            'incompleteIds' => $incompleteIds,
-            'visibleIds' => $visibleIds,
-            'descendantCounts' => $descendantCounts,
-        ];
-
-        $cache->set($cacheKey, $treeIndex, 5);
-
-        return $treeIndex;
+            },
+            5
+        );
     }
 
     private function hasVisibleChildren(Page $page, array $treeIndex): bool
