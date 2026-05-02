@@ -4,23 +4,30 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator;
 
+use Closure;
+use JohannSchopplich\ContentTranslator\Translation\Collector;
+use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
+use JohannSchopplich\ContentTranslator\Translation\Strategies\CallableStrategy;
+use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
+use JohannSchopplich\ContentTranslator\Translation\Strategies\DeepLStrategy;
+use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TextFilter;
+use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
+use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
+use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
-use Kirby\Data\Data;
-use Kirby\Toolkit\A;
+use Kirby\Exception\LogicException;
 
 final class Translator
 {
     private readonly App $kirby;
     private Site|Page|File $model;
-    private string|null $targetLanguage;
-    private string|null $sourceLanguage;
     private readonly array $fields;
     private readonly TranslatorConfig $config;
-    private readonly array $kirbyTags;
 
     public function __construct(
         Site|Page|File $model,
@@ -30,9 +37,6 @@ final class Translator
         $this->model = $model;
         $this->fields = FieldResolver::resolveModelFields($model);
         $this->config = TranslatorConfig::fromOptions($options);
-
-        $this->kirbyTags = $options['kirbyTags']
-            ?? $this->kirby->option('johannschopplich.content-translator.kirbyTags', []);
     }
 
     public function model(): Site|Page|File
@@ -40,64 +44,100 @@ final class Translator
         return $this->model;
     }
 
-    public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
-        if (self::shouldSkipTranslation($text)) {
+        if (TextFilter::shouldSkip($text)) {
             return $text;
         }
 
-        $result = self::translateTexts([$text], $targetLanguage, $sourceLanguage);
+        $result = self::translateTexts([$text], $targetLanguage, $sourceLanguage, $strategy);
         return $result[0];
     }
 
     /**
-     * @param array<int,string> $texts
-     * @return array<int,string>
+     * @param list<string> $texts
+     * @return list<string>
      */
-    public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
+    public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
         if ($texts === []) {
             return [];
         }
 
         $kirby = App::instance();
+        $strategy ??= self::resolveStrategy();
+        $options = self::buildOptions($targetLanguage, $sourceLanguage);
 
-        // Apply before hook to all texts
-        $textsToTranslate = array_map(
-            fn ($text) => $kirby->apply('content-translator.translate:before', [
-                'text' => $text,
-                'targetLanguage' => $targetLanguage,
-                'sourceLanguage' => $sourceLanguage,
-                'type' => 'text'
-            ], 'text'),
-            $texts
+        $units = array_map(
+            fn (string $text): TranslationUnit => new TranslationUnit(
+                text: $kirby->apply('content-translator.translate:before', [
+                    'text' => $text,
+                    'targetLanguage' => $targetLanguage,
+                    'sourceLanguage' => $sourceLanguage,
+                    'type' => 'text',
+                    'unit' => new TranslationUnit($text),
+                    'options' => $options,
+                ], 'text'),
+            ),
+            $texts,
         );
 
-        $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
+        $translatedResult = $strategy->execute($units, $options);
 
-        if ($translateFn && is_callable($translateFn)) {
-            $translatedResult = array_map(
-                fn ($text) => $translateFn($text, $targetLanguage, $sourceLanguage),
-                $textsToTranslate
-            );
-        } else {
-            $deepL = DeepL::instance();
-            $translatedResult = $deepL->translateMany($textsToTranslate, $targetLanguage, $sourceLanguage);
-        }
-
-        // Apply after hook to all translated texts
         $translatedTexts = [];
-        foreach ($translatedResult as $i => $translatedText) {
+        foreach ($translatedResult as $index => $translatedText) {
             $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
                 'text' => $translatedText,
-                'originalText' => $texts[$i],
+                'originalText' => $texts[$index],
                 'targetLanguage' => $targetLanguage,
                 'sourceLanguage' => $sourceLanguage,
-                'type' => 'text'
+                'type' => 'text',
+                'unit' => $units[$index],
+                'options' => $options,
             ], 'text');
         }
 
         return $translatedTexts;
+    }
+
+    private static function resolveStrategy(): Strategy
+    {
+        $kirby = App::instance();
+        $strategyOption = $kirby->option('johannschopplich.content-translator.strategy');
+
+        if ($strategyOption instanceof Strategy) {
+            return $strategyOption;
+        }
+
+        if ($strategyOption instanceof Closure) {
+            return new CallableStrategy($strategyOption);
+        }
+
+        if (is_string($strategyOption)) {
+            return match ($strategyOption) {
+                'deepl' => new DeepLStrategy(),
+                'ai' => class_exists(CopilotClient::class)
+                    ? new CopilotAIStrategy()
+                    : throw new LogicException('Strategy "ai" requires the kirby-copilot plugin'),
+                default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
+            };
+        }
+
+        // TODO: remove `translateFn` fallback in v4 – use the `strategy` option instead
+        $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
+        if (is_callable($translateFn)) {
+            return new CallableStrategy(Closure::fromCallable($translateFn));
+        }
+
+        return new DeepLStrategy();
+    }
+
+    private static function buildOptions(string $targetLanguage, string|null $sourceLanguage): ExecutionOptions
+    {
+        return new ExecutionOptions(
+            targetLanguage: TranslationLanguage::fromCode($targetLanguage),
+            sourceLanguage: $sourceLanguage !== null ? TranslationLanguage::fromCode($sourceLanguage) : null,
+        );
     }
 
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
@@ -131,67 +171,57 @@ final class Translator
         });
     }
 
-    public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
+    public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
     {
-        $this->targetLanguage = $toLanguageCode;
-        $this->sourceLanguage = $fromLanguageCode;
-
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
+        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
             $content = $this->model->content($contentLanguageCode)->toArray();
 
-            // Filter top-level fields by type, include/exclude, and translate flag
             $fields = array_filter(
                 $this->fields,
-                fn ($props, $key) => $this->config->isTranslatable($key, $props),
+                fn ($props, $fieldName) => $this->config->isTranslatable($fieldName, $props),
                 ARRAY_FILTER_USE_BOTH
             );
 
-            $collector = ['texts' => [], 'pointers' => [], 'encodeFields' => []];
-            $this->collectTranslatableFields($content, $fields, $collector);
+            $collected = (new Collector($fields, $this->config))->collect($content);
 
-            // Batch translation for all collected texts
-            if ($collector['texts'] !== []) {
-                // Apply before hook to all texts
-                $textsToTranslate = array_map(
-                    fn ($text) => $this->kirby->apply('content-translator.translate:before', [
-                        'text' => $text,
-                        'targetLanguage' => $this->targetLanguage,
-                        'sourceLanguage' => $this->sourceLanguage,
-                        'type' => 'text'
-                    ], 'text'),
-                    $collector['texts']
+            if ($collected->translations !== []) {
+                $strategy ??= self::resolveStrategy();
+                $options = self::buildOptions($toLanguageCode, $fromLanguageCode);
+
+                $processedUnits = array_map(
+                    fn ($collectedTranslation): TranslationUnit => new TranslationUnit(
+                        text: $this->kirby->apply('content-translator.translate:before', [
+                            'text' => $collectedTranslation->unit->text,
+                            'targetLanguage' => $toLanguageCode,
+                            'sourceLanguage' => $fromLanguageCode,
+                            'type' => 'text',
+                            'unit' => $collectedTranslation->unit,
+                            'options' => $options,
+                        ], 'text'),
+                        mode: $collectedTranslation->unit->mode,
+                        fieldKey: $collectedTranslation->unit->fieldKey,
+                    ),
+                    $collected->translations,
                 );
 
-                $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
+                $translations = $strategy->execute($processedUnits, $options);
 
-                if ($translateFn && is_callable($translateFn)) {
-                    $translatedResult = array_map(
-                        fn ($text) => $translateFn($text, $this->targetLanguage, $this->sourceLanguage),
-                        $textsToTranslate
-                    );
-                } else {
-                    $deepL = DeepL::instance();
-                    $translatedResult = $deepL->translateMany($textsToTranslate, $this->targetLanguage, $this->sourceLanguage);
-                }
-
-                // Apply after hook to all translated texts
-                foreach ($collector['pointers'] as $i => $pointer) {
-                    [$refKey, &$refObj] = $pointer;
+                foreach ($collected->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
-                        'text' => $translatedResult[$i],
-                        'originalText' => $collector['texts'][$i],
-                        'targetLanguage' => $this->targetLanguage,
-                        'sourceLanguage' => $this->sourceLanguage,
-                        'type' => 'text'
+                        'text' => $translations[$index],
+                        'originalText' => $collectedTranslation->unit->text,
+                        'targetLanguage' => $toLanguageCode,
+                        'sourceLanguage' => $fromLanguageCode,
+                        'type' => 'text',
+                        'unit' => $processedUnits[$index],
+                        'options' => $options,
                     ], 'text');
-                    $refObj[$refKey] = $translatedText;
+                    ($collectedTranslation->writeBack)($translatedText);
                 }
-            }
 
-            // Encode fields back to their original format after translations are applied
-            foreach ($collector['encodeFields'] as $encodeInfo) {
-                [$fieldKey, $format, &$targetObj] = $encodeInfo;
-                $targetObj[$fieldKey] = Data::encode($targetObj[$fieldKey], $format);
+                foreach ($collected->finalizers as $finalize) {
+                    $finalize();
+                }
             }
 
             $this->model = $this->model->update($content, $contentLanguageCode);
@@ -208,10 +238,10 @@ final class Translator
             }
 
             if (!empty($originalTitle)) {
-                $translatedTitle = $this->translateText(
-                    $originalTitle,
-                    $toLanguageCode,
-                    $fromLanguageCode
+                $translatedTitle = self::translateText(
+                    text: $originalTitle,
+                    targetLanguage: $toLanguageCode,
+                    sourceLanguage: $fromLanguageCode,
                 );
 
                 $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
@@ -228,180 +258,13 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $originalSlug = $this->model->slug($contentLanguageCode);
 
-            $translatedSlug = $this->translateText(
-                $originalSlug,
-                $toLanguageCode,
-                $fromLanguageCode
+            $translatedSlug = self::translateText(
+                text: $originalSlug,
+                targetLanguage: $toLanguageCode,
+                sourceLanguage: $fromLanguageCode,
             );
 
             $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
         });
-    }
-
-    private function collectTranslatableFields(array &$obj, array $fields, array &$collector, $isRecursive = false): array
-    {
-        $translateFn = $this->kirby->option('johannschopplich.content-translator.translateFn');
-        $canBatch = !$translateFn || !is_callable($translateFn);
-
-        foreach ($obj as $key => $value) {
-            // Skip empty values (strict check)
-            if ($value === null || $value === '' || $value === []) {
-                continue;
-            }
-            if (!isset($fields[$key])) {
-                continue;
-            }
-            if (!($fields[$key]['translate'] ?? true)) {
-                continue;
-            }
-            if (!in_array($fields[$key]['type'], $this->config->fieldTypes, true)) {
-                continue;
-            }
-
-
-            $needsJsonEncoding = false;
-            $needsYamlEncoding = false;
-
-            // Parse JSON-encoded fields
-            if (($fields[$key]['type'] === 'blocks' || $fields[$key]['type'] === 'layout') && is_string($obj[$key])) {
-                $obj[$key] = Data::decode($obj[$key], 'json');
-                $needsJsonEncoding = true;
-            }
-
-            // Parse YAML-encoded fields
-            elseif (($fields[$key]['type'] === 'structure' || $fields[$key]['type'] === 'object' || $fields[$key]['type'] === 'table') && is_string($obj[$key])) {
-                $obj[$key] = Data::decode($obj[$key], 'yaml');
-                $needsYamlEncoding = true;
-            }
-
-            // Handle text-like fields
-            if (in_array($fields[$key]['type'], ['list', 'tags', 'text', 'writer'], true)) {
-                // Skip non-translatable values
-                if (is_string($obj[$key]) && self::shouldSkipTranslation($obj[$key])) {
-                    continue;
-                }
-
-                if ($canBatch) {
-                    $collector['pointers'][] = [$key, &$obj];
-                    $collector['texts'][] = $obj[$key];
-                } else {
-                    $obj[$key] = $this->translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage);
-                }
-            }
-            // Handle markdown content separately
-            elseif (in_array($fields[$key]['type'], ['textarea', 'markdown'], true)) {
-                $obj[$key] = KirbyText::translateText($obj[$key], $this->targetLanguage, $this->sourceLanguage, $this->kirbyTags);
-            }
-
-            // Handle structure fields
-            elseif ($fields[$key]['type'] === 'structure' && is_array($obj[$key])) {
-                foreach ($obj[$key] as &$item) {
-                    $this->collectTranslatableFields($item, $fields[$key]['fields'], $collector, true);
-                }
-            }
-
-            // Handle object fields
-            elseif ($fields[$key]['type'] === 'object' && A::isAssociative($obj[$key])) {
-                $this->collectTranslatableFields($obj[$key], $fields[$key]['fields'], $collector, true);
-            }
-
-            // Handle table fields
-            elseif ($fields[$key]['type'] === 'table' && is_array($obj[$key])) {
-                foreach ($obj[$key] as &$row) {
-                    if (!is_array($row)) {
-                        continue;
-                    }
-
-                    foreach ($row as &$cell) {
-                        if (!empty($cell) && is_string($cell)) {
-                            $cell = $this->translateText($cell, $this->targetLanguage, $this->sourceLanguage);
-                        }
-                    }
-                }
-            }
-
-            // Handle layout fields
-            elseif ($fields[$key]['type'] === 'layout' && is_array($obj[$key])) {
-                foreach ($obj[$key] as &$layout) {
-                    foreach ($layout['columns'] as &$column) {
-                        foreach ($column['blocks'] as &$block) {
-                            if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
-                                $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                                $this->collectTranslatableFields($block['content'], $blockFields, $collector, true);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Handle block fields
-            elseif ($fields[$key]['type'] === 'blocks' && is_array($obj[$key])) {
-                foreach ($obj[$key] as &$block) {
-                    if ($this->isBlockTranslatable($block) && isset($fields[$key]['fieldsets'][$block['type']])) {
-                        $blockFields = $this->flattenTabFields($fields[$key]['fieldsets'], $block);
-                        $this->collectTranslatableFields($block['content'], $blockFields, $collector, true);
-                    }
-                }
-            }
-
-            // Track fields that need encoding after translations are applied
-            if ($needsJsonEncoding && !$isRecursive) {
-                $collector['encodeFields'][] = [$key, 'json', &$obj];
-            }
-
-            if ($needsYamlEncoding && !$isRecursive) {
-                $collector['encodeFields'][] = [$key, 'yaml', &$obj];
-            }
-        }
-
-        return $obj;
-    }
-
-    private function isBlockTranslatable(array $block): bool
-    {
-        return isset($block['content']) &&
-            A::isAssociative($block['content']) &&
-            isset($block['id']) &&
-            ($block['isHidden'] ?? false) !== true;
-    }
-
-    private function flattenTabFields(array $fieldsets, array $block): array
-    {
-        $blockFields = [];
-
-        foreach ($fieldsets[$block['type']]['tabs'] as $tab) {
-            $blockFields = array_merge($blockFields, $tab['fields']);
-        }
-
-        return $blockFields;
-    }
-
-    /**
-     * Checks if a string value should be skipped from translation.
-     *
-     * Returns `true` for:
-     * - Empty or whitespace-only strings
-     * - Pure numeric values (integers, floats, scientific notation)
-     * - Pure URLs (`http://` or `https://`)
-     */
-    private static function shouldSkipTranslation(string $text): bool
-    {
-        $trimmedValue = trim($text);
-
-        if ($trimmedValue === '') {
-            return true;
-        }
-
-        // Pure numeric (including negative, floats, scientific notation)
-        if (preg_match('/^-?\d+(\.\d+)?(e[+-]?\d+)?$/i', $trimmedValue)) {
-            return true;
-        }
-
-        // Pure URL
-        if (preg_match('/^https?:\/\/\S+$/i', $trimmedValue)) {
-            return true;
-        }
-
-        return false;
     }
 }

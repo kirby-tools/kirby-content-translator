@@ -97,6 +97,10 @@ final class KirbyText
         return ['fragments' => $fragments, 'restore' => $restore];
     }
 
+    /**
+     * @deprecated v4 Will be removed. Translate via the Strategy pipeline:
+     * `Translator::translateText()` already routes through it.
+     */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, array $kirbyTags = []): string
     {
         if (trim($text) === '') {

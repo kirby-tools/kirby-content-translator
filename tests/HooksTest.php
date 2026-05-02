@@ -2,6 +2,8 @@
 
 declare(strict_types = 1);
 
+use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
+use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -118,20 +120,120 @@ final class HooksTest extends TestCase
         $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de', 'en');
 
-        $this->assertSame([
+        $expectedBefore = [
             'text' => 'Hello',
             'targetLanguage' => 'de',
             'sourceLanguage' => 'en',
             'type' => 'text',
-        ], $beforeParams);
+        ];
+        foreach ($expectedBefore as $key => $value) {
+            $this->assertSame($value, $beforeParams[$key]);
+        }
 
-        $this->assertSame([
+        $expectedAfter = [
             'text' => '[de]Hello',
             'originalText' => 'Hello',
             'targetLanguage' => 'de',
             'sourceLanguage' => 'en',
             'type' => 'text',
-        ], $afterParams);
+        ];
+        foreach ($expectedAfter as $key => $value) {
+            $this->assertSame($value, $afterParams[$key]);
+        }
+    }
+
+    #[Test]
+    public function after_hook_receives_additive_unit_options_and_original_text_payload(): void
+    {
+        $captured = [];
+
+        $app = $this->appWithHomePage([
+            'content-translator.translate:after' => function ($text, $originalText, $unit, $options) use (&$captured) {
+                $captured = [
+                    'text' => $text,
+                    'originalText' => $originalText,
+                    'unitText' => $unit->text,
+                    'unitMode' => $unit->mode->value,
+                    'targetCode' => $options->targetLanguage->code,
+                    'sourceCode' => $options->sourceLanguage?->code,
+                ];
+                return $text;
+            },
+        ]);
+
+        $translator = new Translator($app->page('home'));
+        $translator->translateContent('en', 'de', 'en');
+
+        $this->assertSame([
+            'text' => '[de]Hello',
+            'originalText' => 'Hello',
+            'unitText' => 'Hello',
+            'unitMode' => 'batch',
+            'targetCode' => 'de',
+            'sourceCode' => 'en',
+        ], $captured);
+    }
+
+    #[Test]
+    public function before_hook_receives_additive_unit_and_options_payload(): void
+    {
+        $captured = [];
+
+        $app = $this->appWithHomePage([
+            'content-translator.translate:before' => function ($text, $unit, $options) use (&$captured) {
+                $captured = [
+                    'text' => $text,
+                    'unitText' => $unit->text,
+                    'unitMode' => $unit->mode->value,
+                    'targetCode' => $options->targetLanguage->code,
+                    'sourceCode' => $options->sourceLanguage?->code,
+                ];
+                return $text;
+            },
+        ]);
+
+        $translator = new Translator($app->page('home'));
+        $translator->translateContent('en', 'de', 'en');
+
+        $this->assertSame([
+            'text' => 'Hello',
+            'unitText' => 'Hello',
+            'unitMode' => 'batch',
+            'targetCode' => 'de',
+            'sourceCode' => 'en',
+        ], $captured);
+    }
+
+    #[Test]
+    public function warning_hook_receives_unit_reason_and_previous(): void
+    {
+        $warnings = [];
+        new App([
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = compact('unit', 'reason', 'previous');
+                },
+            ],
+        ]);
+
+        $strategy = new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                App::instance()->trigger('content-translator.translate:warning', [
+                    'unit' => $units[0],
+                    'reason' => 'simulated failure',
+                    'previous' => null,
+                ]);
+                return array_map(fn ($u) => $u->text, $units);
+            }
+        };
+
+        Translator::translateText('Hello', 'de', null, $strategy);
+
+        $this->assertCount(1, $warnings);
+        $this->assertSame('Hello', $warnings[0]['unit']->text);
+        $this->assertSame('simulated failure', $warnings[0]['reason']);
+        $this->assertNull($warnings[0]['previous']);
     }
 
     #[Test]

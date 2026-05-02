@@ -100,14 +100,6 @@ final class DeepLTest extends TestCase
     }
 
     #[Test]
-    public function instance_returns_singleton(): void
-    {
-        $this->appWithDeepLConfig();
-
-        $this->assertSame(DeepL::instance(), DeepL::instance());
-    }
-
-    #[Test]
     public function translate_many_returns_empty_for_empty_input(): void
     {
         $this->appWithDeepLConfig();

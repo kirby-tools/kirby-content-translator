@@ -8,10 +8,17 @@ use Kirby\Cms\App;
 
 final readonly class TranslatorConfig
 {
+    /**
+     * @param list<string> $fieldTypes
+     * @param list<string> $includeFields
+     * @param list<string> $excludeFields
+     * @param array<string, list<string>> $kirbyTags
+     */
     public function __construct(
         public array $fieldTypes,
         public array $includeFields,
         public array $excludeFields,
+        public array $kirbyTags = [],
     ) {
     }
 
@@ -36,6 +43,7 @@ final readonly class TranslatorConfig
             ])),
             includeFields: array_map('strtolower', $options['includeFields'] ?? $kirby->option('johannschopplich.content-translator.includeFields', [])),
             excludeFields: array_map('strtolower', $options['excludeFields'] ?? $kirby->option('johannschopplich.content-translator.excludeFields', [])),
+            kirbyTags: $options['kirbyTags'] ?? $kirby->option('johannschopplich.content-translator.kirbyTags', []),
         );
     }
 
