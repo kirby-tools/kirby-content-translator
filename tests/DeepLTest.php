@@ -47,23 +47,32 @@ final class DeepLTest extends TestCase
 
     private function createMockDeepL(array &$capturedRequests = []): DeepL
     {
-        $mock = $this->getMockBuilder(DeepL::class)
-            ->onlyMethods(['request'])
-            ->getMock();
+        return new DeepL(
+            remote: function (string $url, array $options) use (&$capturedRequests): object {
+                $body = json_decode($options['data'], associative: true);
 
-        $mock->expects($this->atLeastOnce())
-            ->method('request')
-            ->willReturnCallback(function (array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions) use (&$capturedRequests) {
                 $capturedRequests[] = [
-                    'texts' => $texts,
-                    'targetLanguage' => $targetLanguage,
-                    'sourceLanguage' => $sourceLanguage,
-                    'requestOptions' => $requestOptions,
+                    'texts' => $body['text'],
+                    'targetLanguage' => $body['target_lang'],
+                    'sourceLanguage' => $body['source_lang'] ?? null,
+                    'requestOptions' => array_diff_key(
+                        $body,
+                        ['text' => true, 'target_lang' => true, 'source_lang' => true],
+                    ),
                 ];
 
-                return new class ($texts) {
+                return new class ($body['text']) {
+                    /** @param array<string> $texts */
                     public function __construct(private array $texts)
                     {
+                    }
+                    public function code(): int
+                    {
+                        return 200;
+                    }
+                    public function content(): string
+                    {
+                        return '';
                     }
                     public function json(): array
                     {
@@ -75,9 +84,8 @@ final class DeepLTest extends TestCase
                         ];
                     }
                 };
-            });
-
-        return $mock;
+            }
+        );
     }
 
     #[Test]

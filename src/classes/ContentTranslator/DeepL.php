@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator;
 
+use Closure;
 use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
@@ -26,8 +27,9 @@ final class DeepL
     private readonly string|null $apiKey;
     private static DeepL|null $instance;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly Closure|null $remote = null,
+    ) {
         $kirby = App::instance();
         $apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
 
@@ -135,11 +137,15 @@ final class DeepL
      * @param array<string> $texts
      * @see https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
      */
-    protected function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
+    private function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
     {
+        $remote = $this->remote ?? static fn (string $url, array $options): Remote
+            => Remote::request($url, $options);
+
         $response = $this->withRetry(
-            function () use ($texts, $targetLanguage, $sourceLanguage, $requestOptions) {
-                return Remote::request($this->resolveApiUrl() . '/v2/translate', [
+            fn () => $remote(
+                $this->resolveApiUrl() . '/v2/translate',
+                [
                     'method' => 'POST',
                     'headers' => [
                         'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
@@ -153,8 +159,8 @@ final class DeepL
                         ],
                         $requestOptions
                     ))
-                ]);
-            },
+                ]
+            ),
             count($texts)
         );
 
