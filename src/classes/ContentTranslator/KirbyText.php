@@ -26,17 +26,11 @@ final class KirbyText
     /**
      * Splits KirbyText prose from KirbyTags structurally.
      *
-     * Mirrors `splitKirbyText()` in `src/panel/translation/kirby-text.ts`.
-     * Returns the prose with `<c0/>`, `<c1/>`, … placeholders in place of
-     * each KirbyTag, plus a closure that rebuilds the original text once
-     * the prose (and any translatable tag attributes) have been
-     * translated.
+     * The first fragment is always the prose; the remaining fragments are
+     * translatable attribute values in source order. Translations must be
+     * passed back to `restore` in the same order.
      *
-     * The first fragment is always the prose; the remaining fragments
-     * are translatable attribute values in source order. Translations
-     * must be passed back to `restore` in the same order.
-     *
-     * @param array<string, list<string>> $kirbyTags Translatable attributes per tag type, e.g. `['link' => ['text']]`
+     * @param array<string, list<string>> $kirbyTags
      * @return array{fragments: list<string>, restore: Closure(list<string>): string}
      */
     public static function split(string $text, array $kirbyTags = []): array

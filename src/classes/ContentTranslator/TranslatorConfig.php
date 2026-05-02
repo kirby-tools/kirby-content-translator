@@ -39,10 +39,6 @@ final readonly class TranslatorConfig
         );
     }
 
-    /**
-     * Check if a top-level field is translatable based on its type,
-     * include/exclude lists, and the field's `translate` property.
-     */
     public function isTranslatable(string $key, array $props): bool
     {
         if (!in_array($props['type'], $this->fieldTypes, true)) {
