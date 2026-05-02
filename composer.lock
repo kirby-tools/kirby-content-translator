@@ -101,16 +101,16 @@
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/utils.git",
-                "reference": "2d81270db1c95fdafda484292917a6b40dcea12d"
+                "reference": "f36810328810a33d572422fc08d395d69b1b4113"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/2d81270db1c95fdafda484292917a6b40dcea12d",
-                "reference": "2d81270db1c95fdafda484292917a6b40dcea12d",
+                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/f36810328810a33d572422fc08d395d69b1b4113",
+                "reference": "f36810328810a33d572422fc08d395d69b1b4113",
                 "shasum": ""
             },
             "require-dev": {
@@ -141,9 +141,9 @@
             "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/utils/issues",
-                "source": "https://github.com/kirby-tools/utils/tree/v0.1.1"
+                "source": "https://github.com/kirby-tools/utils/tree/v0.1.2"
             },
-            "time": "2026-03-21T07:49:12+00:00"
+            "time": "2026-05-01T07:41:41+00:00"
         }
     ],
     "packages-dev": [
@@ -1943,16 +1943,16 @@
         },
         {
             "name": "phpunit/phpunit",
-            "version": "12.5.23",
+            "version": "12.5.24",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969"
+                "reference": "d75dd30597caa80e72fad2ef7904601a30ef1046"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969",
-                "reference": "c54fcf3d6bcb6e96ac2f7e40097dc37b5f139969",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/d75dd30597caa80e72fad2ef7904601a30ef1046",
+                "reference": "d75dd30597caa80e72fad2ef7904601a30ef1046",
                 "shasum": ""
             },
             "require": {
@@ -2021,7 +2021,7 @@
             "support": {
                 "issues": "https://github.com/sebastianbergmann/phpunit/issues",
                 "security": "https://github.com/sebastianbergmann/phpunit/security/policy",
-                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.23"
+                "source": "https://github.com/sebastianbergmann/phpunit/tree/12.5.24"
             },
             "funding": [
                 {
@@ -2029,7 +2029,7 @@
                     "type": "other"
                 }
             ],
-            "time": "2026-04-18T06:12:49+00:00"
+            "time": "2026-05-01T04:21:04+00:00"
         },
         {
             "name": "psr/http-client",
