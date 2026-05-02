@@ -15,6 +15,9 @@ use Throwable;
  * Walks a content array and emits translatable units plus
  * post-translation finalisers.
  *
+ * Closures capture `&$node` – callers must keep the same array reference
+ * live between `collect()` and `writeBack` invocations.
+ *
  * @internal
  */
 final class Collector
@@ -125,7 +128,7 @@ final class Collector
 
         if (in_array($fieldType, ['textarea', 'markdown'], true)) {
             $text = (string)$value;
-            if (trim($text) === '') {
+            if (TextFilter::shouldSkip($text)) {
                 return;
             }
 

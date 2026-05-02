@@ -6,6 +6,7 @@ namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
 use JohannSchopplich\ContentTranslator\Translation\Collector;
+use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CallableStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
@@ -20,6 +21,7 @@ use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
+use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
 
 final class Translator
@@ -44,6 +46,11 @@ final class Translator
         return $this->model;
     }
 
+    /**
+     * @throws TranslationException
+     * @throws LogicException
+     * @throws AuthException
+     */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
         if (TextFilter::shouldSkip($text)) {
@@ -57,6 +64,10 @@ final class Translator
     /**
      * @param list<string> $texts
      * @return list<string>
+     *
+     * @throws TranslationException
+     * @throws LogicException
+     * @throws AuthException
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
@@ -171,6 +182,11 @@ final class Translator
         });
     }
 
+    /**
+     * @throws TranslationException
+     * @throws LogicException
+     * @throws AuthException
+     */
     public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
     {
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {

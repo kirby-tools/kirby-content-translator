@@ -56,7 +56,6 @@ final readonly class CopilotAIStrategy implements Strategy
 
         $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
         $translatedCount = 0;
-        $lastException = null;
         $lastReason = null;
 
         foreach ($this->chunk($units) as $chunk) {
@@ -72,7 +71,6 @@ final readonly class CopilotAIStrategy implements Strategy
                     schema: self::translationSchema(),
                 );
             } catch (Throwable $error) {
-                $lastException = $error;
                 $lastReason = $error->getMessage();
                 foreach ($chunk as [, $unit]) {
                     self::warn($unit, $lastReason, $error);
@@ -112,7 +110,6 @@ final readonly class CopilotAIStrategy implements Strategy
                 strategy: 'copilot-ai',
                 reason: $lastReason ?? 'unknown error',
                 unitsAttempted: count($units),
-                previous: $lastException,
             );
         }
 
@@ -160,6 +157,7 @@ final readonly class CopilotAIStrategy implements Strategy
         foreach ($units as $index => $unit) {
             $textLength = strlen($unit->text);
 
+            // Lone oversize units ride alone – never split a unit.
             if (
                 count($currentChunk) >= self::MAX_BATCH_SIZE ||
                 ($currentChunk !== [] && ($currentChars + $textLength) > self::MAX_CHARS_PER_BATCH)

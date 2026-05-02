@@ -69,7 +69,6 @@ final readonly class DeepLStrategy implements Strategy
                 strategy: 'deepl',
                 reason: $lastError?->getMessage() ?? 'unknown error',
                 unitsAttempted: count($units),
-                previous: $lastError,
             );
         }
 
