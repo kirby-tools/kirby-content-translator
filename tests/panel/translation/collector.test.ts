@@ -141,7 +141,7 @@ describe("collectTranslations", () => {
 
   // eslint-disable-next-line test/prefer-lowercase-title
   describe("YAML table serialization", () => {
-    it("registers finalizer for YAML-encoded tables", () => {
+    it("registers finalizer that re-encodes back to YAML when input was YAML", () => {
       const yamlTable = "-\n  - A\n  - B";
       const content = { table: yamlTable };
       const fields = { table: field({ type: "table", name: "table" }) };
@@ -152,7 +152,13 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(2);
-      expect(finalizers).toHaveLength(1);
+
+      translations[0]!.apply(translations[0]!.unit.text);
+      translations[1]!.apply(translations[1]!.unit.text);
+      for (const finalize of finalizers) finalize();
+
+      expect(typeof content.table).toBe("string");
+      expect(content.table).toBe(yamlTable);
     });
 
     it("serializes translations back to YAML format", () => {

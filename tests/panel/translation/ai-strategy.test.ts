@@ -158,7 +158,11 @@ describe("AIStrategy", () => {
       const results = await strategy.execute(units, defaultOptions);
 
       expect(results).toEqual(["Hello", "World"]);
-      expect(consoleSpy).toHaveBeenCalled();
+      // Logged once with the field-key list, once with the error itself
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("title, body"),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
       consoleSpy.mockRestore();
     });
 
@@ -183,6 +187,10 @@ describe("AIStrategy", () => {
 
       expect(results[0]).toBe(largeText); // Original kept
       expect(results[1]).toBe("Success"); // Second chunk succeeded
+
+      // Failure is reported with the field-key of the failing chunk only
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("a"));
+      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining("b"));
       consoleSpy.mockRestore();
     });
   });
@@ -222,6 +230,44 @@ describe("AIStrategy", () => {
       expect(results).toEqual(["Klick <c0/> jetzt"]);
       expect(warnSpy).not.toHaveBeenCalled();
       warnSpy.mockRestore();
+    });
+  });
+
+  describe("system prompt", () => {
+    it("uses the default system prompt when no option is provided", async () => {
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["Hallo"] }),
+      });
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+      ];
+
+      await strategy.execute(units, defaultOptions);
+
+      expect(mockStreamText).toHaveBeenCalledWith(
+        expect.objectContaining({
+          systemPrompt: expect.stringContaining("professional translator"),
+        }),
+      );
+    });
+
+    it("forwards a custom systemPrompt to the AI call", async () => {
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["Hallo"] }),
+      });
+
+      const strategy = new AIStrategy({ systemPrompt: "from constructor" });
+      const units: TranslationUnit[] = [
+        { text: "Hello", mode: "batch", fieldKey: "title" },
+      ];
+
+      await strategy.execute(units, defaultOptions);
+
+      expect(mockStreamText).toHaveBeenCalledWith(
+        expect.objectContaining({ systemPrompt: "from constructor" }),
+      );
     });
   });
 

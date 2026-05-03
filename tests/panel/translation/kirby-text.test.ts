@@ -81,4 +81,26 @@ describe("splitKirbyText", () => {
       );
     });
   });
+
+  describe("length mismatch", () => {
+    it("throws when restore receives fewer fragments than expected", () => {
+      const text = "(link: /a text: site)";
+      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+
+      expect(fragments).toHaveLength(2);
+      expect(() => restore([fragments[0]!])).toThrow(
+        "Expected 2 translated fragments, got 1",
+      );
+    });
+
+    it("throws when restore receives more fragments than expected", () => {
+      const text = "(link: /a text: site)";
+      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+
+      expect(fragments).toHaveLength(2);
+      expect(() => restore([...fragments, "extra"])).toThrow(
+        "Expected 2 translated fragments, got 3",
+      );
+    });
+  });
 });

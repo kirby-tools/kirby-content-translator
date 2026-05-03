@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DeepLStrategy } from "../../../src/panel/translation/strategies";
 
 const mockApiPost = vi.fn();
+const pAllCalls: { taskCount: number; concurrency: number | undefined }[] = [];
 
 vi.mock("kirbyuse", () => ({
   useApi: () => ({ post: mockApiPost }),
@@ -11,8 +12,12 @@ vi.mock("kirbyuse", () => ({
 vi.mock("p-all", () => ({
   default: async <T>(
     tasks: (() => Promise<T>)[],
-    _options?: { concurrency: number },
+    options?: { concurrency: number },
   ): Promise<T[]> => {
+    pAllCalls.push({
+      taskCount: tasks.length,
+      concurrency: options?.concurrency,
+    });
     const results: T[] = [];
     for (const task of tasks) results.push(await task());
     return results;
@@ -28,6 +33,7 @@ describe("DeepLStrategy", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    pAllCalls.length = 0;
   });
 
   describe("batch mode", () => {
@@ -162,6 +168,58 @@ describe("DeepLStrategy", () => {
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
         "API Error",
       );
+    });
+  });
+
+  describe("concurrency", () => {
+    it("forwards the default concurrency to p-all when single units run in parallel", async () => {
+      mockApiPost
+        .mockResolvedValueOnce({ text: "1" })
+        .mockResolvedValueOnce({ text: "2" });
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "A", mode: "single", fieldKey: "a" },
+        { text: "B", mode: "single", fieldKey: "b" },
+      ];
+
+      await strategy.execute(units, defaultOptions);
+
+      expect(pAllCalls).toHaveLength(1);
+      expect(pAllCalls[0]).toEqual({ taskCount: 2, concurrency: 5 });
+    });
+
+    it("forwards the configured concurrency to p-all", async () => {
+      mockApiPost
+        .mockResolvedValueOnce({ text: "1" })
+        .mockResolvedValueOnce({ text: "2" })
+        .mockResolvedValueOnce({ text: "3" });
+
+      const strategy = new DeepLStrategy({ concurrency: 1 });
+      const units: TranslationUnit[] = [
+        { text: "A", mode: "single", fieldKey: "a" },
+        { text: "B", mode: "single", fieldKey: "b" },
+        { text: "C", mode: "single", fieldKey: "c" },
+      ];
+
+      await strategy.execute(units, defaultOptions);
+
+      expect(pAllCalls).toHaveLength(1);
+      expect(pAllCalls[0]).toEqual({ taskCount: 3, concurrency: 1 });
+    });
+
+    it("does not invoke p-all when there are no single-mode units", async () => {
+      mockApiPost.mockResolvedValueOnce({ texts: ["1", "2"] });
+
+      const strategy = new DeepLStrategy({ concurrency: 3 });
+      const units: TranslationUnit[] = [
+        { text: "A", mode: "batch", fieldKey: "a" },
+        { text: "B", mode: "batch", fieldKey: "b" },
+      ];
+
+      await strategy.execute(units, defaultOptions);
+
+      expect(pAllCalls).toHaveLength(0);
     });
   });
 
