@@ -29,6 +29,7 @@ final class DeepL
 
     public function __construct(
         private readonly Closure|null $remote = null,
+        private readonly Closure|null $delay = null,
     ) {
         $kirby = App::instance();
         $apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
@@ -213,9 +214,11 @@ final class DeepL
 
             // Use minimum backoff floor to avoid immediate retries
             $minBackoff = (int)(self::INITIAL_RETRY_DELAY_MS / 2);
-            $sleepMs = random_int($minBackoff, $exponentDelay);
-            // Convert ms to microseconds
-            usleep($sleepMs * 1000);
+
+            $delay = $this->delay ?? static function (int $minMs, int $maxMs): void {
+                usleep(random_int($minMs, $maxMs) * 1000);
+            };
+            $delay($minBackoff, $exponentDelay);
 
             $attempt++;
         }
