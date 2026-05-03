@@ -22,11 +22,11 @@ final readonly class TranslatorConfig
     ) {
     }
 
-    public static function fromOptions(array $options = []): static
+    public static function fromOptions(array $options = []): self
     {
         $kirby = App::instance();
 
-        return new static(
+        return new self(
             fieldTypes: array_map('strtolower', $options['fieldTypes'] ?? $kirby->option('johannschopplich.content-translator.fieldTypes', [
                 'blocks',
                 'layout',
@@ -43,7 +43,10 @@ final readonly class TranslatorConfig
             ])),
             includeFields: array_map('strtolower', $options['includeFields'] ?? $kirby->option('johannschopplich.content-translator.includeFields', [])),
             excludeFields: array_map('strtolower', $options['excludeFields'] ?? $kirby->option('johannschopplich.content-translator.excludeFields', [])),
-            kirbyTags: $options['kirbyTags'] ?? $kirby->option('johannschopplich.content-translator.kirbyTags', []),
+            kirbyTags: array_change_key_case(
+                $options['kirbyTags'] ?? $kirby->option('johannschopplich.content-translator.kirbyTags', []),
+                CASE_LOWER,
+            ),
         );
     }
 

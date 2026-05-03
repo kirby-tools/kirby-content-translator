@@ -25,7 +25,7 @@ final class DeepL
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
     private readonly string|null $apiKey;
-    private static DeepL|null $instance;
+    private static DeepL|null $instance = null;
 
     public function __construct(
         private readonly Closure|null $remote = null,
@@ -33,7 +33,7 @@ final class DeepL
         $kirby = App::instance();
         $apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
 
-        if (empty($apiKey)) {
+        if (!is_string($apiKey) || $apiKey === '') {
             throw new AuthException('Missing DeepL API key');
         }
 
@@ -54,6 +54,11 @@ final class DeepL
     public static function instance(): self
     {
         return self::$instance ??= new self();
+    }
+
+    public static function reset(): void
+    {
+        self::$instance = null;
     }
 
     public function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string

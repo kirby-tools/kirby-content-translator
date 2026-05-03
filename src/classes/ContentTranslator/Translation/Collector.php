@@ -9,6 +9,7 @@ use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\TranslatorConfig;
 use Kirby\Data\Data;
 use Kirby\Toolkit\A;
+use Kirby\Toolkit\Str;
 use Throwable;
 
 /**
@@ -154,32 +155,22 @@ final class Collector
             return;
         }
 
-        // Tags persist as comma-separated strings on disk; Panel API hands us arrays.
-        if ($fieldType === 'tags' && is_string($value)) {
-            if (TextFilter::shouldSkip($value)) {
+        if ($fieldType === 'tags') {
+            if (!is_string($value) || TextFilter::shouldSkip($value)) {
                 return;
             }
-            $this->translations[] = new CollectedTranslation(
-                unit: new TranslationUnit(text: $value, mode: TranslationMode::Batch, fieldKey: $fieldName),
-                writeBack: function (string $translation) use (&$node, $fieldName): void {
-                    $node[$fieldName] = $translation;
-                },
-            );
-            return;
-        }
-
-        if ($fieldType === 'tags' && is_array($value)) {
-            if ($value === []) {
+            $items = Str::split($value, ',');
+            if ($items === []) {
                 return;
             }
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
-                    text: implode(' | ', $value),
+                    text: implode(' | ', $items),
                     mode: TranslationMode::Batch,
                     fieldKey: $fieldName,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
-                    $node[$fieldName] = array_map('trim', explode('|', $translation));
+                    $node[$fieldName] = implode(', ', array_map('trim', explode('|', $translation)));
                 },
             );
             return;

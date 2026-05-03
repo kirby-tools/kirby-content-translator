@@ -9,7 +9,7 @@ use Kirby\Exception\Exception;
 /**
  * Thrown when a translation strategy fails for every unit it was given.
  */
-class TranslationException extends Exception
+final class TranslationException extends Exception
 {
     protected static string $defaultKey = 'content-translator.translation';
     protected static string $defaultFallback = 'Translation request failed';

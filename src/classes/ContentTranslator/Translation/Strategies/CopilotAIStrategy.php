@@ -18,7 +18,7 @@ use Throwable;
 final readonly class CopilotAIStrategy implements Strategy
 {
     private const MAX_BATCH_SIZE = 50;
-    private const MAX_CHARS_PER_BATCH = 100_000;
+    private const MAX_BYTES_PER_BATCH = 100_000;
 
     private const DEFAULT_SYSTEM_PROMPT = <<<'PROMPT'
         You are a professional translator for a Kirby CMS website.
@@ -136,7 +136,7 @@ final readonly class CopilotAIStrategy implements Strategy
             return $this->systemPrompt;
         }
 
-        $promptOption = App::instance()->option('johannschopplich.content-translator.AI.systemPrompt');
+        $promptOption = App::instance()->option('johannschopplich.content-translator.ai.systemPrompt');
         if (is_string($promptOption) && $promptOption !== '') {
             return $promptOption;
         }
@@ -152,23 +152,23 @@ final readonly class CopilotAIStrategy implements Strategy
     {
         $chunks = [];
         $currentChunk = [];
-        $currentChars = 0;
+        $currentBytes = 0;
 
         foreach ($units as $index => $unit) {
-            $textLength = strlen($unit->text);
+            $byteLength = strlen($unit->text);
 
-            // Lone oversize units ride alone – never split a unit.
+            // Lone oversize units ride alone – never split a unit
             if (
                 count($currentChunk) >= self::MAX_BATCH_SIZE ||
-                ($currentChunk !== [] && ($currentChars + $textLength) > self::MAX_CHARS_PER_BATCH)
+                ($currentChunk !== [] && ($currentBytes + $byteLength) > self::MAX_BYTES_PER_BATCH)
             ) {
                 $chunks[] = $currentChunk;
                 $currentChunk = [];
-                $currentChars = 0;
+                $currentBytes = 0;
             }
 
             $currentChunk[] = [$index, $unit];
-            $currentChars += $textLength;
+            $currentBytes += $byteLength;
         }
 
         if ($currentChunk !== []) {

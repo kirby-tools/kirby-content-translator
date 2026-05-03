@@ -191,16 +191,9 @@ final class Translator
     {
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
             $content = $this->model->content($contentLanguageCode)->toArray();
+            $result = (new Collector($this->fields, $this->config))->collect($content);
 
-            $fields = array_filter(
-                $this->fields,
-                fn ($props, $fieldName) => $this->config->isTranslatable($fieldName, $props),
-                ARRAY_FILTER_USE_BOTH
-            );
-
-            $collected = (new Collector($fields, $this->config))->collect($content);
-
-            if ($collected->translations !== []) {
+            if ($result->translations !== []) {
                 $strategy ??= self::resolveStrategy();
                 $options = self::buildOptions($toLanguageCode, $fromLanguageCode);
 
@@ -217,12 +210,12 @@ final class Translator
                         mode: $collectedTranslation->unit->mode,
                         fieldKey: $collectedTranslation->unit->fieldKey,
                     ),
-                    $collected->translations,
+                    $result->translations,
                 );
 
                 $translations = $strategy->execute($processedUnits, $options);
 
-                foreach ($collected->translations as $index => $collectedTranslation) {
+                foreach ($result->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
                         'text' => $translations[$index],
                         'originalText' => $collectedTranslation->unit->text,
@@ -235,7 +228,7 @@ final class Translator
                     ($collectedTranslation->writeBack)($translatedText);
                 }
 
-                foreach ($collected->finalizers as $finalize) {
+                foreach ($result->finalizers as $finalize) {
                     $finalize();
                 }
             }

@@ -10,17 +10,31 @@ use Kirby\Cms\Language;
 use Kirby\Cms\Page;
 use Kirby\Cms\Pages;
 use Kirby\Content\Content;
+use Kirby\Exception\LogicException;
 
 final readonly class TranslationCoverage
 {
+    private const TREE_INDEX_TTL_MINUTES = 5;
+
     private App $kirby;
     private TranslatorConfig $config;
 
+    /**
+     * @throws LogicException When called on a single-language Kirby installation.
+     */
     public function __construct(
         private Pages $pages,
         array $options = []
     ) {
         $this->kirby = App::instance();
+
+        if (!$this->kirby->multilang()) {
+            // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
+            throw new LogicException(
+                ['fallback' => 'TranslationCoverage requires a multi-language Kirby installation.'],
+            );
+        }
+
         $this->config = TranslatorConfig::fromOptions($options);
     }
 
@@ -205,7 +219,7 @@ final readonly class TranslationCoverage
                     'descendantCounts' => $descendantCounts,
                 ];
             },
-            5
+            self::TREE_INDEX_TTL_MINUTES,
         );
     }
 
