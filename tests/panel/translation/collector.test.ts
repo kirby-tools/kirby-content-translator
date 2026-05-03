@@ -525,7 +525,7 @@ describe("collectTranslations", () => {
     });
   });
 
-  describe("apply callbacks", () => {
+  describe("value transformation hooks", () => {
     it("applies translated text to original object", () => {
       const content = { title: "Hello" };
       const fields = { title: field({ type: "text", name: "text" }) };

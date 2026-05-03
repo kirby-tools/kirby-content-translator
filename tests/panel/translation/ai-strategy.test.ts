@@ -28,7 +28,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("basic translation", () => {
+  describe("single text translation", () => {
     it("returns translated texts in order", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Hallo", "Welt"] }),
@@ -117,7 +117,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("error handling", () => {
+  describe("chunk failure handling", () => {
     it("keeps original text when chunk fails", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")
@@ -201,7 +201,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("system prompt", () => {
+  describe("system prompt resolution", () => {
     it("uses the default system prompt when no option is provided", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Hallo"] }),
@@ -222,7 +222,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("copilot availability", () => {
+  describe("when copilot is unavailable", () => {
     it("throws when copilot is not available", async () => {
       const { resolveCopilot } =
         await import("../../../src/panel/utils/copilot");

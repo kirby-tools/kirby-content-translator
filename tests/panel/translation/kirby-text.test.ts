@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
 describe("splitKirbyText", () => {
-  describe("parsing", () => {
+  describe("tag extraction", () => {
     it("round-trips plain text without tags", () => {
       const text = "Just some prose, nothing tagged here.";
       const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
