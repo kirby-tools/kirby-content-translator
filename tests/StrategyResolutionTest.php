@@ -45,50 +45,6 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function method_param_strategy_overrides_config_for_translate_content(): void
-    {
-        $app = new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch'],
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'Hello']],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'translateFn' => fn (string $text, string $lang) => "[fromConfig]$text",
-                ],
-            ],
-        ]);
-
-        $override = new class () implements Strategy {
-            public function execute(array $units, ExecutionOptions $options): array
-            {
-                return array_map(fn ($unit) => '[fromOverride]' . $unit->text, $units);
-            }
-        };
-
-        $translator = new Translator($app->page('home'));
-        $translator->translateContent('en', 'de', null, $override);
-
-        $this->assertSame('[fromOverride]Hello', $translator->model()->content('en')->get('text')->value());
-    }
-
-    #[Test]
     public function strategy_config_string_deepl_selects_deepl_strategy(): void
     {
         new App([

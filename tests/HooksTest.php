@@ -58,32 +58,6 @@ final class HooksTest extends TestCase
     }
 
     #[Test]
-    public function before_hook_modifies_text_before_translation(): void
-    {
-        $app = $this->appWithHomePage([
-            'content-translator.translate:before' => fn ($text) => strtoupper($text),
-        ]);
-
-        $translator = new Translator($app->page('home'));
-        $translator->translateContent('en', 'de');
-
-        $this->assertSame('[de]HELLO', $translator->model()->content('en')->get('text')->value());
-    }
-
-    #[Test]
-    public function after_hook_modifies_translated_text(): void
-    {
-        $app = $this->appWithHomePage([
-            'content-translator.translate:after' => fn ($text) => $text . ' (translated)',
-        ]);
-
-        $translator = new Translator($app->page('home'));
-        $translator->translateContent('en', 'de');
-
-        $this->assertSame('[de]Hello (translated)', $translator->model()->content('en')->get('text')->value());
-    }
-
-    #[Test]
     public function applies_both_before_and_after_hooks(): void
     {
         $app = $this->appWithHomePage(

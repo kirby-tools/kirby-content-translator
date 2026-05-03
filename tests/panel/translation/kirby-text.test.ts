@@ -3,6 +3,14 @@ import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
 describe("splitKirbyText", () => {
   describe("parsing", () => {
+    it("round-trips plain text without tags", () => {
+      const text = "Just some prose, nothing tagged here.";
+      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+
+      expect(fragments).toEqual([text]);
+      expect(restore(fragments)).toBe(text);
+    });
+
     it("handles nested parentheses inside an attribute value", () => {
       const text = "(link: /a text: our (awesome) site)";
       const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
@@ -29,7 +37,7 @@ describe("splitKirbyText", () => {
     });
   });
 
-  describe("isolation", () => {
+  describe("tag protection", () => {
     it("protects every tag verbatim when config is empty", () => {
       const text = "Hello (link: /a text: world)!";
       const { fragments, restore } = splitKirbyText(text, {});
@@ -80,27 +88,51 @@ describe("splitKirbyText", () => {
         "(image: hero.jpg alt: Sonnenuntergang caption: Mountain view)",
       );
     });
+
+    it("drops out-of-range placeholder indices in translated prose", () => {
+      // Translator may hallucinate extra placeholders not present in source
+      const text = "Visit (link: /a text: site) for more.";
+      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+
+      // Original tag is at index 0; translation references a non-existent index 2
+      const translatedProse = `${fragments[0]!.replace("Visit", "Besuche")} <c2/>`;
+      const restored = restore([translatedProse, fragments[1]!]);
+
+      expect(restored).not.toContain("<c2/>");
+    });
+
+    it("preserves UTF-8 in prose and attribute values", () => {
+      const text = "Café (link: /a text: élève) — 日本語";
+      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+
+      expect(fragments).toContain("élève");
+      expect(restore(fragments)).toBe(text);
+    });
   });
 
-  describe("length mismatch", () => {
-    it("throws when restore receives fewer fragments than expected", () => {
-      const text = "(link: /a text: site)";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+  describe("restore validation", () => {
+    it.each([
+      {
+        name: "fewer",
+        input: (frags: string[]) => [frags[0]!],
+        expectedGot: 1,
+      },
+      {
+        name: "more",
+        input: (frags: string[]) => [...frags, "extra"],
+        expectedGot: 3,
+      },
+    ])(
+      "throws when restore receives $name fragments than expected",
+      ({ input, expectedGot }) => {
+        const text = "(link: /a text: site)";
+        const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
 
-      expect(fragments).toHaveLength(2);
-      expect(() => restore([fragments[0]!])).toThrow(
-        "Expected 2 translated fragments, got 1",
-      );
-    });
-
-    it("throws when restore receives more fragments than expected", () => {
-      const text = "(link: /a text: site)";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      expect(fragments).toHaveLength(2);
-      expect(() => restore([...fragments, "extra"])).toThrow(
-        "Expected 2 translated fragments, got 3",
-      );
-    });
+        expect(fragments).toHaveLength(2);
+        expect(() => restore(input(fragments))).toThrow(
+          `Expected 2 translated fragments, got ${expectedGot}`,
+        );
+      },
+    );
   });
 });

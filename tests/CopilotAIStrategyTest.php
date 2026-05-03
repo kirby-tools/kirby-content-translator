@@ -78,7 +78,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function ctor_system_prompt_overrides_config_and_default(): void
+    public function system_prompt_from_constructor_wins_over_config(): void
     {
         new App([
             'options' => [

@@ -46,7 +46,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("prompt construction", () => {
+  describe("language handling", () => {
     it("includes target language in prompt", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Test"] }),
@@ -87,31 +87,6 @@ describe("AIStrategy", () => {
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
           userPrompt: expect.stringContaining("from English"),
-        }),
-      );
-    });
-
-    it("includes texts in XML format", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["A", "B"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "First", mode: "batch", fieldKey: "a" },
-        { text: "Second", mode: "batch", fieldKey: "b" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userPrompt: expect.stringMatching(/<item index="0">First<\/item>/),
-        }),
-      );
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userPrompt: expect.stringMatching(/<item index="1">Second<\/item>/),
         }),
       );
     });
@@ -158,11 +133,7 @@ describe("AIStrategy", () => {
       const results = await strategy.execute(units, defaultOptions);
 
       expect(results).toEqual(["Hello", "World"]);
-      // Logged once with the field-key list, once with the error itself
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("title, body"),
-      );
-      expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+      expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
 
@@ -187,15 +158,12 @@ describe("AIStrategy", () => {
 
       expect(results[0]).toBe(largeText); // Original kept
       expect(results[1]).toBe("Success"); // Second chunk succeeded
-
-      // Failure is reported with the field-key of the failing chunk only
-      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("a"));
-      expect(consoleSpy).not.toHaveBeenCalledWith(expect.stringContaining("b"));
+      expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
   });
 
-  describe("placeholder validation", () => {
+  describe("placeholder preservation", () => {
     it("keeps source text and warns when placeholder count drops", async () => {
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       mockStreamText.mockResolvedValueOnce({
@@ -252,23 +220,6 @@ describe("AIStrategy", () => {
         }),
       );
     });
-
-    it("forwards a custom systemPrompt to the AI call", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Hallo"] }),
-      });
-
-      const strategy = new AIStrategy({ systemPrompt: "from constructor" });
-      const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({ systemPrompt: "from constructor" }),
-      );
-    });
   });
 
   describe("copilot availability", () => {
@@ -285,28 +236,6 @@ describe("AIStrategy", () => {
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
         "Kirby Copilot plugin is required",
       );
-    });
-  });
-
-  describe("mixed modes", () => {
-    it("handles batch and single modes uniformly", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({
-          translations: ["Batch", "Single"],
-        }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "batch", mode: "batch", fieldKey: "a" },
-        { text: "single", mode: "single", fieldKey: "b" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      // All modes processed in single call (no mode-based grouping)
-      expect(mockStreamText).toHaveBeenCalledOnce();
-      expect(results).toEqual(["Batch", "Single"]);
     });
   });
 

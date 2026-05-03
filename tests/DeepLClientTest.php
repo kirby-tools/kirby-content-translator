@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class DeepLTest extends TestCase
+final class DeepLClientTest extends TestCase
 {
     protected function tearDown(): void
     {
