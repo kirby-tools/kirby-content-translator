@@ -111,7 +111,7 @@ export class AIStrategy implements TranslationStrategy {
             const actualCount = countPlaceholders(translation);
             if (expectedCount !== actualCount) {
               console.warn(
-                `Placeholder count mismatch in "${unit.fieldKey}": expected ${expectedCount}, got ${actualCount} — keeping source text`,
+                `Placeholder count mismatch in "${unit.fieldKey}": expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
               );
               continue;
             }
