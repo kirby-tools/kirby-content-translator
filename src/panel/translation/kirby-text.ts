@@ -45,6 +45,12 @@ export function splitKirbyText(text: string, config: Record<string, string[]>) {
   const fragments = [proseParts.join(""), ...attrValues];
 
   function restore(translated: string[]): string {
+    if (translated.length !== fragments.length) {
+      throw new Error(
+        `Expected ${fragments.length} translated fragments, got ${translated.length}`,
+      );
+    }
+
     const translatedProse = translated[0] ?? "";
     const translatedAttrs = translated.slice(1);
 
