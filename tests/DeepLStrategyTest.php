@@ -213,34 +213,7 @@ final class DeepLStrategyTest extends TestCase
             },
         ]);
 
-        $callIndex = 0;
-        $deepL = new DeepL(
-            remote: function (string $url, array $options) use (&$callIndex): object {
-                $body = json_decode($options['data'], associative: true);
-                $callIndex++;
-                if ($callIndex === 1) {
-                    throw new RuntimeException('upstream timeout');
-                }
-                return new class ($body['text']) {
-                    public function __construct(private array $texts)
-                    {
-                    }
-                    public function code(): int
-                    {
-                        return 200;
-                    }
-                    public function content(): string
-                    {
-                        return '';
-                    }
-                    public function json(): array
-                    {
-                        return ['translations' => array_map(fn (string $t) => ['text' => "[de]$t"], $this->texts)];
-                    }
-                };
-            },
-        );
-        $strategy = new DeepLStrategy(deepL: $deepL);
+        $strategy = new DeepLStrategy(deepL: $this->deepLFailingOnCall(1));
 
         $strategy->execute(
             units: [

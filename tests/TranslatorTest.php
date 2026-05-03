@@ -483,20 +483,6 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function skips_fields_with_translate_false(): void
-    {
-        $app = $this->appWithScalarFieldPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
-        $translator->translateContent('en', 'de');
-
-        $this->assertSame(
-            'Do not translate',
-            $translator->model()->content('en')->get('untranslatableText')->value()
-        );
-    }
-
-    #[Test]
     #[DataProvider('sourceLanguageVariants')]
     public function translate_title_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
     {
@@ -521,7 +507,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_regular_page_slug(): void
+    public function translates_regular_page_slug(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('about');
@@ -554,7 +540,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function traverses_blocks_recursively(): void
+    public function translates_nested_block_content(): void
     {
         $app = $this->appWithBlocksPage();
         $page = $app->page('home');
@@ -569,19 +555,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function skips_hidden_blocks(): void
-    {
-        $app = $this->appWithBlocksPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
-        $translator->translateContent('en', 'de');
-
-        $blocks = Json::decode($translator->model()->content('en')->get('blocks')->value());
-        $this->assertSame('Hidden block content', $blocks[2]['content']['text']);
-    }
-
-    #[Test]
-    public function traverses_nested_container_blocks(): void
+    public function translates_blocks_inside_container_blocks(): void
     {
         $app = $this->appWithBlocksPage();
         $page = $app->page('home');
@@ -596,7 +570,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function traverses_structure_field_recursively(): void
+    public function translates_structure_field_entries(): void
     {
         $app = $this->appWithNestedFieldsPage();
         $translator = new Translator($app->page('home'));
@@ -610,7 +584,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function traverses_object_field_recursively(): void
+    public function translates_object_field_properties(): void
     {
         $app = $this->appWithNestedFieldsPage();
         $translator = new Translator($app->page('home'));
@@ -622,7 +596,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function traverses_layout_field_recursively(): void
+    public function translates_blocks_inside_layout_columns(): void
     {
         $app = $this->appWithNestedFieldsPage();
         $translator = new Translator($app->page('home'));
@@ -630,20 +604,6 @@ final class TranslatorTest extends TestCase
 
         $layout = Json::decode($translator->model()->content('en')->get('layout')->value());
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
-    }
-
-    #[Test]
-    public function respects_field_types_filter(): void
-    {
-        $app = $this->appWithFilterableFieldsPage();
-        $page = $app->page('home');
-        $translator = new Translator($page, [
-            'fieldTypes' => ['textarea'],
-        ]);
-        $translator->translateContent('en', 'de');
-
-        $this->assertSame('[de]Welcome to our website', $translator->model()->content('en')->get('text')->value());
-        $this->assertSame('tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
     #[Test]
@@ -658,20 +618,6 @@ final class TranslatorTest extends TestCase
 
         $this->assertSame('[de]Welcome to our website', $translator->model()->content('en')->get('text')->value());
         $this->assertSame('tag1, tag2', $translator->model()->content('en')->get('tags')->value());
-    }
-
-    #[Test]
-    public function respects_exclude_fields_filter(): void
-    {
-        $app = $this->appWithFilterableFieldsPage();
-        $page = $app->page('home');
-        $translator = new Translator($page, [
-            'excludeFields' => ['text'],
-        ]);
-        $translator->translateContent('en', 'de');
-
-        $this->assertSame('Welcome to our website', $translator->model()->content('en')->get('text')->value());
-        $this->assertSame('[de]tag1, tag2', $translator->model()->content('en')->get('tags')->value());
     }
 
     #[Test]

@@ -76,7 +76,7 @@ final class CollectorTest extends TestCase
         );
         $result = $collector->collect($content);
 
-        $this->assertGreaterThanOrEqual(2, count($result->translations));
+        $this->assertCount(2, $result->translations);
         foreach ($result->translations as $t) {
             $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
@@ -93,9 +93,9 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function tags_round_trip_via_pipe_separated_translation(): void
+    public function tags_string_splits_per_item_and_round_trips_in_same_shape(): void
     {
-        $content = ['colors' => ['Red', 'Green', 'Blue']];
+        $content = ['colors' => 'Red, Green, Blue'];
         $fields = ['colors' => self::field(['type' => 'tags'])];
 
         $collector = new Collector($fields, self::defaultConfig());
@@ -107,7 +107,7 @@ final class CollectorTest extends TestCase
 
         $result->translations[0]->writeBack->__invoke('Rot | Grün | Blau');
 
-        $this->assertSame(['Rot', 'Grün', 'Blau'], $content['colors']);
+        $this->assertSame('Rot, Grün, Blau', $content['colors']);
     }
 
     #[Test]
@@ -204,6 +204,131 @@ final class CollectorTest extends TestCase
         $this->assertSame('Verschachtelt', $content['meta']['title']);
     }
 
+    #[Test]
+    public function structure_yaml_string_round_trips_through_translation(): void
+    {
+        $content = ['items' => "-\n  label: One\n-\n  label: Two"];
+        $fields = [
+            'items' => self::field([
+                'type' => 'structure',
+                'fields' => ['label' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertCount(2, $result->translations);
+        $this->assertSame(['One', 'Two'], array_map(fn ($t) => $t->unit->text, $result->translations));
+
+        $result->translations[0]->writeBack->__invoke('Eins');
+        $result->translations[1]->writeBack->__invoke('Zwei');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertIsString($content['items']);
+        $this->assertSame(
+            [['label' => 'Eins'], ['label' => 'Zwei']],
+            \Kirby\Data\Data::decode($content['items'], 'yaml'),
+        );
+    }
+
+    #[Test]
+    public function object_yaml_string_round_trips_through_translation(): void
+    {
+        $content = ['meta' => 'title: Nested'];
+        $fields = [
+            'meta' => self::field([
+                'type' => 'object',
+                'fields' => ['title' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Nested', $result->translations[0]->unit->text);
+
+        $result->translations[0]->writeBack->__invoke('Verschachtelt');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertIsString($content['meta']);
+        $this->assertSame(
+            ['title' => 'Verschachtelt'],
+            \Kirby\Data\Data::decode($content['meta'], 'yaml'),
+        );
+    }
+
+    #[Test]
+    public function blocks_json_string_round_trips_through_translation(): void
+    {
+        $blocks = [
+            ['id' => '1', 'type' => 'text', 'isHidden' => false, 'content' => ['body' => 'Hello']],
+        ];
+        $content = ['blocks' => json_encode($blocks)];
+        $fields = [
+            'blocks' => self::blocksField([
+                'text' => ['body' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Hello', $result->translations[0]->unit->text);
+
+        $result->translations[0]->writeBack->__invoke('Hallo');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertIsString($content['blocks']);
+        $decoded = \Kirby\Data\Data::decode($content['blocks'], 'json');
+        $this->assertSame('Hallo', $decoded[0]['content']['body']);
+    }
+
+    #[Test]
+    public function layout_json_string_round_trips_through_translation(): void
+    {
+        $layout = [
+            [
+                'columns' => [
+                    [
+                        'blocks' => [
+                            ['id' => '1', 'type' => 'text', 'isHidden' => false, 'content' => ['body' => 'Column']],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $content = ['layout' => json_encode($layout)];
+        $fields = [
+            'layout' => self::layoutField([
+                'text' => ['body' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Column', $result->translations[0]->unit->text);
+
+        $result->translations[0]->writeBack->__invoke('Spalte');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertIsString($content['layout']);
+        $decoded = \Kirby\Data\Data::decode($content['layout'], 'json');
+        $this->assertSame('Spalte', $decoded[0]['columns'][0]['blocks'][0]['content']['body']);
+    }
+
     /**
      * @param array<string, array<string, array<string, mixed>>> $blockTypes
      */
@@ -243,13 +368,12 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function skips_hidden_blocks_and_unknown_fieldset_types(): void
+    public function skips_blocks_marked_hidden(): void
     {
         $content = [
             'blocks' => [
                 ['id' => '1', 'type' => 'text', 'isHidden' => true, 'content' => ['text' => 'Hidden']],
-                ['id' => '2', 'type' => 'unknown', 'isHidden' => false, 'content' => ['text' => 'Unknown']],
-                ['id' => '3', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Visible']],
+                ['id' => '2', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Visible']],
             ],
         ];
         $fields = [
@@ -258,8 +382,28 @@ final class CollectorTest extends TestCase
             ]),
         ];
 
-        $collector = new Collector($fields, self::defaultConfig());
-        $result = $collector->collect($content);
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Visible', $result->translations[0]->unit->text);
+    }
+
+    #[Test]
+    public function skips_blocks_with_unknown_fieldset_type(): void
+    {
+        $content = [
+            'blocks' => [
+                ['id' => '1', 'type' => 'unknown', 'isHidden' => false, 'content' => ['text' => 'Unknown']],
+                ['id' => '2', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Visible']],
+            ],
+        ];
+        $fields = [
+            'blocks' => self::blocksField([
+                'text' => ['text' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
 
         $this->assertCount(1, $result->translations);
         $this->assertSame('Visible', $result->translations[0]->unit->text);
@@ -351,6 +495,42 @@ final class CollectorTest extends TestCase
         $result = $collector->collect($content);
 
         $this->assertCount(0, $result->translations);
+    }
+
+    #[Test]
+    public function skips_content_keys_without_blueprint_field(): void
+    {
+        $content = ['title' => 'Hello', 'orphan' => 'No blueprint here'];
+        $fields = ['title' => self::field(['type' => 'text'])];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Hello', $result->translations[0]->unit->text);
+    }
+
+    #[Test]
+    public function translates_remaining_fields_when_some_are_skippable(): void
+    {
+        $content = [
+            'title' => 'Hello',
+            'price' => '49.99',
+            'url' => 'https://example.com',
+            'body' => 'World',
+        ];
+        $fields = [
+            'title' => self::field(['type' => 'text']),
+            'price' => self::field(['type' => 'text']),
+            'url' => self::field(['type' => 'text']),
+            'body' => self::field(['type' => 'text']),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertSame(
+            ['Hello', 'World'],
+            array_map(fn ($t) => $t->unit->text, $result->translations),
+        );
     }
 
     /** @return array<string, array{0: string, 1: mixed}> */

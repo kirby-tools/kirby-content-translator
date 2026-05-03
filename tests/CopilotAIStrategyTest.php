@@ -82,7 +82,7 @@ final class CopilotAIStrategyTest extends TestCase
     {
         new App([
             'options' => [
-                'johannschopplich.content-translator' => ['AI' => ['systemPrompt' => 'from config']],
+                'johannschopplich.content-translator' => ['ai' => ['systemPrompt' => 'from config']],
             ],
         ]);
 
@@ -103,7 +103,7 @@ final class CopilotAIStrategyTest extends TestCase
     {
         new App([
             'options' => [
-                'johannschopplich.content-translator' => ['AI' => ['systemPrompt' => 'from config']],
+                'johannschopplich.content-translator' => ['ai' => ['systemPrompt' => 'from config']],
             ],
         ]);
 
@@ -309,7 +309,7 @@ final class CopilotAIStrategyTest extends TestCase
         $strategy = new CopilotAIStrategy(client: new Client());
 
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessage('Missing API key: johannschopplich.copilot.providers.openai.apiKey');
+        $this->expectExceptionMessage('Missing API key in "johannschopplich.copilot.providers.openai.apiKey"');
 
         $strategy->execute(
             units: [new TranslationUnit('Hello', TranslationMode::Batch, 'a')],
