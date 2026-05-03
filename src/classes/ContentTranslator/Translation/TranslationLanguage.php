@@ -17,11 +17,11 @@ final readonly class TranslationLanguage
     ) {
     }
 
-    public static function fromCode(string $code): self
+    public static function fromCode(string $code): static
     {
         $language = App::instance()->languages()->find($code);
 
-        return new self(
+        return new static(
             code: $code,
             name: $language?->name() ?? $code,
         );

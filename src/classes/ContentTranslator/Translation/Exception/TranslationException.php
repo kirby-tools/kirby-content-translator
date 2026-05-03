@@ -21,19 +21,20 @@ class TranslationException extends Exception
         int $unitsAttempted,
         int $unitsTranslated = 0,
     ) {
-        parent::__construct(
-            message: sprintf(
+        // TODO: Drop K4 compat in v4 – use named args (message:, details:) once Kirby 5 is the floor
+        parent::__construct([
+            'fallback' => sprintf(
                 '%s strategy failed: %s (%d/%d units translated)',
                 $strategy,
                 $reason,
                 $unitsTranslated,
                 $unitsAttempted,
             ),
-            details: [
+            'details' => [
                 'strategy' => $strategy,
                 'unitsAttempted' => $unitsAttempted,
                 'unitsTranslated' => $unitsTranslated,
             ],
-        );
+        ]);
     }
 }

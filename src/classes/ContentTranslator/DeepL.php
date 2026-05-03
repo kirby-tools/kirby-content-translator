@@ -181,7 +181,7 @@ final class DeepL
         return $response;
     }
 
-    private function withRetry(callable $callback, int $batchSize = 1): mixed
+    private function withRetry(Closure $callback, int $batchSize = 1): mixed
     {
         $attempt = 0;
         while (true) {

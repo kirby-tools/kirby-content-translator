@@ -72,8 +72,9 @@ final class KirbyText
 
         $restore = static function (array $translatedFragments) use ($tagSlots, $expectedLength): string {
             if (count($translatedFragments) !== $expectedLength) {
+                // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
                 throw new LogicException(
-                    message: 'Expected ' . $expectedLength . ' translated fragments, got ' . count($translatedFragments)
+                    'Expected ' . $expectedLength . ' translated fragments, got ' . count($translatedFragments)
                 );
             }
 
