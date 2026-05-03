@@ -89,6 +89,20 @@ describe("splitKirbyText", () => {
       );
     });
 
+    it("translates the main value when config includes `value`", () => {
+      const text = "(callout: Important announcement)";
+      const { fragments, restore } = splitKirbyText(text, {
+        callout: ["value"],
+      });
+
+      expect(fragments).toContain("Important announcement");
+
+      const translated = [...fragments];
+      translated[1] = "Wichtige Mitteilung";
+
+      expect(restore(translated)).toBe("(callout: Wichtige Mitteilung)");
+    });
+
     it("drops out-of-range placeholder indices in translated prose", () => {
       // Translator may hallucinate extra placeholders not present in source
       const text = "Visit (link: /a text: site) for more.";
