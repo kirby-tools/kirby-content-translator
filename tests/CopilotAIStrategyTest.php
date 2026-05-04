@@ -61,6 +61,11 @@ final class CopilotAIStrategyTest extends TestCase
                 }
                 return array_shift($this->responses);
             }
+
+            public function generateText(array $messages): string
+            {
+                throw new RuntimeException('generateText should not be called');
+            }
         };
 
         return new Client(
