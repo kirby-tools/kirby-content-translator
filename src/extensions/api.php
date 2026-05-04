@@ -1,7 +1,9 @@
 <?php
 
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
+use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translator;
+use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\LicensePanel;
@@ -27,6 +29,11 @@ return [
                 }
 
                 $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
+
+                if (class_exists(CopilotClient::class)) {
+                    $config['ai'] ??= [];
+                    $config['ai']['systemPrompt'] = CopilotAIStrategy::resolveDefaultSystemPrompt();
+                }
 
                 // Keep backwards compatibility with Kirby 4
                 // TODO: Deprecated, remove in Kirby 6

@@ -201,27 +201,6 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("system prompt resolution", () => {
-    it("uses the default system prompt when no option is provided", async () => {
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Hallo"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-      ];
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(mockStreamText).toHaveBeenCalledWith(
-        expect.objectContaining({
-          systemPrompt: expect.stringContaining("professional translator"),
-        }),
-      );
-    });
-  });
-
   describe("when copilot is unavailable", () => {
     it("throws when copilot is not available", async () => {
       const { resolveCopilot } =
