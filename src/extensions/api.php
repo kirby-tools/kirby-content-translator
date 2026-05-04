@@ -1,7 +1,7 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
+use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use JohannSchopplich\KirbyTools\FieldResolver;

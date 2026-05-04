@@ -62,9 +62,6 @@ final readonly class CopilotAIStrategy implements Strategy
             return [];
         }
 
-        // Note: TranslationMode::Single is intentionally ignored — LLM batching
-        // preserves per-item context, so table cells can ride along with other
-        // units in the same chunk without losing fidelity.
         $client = $this->client();
         $client->requireApiKey();
 

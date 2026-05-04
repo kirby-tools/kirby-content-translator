@@ -114,7 +114,7 @@ describe("collectTranslations", () => {
       expect(translations[0]!.unit.text).toBe("Red | Green | Blue");
     });
 
-    it("collects table cells as single mode", () => {
+    it("collects table cells as batch mode", () => {
       const content = {
         table: [
           ["A", "B"],
@@ -129,7 +129,7 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(4);
-      expect(translations.every((t) => t.unit.mode === "single")).toBe(true);
+      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
       expect(translations.map((t) => t.unit.text)).toEqual([
         "A",
         "B",
@@ -236,6 +236,58 @@ describe("collectTranslations", () => {
 
       expect(translations).toHaveLength(1);
       expect(translations[0]!.unit.text).toBe("Nested");
+    });
+
+    it("translates table cells inside block content", () => {
+      const content = {
+        blocks: [
+          {
+            id: "1",
+            type: "table",
+            isHidden: false,
+            content: {
+              table: [
+                ["A", "B"],
+                ["C", "D"],
+              ],
+              caption: "Caption",
+            },
+          },
+        ],
+      };
+      const fields = {
+        blocks: blocksField("blocks", {
+          table: {
+            table: field({ type: "table", name: "table" }),
+            caption: field({ type: "writer", name: "caption" }),
+          },
+        }),
+      };
+
+      const { translations, finalizers } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+      });
+
+      expect(translations).toHaveLength(5);
+      expect(translations.map((t) => t.unit.text)).toEqual([
+        "A",
+        "B",
+        "C",
+        "D",
+        "Caption",
+      ]);
+      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
+
+      const replacements = ["1", "2", "3", "4", "Untertitel"];
+      for (const [i, t] of translations.entries()) t.apply(replacements[i]!);
+      for (const finalize of finalizers) finalize();
+
+      expect(content.blocks[0]!.content.table).toEqual([
+        ["1", "2"],
+        ["3", "4"],
+      ]);
+      expect(content.blocks[0]!.content.caption).toBe("Untertitel");
     });
 
     it("traverses blocks fields recursively", () => {

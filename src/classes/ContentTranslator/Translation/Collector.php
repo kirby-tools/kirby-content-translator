@@ -124,6 +124,7 @@ final class Collector
                     $node[$fieldName] = $translation;
                 },
             );
+
             return;
         }
 
@@ -152,6 +153,7 @@ final class Collector
             $this->finalizers[] = function () use (&$node, $fieldName, $restore, &$translatedFragments): void {
                 $node[$fieldName] = $restore($translatedFragments);
             };
+
             return;
         }
 
@@ -159,10 +161,12 @@ final class Collector
             if (!is_string($value) || TextFilter::shouldSkip($value)) {
                 return;
             }
+
             $items = Str::split($value, ',');
             if ($items === []) {
                 return;
             }
+
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: implode(' | ', $items),
@@ -173,11 +177,49 @@ final class Collector
                     $node[$fieldName] = implode(', ', array_map('trim', explode('|', $translation)));
                 },
             );
+
             return;
         }
 
         if ($fieldType === 'table') {
-            $this->collectFromTableField($node, $fieldName, $value);
+            $shouldReencode = is_string($value);
+            if ($shouldReencode) {
+                try {
+                    $node[$fieldName] = Data::decode($value, 'yaml');
+                } catch (Throwable) {
+                    // Tolerate malformed third-party YAML
+                    return;
+                }
+            }
+            if (!is_array($node[$fieldName])) {
+                return;
+            }
+
+            foreach ($node[$fieldName] as $rowIndex => $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                foreach ($row as $colIndex => $cell) {
+                    if (!is_string($cell) || trim($cell) === '') {
+                        continue;
+                    }
+                    $this->translations[] = new CollectedTranslation(
+                        unit: new TranslationUnit(
+                            text: $cell,
+                            mode: TranslationMode::Batch,
+                            fieldKey: $fieldName . '[' . $rowIndex . '][' . $colIndex . ']',
+                        ),
+                        writeBack: function (string $translation) use (&$node, $fieldName, $rowIndex, $colIndex): void {
+                            $node[$fieldName][$rowIndex][$colIndex] = $translation;
+                        },
+                    );
+                }
+            }
+
+            if ($shouldReencode) {
+                $this->queueEncode($node, $fieldName, 'yaml');
+            }
+
             return;
         }
 
@@ -189,16 +231,20 @@ final class Collector
             if (!is_array($node[$fieldName])) {
                 return;
             }
+
             foreach ($node[$fieldName] as &$item) {
                 if (!is_array($item)) {
                     continue;
                 }
                 $this->collectFromObject($item, $field['fields'] ?? []);
             }
+
             unset($item);
+
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'yaml');
             }
+
             return;
         }
 
@@ -210,10 +256,13 @@ final class Collector
             if (!is_array($node[$fieldName]) || !A::isAssociative($node[$fieldName])) {
                 return;
             }
+
             $this->collectFromObject($node[$fieldName], $field['fields'] ?? []);
+
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'yaml');
             }
+
             return;
         }
 
@@ -225,7 +274,9 @@ final class Collector
             if (!is_array($node[$fieldName])) {
                 return;
             }
+
             $fieldsets = $field['fieldsets'] ?? [];
+
             foreach ($node[$fieldName] as &$block) {
                 if (!self::isBlockTranslatable($block)) {
                     continue;
@@ -236,10 +287,13 @@ final class Collector
                 $blockFields = self::flattenTabFields($fieldsets, $block);
                 $this->collectFromObject($block['content'], $blockFields);
             }
+
             unset($block);
+
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'json');
             }
+
             return;
         }
 
@@ -251,6 +305,7 @@ final class Collector
             if (!is_array($node[$fieldName])) {
                 return;
             }
+
             $fieldsets = $field['fieldsets'] ?? [];
             foreach (array_keys($node[$fieldName]) as $layoutIndex) {
                 foreach (array_keys($node[$fieldName][$layoutIndex]['columns'] ?? []) as $columnIndex) {
@@ -270,6 +325,7 @@ final class Collector
                     }
                 }
             }
+
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'json');
             }
@@ -305,62 +361,12 @@ final class Collector
     {
         $blockFields = [];
         $tabs = $fieldsets[$block['type']]['tabs'] ?? [];
+
         foreach ($tabs as $tab) {
             $blockFields = array_merge($blockFields, $tab['fields'] ?? []);
         }
+
         return $blockFields;
     }
 
-    /**
-     * @param array<string, mixed> $node
-     */
-    private function collectFromTableField(array &$node, string $fieldName, mixed $value): void
-    {
-        $isYamlEncoded = false;
-        if (is_string($value)) {
-            try {
-                $value = Data::decode($value, 'yaml');
-            } catch (Throwable) {
-                return;
-            }
-            $isYamlEncoded = true;
-        }
-
-        if (!is_array($value)) {
-            return;
-        }
-
-        $node[$fieldName] = $value;
-
-        foreach ($node[$fieldName] as $rowIndex => $row) {
-            if (!is_array($row)) {
-                continue;
-            }
-
-            foreach ($row as $colIndex => $cell) {
-                if (!is_string($cell) || trim($cell) === '') {
-                    continue;
-                }
-
-                $this->translations[] = new CollectedTranslation(
-                    unit: new TranslationUnit(
-                        text: $cell,
-                        mode: TranslationMode::Single,
-                        fieldKey: $fieldName . '[' . $rowIndex . '][' . $colIndex . ']',
-                    ),
-                    writeBack: function (string $translation) use (&$node, $fieldName, $rowIndex, $colIndex): void {
-                        $node[$fieldName][$rowIndex][$colIndex] = $translation;
-                    },
-                );
-            }
-        }
-
-        if ($isYamlEncoded) {
-            $this->finalizers[] = function () use (&$node, $fieldName): void {
-                if (is_array($node[$fieldName])) {
-                    $node[$fieldName] = Data::encode($node[$fieldName], 'yaml');
-                }
-            };
-        }
-    }
 }

@@ -125,7 +125,7 @@ final class CollectorTest extends TestCase
             array_map(fn ($t) => $t->unit->text, $result->translations),
         );
         foreach ($result->translations as $t) {
-            $this->assertSame(TranslationMode::Single, $t->unit->mode);
+            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
 
         $result->translations[0]->writeBack->__invoke('1');
@@ -154,6 +154,56 @@ final class CollectorTest extends TestCase
         }
 
         $this->assertSame([['X', 'Y']], \Kirby\Data\Data::decode($content['table'], 'yaml'));
+    }
+
+    #[Test]
+    public function translates_table_cells_inside_block_content(): void
+    {
+        $content = [
+            'blocks' => [
+                [
+                    'id' => '1',
+                    'type' => 'table',
+                    'isHidden' => false,
+                    'content' => [
+                        'table' => [['A', 'B'], ['C', 'D']],
+                        'caption' => 'Caption',
+                    ],
+                ],
+            ],
+        ];
+        $fields = [
+            'blocks' => self::blocksField([
+                'table' => [
+                    'table' => self::field(['type' => 'table']),
+                    'caption' => self::field(['type' => 'writer']),
+                ],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertCount(5, $result->translations);
+        $this->assertSame(
+            ['A', 'B', 'C', 'D', 'Caption'],
+            array_map(fn ($t) => $t->unit->text, $result->translations),
+        );
+        foreach ($result->translations as $t) {
+            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
+        }
+
+        $replacements = ['1', '2', '3', '4', 'Untertitel'];
+        foreach ($result->translations as $i => $t) {
+            $t->writeBack->__invoke($replacements[$i]);
+        }
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $blocks = \Kirby\Data\Data::decode($content['blocks'], 'json');
+        $this->assertSame([['1', '2'], ['3', '4']], $blocks[0]['content']['table']);
+        $this->assertSame('Untertitel', $blocks[0]['content']['caption']);
     }
 
     #[Test]

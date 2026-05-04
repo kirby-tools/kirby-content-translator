@@ -233,7 +233,7 @@ function collectFromTableField(
       context.translations.push({
         unit: {
           text: cell,
-          mode: "single",
+          mode: "batch",
           fieldKey: `${key}[${rowIndex}][${colIndex}]`,
         },
         apply(translatedText) {
