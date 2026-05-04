@@ -25,11 +25,17 @@ return [
         $cli->success('Selected parent page: ' . $response);
 
         $page = $siteChildren->findBy('title', $response);
+        if ($page === null) {
+            $cli->error('Page "' . $response . '" not found.');
+            return;
+        }
 
         foreach ($page->children()->listed() as $child) {
             $translator = $child->translator();
             $translator->copyContent($targetLanguage, $defaultLanguage);
             $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage);
+            $translator->translateTitle($targetLanguage, $targetLanguage, $defaultLanguage);
+            // $translator->translateSlug($targetLanguage, $targetLanguage, $defaultLanguage);
             $cli->out('Translated ' . $child->id());
         }
 

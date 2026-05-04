@@ -25,6 +25,10 @@ return [
         $cli->success('Selected parent page: ' . $response);
 
         $page = $siteChildren->findBy('title', $response);
+        if ($page === null) {
+            $cli->error('Page "' . $response . '" not found.');
+            return;
+        }
 
         foreach ($page->children()->listed() as $child) {
             foreach ($child->files() as $file) {

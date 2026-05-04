@@ -13,12 +13,6 @@ return [
     ],
     'command' => static function (CLI $cli): void {
         $kirby = $cli->kirby();
-
-        if (!$kirby->multilang()) {
-            $cli->error('This command requires a multi-language Kirby setup.');
-            return;
-        }
-
         $defaultLanguage = $kirby->defaultLanguage()->code();
         $targetLanguage = $cli->arg('language');
 
@@ -42,12 +36,9 @@ return [
         // `translator()` is a page method registered by the kirby-content-translator plugin.
         $translator = $page->translator();
         $translator->copyContent($targetLanguage, $defaultLanguage);
-        $translator->translateContent(
-            contentLanguageCode: $targetLanguage,
-            toLanguageCode: $targetLanguage,
-            fromLanguageCode: $defaultLanguage,
-            strategy: $strategy,
-        );
+        $translator->translateContent($targetLanguage, $targetLanguage, $defaultLanguage, $strategy);
+        $translator->translateTitle($targetLanguage, $targetLanguage, $defaultLanguage);
+        // $translator->translateSlug($targetLanguage, $targetLanguage, $defaultLanguage);
 
         $cli->success('Successfully translated ' . $page->id() . ' via AI');
     }
