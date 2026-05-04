@@ -2,18 +2,20 @@
 
 # Kirby Content Translator
 
-The Kirby Content Translator plugin empowers editors to translate content from one language to another with a single click. Add the Panel view button to any page, file, or site blueprint and translate content directly in the Kirby Panel using [DeepL](https://www.deepl.com) or AI.
+The Kirby Content Translator plugin empowers editors to translate content from one language to another with a single click. Add the **Panel view button** to any page, file, or site blueprint and translate content directly in the Kirby Panel using [DeepL](https://www.deepl.com) or any [Kirby Copilot](https://kirby.tools/copilot) provider for context-aware AI translations.
+
+For developers, the plugin offers a flexible PHP API and hooks for custom translation workflows.
 
 ## Features
 
-- 🖱️ **One-Click Translation**: Translate content directly from the Panel header with the view button.
-- 📦 **Batch Translation**: Translate to multiple languages simultaneously from the default language.
-- 📄 **All Content Types**: Translate pages, files (metadata), and site content.
-- 🧩 **Structure-Aware**: Supports blocks, layouts, structures, objects, and nested fields.
-- 🏷️ **KirbyTags Support**: Selectively translate KirbyTag attributes while preserving URLs and UUIDs.
-- ⚡ **PHP API**: Automate translations with CLI commands or custom workflows.
-- 🪝 **Hooks System**: Customize translation behavior with before/after hooks.
-- 🔌 **Multiple Providers**: Built-in DeepL support, AI translation via Kirby Copilot, or custom translation services.
+- 🖱️ **One-Click Translation**: View button in any page, file, or site blueprint.
+- 📦 **Batch Translation**: All secondary languages at once, from the default.
+- 📄 **All Content Types**: Pages, files (metadata), and site content.
+- 🧩 **Structure-Aware**: `blocks`, `layout`, `structure`, `object`, and nested fields.
+- 🏷️ **KirbyTags**: Translate tag attributes selectively – URLs and UUIDs preserved.
+- ⚡ **PHP API**: Drive translations from CLI or custom workflows – see [PHP classes](https://kirby.tools/docs/content-translator/php-classes).
+- 🪝 **Hooks**: `before`, `after`, and `warning` for preprocessing, postprocessing, and observability.
+- 🔌 **Pluggable Strategies**: DeepL, [AI via Copilot](https://kirby.tools/docs/content-translator/providers/ai-translation), or your own [custom strategy](https://kirby.tools/docs/content-translator/providers/custom-translator).
 
 ## Licensing
 
