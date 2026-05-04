@@ -123,7 +123,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function constructor_throws_when_api_key_is_missing(): void
+    public function throws_when_constructor_lacks_api_key(): void
     {
         $this->appWithDeepLConfig(apiKey: null);
 
@@ -216,7 +216,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function translate_many_chunks_at_50_texts(): void
+    public function translate_many_chunks_when_text_count_exceeds_per_request_limit(): void
     {
         $this->appWithDeepLConfig();
 
@@ -268,7 +268,7 @@ final class DeepLClientTest extends TestCase
 
     #[Test]
     #[DataProvider('retriableStatusCodes')]
-    public function retries_on_retriable_status_until_success(int $statusCode): void
+    public function retries_on_retriable_status_then_succeeds(int $statusCode): void
     {
         $this->appWithDeepLConfig();
 
@@ -282,7 +282,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function throws_with_attempt_count_after_max_retries(): void
+    public function throws_with_attempt_count_after_exhausting_max_retries(): void
     {
         $this->appWithDeepLConfig();
 

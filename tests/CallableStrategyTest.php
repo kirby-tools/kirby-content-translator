@@ -79,7 +79,7 @@ final class CallableStrategyTest extends TestCase
     }
 
     #[Test]
-    public function propagates_exceptions_from_the_closure(): void
+    public function propagates_exceptions_from_closure(): void
     {
         $strategy = new CallableStrategy(
             static fn (): string => throw new RuntimeException('upstream is down'),

@@ -231,7 +231,7 @@ final class DeepLStrategyTest extends TestCase
     }
 
     #[Test]
-    public function throws_when_zero_units_could_be_translated(): void
+    public function throws_when_no_units_can_be_translated(): void
     {
         $this->appWithDeepLConfig();
 

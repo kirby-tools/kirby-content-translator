@@ -382,7 +382,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translates_text_that_merely_contains_numbers(): void
+    public function translates_text_with_embedded_numbers(): void
     {
         $this->appWithTranslateFn();
         $this->assertSame('[de]Product 123', Translator::translateText('Product 123', 'de'));
@@ -406,7 +406,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translates_text_that_merely_contains_a_url(): void
+    public function translates_text_with_embedded_url(): void
     {
         $this->appWithTranslateFn();
         $this->assertSame('[de]Visit https://example.com today', Translator::translateText('Visit https://example.com today', 'de'));
@@ -451,7 +451,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_content_works_after_copy_from_default_language(): void
+    public function translate_content_recreates_target_translation_when_prior_copy_cleared_it(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -621,7 +621,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function nested_field_names_are_not_checked_against_include_filter(): void
+    public function does_not_check_nested_field_names_against_include_filter(): void
     {
         $app = $this->appWithFilterableFieldsPage();
         $page = $app->page('home');

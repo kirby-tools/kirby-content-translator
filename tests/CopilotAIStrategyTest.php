@@ -78,7 +78,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function system_prompt_from_constructor_wins_over_config(): void
+    public function prefers_constructor_system_prompt_over_config(): void
     {
         new App([
             'options' => [
@@ -99,7 +99,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function config_system_prompt_overrides_default(): void
+    public function overrides_default_system_prompt_with_config(): void
     {
         new App([
             'options' => [
@@ -120,7 +120,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function default_system_prompt_applies_when_neither_ctor_nor_config_set(): void
+    public function applies_default_system_prompt_when_neither_constructor_nor_config_provides_one(): void
     {
         new App();
 
@@ -156,7 +156,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function handles_input_exceeding_single_request_capacity(): void
+    public function chunks_input_when_unit_count_exceeds_batch_size(): void
     {
         new App();
         $captured = [];
@@ -181,7 +181,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function handles_input_exceeding_per_request_character_limit(): void
+    public function chunks_input_when_total_byte_size_exceeds_batch_limit(): void
     {
         new App();
         $captured = [];
@@ -318,7 +318,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function throws_when_zero_units_could_be_translated(): void
+    public function throws_when_no_units_can_be_translated(): void
     {
         new App();
         $captured = [];

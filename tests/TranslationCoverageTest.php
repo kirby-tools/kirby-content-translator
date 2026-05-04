@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Test;
 final class TranslationCoverageTest extends TranslationCoverageTestCase
 {
     #[Test]
-    public function fully_translated_page_returns_100_percent(): void
+    public function returns_full_completion_for_fully_translated_page(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $page = $app->page('fully-translated');
@@ -28,7 +28,7 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
-    public function partially_translated_page_counts_only_filled_fields(): void
+    public function counts_only_filled_fields_for_partially_translated_page(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $page = $app->page('partially-translated');
@@ -43,7 +43,7 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
-    public function untranslated_page_returns_zero_translated_fields(): void
+    public function reports_zero_translated_fields_for_untranslated_page(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $page = $app->page('untranslated');

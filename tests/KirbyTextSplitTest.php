@@ -34,7 +34,7 @@ final class KirbyTextSplitTest extends TestCase
     }
 
     #[Test]
-    public function handles_nested_parentheses_inside_attr_value(): void
+    public function splits_and_restores_attr_value_with_nested_parentheses(): void
     {
         $text = '(link: /a text: our (awesome) site)';
         ['fragments' => $fragments, 'restore' => $restore] = KirbyText::split($text, ['link' => ['text']]);
@@ -86,7 +86,7 @@ final class KirbyTextSplitTest extends TestCase
     }
 
     #[Test]
-    public function preserves_untranslated_attrs_when_only_one_attr_value_is_translated(): void
+    public function preserves_untranslated_attrs_when_caller_translates_only_one_attr_value(): void
     {
         $text = '(image: hero.jpg alt: Sunset caption: Mountain view)';
         ['fragments' => $fragments, 'restore' => $restore] = KirbyText::split($text, ['image' => ['alt']]);

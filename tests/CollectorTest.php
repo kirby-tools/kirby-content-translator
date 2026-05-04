@@ -93,7 +93,7 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function tags_string_splits_per_item_and_round_trips_in_same_shape(): void
+    public function splits_tags_string_per_item_and_round_trips_in_same_shape(): void
     {
         $content = ['colors' => 'Red, Green, Blue'];
         $fields = ['colors' => self::field(['type' => 'tags'])];
@@ -111,7 +111,7 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function each_table_cell_translates_independently(): void
+    public function translates_each_table_cell_independently(): void
     {
         $content = ['table' => [['A', 'B'], ['C', 'D']]];
         $fields = ['table' => self::field(['type' => 'table'])];

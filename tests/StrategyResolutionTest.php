@@ -81,7 +81,7 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function strategy_config_closure_is_wrapped_in_callable_strategy(): void
+    public function strategy_config_closure_resolves_to_callable_strategy(): void
     {
         new App([
             'options' => [
@@ -95,7 +95,7 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function strategy_config_strategy_instance_is_returned_as_is(): void
+    public function strategy_config_strategy_instance_resolves_to_itself(): void
     {
         $configuredStrategy = new class () implements Strategy {
             public function execute(array $units, ExecutionOptions $options): array
