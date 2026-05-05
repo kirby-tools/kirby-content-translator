@@ -18,6 +18,7 @@
 /playground/site/plugins/kirby-copilot
 /playground/public/media/*
 /playground/storage/accounts/*
+!/playground/storage/accounts/playgrnd
 /playground/storage/cache/*
 /playground/storage/sessions/*
 
