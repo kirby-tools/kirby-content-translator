@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad
+class ComposerStaticInitaee6441bce1c14e24aa3192f4ee10b82
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -43,6 +43,19 @@ class ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
         'JohannSchopplich\\ContentTranslator\\TranslationCoverage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslationCoverage.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\CollectedTranslation' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectedTranslation.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Collector' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Collector.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\CollectorResult' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectorResult.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Exception\\TranslationException' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Exception/TranslationException.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\ExecutionOptions' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/ExecutionOptions.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CallableStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/CallableStrategy.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CopilotAIStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/CopilotAIStrategy.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\DeepLStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/DeepLStrategy.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\Strategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategy.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\TextFilter' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TextFilter.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\TranslationLanguage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationLanguage.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\TranslationMode' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationMode.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\TranslationUnit' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationUnit.php',
         'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
         'JohannSchopplich\\ContentTranslator\\TranslatorConfig' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslatorConfig.php',
         'JohannSchopplich\\KirbyTools\\FieldNormalizer' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
@@ -68,9 +81,9 @@ class ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit5610e6ca328e5be9d0801825ba6134ad::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitaee6441bce1c14e24aa3192f4ee10b82::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitaee6441bce1c14e24aa3192f4ee10b82::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitaee6441bce1c14e24aa3192f4ee10b82::$classMap;
 
         }, null, ClassLoader::class);
     }

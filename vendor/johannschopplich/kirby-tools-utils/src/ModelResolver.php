@@ -39,14 +39,8 @@ final class ModelResolver
 
         return match (true) {
             // File patterns: account/files/*, pages/xxx/files/*, site/files/*, users/xxx/files/*
-            preg_match('!(account|pages\/[^\/]+|site|users\/[^\/]+)\/files\/(.+)!', $path, $matches) => Find::file(
-                match (true) {
-                    str_starts_with($matches[1], 'pages/') => substr($matches[1], 6),
-                    str_starts_with($matches[1], 'users/') => substr($matches[1], 6),
-                    default => $matches[1]
-                },
-                $matches[2]
-            ),
+            preg_match('!(account|pages\/[^\/]+|site|users\/[^\/]+)\/files\/(.+)!', $path, $matches) === 1
+                => Find::file($matches[1], $matches[2]),
             // Page pattern: pages/xxx
             str_starts_with($path, 'pages/') => Find::page(substr($path, 6)),
             // Site
