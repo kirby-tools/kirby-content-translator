@@ -32,6 +32,40 @@ columns:
           template: image
       text:
         type: blocks
+        fieldsets:
+          text:
+            label: Text
+            type: text
+            icon: text
+            fields:
+              text:
+                type: textarea
+                buttons:
+                  - headlines
+                  - "|"
+                  - bold
+                  - italic
+                  - link
+                  - email
+                  - file
+          heading:
+            label: Heading
+            type: heading
+            icon: title
+            fields:
+              text:
+                type: text
+                font: serif
+              level:
+                label: Level
+                type: select
+                default: h2
+                options:
+                  h2: H2
+                  h3: H3
+                width: 1/6
+          stats-grid:
+            extends: blocks/stats-grid
 
   - width: 1/3
     sections:
