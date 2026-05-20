@@ -32,6 +32,10 @@ return [
             ],
             'anthropic' => [
                 'apiKey' => env('ANTHROPIC_API_KEY', 'YOUR_API_KEY')
+            ],
+            'mistral' => [
+                'model' => 'mistral-small-latest',
+                'apiKey' => env('MISTRAL_API_KEY', 'YOUR_API_KEY')
             ]
         ]
     ],

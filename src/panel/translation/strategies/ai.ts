@@ -57,7 +57,7 @@ export class AIStrategy implements TranslationStrategy {
 
       try {
         const schema = z.strictObject({
-          translations: z.array(z.string()),
+          translations: z.array(z.string()).check(z.length(chunk.length)),
         });
 
         const { output: finalOutput } = await streamText({
@@ -111,13 +111,16 @@ function buildTranslationPrompt(
   options: TranslationExecutionOptions,
 ) {
   const { sourceLanguage, targetLanguage } = options;
+  const sourceName = sourceLanguage?.name ?? "the source language";
+  const targetName = targetLanguage.name;
 
-  return [
-    `Translate ${sourceLanguage ? `from ${sourceLanguage.name} ` : ""}to ${targetLanguage.name}.`,
-    `<texts>
-${texts.map((text, i) => `<item index="${i}">${text}</item>`).join("\n")}
-</texts>`,
-  ].join("\n\n");
+  const payload = JSON.stringify({
+    sourceLanguage: sourceName,
+    targetLanguage: targetName,
+    texts,
+  });
+
+  return `Translate each string in the \`texts\` array from ${sourceName} to ${targetName}.\n\n${payload}`;
 }
 
 function chunkUnitsWithIndices<T extends TranslationUnit>(
