@@ -34,7 +34,7 @@ return [
                 'apiKey' => env('ANTHROPIC_API_KEY', 'YOUR_API_KEY')
             ],
             'mistral' => [
-                'model' => 'mistral-small-latest',
+                'model' => 'mistral-medium-latest',
                 'apiKey' => env('MISTRAL_API_KEY', 'YOUR_API_KEY')
             ]
         ]
