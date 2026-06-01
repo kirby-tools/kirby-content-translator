@@ -12,7 +12,11 @@ $packageName = 'johannschopplich/kirby-content-translator';
 $pluginConfig = [
     'name' => 'johannschopplich/content-translator',
     'extends' => [
+        'options' => [
+            'cache' => true
+        ],
         'api' => require __DIR__ . '/src/extensions/api.php',
+        'hooks' => require __DIR__ . '/src/extensions/hooks.php',
         'sections' => require __DIR__ . '/src/extensions/sections.php',
         'translations' => require __DIR__ . '/src/extensions/translations.php',
         'siteMethods' => [
