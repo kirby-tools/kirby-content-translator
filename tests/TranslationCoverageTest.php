@@ -135,4 +135,41 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $this->assertSame(1, $pageCoverage['de']['totalFields']);
         $this->assertSame(1, $pageCoverage['de']['translatedFields']);
     }
+
+    #[Test]
+    public function caches_page_coverage_in_plugin_bucket(): void
+    {
+        $app = $this->appWithMixedCoverageFixture();
+        $page = $app->page('fully-translated');
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $coverage->pageCoverage($page);
+
+        $this->assertNotNull($app->cache('johannschopplich.content-translator')->get('coverage.fully-translated'));
+        $this->assertNull($app->cache('pages')->get('coverage.fully-translated'));
+    }
+
+    #[Test]
+    public function caches_page_coverage_under_uuid_when_available(): void
+    {
+        $app = $this->appWithUuidPageFixture();
+        $page = $app->page('home');
+        $coverage = new TranslationCoverage(new Pages([$page]));
+        $coverage->pageCoverage($page);
+
+        $cache = $app->cache('johannschopplich.content-translator');
+        $this->assertNotNull($cache->get('coverage.abc123'));
+        $this->assertNull($cache->get('coverage.home'));
+    }
+
+    #[Test]
+    public function memoises_translatable_keys_per_blueprint(): void
+    {
+        $app = $this->appWithMixedCoverageFixture();
+        $coverage = new TranslationCoverage($app->site()->index());
+        $coverage->treeCoverage();
+
+        $memo = (new ReflectionProperty($coverage, 'translatableKeysByBlueprint'))->getValue($coverage);
+
+        $this->assertSame(['pages/default', 'pages/no-translatable'], array_keys($memo));
+    }
 }

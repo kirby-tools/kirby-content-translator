@@ -29,10 +29,20 @@ abstract class TranslationCoverageTestCase extends TestCase
         ];
     }
 
+    protected static function pluginOptions(): array
+    {
+        return [
+            'johannschopplich.content-translator' => [
+                'cache' => ['type' => 'memory'],
+            ],
+        ];
+    }
+
     protected function appWithLanguagesOnly(): App
     {
         return new App([
             'languages' => self::threeLanguages(),
+            'options' => self::pluginOptions(),
         ]);
     }
 
@@ -40,6 +50,7 @@ abstract class TranslationCoverageTestCase extends TestCase
     {
         return new App([
             'languages' => self::threeLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => [
@@ -127,6 +138,7 @@ abstract class TranslationCoverageTestCase extends TestCase
     {
         return new App([
             'languages' => self::threeLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -158,6 +170,7 @@ abstract class TranslationCoverageTestCase extends TestCase
     {
         return new App([
             'languages' => self::twoLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['blocks' => ['type' => 'blocks', 'translate' => true]],
@@ -184,6 +197,7 @@ abstract class TranslationCoverageTestCase extends TestCase
     {
         return new App([
             'languages' => self::twoLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -208,6 +222,7 @@ abstract class TranslationCoverageTestCase extends TestCase
     {
         return new App([
             'languages' => self::twoLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => [
@@ -231,10 +246,39 @@ abstract class TranslationCoverageTestCase extends TestCase
         ]);
     }
 
+    protected function appWithUuidPageFixture(): App
+    {
+        return new App([
+            'languages' => self::twoLanguages(),
+            'options' => self::pluginOptions(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'uuid' => 'abc123',
+                                'text' => 'Hello',
+                            ]],
+                            ['code' => 'de', 'content' => ['text' => 'Hallo']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     protected function appWithNestedPagesFixture(): App
     {
         return new App([
             'languages' => self::twoLanguages(),
+            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],

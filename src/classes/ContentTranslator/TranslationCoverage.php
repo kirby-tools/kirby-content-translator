@@ -11,19 +11,23 @@ use Kirby\Cms\Page;
 use Kirby\Cms\Pages;
 use Kirby\Content\Content;
 use Kirby\Exception\LogicException;
+use Kirby\Uuid\PageUuid;
 
-final readonly class TranslationCoverage
+final class TranslationCoverage
 {
     private const TREE_INDEX_TTL_MINUTES = 5;
 
-    private App $kirby;
-    private TranslatorConfig $config;
+    private readonly App $kirby;
+    private readonly TranslatorConfig $config;
+
+    /** @var array<string, list<string>> Blueprint name → translatable field keys */
+    private array $translatableKeysByBlueprint = [];
 
     /**
      * @throws LogicException When called on a single-language Kirby installation.
      */
     public function __construct(
-        private Pages $pages,
+        private readonly Pages $pages,
         array $options = []
     ) {
         $this->kirby = App::instance();
@@ -94,8 +98,8 @@ final readonly class TranslationCoverage
      */
     public function pageCoverage(Page $page): array
     {
-        return $this->kirby->cache('pages')->getOrSet(
-            'johannschopplich.content-translator.coverage.' . $page->id(),
+        return $this->kirby->cache('johannschopplich.content-translator')->getOrSet(
+            'coverage.' . self::cacheKey($page),
             function () use ($page): array {
                 $defaultLanguage = $this->kirby->defaultLanguage();
                 $translatableFields = $this->translatableFields($page, $defaultLanguage);
@@ -125,10 +129,15 @@ final readonly class TranslationCoverage
         );
     }
 
+    public static function cacheKey(Page $page): string
+    {
+        return PageUuid::retrieveId($page) ?? $page->id();
+    }
+
     private function treeIndex(): array
     {
-        return $this->kirby->cache('pages')->getOrSet(
-            'johannschopplich.content-translator.treeIndex',
+        return $this->kirby->cache('johannschopplich.content-translator')->getOrSet(
+            'treeIndex',
             function (): array {
                 $defaultLanguage = $this->kirby->defaultLanguage();
                 $languages = [];
@@ -256,20 +265,44 @@ final readonly class TranslationCoverage
         }
 
         $defaultContent = new Content(parent: $page, data: $fields, normalize: false);
-        $blueprintFields = FieldResolver::resolveModelFields($page);
         $translatableFields = [];
 
-        foreach ($blueprintFields as $key => $props) {
-            if (!$this->config->isTranslatable($key, $props)) {
-                continue;
-            }
-
+        foreach ($this->translatableKeys($page) as $key) {
             if ($defaultContent->get($key)->isNotEmpty()) {
                 $translatableFields[] = $key;
             }
         }
 
         return $translatableFields;
+    }
+
+    /**
+     * Resolves and memoises the blueprint-level translatable field keys
+     * per blueprint name, so Form construction runs once per blueprint
+     * instead of once per page.
+     *
+     * @return list<string>
+     */
+    private function translatableKeys(Page $page): array
+    {
+        return $this->translatableKeysByBlueprint[$page->blueprint()->name()]
+            ??= $this->resolveTranslatableKeys($page);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function resolveTranslatableKeys(Page $page): array
+    {
+        $keys = [];
+
+        foreach (FieldResolver::resolveModelFields($page) as $key => $props) {
+            if ($this->config->isTranslatable($key, $props)) {
+                $keys[] = $key;
+            }
+        }
+
+        return $keys;
     }
 
     /**
