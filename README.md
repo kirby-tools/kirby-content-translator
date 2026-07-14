@@ -10,8 +10,11 @@ For developers, the plugin offers a flexible PHP API and hooks for custom transl
 
 - 🖱️ **One-Click Translation**: View button in any page, file, or site blueprint.
 - 📦 **Batch Translation**: All secondary languages at once, from the default.
+- 🔁 **Import from Source**: Copy default-language content into a secondary language without translating – one field or all at once.
+- 📊 **Translation Coverage**: A dashboard in the Panel Languages view that surfaces which pages still need translation.
 - 📄 **All Content Types**: Pages, files (metadata), and site content.
 - 🧩 **Blueprint-Aware**: Walks `blocks`, `layout`, `structure`, `object`, and nested fields. `translate: false` is respected at any depth.
+- 🎛️ **Configurable Scope**: Limit translation by field type, or include/exclude specific fields – globally or per section.
 - 🏷️ **KirbyTags**: Translate tag attributes selectively – URLs and UUIDs preserved.
 - ⚡ **PHP API**: Drive translations from CLI or custom workflows – see [PHP classes](https://kirby.tools/docs/content-translator/php-classes).
 - 🪝 **Hooks**: `before`, `after`, and `warning` for preprocessing, postprocessing, and observability.
