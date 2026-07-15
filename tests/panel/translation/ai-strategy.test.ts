@@ -36,8 +36,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "batch", fieldKey: "body" },
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -54,7 +54,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
+        { text: "Test", fieldKey: "title" },
       ];
 
       await strategy.execute(units, {
@@ -76,7 +76,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
+        { text: "Test", fieldKey: "title" },
       ];
 
       await strategy.execute(units, {
@@ -106,8 +106,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: largeText, mode: "batch", fieldKey: "a" },
-        { text: largeText, mode: "batch", fieldKey: "b" },
+        { text: largeText, fieldKey: "a" },
+        { text: largeText, fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -126,8 +126,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "batch", fieldKey: "body" },
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -150,8 +150,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: largeText, mode: "batch", fieldKey: "a" },
-        { text: largeText, mode: "batch", fieldKey: "b" },
+        { text: largeText, fieldKey: "a" },
+        { text: largeText, fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -172,7 +172,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Click <c0/> now", mode: "batch", fieldKey: "body" },
+        { text: "Click <c0/> now", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -190,7 +190,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Click <c0/> now", mode: "batch", fieldKey: "body" },
+        { text: "Click <c0/> now", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -209,7 +209,7 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Test", mode: "batch", fieldKey: "title" },
+        { text: "Test", fieldKey: "title" },
       ];
 
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
@@ -225,8 +225,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "batch", fieldKey: "body" },
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "body" },
       ];
 
       const results = await strategy.execute(units, {
@@ -250,8 +250,8 @@ describe("AIStrategy", () => {
 
       const strategy = new AIStrategy();
       const units: TranslationUnit[] = [
-        { text: largeText, mode: "batch", fieldKey: "a" },
-        { text: largeText, mode: "batch", fieldKey: "b" },
+        { text: largeText, fieldKey: "a" },
+        { text: largeText, fieldKey: "b" },
       ];
 
       const results = await strategy.execute(units, {

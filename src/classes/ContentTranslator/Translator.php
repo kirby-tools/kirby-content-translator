@@ -207,7 +207,6 @@ final class Translator
                             'unit' => $collectedTranslation->unit,
                             'options' => $options,
                         ], 'text'),
-                        mode: $collectedTranslation->unit->mode,
                         fieldKey: $collectedTranslation->unit->fieldKey,
                     ),
                     $result->translations,

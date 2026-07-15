@@ -94,7 +94,6 @@ function collectFromField(
     context.translations.push({
       unit: {
         text,
-        mode: "batch",
         fieldKey: key,
       },
       apply(translatedText) {
@@ -118,7 +117,7 @@ function collectFromField(
 
     for (const [i, fragment] of fragments.entries()) {
       context.translations.push({
-        unit: { text: fragment, mode: "batch", fieldKey: key },
+        unit: { text: fragment, fieldKey: key },
         apply(translatedText) {
           translated[i] = translatedText;
         },
@@ -139,7 +138,6 @@ function collectFromField(
     context.translations.push({
       unit: {
         text,
-        mode: "batch",
         fieldKey: key,
       },
       apply(translatedText) {
@@ -233,7 +231,6 @@ function collectFromTableField(
       context.translations.push({
         unit: {
           text: cell,
-          mode: "batch",
           fieldKey: `${key}[${rowIndex}][${colIndex}]`,
         },
         apply(translatedText) {

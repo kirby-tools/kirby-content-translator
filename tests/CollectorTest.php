@@ -3,7 +3,6 @@
 declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translation\Collector;
-use JohannSchopplich\ContentTranslator\Translation\TranslationMode;
 use JohannSchopplich\ContentTranslator\TranslatorConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -60,7 +59,6 @@ final class CollectorTest extends TestCase
             array_map(fn ($t) => $t->unit->fieldKey, $result->translations),
         );
         foreach ($result->translations as $t) {
-            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
     }
 
@@ -78,7 +76,6 @@ final class CollectorTest extends TestCase
 
         $this->assertCount(2, $result->translations);
         foreach ($result->translations as $t) {
-            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
         $texts = array_map(fn ($t) => $t->unit->text, $result->translations);
         $this->assertContains('site', $texts);
@@ -102,7 +99,6 @@ final class CollectorTest extends TestCase
         $result = $collector->collect($content);
 
         $this->assertCount(1, $result->translations);
-        $this->assertSame(TranslationMode::Batch, $result->translations[0]->unit->mode);
         $this->assertSame('Red | Green | Blue', $result->translations[0]->unit->text);
 
         $result->translations[0]->writeBack->__invoke('Rot | Grün | Blau');
@@ -125,7 +121,6 @@ final class CollectorTest extends TestCase
             array_map(fn ($t) => $t->unit->text, $result->translations),
         );
         foreach ($result->translations as $t) {
-            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
 
         $result->translations[0]->writeBack->__invoke('1');
@@ -190,7 +185,6 @@ final class CollectorTest extends TestCase
             array_map(fn ($t) => $t->unit->text, $result->translations),
         );
         foreach ($result->translations as $t) {
-            $this->assertSame(TranslationMode::Batch, $t->unit->mode);
         }
 
         $replacements = ['1', '2', '3', '4', 'Untertitel'];

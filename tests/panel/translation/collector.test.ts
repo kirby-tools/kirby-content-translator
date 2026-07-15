@@ -27,8 +27,8 @@ describe("collectTranslations", () => {
     fields: {} as Record<string, KirbyFieldProps>,
   };
 
-  describe("translation modes", () => {
-    it("collects text, writer, and list fields as batch mode", () => {
+  describe("field collection", () => {
+    it("collects text, writer, and list fields", () => {
       const content = { title: "Hello", body: "World", items: "List" };
       const fields = {
         title: field({ type: "text", name: "text" }),
@@ -42,11 +42,6 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(3);
-      expect(translations.map((t) => t.unit.mode)).toEqual([
-        "batch",
-        "batch",
-        "batch",
-      ]);
       expect(translations.map((t) => t.unit.text)).toEqual([
         "Hello",
         "World",
@@ -54,7 +49,7 @@ describe("collectTranslations", () => {
       ]);
     });
 
-    it("expands textarea fields into batch units with KirbyTag protection", () => {
+    it("expands textarea fields into units with KirbyTag protection", () => {
       const content = { intro: "Visit (link: /a text: site)" };
       const fields = {
         intro: field({ type: "textarea", name: "textarea" }),
@@ -67,7 +62,6 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(2);
-      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
       expect(translations.map((t) => t.unit.text)).toContain("site");
 
       translations[0]!.apply(translations[0]!.unit.text);
@@ -89,7 +83,6 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0]!.unit.mode).toBe("batch");
       expect(translations[0]!.unit.text).not.toContain("link");
 
       translations[0]!.apply(
@@ -100,7 +93,7 @@ describe("collectTranslations", () => {
       expect(content.description).toBe("Hallo (link: /a text: world)!");
     });
 
-    it("collects tags as batch mode with joined text", () => {
+    it("collects tags with joined text", () => {
       const content = { colors: ["Red", "Green", "Blue"] };
       const fields = { colors: field({ type: "tags", name: "tags" }) };
 
@@ -110,11 +103,10 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(1);
-      expect(translations[0]!.unit.mode).toBe("batch");
       expect(translations[0]!.unit.text).toBe("Red | Green | Blue");
     });
 
-    it("collects table cells as batch mode", () => {
+    it("collects table cells individually", () => {
       const content = {
         table: [
           ["A", "B"],
@@ -129,7 +121,6 @@ describe("collectTranslations", () => {
       });
 
       expect(translations).toHaveLength(4);
-      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
       expect(translations.map((t) => t.unit.text)).toEqual([
         "A",
         "B",
@@ -277,7 +268,6 @@ describe("collectTranslations", () => {
         "D",
         "Caption",
       ]);
-      expect(translations.every((t) => t.unit.mode === "batch")).toBe(true);
 
       const replacements = ["1", "2", "3", "4", "Untertitel"];
       for (const [i, t] of translations.entries()) t.apply(replacements[i]!);

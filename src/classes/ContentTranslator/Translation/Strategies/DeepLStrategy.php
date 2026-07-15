@@ -8,7 +8,6 @@ use JohannSchopplich\ContentTranslator\DeepL;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
-use JohannSchopplich\ContentTranslator\Translation\TranslationMode;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use Kirby\Cms\App;
 use Throwable;
@@ -30,49 +29,21 @@ final readonly class DeepLStrategy implements Strategy
         }
 
         $client = $this->client();
-        $targetCode = $options->targetLanguage->code;
-        $sourceCode = $options->sourceLanguage?->code;
+        $texts = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
 
-        ['batch' => $batchUnits, 'single' => $singleUnits] = self::partitionByMode($units);
-        $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
-        $translatedCount = 0;
-        $lastError = null;
-
-        if ($batchUnits !== []) {
-            $batchTexts = array_map(static fn (array $entry): string => $entry[1]->text, $batchUnits);
-            try {
-                $translated = $client->translateMany($batchTexts, $targetCode, $sourceCode);
-                foreach ($batchUnits as $batchIndex => [$index]) {
-                    $results[$index] = $translated[$batchIndex];
-                }
-                $translatedCount += count($batchUnits);
-            } catch (Throwable $error) {
-                $lastError = $error;
-                foreach ($batchUnits as [, $unit]) {
-                    self::warn($unit, $error->getMessage(), $error);
-                }
-            }
-        }
-
-        foreach ($singleUnits as [$index, $unit]) {
-            try {
-                $results[$index] = $client->translateMany([$unit->text], $targetCode, $sourceCode)[0];
-                $translatedCount++;
-            } catch (Throwable $error) {
-                $lastError = $error;
+        try {
+            return $client->translateMany($texts, $options->targetLanguage->code, $options->sourceLanguage?->code);
+        } catch (Throwable $error) {
+            foreach ($units as $unit) {
                 self::warn($unit, $error->getMessage(), $error);
             }
-        }
 
-        if ($translatedCount === 0) {
             throw new TranslationException(
                 strategy: 'deepl',
-                reason: $lastError?->getMessage() ?? 'unknown error',
+                reason: $error->getMessage(),
                 unitsAttempted: count($units),
             );
         }
-
-        return $results;
     }
 
     private static function warn(TranslationUnit $unit, string $reason, Throwable|null $previous): void
@@ -87,25 +58,5 @@ final readonly class DeepLStrategy implements Strategy
     private function client(): DeepL
     {
         return $this->deepL ?? DeepL::instance();
-    }
-
-    /**
-     * @param list<TranslationUnit> $units
-     * @return array{batch: list<array{int, TranslationUnit}>, single: list<array{int, TranslationUnit}>}
-     */
-    private static function partitionByMode(array $units): array
-    {
-        $batchUnits = [];
-        $singleUnits = [];
-
-        foreach ($units as $index => $unit) {
-            if ($unit->mode === TranslationMode::Single) {
-                $singleUnits[] = [$index, $unit];
-            } else {
-                $batchUnits[] = [$index, $unit];
-            }
-        }
-
-        return ['batch' => $batchUnits, 'single' => $singleUnits];
     }
 }

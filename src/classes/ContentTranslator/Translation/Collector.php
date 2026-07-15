@@ -117,7 +117,6 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: $text,
-                    mode: TranslationMode::Batch,
                     fieldKey: $fieldName,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
@@ -141,7 +140,6 @@ final class Collector
                 $this->translations[] = new CollectedTranslation(
                     unit: new TranslationUnit(
                         text: $fragment,
-                        mode: TranslationMode::Batch,
                         fieldKey: $fieldName,
                     ),
                     writeBack: function (string $translation) use (&$translatedFragments, $fragmentIndex): void {
@@ -170,7 +168,6 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: implode(' | ', $items),
-                    mode: TranslationMode::Batch,
                     fieldKey: $fieldName,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
@@ -206,7 +203,6 @@ final class Collector
                     $this->translations[] = new CollectedTranslation(
                         unit: new TranslationUnit(
                             text: $cell,
-                            mode: TranslationMode::Batch,
                             fieldKey: $fieldName . '[' . $rowIndex . '][' . $colIndex . ']',
                         ),
                         writeBack: function (string $translation) use (&$node, $fieldName, $rowIndex, $colIndex): void {

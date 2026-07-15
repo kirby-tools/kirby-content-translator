@@ -127,7 +127,6 @@ final class HooksTest extends TestCase
                     'text' => $text,
                     'originalText' => $originalText,
                     'unitText' => $unit->text,
-                    'unitMode' => $unit->mode->value,
                     'targetCode' => $options->targetLanguage->code,
                     'sourceCode' => $options->sourceLanguage?->code,
                 ];
@@ -142,7 +141,6 @@ final class HooksTest extends TestCase
             'text' => '[de]Hello',
             'originalText' => 'Hello',
             'unitText' => 'Hello',
-            'unitMode' => 'batch',
             'targetCode' => 'de',
             'sourceCode' => 'en',
         ], $captured);
@@ -158,7 +156,6 @@ final class HooksTest extends TestCase
                 $captured = [
                     'text' => $text,
                     'unitText' => $unit->text,
-                    'unitMode' => $unit->mode->value,
                     'targetCode' => $options->targetLanguage->code,
                     'sourceCode' => $options->sourceLanguage?->code,
                 ];
@@ -172,7 +169,6 @@ final class HooksTest extends TestCase
         $this->assertSame([
             'text' => 'Hello',
             'unitText' => 'Hello',
-            'unitMode' => 'batch',
             'targetCode' => 'de',
             'sourceCode' => 'en',
         ], $captured);

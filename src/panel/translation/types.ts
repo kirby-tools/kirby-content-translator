@@ -8,22 +8,12 @@ export interface TranslationLanguage {
   name: string;
 }
 
-interface TranslationUnitBase {
+export interface TranslationUnit {
   /** Text content to translate */
   text: string;
   /** Field key for error reporting (e.g., 'title', 'blocks[0].text') */
   fieldKey?: string;
 }
-
-export interface BatchTranslationUnit extends TranslationUnitBase {
-  mode: "batch";
-}
-
-export interface SingleTranslationUnit extends TranslationUnitBase {
-  mode: "single";
-}
-
-export type TranslationUnit = BatchTranslationUnit | SingleTranslationUnit;
 
 /** A translation unit paired with a callback that writes the result back. */
 export interface CollectedTranslation {

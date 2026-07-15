@@ -19,14 +19,14 @@ describe("DeepLStrategy", () => {
     vi.clearAllMocks();
   });
 
-  describe("batch mode", () => {
-    it("calls batch endpoint with all batch-mode texts", async () => {
+  describe("batch translation", () => {
+    it("calls batch endpoint with all texts", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["Hallo", "Welt"] });
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "batch", fieldKey: "subtitle" },
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "subtitle" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
@@ -41,64 +41,20 @@ describe("DeepLStrategy", () => {
       );
       expect(results).toEqual(["Hallo", "Welt"]);
     });
-  });
 
-  describe("single mode", () => {
-    it("calls translate endpoint for each unit", async () => {
-      mockApiPost
-        .mockResolvedValueOnce({ text: "Zelle1" })
-        .mockResolvedValueOnce({ text: "Zelle2" });
+    it("preserves input order in results", async () => {
+      mockApiPost.mockResolvedValueOnce({ texts: ["B1", "B2", "B3"] });
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Cell1", mode: "single", fieldKey: "table[0][0]" },
-        { text: "Cell2", mode: "single", fieldKey: "table[0][1]" },
+        { text: "batch1", fieldKey: "a" },
+        { text: "batch2", fieldKey: "b" },
+        { text: "batch3", fieldKey: "c" },
       ];
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(mockApiPost).toHaveBeenCalledTimes(2);
-      expect(mockApiPost).toHaveBeenCalledWith(
-        "__content-translator__/translate",
-        expect.objectContaining({ text: "Cell1" }),
-      );
-      expect(results).toEqual(["Zelle1", "Zelle2"]);
-    });
-  });
-
-  describe("mixed modes", () => {
-    it("handles batch and single modes in single execution", async () => {
-      mockApiPost
-        .mockResolvedValueOnce({ texts: ["Batch"] }) // batch
-        .mockResolvedValueOnce({ text: "Single" }); // single
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Batch text", mode: "batch", fieldKey: "title" },
-        { text: "Single text", mode: "single", fieldKey: "table[0][0]" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(mockApiPost).toHaveBeenCalledTimes(2);
-      expect(results).toHaveLength(2);
-    });
-
-    it("preserves original order regardless of mode", async () => {
-      mockApiPost
-        .mockResolvedValueOnce({ texts: ["B1", "B2"] }) // batch (indices 0, 1)
-        .mockResolvedValueOnce({ text: "S1" }); // single (index 2)
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "batch1", mode: "batch", fieldKey: "a" },
-        { text: "batch2", mode: "batch", fieldKey: "b" },
-        { text: "single1", mode: "single", fieldKey: "c" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(results).toEqual(["B1", "B2", "S1"]);
+      expect(results).toEqual(["B1", "B2", "B3"]);
     });
   });
 
@@ -107,9 +63,7 @@ describe("DeepLStrategy", () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
 
       const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-      ];
+      const units: TranslationUnit[] = [{ text: "Hello", fieldKey: "title" }];
 
       await strategy.execute(units, {
         ...defaultOptions,
@@ -123,60 +77,15 @@ describe("DeepLStrategy", () => {
     });
   });
 
-  describe("concurrency", () => {
-    function probeConcurrency(taskDelayMs = 5) {
-      let inFlight = 0;
-      let max = 0;
-      mockApiPost.mockImplementation(async ({ text, texts }) => {
-        inFlight++;
-        max = Math.max(max, inFlight);
-        await new Promise((resolve) => setTimeout(resolve, taskDelayMs));
-        inFlight--;
-        return texts ? { texts } : { text };
-      });
-      return () => max;
-    }
-
-    it("limits parallel single-mode requests to the default concurrency of 5", async () => {
-      const peakConcurrency = probeConcurrency();
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = Array.from({ length: 10 }, (_, i) => ({
-        text: `T${i}`,
-        mode: "single" as const,
-        fieldKey: `f${i}`,
-      }));
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(peakConcurrency()).toBeLessThanOrEqual(5);
-    });
-
-    it("respects a configured concurrency limit", async () => {
-      const peakConcurrency = probeConcurrency();
-
-      const strategy = new DeepLStrategy({ concurrency: 1 });
-      const units: TranslationUnit[] = Array.from({ length: 4 }, (_, i) => ({
-        text: `T${i}`,
-        mode: "single" as const,
-        fieldKey: `f${i}`,
-      }));
-
-      await strategy.execute(units, defaultOptions);
-
-      expect(peakConcurrency()).toBe(1);
-    });
-  });
-
   describe("abort signal", () => {
-    it("skips all API calls when signal is pre-aborted", async () => {
+    it("skips the API call when signal is pre-aborted", async () => {
       const controller = new AbortController();
       controller.abort();
 
       const strategy = new DeepLStrategy();
       const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "Test", mode: "single", fieldKey: "cell" },
+        { text: "Hello", fieldKey: "title" },
+        { text: "Test", fieldKey: "cell" },
       ];
 
       const results = await strategy.execute(units, {
@@ -186,30 +95,6 @@ describe("DeepLStrategy", () => {
 
       expect(mockApiPost).not.toHaveBeenCalled();
       expect(results).toEqual(["Hello", "Test"]);
-    });
-
-    it("skips remaining modes after signal is aborted", async () => {
-      const controller = new AbortController();
-
-      // Abort after batch completes
-      mockApiPost.mockImplementationOnce(async () => {
-        controller.abort();
-        return { texts: ["Hallo"] };
-      });
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Hello", mode: "batch", fieldKey: "title" },
-        { text: "World", mode: "single", fieldKey: "cell" },
-      ];
-
-      const results = await strategy.execute(units, {
-        ...defaultOptions,
-        signal: controller.signal,
-      });
-
-      expect(mockApiPost).toHaveBeenCalledOnce();
-      expect(results).toEqual(["Hallo", "World"]);
     });
   });
 });

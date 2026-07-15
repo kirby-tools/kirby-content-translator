@@ -6,7 +6,6 @@ use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationExceptio
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
-use JohannSchopplich\ContentTranslator\Translation\TranslationMode;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\Copilot\AI\Client;
 use JohannSchopplich\Copilot\AI\ProviderName;
@@ -96,7 +95,7 @@ final class CopilotAIStrategyTest extends TestCase
         $strategy = new CopilotAIStrategy(client: $client, systemPrompt: 'from ctor');
 
         $strategy->execute(
-            units: [new TranslationUnit('Hello', TranslationMode::Batch, 'a')],
+            units: [new TranslationUnit('Hello', 'a')],
             options: self::options(),
         );
 
@@ -117,7 +116,7 @@ final class CopilotAIStrategyTest extends TestCase
         $strategy = new CopilotAIStrategy(client: $client);
 
         $strategy->execute(
-            units: [new TranslationUnit('Hello', TranslationMode::Batch, 'a')],
+            units: [new TranslationUnit('Hello', 'a')],
             options: self::options(),
         );
 
@@ -134,7 +133,7 @@ final class CopilotAIStrategyTest extends TestCase
         $strategy = new CopilotAIStrategy(client: $client);
 
         $strategy->execute(
-            units: [new TranslationUnit('Hello', TranslationMode::Batch, 'a')],
+            units: [new TranslationUnit('Hello', 'a')],
             options: self::options(),
         );
 
@@ -151,8 +150,8 @@ final class CopilotAIStrategyTest extends TestCase
 
         $result = $strategy->execute(
             units: [
-                new TranslationUnit('Hello', TranslationMode::Batch, 'a'),
-                new TranslationUnit('World', TranslationMode::Batch, 'b'),
+                new TranslationUnit('Hello', 'a'),
+                new TranslationUnit('World', 'b'),
             ],
             options: self::options(),
         );
@@ -176,7 +175,7 @@ final class CopilotAIStrategyTest extends TestCase
 
         $units = [];
         for ($i = 0; $i < 51; $i++) {
-            $units[] = new TranslationUnit('t' . $i, TranslationMode::Batch, 'k' . $i);
+            $units[] = new TranslationUnit('t' . $i, 'k' . $i);
         }
 
         $result = $strategy->execute($units, options: self::options());
@@ -202,8 +201,8 @@ final class CopilotAIStrategyTest extends TestCase
         $largeText = str_repeat('x', 60_000);
         $result = $strategy->execute(
             units: [
-                new TranslationUnit($largeText, TranslationMode::Batch, 'a'),
-                new TranslationUnit($largeText, TranslationMode::Batch, 'b'),
+                new TranslationUnit($largeText, 'a'),
+                new TranslationUnit($largeText, 'b'),
             ],
             options: self::options(),
         );
@@ -225,8 +224,8 @@ final class CopilotAIStrategyTest extends TestCase
 
         $result = $strategy->execute(
             units: [
-                new TranslationUnit('Click <c0/> now', TranslationMode::Batch, 'body'),
-                new TranslationUnit('Hello', TranslationMode::Batch, 'title'),
+                new TranslationUnit('Click <c0/> now', 'body'),
+                new TranslationUnit('Hello', 'title'),
             ],
             options: self::options(),
         );
@@ -259,8 +258,8 @@ final class CopilotAIStrategyTest extends TestCase
 
         $strategy->execute(
             units: [
-                new TranslationUnit('Click <c0/> now', TranslationMode::Batch, 'body'),
-                new TranslationUnit('Hello', TranslationMode::Batch, 'title'),
+                new TranslationUnit('Click <c0/> now', 'body'),
+                new TranslationUnit('Hello', 'title'),
             ],
             options: self::options(),
         );
@@ -292,7 +291,7 @@ final class CopilotAIStrategyTest extends TestCase
 
         $units = [];
         for ($i = 0; $i < 51; $i++) {
-            $units[] = new TranslationUnit('t' . $i, TranslationMode::Batch, 'k' . $i);
+            $units[] = new TranslationUnit('t' . $i, 'k' . $i);
         }
 
         $strategy->execute($units, options: self::options());
@@ -317,7 +316,7 @@ final class CopilotAIStrategyTest extends TestCase
         $this->expectExceptionMessage('Missing API key in "johannschopplich.copilot.providers.openai.apiKey"');
 
         $strategy->execute(
-            units: [new TranslationUnit('Hello', TranslationMode::Batch, 'a')],
+            units: [new TranslationUnit('Hello', 'a')],
             options: self::options(),
         );
     }
@@ -335,8 +334,8 @@ final class CopilotAIStrategyTest extends TestCase
 
         $strategy->execute(
             units: [
-                new TranslationUnit('A', TranslationMode::Batch, 'a'),
-                new TranslationUnit('B', TranslationMode::Batch, 'b'),
+                new TranslationUnit('A', 'a'),
+                new TranslationUnit('B', 'b'),
             ],
             options: self::options(),
         );
@@ -352,7 +351,7 @@ final class CopilotAIStrategyTest extends TestCase
 
         $units = [];
         for ($i = 0; $i < 51; $i++) {
-            $units[] = new TranslationUnit('t' . $i, TranslationMode::Batch, 'k' . $i);
+            $units[] = new TranslationUnit('t' . $i, 'k' . $i);
         }
 
         $result = $strategy->execute($units, options: self::options());

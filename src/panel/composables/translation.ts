@@ -500,7 +500,7 @@ async function translateText(
 ): Promise<string> {
   const strategy =
     provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
-  const results = await strategy.execute([{ text, mode: "batch" }], {
+  const results = await strategy.execute([{ text }], {
     sourceLanguage,
     targetLanguage,
   });
