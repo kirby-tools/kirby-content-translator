@@ -6,6 +6,7 @@ import type {
 import { collectTranslations } from "./collector";
 
 export * from "./strategies";
+export * from "./text";
 
 export async function translateContent(
   obj: Record<string, unknown>,

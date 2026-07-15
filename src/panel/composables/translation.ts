@@ -14,14 +14,24 @@ import type {
 import slugify from "@sindresorhus/slugify";
 import { ref, useContent, useI18n, usePanel } from "kirbyuse";
 import pAll from "p-all";
+import { DEFAULT_BATCH_TRANSLATION_CONCURRENCY } from "../constants";
 import {
-  DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
-  DEFAULT_FIELD_TYPES,
-  TRANSLATION_PROVIDERS,
-} from "../constants";
-import { AIStrategy, DeepLStrategy, translateContent } from "../translation";
+  AIStrategy,
+  DeepLStrategy,
+  translateContent,
+  translateText,
+} from "../translation";
+import {
+  planBatchLanguageTranslation,
+  planImport,
+  planSingleTranslation,
+} from "../translation/plan";
 import { resolveCopilot } from "../utils/copilot";
 import { filterSyncableContent } from "../utils/filter";
+import {
+  resolveInitialProvider,
+  resolveTranslatorConfig,
+} from "../utils/translator-config";
 import { useModel } from "./model";
 import { createGlobalState } from "./state";
 
@@ -69,28 +79,19 @@ export function useContentTranslator() {
   ) {
     label.value =
       t(options.label) || panel.t("johannschopplich.content-translator.label");
-    allowImport.value = toBool(options.import ?? context.config.import, true);
-    importFrom.value =
-      options.importFrom ?? context.config.importFrom ?? undefined;
-    allowBatchTranslation.value = toBool(
-      options.batch ?? context.config.batch,
-      true,
-    );
-    translateTitle.value = toBool(options.title ?? context.config.title, false);
-    translateSlug.value = toBool(options.slug ?? context.config.slug, false);
-    shouldConfirm.value = toBool(
-      options.confirm ?? context.config.confirm,
-      false,
-    );
-    fieldTypes.value = options.fieldTypes ??
-      context.config.fieldTypes ?? [...DEFAULT_FIELD_TYPES];
-    includeFields.value =
-      options.includeFields ?? context.config.includeFields ?? [];
-    excludeFields.value =
-      options.excludeFields ?? context.config.excludeFields ?? [];
-    kirbyTags.value = options.kirbyTags ?? context.config.kirbyTags ?? {};
-    systemPrompt.value =
-      options.systemPrompt ?? context.config.ai?.systemPrompt ?? undefined;
+
+    const resolvedConfig = resolveTranslatorConfig(context.config, options);
+    allowImport.value = resolvedConfig.allowImport;
+    importFrom.value = resolvedConfig.importFrom;
+    allowBatchTranslation.value = resolvedConfig.allowBatchTranslation;
+    translateTitle.value = resolvedConfig.translateTitle;
+    translateSlug.value = resolvedConfig.translateSlug;
+    shouldConfirm.value = resolvedConfig.shouldConfirm;
+    fieldTypes.value = resolvedConfig.fieldTypes;
+    includeFields.value = resolvedConfig.includeFields;
+    excludeFields.value = resolvedConfig.excludeFields;
+    kirbyTags.value = resolvedConfig.kirbyTags;
+    systemPrompt.value = resolvedConfig.systemPrompt;
 
     fields.value = options.fields ?? {};
     config.value = context.config;
@@ -98,25 +99,9 @@ export function useContentTranslator() {
     errorPageId.value = context.errorPageId;
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
-    // Determine available providers and set initial provider
-    const requestedProvider = isValidProvider(options.provider)
-      ? options.provider
-      : undefined;
     const availability = getProviderAvailability(context.config);
-    const { hasDefaultProvider, hasMultipleProviders } = availability;
     hasAnyProvider.value = availability.hasAnyProvider;
-
-    if (requestedProvider === "ai" && hasMultipleProviders) {
-      provider.value = "ai";
-    } else if (requestedProvider === "deepl" && hasDefaultProvider) {
-      provider.value = "deepl";
-    } else if (!hasDefaultProvider) {
-      // Only AI available
-      provider.value = "ai";
-    } else {
-      // Default to DeepL (translateFn or DeepL API)
-      provider.value = "deepl";
-    }
+    provider.value = resolveInitialProvider(options.provider, availability);
   }
 
   // TODO: Next major version – unify import flow through a server-side
@@ -159,26 +144,24 @@ export function useContentTranslator() {
     });
 
     await updateContent(syncableContent);
-    const _isHomePage = await isHomePage();
-    const _isErrorPage = await isErrorPage();
-    const _isFileModel = isFileModel();
-    const canTranslateTitle = translateTitle.value && !_isFileModel;
-    const canTranslateSlug =
-      translateSlug.value &&
-      !language?.default &&
-      !_isHomePage &&
-      !_isErrorPage &&
-      !_isFileModel &&
-      !isSiteModel();
+    const plan = planImport({
+      isHomePage: await isHomePage(),
+      isErrorPage: await isErrorPage(),
+      isFileModel: isFileModel(),
+      isSiteModel: isSiteModel(),
+      isTitleTranslationEnabled: translateTitle.value === true,
+      isSlugTranslationEnabled: translateSlug.value === true,
+      isCurrentLanguageDefault: panel.language.default,
+    });
 
-    if (canTranslateTitle) {
+    if (plan.shouldPatchTitle) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
-    if (canTranslateSlug) {
+    if (plan.shouldPatchSlug) {
       const slug = slugify(title);
       await panel.api.patch(`${panel.view.path}/slug`, { slug });
     }
-    if (canTranslateTitle || canTranslateSlug) {
+    if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
       await panel.view.reload();
     }
 
@@ -226,36 +209,33 @@ export function useContentTranslator() {
       });
 
       await updateContent(contentCopy);
-      const _isHomePage = await isHomePage();
-      const _isErrorPage = await isErrorPage();
-      const _isFileModel = isFileModel();
-      const canTranslateTitle = translateTitle.value && !_isFileModel;
-      const canTranslateSlug =
-        translateSlug.value &&
-        !targetLanguage.default &&
-        !_isHomePage &&
-        !_isErrorPage &&
-        !_isFileModel &&
-        !isSiteModel();
+      const plan = planSingleTranslation({
+        isHomePage: await isHomePage(),
+        isErrorPage: await isErrorPage(),
+        isFileModel: isFileModel(),
+        isSiteModel: isSiteModel(),
+        isTitleTranslationEnabled: translateTitle.value === true,
+        isSlugTranslationEnabled: translateSlug.value === true,
+        isTargetLanguageDefault: targetLanguage.default === true,
+        hasViewTitle: Boolean(panel.view.title),
+      });
 
-      if ((canTranslateTitle || canTranslateSlug) && panel.view.title) {
-        const translatedTitle = await translateText(panel.view.title, {
+      if (plan.shouldRequestTitleTranslation) {
+        // Non-null: the plan requests a title translation only when the view has one
+        const translatedTitle = await translateText(panel.view.title!, {
           provider: provider.value,
           targetLanguage,
           sourceLanguage,
           systemPrompt: systemPrompt.value,
         });
 
-        if (canTranslateTitle) {
+        if (plan.shouldPatchTitle) {
           await panel.api.patch(`${panel.view.path}/title`, {
             title: translatedTitle,
           });
         }
 
-        // Translating the slug is only possible for non-default languages,
-        // as the page folder would be renamed otherwise.
-        // See: https://github.com/kirby-tools/kirby-content-translator/issues/5
-        if (canTranslateSlug) {
+        if (plan.shouldPatchSlug) {
           const slug = slugify(translatedTitle);
           await panel.api.patch(`${panel.view.path}/slug`, { slug });
         }
@@ -382,19 +362,17 @@ export function useContentTranslator() {
           silent: true,
         });
 
-        const _isHomePage = defaultLanguageData.id === homePageId.value;
-        const _isErrorPage = defaultLanguageData.id === errorPageId.value;
-        const _isFileModel = isFileModel();
-        const canTranslateTitle = translateTitle.value && !_isFileModel;
-        const canTranslateSlug =
-          translateSlug.value &&
-          !targetLanguage.default &&
-          !_isHomePage &&
-          !_isErrorPage &&
-          !_isFileModel &&
-          !isSiteModel();
+        const plan = planBatchLanguageTranslation({
+          isHomePage: defaultLanguageData.id === homePageId.value,
+          isErrorPage: defaultLanguageData.id === errorPageId.value,
+          isFileModel: isFileModel(),
+          isSiteModel: isSiteModel(),
+          isTitleTranslationEnabled: translateTitle.value === true,
+          isSlugTranslationEnabled: translateSlug.value === true,
+          isTargetLanguageDefault: targetLanguage.default === true,
+        });
 
-        if (canTranslateTitle) {
+        if (plan.shouldRequestTitleTranslation) {
           const translatedTitle = await translateText(
             defaultLanguageData.title,
             {
@@ -404,17 +382,19 @@ export function useContentTranslator() {
               systemPrompt: systemPrompt.value,
             },
           );
-          await panel.api.patch(
-            `${modelApiPath}/title`,
-            { title: translatedTitle },
-            {
-              headers: { "x-language": targetLanguage.code! },
-              silent: true,
-            },
-          );
 
-          // Translate slug for non-home/error pages
-          if (canTranslateSlug) {
+          if (plan.shouldPatchTitle) {
+            await panel.api.patch(
+              `${modelApiPath}/title`,
+              { title: translatedTitle },
+              {
+                headers: { "x-language": targetLanguage.code! },
+                silent: true,
+              },
+            );
+          }
+
+          if (plan.shouldPatchSlug) {
             const slug = slugify(translatedTitle);
             await panel.api.patch(
               `${modelApiPath}/slug`,
@@ -484,46 +464,4 @@ export function getProviderAvailability(config: PluginConfig) {
   };
 }
 
-async function translateText(
-  text: string,
-  {
-    provider,
-    targetLanguage,
-    sourceLanguage,
-    systemPrompt,
-  }: {
-    provider: TranslationProvider;
-    targetLanguage: PanelLanguageInfo | PanelLanguage;
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
-    systemPrompt?: string;
-  },
-): Promise<string> {
-  const strategy =
-    provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
-  const results = await strategy.execute([{ text }], {
-    sourceLanguage,
-    targetLanguage,
-  });
-  return results[0] ?? text;
-}
 
-function isValidProvider(value: unknown): value is TranslationProvider {
-  return TRANSLATION_PROVIDERS.includes(value as TranslationProvider);
-}
-
-/**
- * Coerces loose boolean values from YAML/PHP into real JavaScript booleans.
- *
- * @remarks
- * Treats `"true"` and `"1"` (and numeric `1`) as `true`; anything nullish
- * falls back to `defaultValue`. Used by `initializeConfig()` to normalize
- * section/view button props before the composable consumes them.
- */
-function toBool(value: unknown, defaultValue = false) {
-  if (value == null) return defaultValue;
-  if (typeof value === "boolean") return value;
-  if (typeof value === "string") return value === "true" || value === "1";
-  if (typeof value === "number") return value === 1;
-
-  return Boolean(value);
-}
