@@ -1,0 +1,16 @@
+minimumReleaseAgeExclude:
+  - "@ai-sdk/gateway@3.0.151"
+  - "@ai-sdk/google@3.0.94"
+  - "@ai-sdk/mistral@3.0.50"
+  - ai@6.0.228
+
+shellEmulator: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - chokidar@4.0.3
+  - semver@6.3.1
+  - vite@6.3.7
+
+allowBuilds:
+  "@parcel/watcher": true
+  esbuild: true

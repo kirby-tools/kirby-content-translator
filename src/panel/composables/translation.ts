@@ -463,5 +463,3 @@ export function getProviderAvailability(config: PluginConfig) {
     hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
   };
 }
-
-

@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type {
-  PluginContextResponse,
-  TranslationProvider,
-} from "../../types";
+import type { PluginContextResponse, TranslationProvider } from "../../types";
 import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";

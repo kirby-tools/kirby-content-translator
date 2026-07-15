@@ -18,8 +18,7 @@ export function isBlockTranslatable(block: KirbyBlock) {
  */
 export function flattenTabFields(
   fieldsets:
-    | KirbyBlocksFieldProps["fieldsets"]
-    | KirbyLayoutFieldProps["fieldsets"],
+    KirbyBlocksFieldProps["fieldsets"] | KirbyLayoutFieldProps["fieldsets"],
   block: KirbyBlock,
 ): Record<string, KirbyFieldProps> {
   const flattenedFields: Record<string, KirbyFieldProps> = {};

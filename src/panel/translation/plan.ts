@@ -39,8 +39,7 @@ export interface ImportPlan {
 }
 
 export interface SingleTranslationFacts
-  extends ModelFacts,
-    TitleSlugConfigFacts {
+  extends ModelFacts, TitleSlugConfigFacts {
   /**
    * Default-language slugs are never patched – the page folder would be
    * renamed.

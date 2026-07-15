@@ -71,9 +71,12 @@ const {
 })();
 
 async function handleImport(sourceLanguage?: PanelLanguageInfo) {
-  const text = panel.t("johannschopplich.content-translator.dialog.importConfirmation", {
-    language: sourceLanguage?.name ?? defaultLanguage.name,
-  });
+  const text = panel.t(
+    "johannschopplich.content-translator.dialog.importConfirmation",
+    {
+      language: sourceLanguage?.name ?? defaultLanguage.name,
+    },
+  );
 
   await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
     await syncModelContent(sourceLanguage);
