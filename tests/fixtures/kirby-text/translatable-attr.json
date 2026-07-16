@@ -1,0 +1,11 @@
+{
+  "$schema": "./schema.json",
+  "input": "Visit (link: /a text: our site)!",
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "expectedFragments": ["Visit <c0/>!", "our site"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Besuche <c0/>!", "unsere Seite"],
+  "expectedRestore": "Besuche (link: /a text: unsere Seite)!"
+}

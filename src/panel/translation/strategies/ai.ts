@@ -16,8 +16,10 @@ export interface AIStrategyOptions {
   systemPrompt?: string;
 }
 
-const MAX_BATCH_SIZE = 50;
-const MAX_CHARS_PER_BATCH = 100_000;
+// Pinned by `tests/fixtures/contract.json`. The size unit intentionally
+// differs (UTF-16 code units here, bytes in PHP) – only the values are shared.
+export const MAX_BATCH_SIZE = 50;
+export const MAX_CHARS_PER_BATCH = 100_000;
 
 /**
  * AI translation strategy using Kirby Copilot.

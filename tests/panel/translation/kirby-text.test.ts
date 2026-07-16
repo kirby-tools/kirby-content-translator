@@ -1,127 +1,54 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
+import {
+  PLACEHOLDER_PATTERN,
+  splitKirbyText,
+} from "../../../src/panel/translation/kirby-text";
+
+interface ConformanceCase {
+  description?: string;
+  input: string;
+  kirbyTags: Record<string, string[]>;
+  expectedFragments: string[];
+  expectedPlaceholderCount: number;
+  restoredWith: string[];
+  expectedRestore: string;
+}
+
+const FIXTURES_DIR = join(import.meta.dirname, "../../fixtures/kirby-text");
+
+const conformanceCases = readdirSync(FIXTURES_DIR)
+  .filter((file) => file.endsWith(".json") && file !== "schema.json")
+  .map((file) => ({
+    name: file.replace(/\.json$/, ""),
+    ...(JSON.parse(
+      readFileSync(join(FIXTURES_DIR, file), "utf8"),
+    ) as ConformanceCase),
+  }));
 
 describe("splitKirbyText", () => {
-  describe("tag extraction", () => {
-    it("round-trips plain text without tags", () => {
-      const text = "Just some prose, nothing tagged here.";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+  // Shared with `KirbyTextSplitTest.php` – drift fails here first.
+  describe("conformance corpus", () => {
+    it.each(conformanceCases)(
+      "$name",
+      ({
+        input,
+        kirbyTags,
+        expectedFragments,
+        expectedPlaceholderCount,
+        restoredWith,
+        expectedRestore,
+      }) => {
+        const { fragments, restore } = splitKirbyText(input, kirbyTags);
 
-      expect(fragments).toEqual([text]);
-      expect(restore(fragments)).toBe(text);
-    });
-
-    it("handles nested parentheses inside an attribute value", () => {
-      const text = "(link: /a text: our (awesome) site)";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      expect(fragments).toContain("our (awesome) site");
-      expect(restore(fragments)).toBe(text);
-    });
-
-    it("does not split URL schemes as attribute boundaries", () => {
-      const text = "(link: https://example.com text: visit us)";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      expect(fragments).toContain("visit us");
-      expect(fragments).not.toContain("https://example.com");
-      expect(restore(fragments)).toBe(text);
-    });
-
-    it("leaves an unclosed tag untouched in the prose", () => {
-      const text = "Visit (link: /a text: incomplete";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      expect(fragments).toEqual([text]);
-      expect(restore(fragments)).toBe(text);
-    });
-  });
-
-  describe("tag protection", () => {
-    it("protects every tag verbatim when config is empty", () => {
-      const text = "Hello (link: /a text: world)!";
-      const { fragments, restore } = splitKirbyText(text, {});
-
-      expect(fragments).toHaveLength(1);
-      expect(fragments[0]).not.toContain("link");
-      expect(fragments[0]).not.toContain("world");
-
-      const translated = [fragments[0]!.replace("Hello", "Hallo")];
-      expect(restore(translated)).toBe("Hallo (link: /a text: world)!");
-    });
-  });
-
-  describe("round-trip restoration", () => {
-    it("round-trips when fragments are restored unchanged", () => {
-      const text = "Visit (link: /a text: our site)!";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-      expect(restore(fragments)).toBe(text);
-    });
-
-    it("handles multiple tags in one string with independent attr translations", () => {
-      const text =
-        "Visit (link: /a text: site) or (email: x@y.com text: email us)";
-      const { fragments, restore } = splitKirbyText(text, {
-        link: ["text"],
-        email: ["text"],
-      });
-
-      expect(fragments.slice(1)).toEqual(["site", "email us"]);
-
-      const translated = [...fragments];
-      translated[1] = "Seite";
-      translated[2] = "schreib uns";
-
-      expect(restore(translated)).toBe(
-        "Visit (link: /a text: Seite) or (email: x@y.com text: schreib uns)",
-      );
-    });
-
-    it("preserves structural attributes when only one attr value is translated", () => {
-      const text = "(image: hero.jpg alt: Sunset caption: Mountain view)";
-      const { fragments, restore } = splitKirbyText(text, { image: ["alt"] });
-
-      const translated = [...fragments];
-      translated[1] = "Sonnenuntergang";
-
-      expect(restore(translated)).toBe(
-        "(image: hero.jpg alt: Sonnenuntergang caption: Mountain view)",
-      );
-    });
-
-    it("translates the main value when config includes `value`", () => {
-      const text = "(callout: Important announcement)";
-      const { fragments, restore } = splitKirbyText(text, {
-        callout: ["value"],
-      });
-
-      expect(fragments).toContain("Important announcement");
-
-      const translated = [...fragments];
-      translated[1] = "Wichtige Mitteilung";
-
-      expect(restore(translated)).toBe("(callout: Wichtige Mitteilung)");
-    });
-
-    it("drops out-of-range placeholder indices in translated prose", () => {
-      // Translator may hallucinate extra placeholders not present in source
-      const text = "Visit (link: /a text: site) for more.";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      // Original tag is at index 0; translation references a non-existent index 2
-      const translatedProse = `${fragments[0]!.replace("Visit", "Besuche")} <c2/>`;
-      const restored = restore([translatedProse, fragments[1]!]);
-
-      expect(restored).not.toContain("<c2/>");
-    });
-
-    it("preserves UTF-8 in prose and attribute values", () => {
-      const text = "Café (link: /a text: élève) — 日本語";
-      const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
-
-      expect(fragments).toContain("élève");
-      expect(restore(fragments)).toBe(text);
-    });
+        expect(fragments).toEqual(expectedFragments);
+        expect(fragments[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
+          expectedPlaceholderCount,
+        );
+        expect(restore(restoredWith)).toBe(expectedRestore);
+      },
+    );
   });
 
   describe("restore validation", () => {

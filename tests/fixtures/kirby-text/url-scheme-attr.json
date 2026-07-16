@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "description": "URL schemes like `https:` must not be parsed as attribute boundaries.",
+  "input": "(link: https://example.com text: visit us)",
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "expectedFragments": ["<c0/>", "visit us"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["<c0/>", "besuche uns"],
+  "expectedRestore": "(link: https://example.com text: besuche uns)"
+}

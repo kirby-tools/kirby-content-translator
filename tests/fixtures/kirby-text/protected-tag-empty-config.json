@@ -1,0 +1,10 @@
+{
+  "$schema": "./schema.json",
+  "description": "An empty kirbyTags config protects every tag verbatim – only prose is exposed for translation.",
+  "input": "Hello (link: /a text: world)!",
+  "kirbyTags": {},
+  "expectedFragments": ["Hello <c0/>!"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Hallo <c0/>!"],
+  "expectedRestore": "Hallo (link: /a text: world)!"
+}

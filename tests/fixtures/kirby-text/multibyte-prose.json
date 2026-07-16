@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "description": "Multibyte prose and attr values survive split and restore – guards against byte-offset slicing.",
+  "input": "Привет (link: /a text: 世界) — café",
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "expectedFragments": ["Привет <c0/> — café", "世界"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Привет <c0/> — café", "世界 (translated)"],
+  "expectedRestore": "Привет (link: /a text: 世界 (translated)) — café"
+}

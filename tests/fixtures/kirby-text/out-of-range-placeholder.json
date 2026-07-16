@@ -1,0 +1,10 @@
+{
+  "$schema": "./schema.json",
+  "description": "A hallucinated placeholder with no matching tag slot is dropped from the restored prose.",
+  "input": "Hello (link: /a text: world)!",
+  "kirbyTags": {},
+  "expectedFragments": ["Hello <c0/>!"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Hallo <c9/> <c0/>!"],
+  "expectedRestore": "Hallo  (link: /a text: world)!"
+}

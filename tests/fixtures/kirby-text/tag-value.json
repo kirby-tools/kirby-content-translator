@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "description": "The `value` entry in the kirbyTags config exposes the tag's main value for translation.",
+  "input": "(callout: Important announcement)",
+  "kirbyTags": {
+    "callout": ["value"]
+  },
+  "expectedFragments": ["<c0/>", "Important announcement"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["<c0/>", "Wichtige Mitteilung"],
+  "expectedRestore": "(callout: Wichtige Mitteilung)"
+}

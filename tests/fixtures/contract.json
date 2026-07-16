@@ -1,0 +1,26 @@
+{
+  "$schema": "./contract.schema.json",
+  "skipCases": [
+    { "text": "", "skip": true },
+    { "text": "   ", "skip": true },
+    { "text": "42", "skip": true },
+    { "text": "-3.14", "skip": true },
+    { "text": "+5", "skip": true },
+    { "text": ".5", "skip": true },
+    { "text": "5.", "skip": true },
+    { "text": "1.5e10", "skip": true },
+    { "text": "https://example.com/docs?query=1", "skip": true },
+    { "text": "http://localhost:3000", "skip": true },
+    { "text": "Hello world", "skip": false },
+    { "text": "42 apples", "skip": false },
+    { "text": "Visit https://example.com today", "skip": false }
+  ],
+  "placeholder": {
+    "format": "<c{n}/>",
+    "indexBase": 0
+  },
+  "batching": {
+    "maxBatchSize": 50,
+    "maxSizePerBatch": 100000
+  }
+}

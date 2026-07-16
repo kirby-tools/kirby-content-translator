@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KirbyText split/restore conformance case",
+  "description": "Consumed by both the Vitest and PHPUnit KirbyText suites – the corpus is the shared interface of the two implementations.",
+  "type": "object",
+  "required": [
+    "input",
+    "kirbyTags",
+    "expectedFragments",
+    "expectedPlaceholderCount",
+    "restoredWith",
+    "expectedRestore"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "input": {
+      "type": "string"
+    },
+    "kirbyTags": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "expectedFragments": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "expectedPlaceholderCount": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "restoredWith": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "expectedRestore": {
+      "type": "string"
+    }
+  }
+}

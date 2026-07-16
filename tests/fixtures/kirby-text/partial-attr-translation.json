@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "description": "Attrs not listed in the kirbyTags config keep their original value on restore.",
+  "input": "(image: hero.jpg alt: Sunset caption: Mountain view)",
+  "kirbyTags": {
+    "image": ["alt"]
+  },
+  "expectedFragments": ["<c0/>", "Sunset"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["<c0/>", "Sonnenuntergang"],
+  "expectedRestore": "(image: hero.jpg alt: Sonnenuntergang caption: Mountain view)"
+}

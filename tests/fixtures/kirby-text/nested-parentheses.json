@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "description": "Parentheses inside an attribute value must not terminate the tag span.",
+  "input": "(link: /a text: our (awesome) site)",
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "expectedFragments": ["<c0/>", "our (awesome) site"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["<c0/>", "unsere (großartige) Seite"],
+  "expectedRestore": "(link: /a text: unsere (großartige) Seite)"
+}

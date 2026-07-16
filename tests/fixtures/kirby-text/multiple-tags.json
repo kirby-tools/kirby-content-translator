@@ -1,0 +1,12 @@
+{
+  "$schema": "./schema.json",
+  "input": "Visit (link: /a text: site) or (email: x@y.com text: email us)",
+  "kirbyTags": {
+    "link": ["text"],
+    "email": ["text"]
+  },
+  "expectedFragments": ["Visit <c0/> or <c1/>", "site", "email us"],
+  "expectedPlaceholderCount": 2,
+  "restoredWith": ["Besuche <c0/> oder <c1/>", "Seite", "schreib uns"],
+  "expectedRestore": "Besuche (link: /a text: Seite) oder (email: x@y.com text: schreib uns)"
+}
