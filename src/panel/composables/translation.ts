@@ -184,7 +184,7 @@ export function useContentTranslator() {
       ),
       icon: "loader",
       theme: "info",
-      timeout: false,
+      timeout: false as any,
     });
 
     try {
@@ -275,7 +275,7 @@ export function useContentTranslator() {
       ),
       icon: "loader",
       theme: "info",
-      timeout: false,
+      timeout: false as any,
     });
 
     const defaultLanguageData = await getModelData();
@@ -297,7 +297,7 @@ export function useContentTranslator() {
             ),
             icon: "loader",
             theme: "info",
-            timeout: false,
+            timeout: false as any,
           });
         },
       );
