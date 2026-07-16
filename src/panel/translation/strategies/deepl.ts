@@ -33,9 +33,9 @@ export class DeepLStrategy implements TranslationStrategy {
         },
       );
 
-      for (const [index] of units.entries()) {
-        results[index] = response.texts[index]!;
-      }
+      response.texts.forEach((text, index) => {
+        results[index] = text;
+      });
     }
 
     return results;

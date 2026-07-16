@@ -59,10 +59,8 @@ export function resolveInitialProvider(
 
   if (provider === "ai" && availability.hasMultipleProviders) return "ai";
   if (provider === "deepl" && availability.hasDefaultProvider) return "deepl";
-  // Only AI available
-  if (!availability.hasDefaultProvider) return "ai";
-  // Default to DeepL
-  return "deepl";
+
+  return availability.hasDefaultProvider ? "deepl" : "ai";
 }
 
 function isValidProvider(value: unknown): value is TranslationProvider {

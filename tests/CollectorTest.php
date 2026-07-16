@@ -58,8 +58,6 @@ final class CollectorTest extends TestCase
             ['title', 'body', 'items'],
             array_map(fn ($t) => $t->unit->fieldKey, $result->translations),
         );
-        foreach ($result->translations as $t) {
-        }
     }
 
     #[Test]
@@ -75,8 +73,6 @@ final class CollectorTest extends TestCase
         $result = $collector->collect($content);
 
         $this->assertCount(2, $result->translations);
-        foreach ($result->translations as $t) {
-        }
         $texts = array_map(fn ($t) => $t->unit->text, $result->translations);
         $this->assertContains('site', $texts);
 
@@ -120,8 +116,6 @@ final class CollectorTest extends TestCase
             ['A', 'B', 'C', 'D'],
             array_map(fn ($t) => $t->unit->text, $result->translations),
         );
-        foreach ($result->translations as $t) {
-        }
 
         $result->translations[0]->writeBack->__invoke('1');
         $result->translations[1]->writeBack->__invoke('2');
@@ -184,8 +178,6 @@ final class CollectorTest extends TestCase
             ['A', 'B', 'C', 'D', 'Caption'],
             array_map(fn ($t) => $t->unit->text, $result->translations),
         );
-        foreach ($result->translations as $t) {
-        }
 
         $replacements = ['1', '2', '3', '4', 'Untertitel'];
         foreach ($result->translations as $i => $t) {
