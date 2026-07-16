@@ -21,7 +21,10 @@ final class KirbyText
         \))                     # end of capturing group 1
     !isx';
 
-    private const PLACEHOLDER_PATTERN = '!<c(\d+)/>!';
+    /**
+     * Must match `PLACEHOLDER_PATTERN` in `src/panel/translation/kirby-text.ts`.
+     */
+    public const PLACEHOLDER_PATTERN = '!<c(\d+)/>!';
 
     /**
      * Splits KirbyText prose from KirbyTags structurally.

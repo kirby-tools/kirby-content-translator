@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator\Translation\Strategies;
 
+use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
@@ -210,7 +211,7 @@ final readonly class CopilotAIStrategy implements Strategy
 
     private static function countPlaceholders(string $text): int
     {
-        return preg_match_all('/<c\d+\/>/', $text);
+        return preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text);
     }
 
     /**

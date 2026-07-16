@@ -1,4 +1,5 @@
-const PLACEHOLDER_PATTERN = /<c(\d+)\/>/g;
+/** Must match `KirbyText::PLACEHOLDER_PATTERN` in PHP. */
+export const PLACEHOLDER_PATTERN = /<c(\d+)\/>/g;
 
 /** Mirrors Kirby's `Kirby\Text\KirbyTag` shape: type, optional value, attrs in source order. */
 interface KirbyTag {

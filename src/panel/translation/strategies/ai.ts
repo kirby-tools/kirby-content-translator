@@ -5,6 +5,7 @@ import type {
 } from "../types";
 import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
+import { PLACEHOLDER_PATTERN } from "../kirby-text";
 
 export interface AIStrategyOptions {
   /**
@@ -103,7 +104,7 @@ export class AIStrategy implements TranslationStrategy {
 }
 
 function countPlaceholders(text: string): number {
-  return (text.match(/<c\d+\/>/g) ?? []).length;
+  return (text.match(PLACEHOLDER_PATTERN) ?? []).length;
 }
 
 function buildTranslationPrompt(
