@@ -405,6 +405,42 @@ describe("collectTranslations", () => {
       expect(translations).toHaveLength(1);
       expect(translations[0]!.unit.text).toBe("Column");
     });
+
+    it("skips layout entries without columns or blocks", () => {
+      const content = {
+        layout: [
+          {},
+          { columns: [{}] },
+          {
+            columns: [
+              {
+                blocks: [
+                  {
+                    id: "1",
+                    type: "text",
+                    isHidden: false,
+                    content: { body: "Valid" },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const fields = {
+        layout: layoutField("layout", {
+          text: { body: field({ type: "text", name: "body" }) },
+        }),
+      };
+
+      const { translations } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+      });
+
+      expect(translations).toHaveLength(1);
+      expect(translations[0]!.unit.text).toBe("Valid");
+    });
   });
 
   describe("field filtering", () => {
@@ -526,6 +562,13 @@ describe("collectTranslations", () => {
       },
       // Whitespace / structural empties
       { kind: "whitespace-only textarea", fieldType: "textarea", value: "   " },
+      // Textareas share the skip predicate with text fields
+      { kind: "numeric-only textarea", fieldType: "textarea", value: "42" },
+      {
+        kind: "URL-only markdown",
+        fieldType: "markdown",
+        value: "https://example.com/docs",
+      },
       { kind: "empty markdown", fieldType: "markdown", value: "" },
       { kind: "empty tags array", fieldType: "tags", value: [] },
       {

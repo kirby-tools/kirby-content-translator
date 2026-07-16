@@ -107,7 +107,7 @@ function collectFromField(
   // a finalizer once all translations come back.
   else if (["textarea", "markdown"].includes(field.type)) {
     const text = value as string;
-    if (!text?.trim()) return;
+    if (!text || shouldSkipTranslation(text)) return;
 
     const { fragments, restore } = splitKirbyText(
       text,
@@ -171,8 +171,8 @@ function collectFromField(
   else if (field.type === "layout" && Array.isArray(value)) {
     const layoutField = field as KirbyLayoutFieldProps;
     for (const layout of value as KirbyLayout[]) {
-      for (const column of layout.columns) {
-        for (const block of column.blocks) {
+      for (const column of layout.columns ?? []) {
+        for (const block of column.blocks ?? []) {
           if (!isBlockTranslatable(block)) continue;
           if (!layoutField.fieldsets[block.type]) continue;
 
