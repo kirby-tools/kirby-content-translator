@@ -99,8 +99,8 @@ final readonly class CopilotAIStrategy implements Strategy
             foreach ($chunk as $chunkIndex => [$index, $unit]) {
                 $translation = $translations[$chunkIndex];
 
-                if (!is_string($translation)) {
-                    self::warn($unit, 'non-string translation', null);
+                if (!is_string($translation) || $translation === '') {
+                    self::warn($unit, 'empty or non-string translation', null);
                     continue;
                 }
 

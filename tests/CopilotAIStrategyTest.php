@@ -234,6 +234,25 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
+    public function keeps_source_text_when_translation_is_empty(): void
+    {
+        new App();
+        $captured = [];
+        $client = $this->client([['translations' => ['', 'Hallo']]], $captured);
+        $strategy = new CopilotAIStrategy(client: $client);
+
+        $result = $strategy->execute(
+            units: [
+                new TranslationUnit('Hello', 'a'),
+                new TranslationUnit('World', 'b'),
+            ],
+            options: self::options(),
+        );
+
+        $this->assertSame(['Hello', 'Hallo'], $result);
+    }
+
+    #[Test]
     public function fires_translate_warning_hook_on_placeholder_mismatch(): void
     {
         $warnings = [];
