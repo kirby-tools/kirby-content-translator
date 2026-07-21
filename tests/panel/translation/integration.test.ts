@@ -4,7 +4,6 @@ import { AIStrategy, translateContent } from "../../../src/panel/translation";
 import { field } from "./utils";
 
 const mockStreamText = vi.fn();
-const mockLoadAISDK = vi.fn();
 
 vi.mock("kirbyuse", () => ({
   useApi: () => ({ post: vi.fn() }),
@@ -12,17 +11,14 @@ vi.mock("kirbyuse", () => ({
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(() => ({
+    apiVersion: 2,
     streamText: mockStreamText,
-    loadAISDK: mockLoadAISDK,
   })),
 }));
 
 describe("translateContent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLoadAISDK.mockResolvedValue({
-      Output: { object: vi.fn(({ schema }) => ({ schema })) },
-    });
   });
 
   it("hides KirbyTag structure from the strategy", async () => {

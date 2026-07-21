@@ -10,6 +10,7 @@ import {
   MAX_CHARS_PER_BATCH,
 } from "../../../src/panel/translation/strategies/ai";
 import { shouldSkipTranslation } from "../../../src/panel/translation/utils";
+import { REQUIRED_COPILOT_API_VERSION } from "../../../src/panel/utils/copilot-contract";
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(),
@@ -50,5 +51,18 @@ describe("translation contract", () => {
   it("caps AI batches at the contract limits", () => {
     expect(MAX_BATCH_SIZE).toBe(contract.batching.maxBatchSize);
     expect(MAX_CHARS_PER_BATCH).toBe(contract.batching.maxSizePerBatch);
+  });
+});
+
+describe("copilot seam contract", () => {
+  it("requires the seam version pinned in the shared fixture", () => {
+    const seamContract = JSON.parse(
+      readFileSync(
+        join(import.meta.dirname, "../../fixtures/copilot-seam-contract.json"),
+        "utf8",
+      ),
+    ) as { apiVersion: number };
+
+    expect(REQUIRED_COPILOT_API_VERSION).toBe(seamContract.apiVersion);
   });
 });

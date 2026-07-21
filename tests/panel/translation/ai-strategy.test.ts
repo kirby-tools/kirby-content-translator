@@ -3,12 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AIStrategy } from "../../../src/panel/translation/strategies/ai";
 
 const mockStreamText = vi.fn();
-const mockLoadAISDK = vi.fn();
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(() => ({
+    apiVersion: 2,
     streamText: mockStreamText,
-    loadAISDK: mockLoadAISDK,
   })),
 }));
 
@@ -21,11 +20,6 @@ describe("AIStrategy", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockLoadAISDK.mockResolvedValue({
-      Output: {
-        object: vi.fn(({ schema }) => ({ schema })),
-      },
-    });
   });
 
   describe("single text translation", () => {
@@ -201,7 +195,22 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("when copilot is unavailable", () => {
+  describe("copilot seam", () => {
+    it("passes a plain schema across the seam instead of AI SDK values", async () => {
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["Hallo"] }),
+      });
+
+      const strategy = new AIStrategy();
+      await strategy.execute([{ text: "Hello", fieldKey: "title" }], {
+        ...defaultOptions,
+      });
+
+      expect(mockStreamText).toHaveBeenCalledWith(
+        expect.objectContaining({ outputSchema: expect.anything() }),
+      );
+    });
+
     it("throws when copilot is not available", async () => {
       const { resolveCopilot } =
         await import("../../../src/panel/utils/copilot");
@@ -215,6 +224,20 @@ describe("AIStrategy", () => {
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
         "Kirby Copilot plugin is required",
       );
+    });
+
+    it("throws when the installed Copilot predates the versioned seam", async () => {
+      const { resolveCopilot } =
+        await import("../../../src/panel/utils/copilot");
+      vi.mocked(resolveCopilot).mockReturnValueOnce({
+        streamText: mockStreamText,
+      } as never);
+
+      const strategy = new AIStrategy();
+
+      await expect(
+        strategy.execute([{ text: "Test", fieldKey: "title" }], defaultOptions),
+      ).rejects.toThrow("update the Kirby Copilot plugin");
     });
   });
 

@@ -1,0 +1,9 @@
+{
+  "apiVersion": 2,
+  "methods": [
+    "resolvePluginContext",
+    "streamText",
+    "resolveLanguageModel",
+    "loadAISDK"
+  ]
+}

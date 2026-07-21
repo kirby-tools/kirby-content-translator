@@ -1,6 +1,6 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { TranslationProvider } from "../types";
-import type { PluginContextResponse } from "../utils/copilot";
+import type { PluginContextResponse } from "../utils/copilot-contract";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot } from "../utils/copilot";

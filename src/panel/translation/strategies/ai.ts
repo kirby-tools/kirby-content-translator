@@ -5,6 +5,7 @@ import type {
 } from "../types";
 import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
+import { REQUIRED_COPILOT_API_VERSION } from "../../utils/copilot-contract";
 import { PLACEHOLDER_PATTERN } from "../kirby-text";
 
 export interface AIStrategyOptions {
@@ -44,9 +45,16 @@ export class AIStrategy implements TranslationStrategy {
       throw new Error("Kirby Copilot plugin is required for AI translations");
     }
 
+    // Composer conflict rules cannot guard manual plugin installs,
+    // so the seam version is checked at runtime as well.
+    if ((copilot.apiVersion ?? 1) < REQUIRED_COPILOT_API_VERSION) {
+      throw new Error(
+        "The installed Kirby Copilot version does not support AI translations anymore – please update the Kirby Copilot plugin.",
+      );
+    }
+
     const { signal } = options;
-    const { loadAISDK, streamText } = copilot;
-    const { Output } = await loadAISDK();
+    const { streamText } = copilot;
 
     // Initialize results with original texts (fallback)
     const results: string[] = units.map((unit) => unit.text);
@@ -69,11 +77,11 @@ export class AIStrategy implements TranslationStrategy {
             options,
           ),
           systemPrompt: this.systemPrompt?.trim(),
-          output: Output.object({ schema }),
+          outputSchema: schema,
         });
 
         // Prevent unhandled rejection
-        (finalOutput as Promise<unknown>).catch(() => {});
+        finalOutput.catch(() => {});
 
         const result = await finalOutput;
 
