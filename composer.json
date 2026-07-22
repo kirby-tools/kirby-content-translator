@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-content-translator",
   "description": "DeepL & AI-powered content translation for Kirby CMS",
   "type": "kirby-plugin",
-  "version": "3.11.2",
+  "version": "3.12.0",
   "keywords": [
     "content",
     "DeepL",

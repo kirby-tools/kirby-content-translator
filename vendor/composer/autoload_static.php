@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit22d1c81c7adbaf64285c74730655671e
+class ComposerStaticInitc53d930df1d7c0d6d0a006854b12518d
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -54,7 +54,6 @@ class ComposerStaticInit22d1c81c7adbaf64285c74730655671e
         'JohannSchopplich\\ContentTranslator\\Translation\\Strategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategy.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TextFilter' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TextFilter.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TranslationLanguage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationLanguage.php',
-        'JohannSchopplich\\ContentTranslator\\Translation\\TranslationMode' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationMode.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TranslationUnit' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationUnit.php',
         'JohannSchopplich\\ContentTranslator\\Translator' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translator.php',
         'JohannSchopplich\\ContentTranslator\\TranslatorConfig' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslatorConfig.php',
@@ -81,9 +80,9 @@ class ComposerStaticInit22d1c81c7adbaf64285c74730655671e
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit22d1c81c7adbaf64285c74730655671e::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit22d1c81c7adbaf64285c74730655671e::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit22d1c81c7adbaf64285c74730655671e::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitc53d930df1d7c0d6d0a006854b12518d::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitc53d930df1d7c0d6d0a006854b12518d::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitc53d930df1d7c0d6d0a006854b12518d::$classMap;
 
         }, null, ClassLoader::class);
     }

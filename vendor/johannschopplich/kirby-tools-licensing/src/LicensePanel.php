@@ -42,7 +42,7 @@ final class LicensePanel
                         return $licenses->activateFromRequest();
                     } catch (Throwable $e) {
                         $message = $e->getMessage();
-                        $translationKey = self::ACTIVATION_ERROR_KEYS[$message] ?? null;
+                        $translationKey = LicensePanel::ACTIVATION_ERROR_KEYS[$message] ?? null;
 
                         throw new InvalidArgumentException(
                             $translationKey ? I18n::translate($translationKey) : $message
@@ -189,7 +189,7 @@ final class LicensePanel
                         $licenses->activateFromRequest();
                     } catch (Throwable $e) {
                         $message = $e->getMessage();
-                        $translationKey = self::ACTIVATION_ERROR_KEYS[$message] ?? null;
+                        $translationKey = LicensePanel::ACTIVATION_ERROR_KEYS[$message] ?? null;
 
                         throw new InvalidArgumentException(
                             $translationKey ? I18n::translate($translationKey) : $message

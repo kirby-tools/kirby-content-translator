@@ -21,7 +21,6 @@ return array(
     'JohannSchopplich\\ContentTranslator\\Translation\\Strategy' => $baseDir . '/src/classes/ContentTranslator/Translation/Strategy.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TextFilter' => $baseDir . '/src/classes/ContentTranslator/Translation/TextFilter.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TranslationLanguage' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationLanguage.php',
-    'JohannSchopplich\\ContentTranslator\\Translation\\TranslationMode' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationMode.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TranslationUnit' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationUnit.php',
     'JohannSchopplich\\ContentTranslator\\Translator' => $baseDir . '/src/classes/ContentTranslator/Translator.php',
     'JohannSchopplich\\ContentTranslator\\TranslatorConfig' => $baseDir . '/src/classes/ContentTranslator/TranslatorConfig.php',
