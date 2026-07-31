@@ -243,6 +243,15 @@ final class DeepL
             if (str_contains($fullLocale, '_')) {
                 [$baseCode, $regionCode] = array_map('strtoupper', explode('_', $fullLocale));
 
+                // DeepL distinguishes Chinese by script (Simplified/Traditional)
+                // rather than by region, so region codes must be mapped accordingly
+                if ($baseCode === 'ZH') {
+                    return match ($regionCode) {
+                        'TW', 'HK', 'MO' => 'ZH-HANT',
+                        default => 'ZH-HANS',
+                    };
+                }
+
                 // Create region-specific code in DeepL format (e.g., EN-GB)
                 $regionSpecificCode = $baseCode . '-' . $regionCode;
 
