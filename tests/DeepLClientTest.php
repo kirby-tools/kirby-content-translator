@@ -202,15 +202,35 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function request_options_keep_a_source_language_the_client_cannot_resolve(): void
+    public function request_options_cannot_stand_in_for_an_unresolved_source_language(): void
     {
-        $this->appWithDeepLConfig(requestOptions: ['source_lang' => 'EN']);
+        $this->appWithDeepLConfig(
+            languages: [
+                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+                ['code' => 'cn', 'name' => '简体中文'],
+            ],
+            requestOptions: ['source_lang' => 'FR'],
+        );
 
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
-        $deepL->translateMany(['Hello'], 'de');
+        $deepL->translateMany(['你好'], 'de', 'cn');
 
-        $this->assertSame('EN', $requests[0]['sourceLanguage']);
+        // Letting `FR` stand would hand DeepL Chinese text labelled as French
+        $this->assertNull($requests[0]['sourceLanguage']);
+    }
+
+    #[Test]
+    public function request_options_cannot_smuggle_a_text_alongside_the_texts(): void
+    {
+        $this->appWithDeepLConfig(requestOptions: ['text' => ['a' => 'INJECTED']]);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+        $deepL->translateMany(['Hello'], 'de', 'en');
+
+        $this->assertSame(['Hello'], $requests[0]['texts']);
     }
 
     #[Test]

@@ -139,6 +139,32 @@ final class DeepL
 
     /**
      * @param array<string> $texts
+     * @param array<string,mixed> $requestOptions
+     * @return array<string,mixed>
+     */
+    private static function buildPayload(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): array
+    {
+        $payload = $requestOptions;
+
+        // Assigned rather than merged, because a merge lets a user-supplied
+        // `text` survive next to the texts being translated and turn the JSON
+        // array into an object DeepL rejects
+        $payload['text'] = $texts;
+        $payload['target_lang'] = $targetLanguage;
+
+        // A configured `source_lang` must not stand in for one that failed to
+        // resolve, or the text goes out labelled as an unrelated language
+        if ($sourceLanguage === null) {
+            unset($payload['source_lang']);
+        } else {
+            $payload['source_lang'] = $sourceLanguage;
+        }
+
+        return $payload;
+    }
+
+    /**
+     * @param array<string> $texts
      * @see https://support.deepl.com/hc/en-us/articles/9773964275868-DeepL-API-error-messages
      */
     private function request(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): mixed
@@ -155,21 +181,9 @@ final class DeepL
                         'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
                         'Content-Type' => 'application/json'
                     ],
-                    // Merged last so user request options cannot silently replace the
-                    // texts or the languages. `MERGE_REPLACE` is required because the
-                    // default mode appends array values, which would prepend a
-                    // user-supplied `text` to the texts being translated. Filtering
-                    // leaves a configured `source_lang` standing, and DeepL rejects an
-                    // explicit null anyway.
-                    'data' => json_encode(A::merge(
-                        $requestOptions,
-                        array_filter([
-                            'text' => $texts,
-                            'source_lang' => $sourceLanguage,
-                            'target_lang' => $targetLanguage,
-                        ], static fn (mixed $value): bool => $value !== null),
-                        A::MERGE_REPLACE
-                    ))
+                    'data' => json_encode(
+                        self::buildPayload($texts, $targetLanguage, $sourceLanguage, $requestOptions)
+                    )
                 ]
             ),
             count($texts)
