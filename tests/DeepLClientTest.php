@@ -181,8 +181,13 @@ final class DeepLClientTest extends TestCase
         $deepL->translateMany(['Hello'], 'de', 'en');
         $this->assertSame('EN', $requests[0]['sourceLanguage']);
 
+        // A language DeepL only added in its 2026 expansion, so a stale
+        // `SUPPORTED_SOURCE_LANGUAGES` degrades it to auto-detect here
+        $deepL->translateMany(['Hello'], 'de', 'sw');
+        $this->assertSame('SW', $requests[1]['sourceLanguage']);
+
         $deepL->translateMany(['Hello'], 'de', 'invalid');
-        $this->assertNull($requests[1]['sourceLanguage']);
+        $this->assertNull($requests[2]['sourceLanguage']);
     }
 
     #[Test]
