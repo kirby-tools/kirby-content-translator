@@ -13,7 +13,8 @@ use Kirby\Toolkit\A;
 
 final class DeepL
 {
-    public const SUPPORTED_SOURCE_LANGUAGES = ['ACE', 'AF', 'AN', 'AR', 'AS', 'AY', 'AZ', 'BA', 'BE', 'BG', 'BHO', 'BN', 'BR', 'BS', 'CA', 'CEB', 'CKB', 'CS', 'CY', 'DA', 'DE', 'EL', 'EN', 'EO', 'ES', 'ET', 'EU', 'FA', 'FI', 'FR', 'GA', 'GL', 'GN', 'GOM', 'GU', 'HA', 'HE', 'HI', 'HR', 'HT', 'HU', 'HY', 'ID', 'IG', 'IS', 'IT', 'JA', 'JV', 'KA', 'KK', 'KMR', 'KO', 'KY', 'LA', 'LB', 'LMO', 'LN', 'LT', 'LV', 'MAI', 'MG', 'MI', 'MK', 'ML', 'MN', 'MR', 'MS', 'MT', 'MY', 'NB', 'NE', 'NL', 'OC', 'OM', 'PA', 'PAG', 'PAM', 'PL', 'PRS', 'PS', 'PT', 'QU', 'RO', 'RU', 'SA', 'SCN', 'SK', 'SL', 'SQ', 'SR', 'ST', 'SU', 'SV', 'SW', 'TA', 'TE', 'TG', 'TH', 'TK', 'TL', 'TN', 'TR', 'TS', 'TT', 'UK', 'UR', 'UZ', 'VI', 'WO', 'XH', 'YI', 'YUE', 'ZH', 'ZU'];
+    public const SUPPORTED_SOURCE_LANGUAGES = DeepLLanguages::SUPPORTED_SOURCE_CODES;
+    public const SUPPORTED_TARGET_LANGUAGES = DeepLLanguages::SUPPORTED_TARGET_CODES;
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
 
@@ -24,7 +25,7 @@ final class DeepL
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
     /** @var array<string,string> Target codes by Kirby language code */
-    private readonly array $targetLanguages;
+    private readonly array $targetLanguageOverrides;
     private readonly string|null $apiKey;
     private static DeepL|null $instance = null;
 
@@ -50,7 +51,7 @@ final class DeepL
             ],
             $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
         );
-        $this->targetLanguages = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguages', []);
+        $this->targetLanguageOverrides = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguageOverrides', []);
     }
 
     public static function instance(): self
@@ -79,7 +80,7 @@ final class DeepL
             return [];
         }
 
-        [$sourceLanguage, $targetLanguage] = $this->validateLanguages($sourceLanguage, $targetLanguage);
+        [$sourceLanguage, $targetLanguage] = $this->resolveLanguages($sourceLanguage, $targetLanguage);
 
         $results = [];
 
@@ -103,7 +104,7 @@ final class DeepL
     /**
      * @return array{0: string|null, 1: string} [sourceLanguage, targetLanguage]
      */
-    private function validateLanguages(string|null $sourceLanguage, string $targetLanguage): array
+    private function resolveLanguages(string|null $sourceLanguage, string $targetLanguage): array
     {
         // An unsupported source language is dropped rather than rejected, because
         // DeepL detects it on its own; only the target has to be right
@@ -157,9 +158,9 @@ final class DeepL
                     // Merged last so user request options cannot silently replace the
                     // texts or the languages. `MERGE_REPLACE` is required because the
                     // default mode appends array values, which would prepend a
-                    // user-supplied `text` to the texts being translated. An unresolved
-                    // source language is filtered out rather than merged as null, which
-                    // leaves a configured `source_lang` standing.
+                    // user-supplied `text` to the texts being translated. Filtering
+                    // leaves a configured `source_lang` standing, and DeepL rejects an
+                    // explicit null anyway.
                     'data' => json_encode(A::merge(
                         $requestOptions,
                         array_filter([
@@ -238,10 +239,10 @@ final class DeepL
     {
         $locale = App::instance()->languages()->find($code)?->locale(LC_ALL);
 
-        return DeepLTargetLanguage::resolve(
+        return DeepLLanguages::resolveTarget(
             $code,
             is_string($locale) ? $locale : null,
-            $this->targetLanguages
+            $this->targetLanguageOverrides
         );
     }
 }

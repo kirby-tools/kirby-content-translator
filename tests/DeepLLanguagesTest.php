@@ -2,21 +2,20 @@
 
 declare(strict_types = 1);
 
-use JohannSchopplich\ContentTranslator\DeepL;
-use JohannSchopplich\ContentTranslator\DeepLTargetLanguage;
+use JohannSchopplich\ContentTranslator\DeepLLanguages;
 use Kirby\Exception\LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-final class DeepLTargetLanguageTest extends TestCase
+final class DeepLLanguagesTest extends TestCase
 {
     /** @return array<string, array{0: string, 1: string|null, 2: string}> */
     public static function targetLanguageResolutions(): array
     {
         return [
             'region-specific target' => ['en', 'en_GB', 'EN-GB'],
-            'unsupported region falls back to base' => ['de', 'de_DE', 'DE'],
+            'unsupported region falls back to base' => ['it', 'it_IT', 'IT'],
             'charset suffix is ignored' => ['pt', 'pt_BR.UTF-8', 'PT-BR'],
             'numeric region subtag' => ['es-419', null, 'ES-419'],
             'extlang outranks its macrolanguage' => ['zh-yue', null, 'YUE'],
@@ -31,6 +30,9 @@ final class DeepLTargetLanguageTest extends TestCase
             'language-less system locale falls back to the code' => ['de', 'C', 'DE'],
             'unqualified English stays generic' => ['en', 'en', 'EN'],
             'language added in the 2026 expansion' => ['sw', 'sw_KE', 'SW'],
+            'Swiss German variant' => ['de', 'de_CH', 'DE-CH'],
+            'German variant' => ['de', 'de_DE', 'DE-DE'],
+            'Canadian French variant' => ['fr', 'fr_CA', 'FR-CA'],
         ];
     }
 
@@ -38,19 +40,19 @@ final class DeepLTargetLanguageTest extends TestCase
     #[DataProvider('targetLanguageResolutions')]
     public function resolves_target_language(string $code, string|null $locale, string $expected): void
     {
-        $this->assertSame($expected, DeepLTargetLanguage::resolve($code, $locale));
+        $this->assertSame($expected, DeepLLanguages::resolveTarget($code, $locale));
     }
 
     #[Test]
-    public function source_languages_are_the_target_codes_minus_the_target_only_variants(): void
+    public function source_codes_are_the_target_codes_minus_the_target_only_variants(): void
     {
-        // Both lists are maintained by hand against DeepL's releases. Pinning them
+        // Both lists are transcribed by hand from the languages API. Pinning them
         // to each other is what keeps a target-only code out of `source_lang`,
         // which DeepL rejects outright.
         $this->assertSame(
-            DeepL::SUPPORTED_SOURCE_LANGUAGES,
+            DeepLLanguages::SUPPORTED_SOURCE_CODES,
             array_values(array_filter(
-                DeepLTargetLanguage::SUPPORTED_CODES,
+                DeepLLanguages::SUPPORTED_TARGET_CODES,
                 static fn (string $code): bool => !str_contains($code, '-')
             )),
         );
@@ -60,9 +62,9 @@ final class DeepLTargetLanguageTest extends TestCase
     public function throws_naming_the_locale_and_the_override_option(): void
     {
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessageMatches('/language "cn" \(locale "cn_CN"\).+DeepL\.targetLanguages/');
+        $this->expectExceptionMessageMatches('/language "cn" \(locale "cn_CN"\).+DeepL\.targetLanguageOverrides/');
 
-        DeepLTargetLanguage::resolve('cn', 'cn_CN');
+        DeepLLanguages::resolveTarget('cn', 'cn_CN');
     }
 
     #[Test]
@@ -72,7 +74,7 @@ final class DeepLTargetLanguageTest extends TestCase
         // a language the constant does not know yet
         $this->assertSame(
             'ZH-FUTURE',
-            DeepLTargetLanguage::resolve('zh', 'zh_CN', ['zh' => 'ZH-FUTURE']),
+            DeepLLanguages::resolveTarget('zh', 'zh_CN', ['zh' => 'ZH-FUTURE']),
         );
     }
 }

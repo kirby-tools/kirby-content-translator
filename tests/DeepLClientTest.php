@@ -25,7 +25,7 @@ final class DeepLClientTest extends TestCase
         string|null $apiKey = 'test-key:fx',
         array|null $languages = null,
         array $requestOptions = [],
-        array $targetLanguages = [],
+        array $targetLanguageOverrides = [],
     ): App {
         $pluginOptions = [];
         if ($apiKey !== null) {
@@ -34,8 +34,8 @@ final class DeepLClientTest extends TestCase
         if (!empty($requestOptions)) {
             $pluginOptions['DeepL.requestOptions'] = $requestOptions;
         }
-        if (!empty($targetLanguages)) {
-            $pluginOptions['DeepL.targetLanguages'] = $targetLanguages;
+        if (!empty($targetLanguageOverrides)) {
+            $pluginOptions['DeepL.targetLanguageOverrides'] = $targetLanguageOverrides;
         }
 
         return new App([
@@ -167,7 +167,7 @@ final class DeepLClientTest extends TestCase
                 ['code' => 'zh-tw', 'name' => '繁體中文'],
                 ['code' => 'cn', 'name' => '简体中文'],
             ],
-            targetLanguages: ['cn' => 'ZH-HANS'],
+            targetLanguageOverrides: ['cn' => 'ZH-HANS'],
         );
 
         $requests = [];
@@ -196,7 +196,7 @@ final class DeepLClientTest extends TestCase
         $deepL = $this->createMockDeepL($requests);
         $deepL->translateMany(['Hello'], 'de', 'en');
 
-        $this->assertSame('DE', $requests[0]['targetLanguage']);
+        $this->assertSame('DE-DE', $requests[0]['targetLanguage']);
         $this->assertSame('EN', $requests[0]['sourceLanguage']);
         $this->assertSame(['Hello'], $requests[0]['texts']);
     }

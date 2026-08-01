@@ -42,7 +42,12 @@ return [
 
     'johannschopplich.content-translator' => [
         'DeepL' => [
-            'apiKey' => env('DEEPL_API_KEY')
+            'apiKey' => env('DEEPL_API_KEY'),
+            'targetLanguageOverrides' => [
+                // Kirby language code => DeepL target code, for languages whose
+                // code and locale name no code DeepL knows
+                'cn' => 'ZH-HANS'
+            ]
         ],
         'kirbyTags' => [
             'link' => ['text', 'title'], // Translate link text and title, but not the URL
