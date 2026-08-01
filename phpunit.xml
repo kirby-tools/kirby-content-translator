@@ -19,4 +19,10 @@
       <directory>./tests</directory>
     </testsuite>
   </testsuites>
+  <groups>
+    <exclude>
+      <!-- Reaches the live DeepL API; see `DeepLLanguagesLiveTest` -->
+      <group>network</group>
+    </exclude>
+  </groups>
 </phpunit>

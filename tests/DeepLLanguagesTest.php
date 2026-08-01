@@ -29,10 +29,21 @@ final class DeepLLanguagesTest extends TestCase
             'hyphenated code without locale' => ['zh-tw', null, 'ZH-HANT'],
             'language-less system locale falls back to the code' => ['de', 'C', 'DE'],
             'unqualified English stays generic' => ['en', 'en', 'EN'],
-            'language added in the 2026 expansion' => ['sw', 'sw_KE', 'SW'],
+            'language outside the common European set' => ['sw', 'sw_KE', 'SW'],
             'Swiss German variant' => ['de', 'de_CH', 'DE-CH'],
             'German variant' => ['de', 'de_DE', 'DE-DE'],
             'Canadian French variant' => ['fr', 'fr_CA', 'FR-CA'],
+            'Latin American region' => ['es', 'es_MX', 'ES-419'],
+            'European Spanish region' => ['es', 'es_ES', 'ES'],
+            'Latin American region without locale' => ['es-mx', null, 'ES-419'],
+            'unqualified Spanish stays generic' => ['es', 'es', 'ES'],
+            'alias for a code DeepL spells differently' => ['gr', null, 'EL'],
+            'alias resolves as a source too' => ['jp', null, 'JA'],
+            // A server without `de_CH` installed carries `de_DE` for date
+            // formatting; that must not redirect the translation
+            'specific code outranks a conflicting locale' => ['de-ch', 'de_DE.UTF-8', 'DE-CH'],
+            'specific code outranks a conflicting locale (English)' => ['en-gb', 'en_US.UTF-8', 'EN-GB'],
+            'bare code still defers to the locale' => ['de', 'de_CH.UTF-8', 'DE-CH'],
         ];
     }
 
@@ -43,19 +54,59 @@ final class DeepLLanguagesTest extends TestCase
         $this->assertSame($expected, DeepLLanguages::resolveTarget($code, $locale));
     }
 
-    #[Test]
-    public function source_codes_are_the_target_codes_minus_the_target_only_variants(): void
+    /** @return array<string, array{0: string, 1: string|null, 2: string|null}> */
+    public static function sourceLanguageResolutions(): array
     {
-        // Both lists are transcribed by hand from the languages API. Pinning them
-        // to each other is what keeps a target-only code out of `source_lang`,
-        // which DeepL rejects outright.
-        $this->assertSame(
+        return [
+            'regional variant narrows to its base code' => ['zh-tw', 'zh_TW', 'ZH'],
+            'Swiss German narrows to German' => ['de-ch', 'de_CH.UTF-8', 'DE'],
+            'British English narrows to English' => ['en', 'en_GB.UTF-8', 'EN'],
+            'Latin American Spanish narrows to Spanish' => ['es', 'es_MX', 'ES'],
+            'extlang is a source of its own' => ['zh-yue', null, 'YUE'],
+            'plain code passes through' => ['de', 'de_DE.UTF-8', 'DE'],
+            'unresolvable code falls back to auto-detection' => ['cn', null, null],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('sourceLanguageResolutions')]
+    public function resolves_source_language(string $code, string|null $locale, string|null $expected): void
+    {
+        $this->assertSame($expected, DeepLLanguages::resolveSource($code, $locale));
+    }
+
+    #[Test]
+    public function source_resolution_never_yields_a_regional_variant(): void
+    {
+        // DeepL answers a regional variant in `source_lang` with a 400, so no
+        // input may produce one, however specific the code and locale are
+        foreach ([['de-ch', 'de_CH'], ['zh', 'zh_TW'], ['pt', 'pt_BR'], ['es', 'es_AR'], ['en', 'en_GB']] as [$code, $locale]) {
+            $this->assertNotNull($source = DeepLLanguages::resolveSource($code, $locale));
+            $this->assertStringNotContainsString('-', $source);
+            $this->assertContains($source, DeepLLanguages::SUPPORTED_SOURCE_CODES);
+        }
+    }
+
+    #[Test]
+    public function no_source_code_is_a_regional_variant(): void
+    {
+        // `resolveSource` returns a listed base code verbatim, so a variant in
+        // the constant would reach `source_lang` after all
+        $this->assertSame([], array_values(array_filter(
             DeepLLanguages::SUPPORTED_SOURCE_CODES,
-            array_values(array_filter(
-                DeepLLanguages::SUPPORTED_TARGET_CODES,
-                static fn (string $code): bool => !str_contains($code, '-')
-            )),
-        );
+            static fn (string $code): bool => str_contains($code, '-')
+        )));
+    }
+
+    #[Test]
+    public function every_source_code_is_also_a_target_code(): void
+    {
+        // `resolveSource` narrows a resolved target to its base code, so a
+        // source outside the target list would be unreachable
+        $this->assertSame([], array_values(array_diff(
+            DeepLLanguages::SUPPORTED_SOURCE_CODES,
+            DeepLLanguages::SUPPORTED_TARGET_CODES
+        )));
     }
 
     #[Test]
@@ -76,5 +127,19 @@ final class DeepLLanguagesTest extends TestCase
             'ZH-FUTURE',
             DeepLLanguages::resolveTarget('zh', 'zh_CN', ['zh' => 'ZH-FUTURE']),
         );
+    }
+
+    #[Test]
+    public function override_is_case_normalised(): void
+    {
+        $this->assertSame('ZH-HANS', DeepLLanguages::resolveTarget('cn', null, ['cn' => 'zh-hans']));
+    }
+
+    #[Test]
+    public function override_reaches_the_source_language_too(): void
+    {
+        // Configuring a language once should tell the client what it is in both
+        // directions, not just where it translates to
+        $this->assertSame('ZH', DeepLLanguages::resolveSource('cn', null, ['cn' => 'ZH-HANS']));
     }
 }

@@ -3,6 +3,7 @@
 declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\DeepL;
+use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
 use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
@@ -222,6 +223,27 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
+    public function a_passed_language_carries_its_own_locale(): void
+    {
+        // `de-ch` is deliberately absent from the registry: the locale has to
+        // come from the passed language, not from a second lookup
+        $this->appWithDeepLConfig(languages: [
+            ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+        ]);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+        $deepL->translateMany(
+            ['Hello'],
+            new TranslationLanguage(code: 'de-ch', name: 'Schweizerdeutsch', locale: 'de_DE.UTF-8'),
+            new TranslationLanguage(code: 'en', name: 'English', locale: 'en_GB.UTF-8'),
+        );
+
+        $this->assertSame('DE-CH', $requests[0]['targetLanguage']);
+        $this->assertSame('EN', $requests[0]['sourceLanguage']);
+    }
+
+    #[Test]
     public function request_options_cannot_smuggle_a_text_alongside_the_texts(): void
     {
         $this->appWithDeepLConfig(requestOptions: ['text' => ['a' => 'INJECTED']]);
@@ -244,8 +266,7 @@ final class DeepLClientTest extends TestCase
         $deepL->translateMany(['Hello'], 'de', 'en');
         $this->assertSame('EN', $requests[0]['sourceLanguage']);
 
-        // A language DeepL only added in its 2026 expansion, so a stale
-        // `SUPPORTED_SOURCE_LANGUAGES` degrades it to auto-detect here
+        // Degrades to auto-detect if `SUPPORTED_SOURCE_CODES` ever loses a language
         $deepL->translateMany(['Hello'], 'de', 'sw');
         $this->assertSame('SW', $requests[1]['sourceLanguage']);
 

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
+use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
 use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
@@ -64,7 +65,7 @@ final class DeepL
         self::$instance = null;
     }
 
-    public function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
+    public function translate(string $text, string|TranslationLanguage $targetLanguage, string|TranslationLanguage|null $sourceLanguage = null): string
     {
         $result = $this->translateMany([$text], $targetLanguage, $sourceLanguage);
         return $result[0];
@@ -74,7 +75,7 @@ final class DeepL
      * @param array<int,string> $texts
      * @return array<int,string>
      */
-    public function translateMany(array $texts, string $targetLanguage, string|null $sourceLanguage = null): array
+    public function translateMany(array $texts, string|TranslationLanguage $targetLanguage, string|TranslationLanguage|null $sourceLanguage = null): array
     {
         if ($texts === []) {
             return [];
@@ -104,18 +105,46 @@ final class DeepL
     /**
      * @return array{0: string|null, 1: string} [sourceLanguage, targetLanguage]
      */
-    private function resolveLanguages(string|null $sourceLanguage, string $targetLanguage): array
+    private function resolveLanguages(string|TranslationLanguage|null $sourceLanguage, string|TranslationLanguage $targetLanguage): array
     {
-        // An unsupported source language is dropped rather than rejected, because
-        // DeepL detects it on its own; only the target has to be right
-        if (!empty($sourceLanguage)) {
-            $sourceLanguage = strtoupper($sourceLanguage);
-            if (!in_array($sourceLanguage, self::SUPPORTED_SOURCE_LANGUAGES, true)) {
-                $sourceLanguage = null;
-            }
+        $target = $this->asTranslationLanguage($targetLanguage);
+        $source = $sourceLanguage === null || $sourceLanguage === ''
+            ? null
+            : $this->asTranslationLanguage($sourceLanguage);
+
+        return [
+            $source === null ? null : DeepLLanguages::resolveSource(
+                $source->code,
+                $source->locale,
+                $this->targetLanguageOverrides
+            ),
+            DeepLLanguages::resolveTarget(
+                $target->code,
+                $target->locale,
+                $this->targetLanguageOverrides
+            ),
+        ];
+    }
+
+    /**
+     * Only a Kirby language carries the locale that tells `DE-CH` from `DE-DE`,
+     * so a bare code has to be looked up. An unregistered one still resolves,
+     * from the code alone.
+     */
+    private function asTranslationLanguage(string|TranslationLanguage $language): TranslationLanguage
+    {
+        if ($language instanceof TranslationLanguage) {
+            return $language;
         }
 
-        return [$sourceLanguage, $this->resolveTargetLanguage($targetLanguage)];
+        $kirbyLanguage = App::instance()->languages()->find($language);
+        $locale = $kirbyLanguage?->locale(LC_ALL);
+
+        return new TranslationLanguage(
+            code: $language,
+            name: $kirbyLanguage?->name() ?? $language,
+            locale: is_string($locale) ? $locale : null,
+        );
     }
 
     /**
@@ -135,32 +164,6 @@ final class DeepL
         }
 
         return $options;
-    }
-
-    /**
-     * @param array<string> $texts
-     * @param array<string,mixed> $requestOptions
-     * @return array<string,mixed>
-     */
-    private static function buildPayload(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): array
-    {
-        $payload = $requestOptions;
-
-        // Assigned rather than merged, because a merge lets a user-supplied
-        // `text` survive next to the texts being translated and turn the JSON
-        // array into an object DeepL rejects
-        $payload['text'] = $texts;
-        $payload['target_lang'] = $targetLanguage;
-
-        // A configured `source_lang` must not stand in for one that failed to
-        // resolve, or the text goes out labelled as an unrelated language
-        if ($sourceLanguage === null) {
-            unset($payload['source_lang']);
-        } else {
-            $payload['source_lang'] = $sourceLanguage;
-        }
-
-        return $payload;
     }
 
     /**
@@ -206,6 +209,32 @@ final class DeepL
         return $response;
     }
 
+    /**
+     * @param array<string> $texts
+     * @param array<string,mixed> $requestOptions
+     * @return array<string,mixed>
+     */
+    private static function buildPayload(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): array
+    {
+        $payload = $requestOptions;
+
+        // Assigned rather than merged, because a merge lets a user-supplied
+        // `text` survive next to the texts being translated and turn the JSON
+        // array into an object DeepL rejects
+        $payload['text'] = $texts;
+        $payload['target_lang'] = $targetLanguage;
+
+        // A configured `source_lang` must not stand in for one that failed to
+        // resolve, or the text goes out labelled as an unrelated language
+        if ($sourceLanguage === null) {
+            unset($payload['source_lang']);
+        } else {
+            $payload['source_lang'] = $sourceLanguage;
+        }
+
+        return $payload;
+    }
+
     private function withRetry(Closure $callback, int $batchSize = 1): mixed
     {
         $attempt = 0;
@@ -247,16 +276,5 @@ final class DeepL
     {
         $hasFreeAccount = str_ends_with($this->apiKey, ':fx');
         return $hasFreeAccount ? self::API_URL_FREE : self::API_URL_PRO;
-    }
-
-    private function resolveTargetLanguage(string $code): string
-    {
-        $locale = App::instance()->languages()->find($code)?->locale(LC_ALL);
-
-        return DeepLLanguages::resolveTarget(
-            $code,
-            is_string($locale) ? $locale : null,
-            $this->targetLanguageOverrides
-        );
     }
 }

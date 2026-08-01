@@ -8,13 +8,18 @@ use Kirby\Cms\App;
 use Kirby\Exception\InvalidArgumentException;
 
 /**
- * Language identifier (code + display name) for translation operations.
+ * Language identifier for translation operations.
+ *
+ * Carries everything a {@see Strategy} may need to name the language, so no
+ * strategy has to reach back into Kirby's language registry: the display name
+ * for a prompt, the locale for a provider that resolves regional variants.
  */
 final readonly class TranslationLanguage
 {
     public function __construct(
         public string $code,
         public string $name,
+        public string|null $locale = null,
     ) {
     }
 
@@ -33,9 +38,14 @@ final readonly class TranslationLanguage
             );
         }
 
+        // Kirby falls back to a per-category locale array, which names no single
+        // language and is unusable here
+        $locale = $language?->locale(LC_ALL);
+
         return new self(
             code: $code,
             name: $language?->name() ?? $code,
+            locale: is_string($locale) ? $locale : null,
         );
     }
 }

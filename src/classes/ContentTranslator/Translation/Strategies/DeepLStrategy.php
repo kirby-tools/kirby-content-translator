@@ -32,7 +32,7 @@ final readonly class DeepLStrategy implements Strategy
         $texts = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
 
         try {
-            return $client->translateMany($texts, $options->targetLanguage->code, $options->sourceLanguage?->code);
+            return $client->translateMany($texts, $options->targetLanguage, $options->sourceLanguage);
         } catch (Throwable $error) {
             foreach ($units as $unit) {
                 self::warn($unit, $error->getMessage(), $error);
