@@ -158,7 +158,7 @@ final class Translator
 
             // When copying from the default language to a secondary language,
             // delete the target content file so Kirby's built-in inheritance
-            // keeps it in sync with the default language automatically.
+            // keeps it in sync with the default language automatically
             // TODO: Remove `method_exists` check in the next major version
             if (
                 $defaultLanguage !== null &&

@@ -43,9 +43,8 @@ final class DeepL
             [
                 // Enable HTML tag handling by default for the Writer field
                 'tag_handling' => 'html',
-                // HTML tag handling sets `split_sentences=nonewlines`, which breaks
-                // markdown content. Therefore, we need to set it back to `1` to
-                // split sentences on punctuation and on newlines.
+                // HTML tag handling implies `split_sentences=nonewlines`, which
+                // breaks markdown; `1` restores splitting on punctuation and newlines
                 'split_sentences' => '1'
             ],
             $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
@@ -82,7 +81,7 @@ final class DeepL
 
         $results = [];
 
-        // Process in chunks of maximum 50 texts per request as per DeepL API limits
+        // 50 texts per request is the DeepL API limit
         $chunks = array_chunk($texts, 50);
 
         foreach ($chunks as $chunk) {
@@ -104,7 +103,8 @@ final class DeepL
      */
     private function validateLanguages(string|null $sourceLanguage, string $targetLanguage): array
     {
-        // Normalize and validate source language
+        // An unsupported source language is dropped rather than rejected, because
+        // DeepL detects it on its own; only the target has to be right
         if (!empty($sourceLanguage)) {
             $sourceLanguage = strtoupper($sourceLanguage);
             if (!in_array($sourceLanguage, self::SUPPORTED_SOURCE_LANGUAGES, true)) {
@@ -128,7 +128,8 @@ final class DeepL
     {
         $options = $this->requestOptions;
 
-        // Enable HTML tag handling if any text contains <span translate="no">
+        // `translate="no"` is only honoured under HTML tag handling, so it has to
+        // override whatever the user configured
         foreach ($texts as $text) {
             if (str_contains($text, '<span translate="no">')) {
                 $options['tag_handling'] = 'html';
@@ -212,7 +213,7 @@ final class DeepL
                 $exponentDelay = self::MAX_RETRY_DELAY_MS;
             }
 
-            // Use minimum backoff floor to avoid immediate retries
+            // Floor the jitter so a retry never fires immediately
             $minBackoff = (int)(self::INITIAL_RETRY_DELAY_MS / 2);
 
             $delay = $this->delay ?? static function (int $minMs, int $maxMs): void {

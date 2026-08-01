@@ -243,14 +243,12 @@ final class KirbyText
             $newAttributes = [];
             $hasTranslations = false;
 
-            // Translate the main value if `value` is in the attributes list
             $newValue = $tag->value;
             if (in_array('value', $translatableAttributes, true) && !empty($tag->value)) {
                 $newValue = Translator::translateText($tag->value, $targetLanguage, $sourceLanguage);
                 $hasTranslations = true;
             }
 
-            // Process each attribute
             foreach ($tag->attrs as $attrName => $attrValue) {
                 if (in_array($attrName, $translatableAttributes, true) && !empty($attrValue)) {
                     $newAttributes[$attrName] = Translator::translateText($attrValue, $targetLanguage, $sourceLanguage);
@@ -260,7 +258,6 @@ final class KirbyText
                 }
             }
 
-            // If no translations were made, return the original
             if (!$hasTranslations) {
                 return $tagString;
             }
@@ -280,14 +277,12 @@ final class KirbyText
     {
         $parts = [];
 
-        // Start with the tag type and main value
         if (!empty($value)) {
             $parts[] = $type . ': ' . $value;
         } else {
             $parts[] = $type;
         }
 
-        // Add attributes
         foreach ($attributes as $name => $attrValue) {
             if (!empty($attrValue)) {
                 $parts[] = $name . ': ' . $attrValue;
