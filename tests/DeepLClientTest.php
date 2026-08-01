@@ -25,6 +25,7 @@ final class DeepLClientTest extends TestCase
         string|null $apiKey = 'test-key:fx',
         array|null $languages = null,
         array $requestOptions = [],
+        array $targetLanguages = [],
     ): App {
         $pluginOptions = [];
         if ($apiKey !== null) {
@@ -32,6 +33,9 @@ final class DeepLClientTest extends TestCase
         }
         if (!empty($requestOptions)) {
             $pluginOptions['DeepL.requestOptions'] = $requestOptions;
+        }
+        if (!empty($targetLanguages)) {
+            $pluginOptions['DeepL.targetLanguages'] = $targetLanguages;
         }
 
         return new App([
@@ -147,27 +151,36 @@ final class DeepLClientTest extends TestCase
         $this->appWithDeepLConfig();
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('not supported by the DeepL API');
+        $this->expectExceptionMessage('Cannot resolve a DeepL target language');
 
-        DeepL::instance()->translateMany(['Hello'], 'invalid');
+        // Mocked so that a resolver that stops throwing fails the assertion
+        // instead of reaching the live DeepL API
+        $this->createMockDeepL()->translateMany(['Hello'], 'invalid');
     }
 
     #[Test]
-    public function translate_many_resolves_regional_target_language(): void
+    public function translate_many_sends_the_resolved_target_language(): void
     {
-        $this->appWithDeepLConfig(languages: [
-            ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_GB'],
-            ['code' => 'pt', 'name' => 'Portuguese', 'locale' => 'pt_BR'],
-        ]);
+        $this->appWithDeepLConfig(
+            languages: [
+                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_GB'],
+                ['code' => 'zh-tw', 'name' => '繁體中文'],
+                ['code' => 'cn', 'name' => '简体中文'],
+            ],
+            targetLanguages: ['cn' => 'ZH-HANS'],
+        );
 
         $requests = [];
         $deepL = $this->createMockDeepL($requests);
 
-        $deepL->translateMany(['Hello'], 'en');
-        $this->assertSame('EN-GB', $requests[0]['targetLanguage']);
+        foreach (['en', 'zh-tw', 'cn'] as $code) {
+            $deepL->translateMany(['Hello'], $code);
+        }
 
-        $deepL->translateMany(['Hello'], 'pt');
-        $this->assertSame('PT-BR', $requests[1]['targetLanguage']);
+        $this->assertSame(
+            ['EN-GB', 'ZH-HANT', 'ZH-HANS'],
+            array_column($requests, 'targetLanguage'),
+        );
     }
 
     #[Test]

@@ -14,7 +14,6 @@ use Kirby\Toolkit\A;
 final class DeepL
 {
     public const SUPPORTED_SOURCE_LANGUAGES = ['ACE', 'AF', 'AN', 'AR', 'AS', 'AY', 'AZ', 'BA', 'BE', 'BG', 'BHO', 'BN', 'BR', 'BS', 'CA', 'CEB', 'CKB', 'CS', 'CY', 'DA', 'DE', 'EL', 'EN', 'EO', 'ES', 'ET', 'EU', 'FA', 'FI', 'FR', 'GA', 'GL', 'GN', 'GOM', 'GU', 'HA', 'HE', 'HI', 'HR', 'HT', 'HU', 'HY', 'ID', 'IG', 'IS', 'IT', 'JA', 'JV', 'KA', 'KK', 'KMR', 'KO', 'KY', 'LA', 'LB', 'LMO', 'LN', 'LT', 'LV', 'MAI', 'MG', 'MI', 'MK', 'ML', 'MN', 'MR', 'MS', 'MT', 'MY', 'NB', 'NE', 'NL', 'OC', 'OM', 'PA', 'PAG', 'PAM', 'PL', 'PRS', 'PS', 'PT', 'QU', 'RO', 'RU', 'SA', 'SCN', 'SK', 'SL', 'SQ', 'SR', 'ST', 'SU', 'SV', 'SW', 'TA', 'TE', 'TG', 'TH', 'TK', 'TL', 'TN', 'TR', 'TS', 'TT', 'UK', 'UR', 'UZ', 'VI', 'WO', 'XH', 'YI', 'YUE', 'ZH', 'ZU'];
-    public const SUPPORTED_TARGET_LANGUAGES = ['AR', 'BG', 'CS', 'DA', 'DE', 'EL', 'EN', 'EN-GB', 'EN-US', 'ES', 'ES-419', 'ET', 'FI', 'FR', 'HE', 'HU', 'ID', 'IT', 'JA', 'KO', 'LT', 'LV', 'NB', 'NL', 'PL', 'PT', 'PT-BR', 'PT-PT', 'RO', 'RU', 'SK', 'SL', 'SV', 'TH', 'TR', 'UK', 'VI', 'ZH', 'ZH-HANS', 'ZH-HANT'];
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
 
@@ -24,6 +23,8 @@ final class DeepL
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
+    /** @var array<string,string> Target codes by Kirby language code */
+    private readonly array $targetLanguages;
     private readonly string|null $apiKey;
     private static DeepL|null $instance = null;
 
@@ -49,6 +50,7 @@ final class DeepL
             ],
             $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
         );
+        $this->targetLanguages = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguages', []);
     }
 
     public static function instance(): self
@@ -112,13 +114,7 @@ final class DeepL
             }
         }
 
-        // Resolve and validate target language
-        $targetLanguage = $this->resolveLanguageCode($targetLanguage);
-        if (!in_array($targetLanguage, self::SUPPORTED_TARGET_LANGUAGES, true)) {
-            throw new LogicException('The target language "' . $targetLanguage . '" is not supported by the DeepL API.');
-        }
-
-        return [$sourceLanguage, $targetLanguage];
+        return [$sourceLanguage, $this->resolveTargetLanguage($targetLanguage)];
     }
 
     /**
@@ -238,34 +234,14 @@ final class DeepL
         return $hasFreeAccount ? self::API_URL_FREE : self::API_URL_PRO;
     }
 
-    private function resolveLanguageCode(string $code): string
+    private function resolveTargetLanguage(string $code): string
     {
-        $kirby = App::instance();
-        $language = $kirby->languages()->findBy('code', $code);
-        $fullLocale = $language?->locale(LC_ALL);
+        $locale = App::instance()->languages()->find($code)?->locale(LC_ALL);
 
-        if ($fullLocale) {
-            $fullLocale = preg_replace('/\.utf-?8$/i', '', $fullLocale);
-
-            // Get the base language and region if available
-            if (str_contains($fullLocale, '_')) {
-                [$baseCode, $regionCode] = array_map('strtoupper', explode('_', $fullLocale));
-
-                // Create region-specific code in DeepL format (e.g., EN-GB)
-                $regionSpecificCode = $baseCode . '-' . $regionCode;
-
-                // Only use region-specific code if it's a supported target language
-                if (in_array($regionSpecificCode, self::SUPPORTED_TARGET_LANGUAGES, true)) {
-                    return $regionSpecificCode;
-                }
-
-                // If region-specific code is not supported, fall back to base language
-                if (in_array($baseCode, self::SUPPORTED_TARGET_LANGUAGES, true)) {
-                    return $baseCode;
-                }
-            }
-        }
-
-        return strtoupper($code);
+        return DeepLTargetLanguage::resolve(
+            $code,
+            is_string($locale) ? $locale : null,
+            $this->targetLanguages
+        );
     }
 }
