@@ -158,13 +158,20 @@ final class DeepL
                         'Authorization' => 'DeepL-Auth-Key ' . $this->apiKey,
                         'Content-Type' => 'application/json'
                     ],
+                    // Merged last so user request options cannot silently replace the
+                    // texts or the languages. `MERGE_REPLACE` is required because the
+                    // default mode appends array values, which would prepend a
+                    // user-supplied `text` to the texts being translated. An unresolved
+                    // source language is filtered out rather than merged as null, which
+                    // leaves a configured `source_lang` standing.
                     'data' => json_encode(A::merge(
-                        [
+                        $requestOptions,
+                        array_filter([
                             'text' => $texts,
                             'source_lang' => $sourceLanguage,
                             'target_lang' => $targetLanguage,
-                        ],
-                        $requestOptions
+                        ], static fn (mixed $value): bool => $value !== null),
+                        A::MERGE_REPLACE
                     ))
                 ]
             ),

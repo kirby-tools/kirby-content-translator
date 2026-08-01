@@ -171,6 +171,36 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
+    public function request_options_cannot_override_the_resolved_payload(): void
+    {
+        $this->appWithDeepLConfig(requestOptions: [
+            'target_lang' => 'FR',
+            'source_lang' => 'FR',
+            'text' => ['Injected'],
+        ]);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+        $deepL->translateMany(['Hello'], 'de', 'en');
+
+        $this->assertSame('DE', $requests[0]['targetLanguage']);
+        $this->assertSame('EN', $requests[0]['sourceLanguage']);
+        $this->assertSame(['Hello'], $requests[0]['texts']);
+    }
+
+    #[Test]
+    public function request_options_keep_a_source_language_the_client_cannot_resolve(): void
+    {
+        $this->appWithDeepLConfig(requestOptions: ['source_lang' => 'EN']);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+        $deepL->translateMany(['Hello'], 'de');
+
+        $this->assertSame('EN', $requests[0]['sourceLanguage']);
+    }
+
+    #[Test]
     public function translate_many_normalizes_source_language(): void
     {
         $this->appWithDeepLConfig();
