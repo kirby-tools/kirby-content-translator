@@ -23,6 +23,65 @@ final class DeepLStrategyTest extends TestCase
         App::destroy();
     }
 
+    private function appWithDeepLConfig(array $hooks = []): App
+    {
+        return new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+            ],
+            'options' => [
+                'debug' => true,
+                'johannschopplich.content-translator' => ['DeepL.apiKey' => 'test-key:fx'],
+            ],
+            'hooks' => $hooks,
+        ]);
+    }
+
+    /**
+     * @param array<int,array{texts: array<string>, ...}> $capturedRequests
+     */
+    private function createMockDeepL(array &$capturedRequests = []): DeepL
+    {
+        return new DeepL(
+            remote: function (string $url, array $options) use (&$capturedRequests): object {
+                $body = json_decode($options['data'], associative: true);
+                $capturedRequests[] = ['texts' => $body['text']];
+
+                return new class ($body['text']) {
+                    public function __construct(private array $texts)
+                    {
+                    }
+                    public function code(): int
+                    {
+                        return 200;
+                    }
+                    public function content(): string
+                    {
+                        return '';
+                    }
+                    public function json(): array
+                    {
+                        return [
+                            'translations' => array_map(
+                                fn (string $text) => ['text' => "[de]$text"],
+                                $this->texts,
+                            ),
+                        ];
+                    }
+                };
+            },
+        );
+    }
+
+    private static function options(): ExecutionOptions
+    {
+        return new ExecutionOptions(
+            targetLanguage: new TranslationLanguage('de', 'Deutsch'),
+            sourceLanguage: new TranslationLanguage('en', 'English'),
+        );
+    }
+
     #[Test]
     public function translates_all_units_in_one_batch_call(): void
     {
@@ -105,65 +164,6 @@ final class DeepLStrategyTest extends TestCase
                 new TranslationUnit('B', 'b'),
             ],
             options: self::options(),
-        );
-    }
-
-    private function appWithDeepLConfig(array $hooks = []): App
-    {
-        return new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
-                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
-            ],
-            'options' => [
-                'debug' => true,
-                'johannschopplich.content-translator' => ['DeepL.apiKey' => 'test-key:fx'],
-            ],
-            'hooks' => $hooks,
-        ]);
-    }
-
-    /**
-     * @param array<int,array{texts: array<string>, ...}> $capturedRequests
-     */
-    private function createMockDeepL(array &$capturedRequests = []): DeepL
-    {
-        return new DeepL(
-            remote: function (string $url, array $options) use (&$capturedRequests): object {
-                $body = json_decode($options['data'], associative: true);
-                $capturedRequests[] = ['texts' => $body['text']];
-
-                return new class ($body['text']) {
-                    public function __construct(private array $texts)
-                    {
-                    }
-                    public function code(): int
-                    {
-                        return 200;
-                    }
-                    public function content(): string
-                    {
-                        return '';
-                    }
-                    public function json(): array
-                    {
-                        return [
-                            'translations' => array_map(
-                                fn (string $text) => ['text' => "[de]$text"],
-                                $this->texts,
-                            ),
-                        ];
-                    }
-                };
-            },
-        );
-    }
-
-    private static function options(): ExecutionOptions
-    {
-        return new ExecutionOptions(
-            targetLanguage: new TranslationLanguage('de', 'Deutsch'),
-            sourceLanguage: new TranslationLanguage('en', 'English'),
         );
     }
 }

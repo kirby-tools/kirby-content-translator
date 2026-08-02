@@ -15,6 +15,14 @@ use PHPUnit\Framework\TestCase;
 final class ContractTest extends TestCase
 {
     /**
+     * @return array<string, mixed>
+     */
+    private static function contract(): array
+    {
+        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
+    }
+
+    /**
      * @return iterable<string, array{string, bool}>
      */
     public static function skipCases(): iterable
@@ -51,12 +59,5 @@ final class ContractTest extends TestCase
 
         $this->assertSame($batching['maxBatchSize'], CopilotAIStrategy::MAX_BATCH_SIZE);
         $this->assertSame($batching['maxSizePerBatch'], CopilotAIStrategy::MAX_BYTES_PER_BATCH);
-    }
-    /**
-     * @return array<string, mixed>
-     */
-    private static function contract(): array
-    {
-        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
     }
 }

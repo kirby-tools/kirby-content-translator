@@ -20,6 +20,43 @@ final class HooksTest extends TestCase
         App::destroy();
     }
 
+    private static function pluginOptions(): array
+    {
+        return [
+            'johannschopplich.content-translator' => [
+                'translateFn' => fn (string $text, string $lang) => "[$lang]$text",
+            ],
+        ];
+    }
+
+    private function appWithHomePage(array $hooks = [], string $homeText = 'Hello'): App
+    {
+        return new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch'],
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => $homeText]],
+                        ],
+                    ],
+                ],
+            ],
+            'hooks' => $hooks,
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
     #[Test]
     public function applies_both_before_and_after_hooks(): void
     {
@@ -188,42 +225,5 @@ final class HooksTest extends TestCase
 
         $this->assertTrue($hookCalled);
         $this->assertSame('[de]Hello modified', $result);
-    }
-
-    private static function pluginOptions(): array
-    {
-        return [
-            'johannschopplich.content-translator' => [
-                'translateFn' => fn (string $text, string $lang) => "[$lang]$text",
-            ],
-        ];
-    }
-
-    private function appWithHomePage(array $hooks = [], string $homeText = 'Hello'): App
-    {
-        return new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch'],
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => $homeText]],
-                        ],
-                    ],
-                ],
-            ],
-            'hooks' => $hooks,
-            'options' => self::pluginOptions(),
-        ]);
     }
 }
