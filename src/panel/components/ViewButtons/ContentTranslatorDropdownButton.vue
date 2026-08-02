@@ -63,10 +63,7 @@ const initializationError = ref<Error>();
   try {
     context.value = await usePluginContext();
   } catch (error) {
-    // A misconfigured plugin option makes the context endpoint fail. Without the notification the failure would go
-    // unnoticed on Kirby 4, where the button is gated by the `viewButton` option of the very context that just failed
     initializationError.value = error as Error;
-    panel.notification.error((error as Error).message);
     return;
   }
 
