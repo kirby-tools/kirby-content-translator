@@ -19,74 +19,6 @@ final class CoverageHooksTest extends TestCase
         App::destroy();
     }
 
-    private static function pluginOptions(): array
-    {
-        return [
-            'johannschopplich.content-translator' => [
-                'cache' => ['type' => 'memory'],
-            ],
-        ];
-    }
-
-    private function appWithHomePage(): App
-    {
-        return new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch'],
-            ],
-            'options' => self::pluginOptions(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['text' => 'Hello']],
-                            ['code' => 'de', 'content' => ['text' => 'Hallo']],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-    }
-
-    private function appWithHomePageHavingUuid(): App
-    {
-        return new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch'],
-            ],
-            'options' => self::pluginOptions(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => [
-                                'uuid' => 'abc123',
-                                'text' => 'Hello',
-                            ]],
-                            ['code' => 'de', 'content' => ['text' => 'Hallo']],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-    }
-
     #[Test]
     public function clears_page_coverage_on_page_update(): void
     {
@@ -168,5 +100,73 @@ final class CoverageHooksTest extends TestCase
         $app->trigger('language.create:after', ['language' => $app->language('de')]);
 
         $this->assertNull($cache->get('coverage.home'));
+    }
+
+    private static function pluginOptions(): array
+    {
+        return [
+            'johannschopplich.content-translator' => [
+                'cache' => ['type' => 'memory'],
+            ],
+        ];
+    }
+
+    private function appWithHomePage(): App
+    {
+        return new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch'],
+            ],
+            'options' => self::pluginOptions(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'Hello']],
+                            ['code' => 'de', 'content' => ['text' => 'Hallo']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    private function appWithHomePageHavingUuid(): App
+    {
+        return new App([
+            'languages' => [
+                ['code' => 'en', 'name' => 'English', 'default' => true],
+                ['code' => 'de', 'name' => 'Deutsch'],
+            ],
+            'options' => self::pluginOptions(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'uuid' => 'abc123',
+                                'text' => 'Hello',
+                            ]],
+                            ['code' => 'de', 'content' => ['text' => 'Hallo']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 }

@@ -10,32 +10,6 @@ use PHPUnit\Framework\TestCase;
 
 final class CollectorTest extends TestCase
 {
-    /**
-     * @param array<string, mixed> $partial
-     * @return array<string, mixed>
-     */
-    private static function field(array $partial): array
-    {
-        return [
-            'translate' => true,
-            ...$partial,
-        ];
-    }
-
-    private static function defaultConfig(array $overrides = []): TranslatorConfig
-    {
-        return new TranslatorConfig(
-            fieldTypes: $overrides['fieldTypes'] ?? [
-                'text', 'textarea', 'writer', 'list', 'tags',
-                'blocks', 'layout', 'structure', 'object',
-                'markdown', 'table',
-            ],
-            includeFields: $overrides['includeFields'] ?? [],
-            excludeFields: $overrides['excludeFields'] ?? [],
-            kirbyTags: $overrides['kirbyTags'] ?? [],
-        );
-    }
-
     #[Test]
     public function collects_text_writer_and_list_fields_as_batch_units(): void
     {
@@ -365,18 +339,6 @@ final class CollectorTest extends TestCase
         $this->assertSame('Spalte', $decoded[0]['columns'][0]['blocks'][0]['content']['body']);
     }
 
-    /**
-     * @param array<string, array<string, array<string, mixed>>> $blockTypes
-     */
-    private static function blocksField(array $blockTypes): array
-    {
-        $fieldsets = [];
-        foreach ($blockTypes as $type => $blockFields) {
-            $fieldsets[$type] = ['tabs' => ['content' => ['fields' => $blockFields]]];
-        }
-        return self::field(['type' => 'blocks', 'fieldsets' => $fieldsets]);
-    }
-
     #[Test]
     public function translates_block_contents_via_fieldsets(): void
     {
@@ -443,18 +405,6 @@ final class CollectorTest extends TestCase
 
         $this->assertCount(1, $result->translations);
         $this->assertSame('Visible', $result->translations[0]->unit->text);
-    }
-
-    /**
-     * @param array<string, array<string, array<string, mixed>>> $blockTypes
-     */
-    private static function layoutField(array $blockTypes): array
-    {
-        $fieldsets = [];
-        foreach ($blockTypes as $type => $blockFields) {
-            $fieldsets[$type] = ['tabs' => ['content' => ['fields' => $blockFields]]];
-        }
-        return self::field(['type' => 'layout', 'fieldsets' => $fieldsets]);
     }
 
     #[Test]
@@ -598,5 +548,54 @@ final class CollectorTest extends TestCase
         $result = $collector->collect($content);
 
         $this->assertCount(0, $result->translations);
+    }
+    /**
+     * @param array<string, mixed> $partial
+     * @return array<string, mixed>
+     */
+    private static function field(array $partial): array
+    {
+        return [
+            'translate' => true,
+            ...$partial,
+        ];
+    }
+
+    private static function defaultConfig(array $overrides = []): TranslatorConfig
+    {
+        return new TranslatorConfig(
+            fieldTypes: $overrides['fieldTypes'] ?? [
+                'text', 'textarea', 'writer', 'list', 'tags',
+                'blocks', 'layout', 'structure', 'object',
+                'markdown', 'table',
+            ],
+            includeFields: $overrides['includeFields'] ?? [],
+            excludeFields: $overrides['excludeFields'] ?? [],
+            kirbyTags: $overrides['kirbyTags'] ?? [],
+        );
+    }
+
+    /**
+     * @param array<string, array<string, array<string, mixed>>> $blockTypes
+     */
+    private static function blocksField(array $blockTypes): array
+    {
+        $fieldsets = [];
+        foreach ($blockTypes as $type => $blockFields) {
+            $fieldsets[$type] = ['tabs' => ['content' => ['fields' => $blockFields]]];
+        }
+        return self::field(['type' => 'blocks', 'fieldsets' => $fieldsets]);
+    }
+
+    /**
+     * @param array<string, array<string, array<string, mixed>>> $blockTypes
+     */
+    private static function layoutField(array $blockTypes): array
+    {
+        $fieldsets = [];
+        foreach ($blockTypes as $type => $blockFields) {
+            $fieldsets[$type] = ['tabs' => ['content' => ['fields' => $blockFields]]];
+        }
+        return self::field(['type' => 'layout', 'fieldsets' => $fieldsets]);
     }
 }

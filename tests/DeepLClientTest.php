@@ -22,111 +22,6 @@ final class DeepLClientTest extends TestCase
         App::destroy();
     }
 
-    private function appWithDeepLConfig(
-        string|null $apiKey = 'test-key:fx',
-        array|null $languages = null,
-        array $requestOptions = [],
-        array $targetLanguageOverrides = [],
-    ): App {
-        $pluginOptions = [];
-        if ($apiKey !== null) {
-            $pluginOptions['DeepL.apiKey'] = $apiKey;
-        }
-        if (!empty($requestOptions)) {
-            $pluginOptions['DeepL.requestOptions'] = $requestOptions;
-        }
-        if (!empty($targetLanguageOverrides)) {
-            $pluginOptions['DeepL.targetLanguageOverrides'] = $targetLanguageOverrides;
-        }
-
-        return new App([
-            'languages' => $languages ?? [
-                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
-                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
-            ],
-            'options' => [
-                'debug' => true,
-                'johannschopplich.content-translator' => $pluginOptions,
-            ],
-        ]);
-    }
-
-    private function createMockDeepL(array &$capturedRequests = []): DeepL
-    {
-        return new DeepL(
-            remote: function (string $url, array $options) use (&$capturedRequests): object {
-                $body = json_decode($options['data'], associative: true);
-
-                $capturedRequests[] = [
-                    'url' => $url,
-                    'texts' => $body['text'],
-                    'targetLanguage' => $body['target_lang'],
-                    'sourceLanguage' => $body['source_lang'] ?? null,
-                    'requestOptions' => array_diff_key(
-                        $body,
-                        ['text' => true, 'target_lang' => true, 'source_lang' => true],
-                    ),
-                ];
-
-                return new class ($body['text']) {
-                    /** @param array<string> $texts */
-                    public function __construct(private array $texts)
-                    {
-                    }
-                    public function code(): int
-                    {
-                        return 200;
-                    }
-                    public function content(): string
-                    {
-                        return '';
-                    }
-                    public function json(): array
-                    {
-                        return [
-                            'translations' => array_map(
-                                fn (string $text) => ['text' => "[translated]$text"],
-                                $this->texts
-                            ),
-                        ];
-                    }
-                };
-            }
-        );
-    }
-
-    /**
-     * @param list<int> $statusSequence Status codes returned on consecutive calls
-     */
-    private function createMockDeepLWithStatuses(array $statusSequence, int &$callCount = 0): DeepL
-    {
-        return new DeepL(
-            remote: function () use ($statusSequence, &$callCount): object {
-                $statusCode = $statusSequence[$callCount] ?? 200;
-                $callCount++;
-
-                return new class ($statusCode) {
-                    public function __construct(private int $statusCode)
-                    {
-                    }
-                    public function code(): int
-                    {
-                        return $this->statusCode;
-                    }
-                    public function content(): string
-                    {
-                        return $this->statusCode === 200 ? '' : 'mock error body';
-                    }
-                    public function json(): array
-                    {
-                        return ['translations' => [['text' => 'translated']]];
-                    }
-                };
-            },
-            delay: static fn () => null,
-        );
-    }
-
     #[Test]
     public function throws_when_constructor_lacks_api_key(): void
     {
@@ -415,5 +310,110 @@ final class DeepLClientTest extends TestCase
         $this->expectExceptionMessage($messageFragment);
 
         $deepL->translateMany(['Hello'], 'de');
+    }
+
+    private function appWithDeepLConfig(
+        string|null $apiKey = 'test-key:fx',
+        array|null $languages = null,
+        array $requestOptions = [],
+        array $targetLanguageOverrides = [],
+    ): App {
+        $pluginOptions = [];
+        if ($apiKey !== null) {
+            $pluginOptions['DeepL.apiKey'] = $apiKey;
+        }
+        if (!empty($requestOptions)) {
+            $pluginOptions['DeepL.requestOptions'] = $requestOptions;
+        }
+        if (!empty($targetLanguageOverrides)) {
+            $pluginOptions['DeepL.targetLanguageOverrides'] = $targetLanguageOverrides;
+        }
+
+        return new App([
+            'languages' => $languages ?? [
+                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+            ],
+            'options' => [
+                'debug' => true,
+                'johannschopplich.content-translator' => $pluginOptions,
+            ],
+        ]);
+    }
+
+    private function createMockDeepL(array &$capturedRequests = []): DeepL
+    {
+        return new DeepL(
+            remote: function (string $url, array $options) use (&$capturedRequests): object {
+                $body = json_decode($options['data'], associative: true);
+
+                $capturedRequests[] = [
+                    'url' => $url,
+                    'texts' => $body['text'],
+                    'targetLanguage' => $body['target_lang'],
+                    'sourceLanguage' => $body['source_lang'] ?? null,
+                    'requestOptions' => array_diff_key(
+                        $body,
+                        ['text' => true, 'target_lang' => true, 'source_lang' => true],
+                    ),
+                ];
+
+                return new class ($body['text']) {
+                    /** @param array<string> $texts */
+                    public function __construct(private array $texts)
+                    {
+                    }
+                    public function code(): int
+                    {
+                        return 200;
+                    }
+                    public function content(): string
+                    {
+                        return '';
+                    }
+                    public function json(): array
+                    {
+                        return [
+                            'translations' => array_map(
+                                fn (string $text) => ['text' => "[translated]$text"],
+                                $this->texts
+                            ),
+                        ];
+                    }
+                };
+            }
+        );
+    }
+
+    /**
+     * @param list<int> $statusSequence Status codes returned on consecutive calls
+     */
+    private function createMockDeepLWithStatuses(array $statusSequence, int &$callCount = 0): DeepL
+    {
+        return new DeepL(
+            remote: function () use ($statusSequence, &$callCount): object {
+                $statusCode = $statusSequence[$callCount] ?? 200;
+                $callCount++;
+
+                return new class ($statusCode) {
+                    public function __construct(private int $statusCode)
+                    {
+                    }
+                    public function code(): int
+                    {
+                        return $this->statusCode;
+                    }
+                    public function content(): string
+                    {
+                        return $this->statusCode === 200 ? '' : 'mock error body';
+                    }
+                    public function json(): array
+                    {
+                        return ['translations' => [['text' => 'translated']]];
+                    }
+                };
+            },
+            delay: static fn () => null,
+        );
     }
 }

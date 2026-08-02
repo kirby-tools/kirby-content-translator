@@ -21,312 +21,6 @@ final class TranslatorTest extends TestCase
         App::destroy();
     }
 
-    private static function threeLanguages(): array
-    {
-        return [
-            ['code' => 'en', 'name' => 'English', 'default' => true],
-            ['code' => 'de', 'name' => 'Deutsch'],
-            ['code' => 'fr', 'name' => 'Français'],
-        ];
-    }
-
-    private static function fakeTranslateFn(): \Closure
-    {
-        return function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
-            $prefix = $fromLanguageCode !== null ? "[$toLanguageCode:$fromLanguageCode]" : "[$toLanguageCode]";
-            return "$prefix$text";
-        };
-    }
-
-    private static function pluginOptions(): array
-    {
-        return [
-            'debug' => true,
-            'johannschopplich.content-translator' => [
-                'translateFn' => self::fakeTranslateFn(),
-            ],
-        ];
-    }
-
-    private function appWithTranslateFn(): App
-    {
-        return new App([
-            'languages' => self::threeLanguages(),
-            'options' => self::pluginOptions(),
-        ]);
-    }
-
-    private function appWithScalarFieldPage(): App
-    {
-        return new App([
-            'languages' => self::threeLanguages(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'title' => ['type' => 'text', 'translate' => true],
-                        'text' => ['type' => 'textarea', 'translate' => true],
-                        'untranslatableText' => ['type' => 'text', 'translate' => false],
-                        'tags' => ['type' => 'tags', 'translate' => true],
-                        'list' => ['type' => 'list', 'translate' => true],
-                        'writer' => ['type' => 'writer', 'translate' => true],
-                    ],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            [
-                                'code' => 'en',
-                                'content' => [
-                                    'title' => 'Home',
-                                    'text' => 'Welcome to our website',
-                                    'untranslatableText' => 'Do not translate',
-                                    'tags' => 'tag1, tag2',
-                                    'list' => 'item1, item2',
-                                    'writer' => 'Writer content',
-                                ],
-                            ],
-                            ['code' => 'de', 'content' => []],
-                        ],
-                    ],
-                    [
-                        'slug' => 'about',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['title' => 'About']],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => self::pluginOptions(),
-        ]);
-    }
-
-    private function appWithBlocksPage(): App
-    {
-        $blocks = Json::encode([
-            ['type' => 'text', 'id' => '1234', 'content' => ['text' => 'Block content']],
-            ['type' => 'heading', 'id' => '5678', 'content' => ['title' => 'Block heading', 'level' => 'h2']],
-            ['type' => 'text', 'id' => '9999', 'isHidden' => true, 'content' => ['text' => 'Hidden block content']],
-            ['type' => 'container', 'id' => 'cont1', 'content' => [
-                'heading' => 'Container heading',
-                'blocks' => Json::encode([
-                    ['type' => 'text', 'id' => 'nested1', 'content' => ['text' => 'Nested block text']],
-                ]),
-            ]],
-        ]);
-
-        return new App([
-            'languages' => self::threeLanguages(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'blocks' => [
-                            'type' => 'blocks',
-                            'translate' => true,
-                            'fieldsets' => [
-                                'text' => ['tabs' => ['content' => ['fields' => [
-                                    'text' => ['type' => 'textarea', 'translate' => true],
-                                ]]]],
-                                'heading' => ['tabs' => ['content' => ['fields' => [
-                                    'title' => ['type' => 'text', 'translate' => true],
-                                    'level' => [
-                                        'type' => 'select',
-                                        'translate' => false,
-                                        'options' => ['h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3'],
-                                    ],
-                                ]]]],
-                                'container' => ['tabs' => ['content' => ['fields' => [
-                                    'heading' => ['type' => 'text', 'translate' => true],
-                                    'blocks' => [
-                                        'type' => 'blocks',
-                                        'translate' => true,
-                                        'fieldsets' => [
-                                            'text' => ['tabs' => ['content' => ['fields' => [
-                                                'text' => ['type' => 'text', 'translate' => true],
-                                            ]]]],
-                                        ],
-                                    ],
-                                ]]]],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => ['blocks' => $blocks]],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => self::pluginOptions(),
-        ]);
-    }
-
-    private function appWithNestedFieldsPage(): App
-    {
-        $structure = Yaml::encode([
-            ['heading' => 'Section 1', 'description' => 'Description 1'],
-            ['heading' => 'Section 2', 'description' => 'Description 2'],
-        ]);
-        $object = Yaml::encode([
-            'title' => 'Object title',
-            'description' => 'Object description',
-        ]);
-        $layout = Json::encode([
-            [
-                'id' => 'layout1',
-                'attrs' => [],
-                'columns' => [
-                    [
-                        'id' => 'col1',
-                        'blocks' => [
-                            ['type' => 'text', 'id' => 'block1', 'content' => ['text' => 'Layout block content']],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
-
-        return new App([
-            'languages' => self::threeLanguages(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'structure' => [
-                            'type' => 'structure',
-                            'translate' => true,
-                            'fields' => [
-                                'heading' => ['type' => 'text', 'translate' => true],
-                                'description' => ['type' => 'textarea', 'translate' => true],
-                            ],
-                        ],
-                        'object' => [
-                            'type' => 'object',
-                            'translate' => true,
-                            'fields' => [
-                                'title' => ['type' => 'text', 'translate' => true],
-                                'description' => ['type' => 'textarea', 'translate' => true],
-                            ],
-                        ],
-                        'layout' => [
-                            'type' => 'layout',
-                            'translate' => true,
-                            'fieldsets' => [
-                                'text' => ['tabs' => ['content' => ['fields' => [
-                                    'text' => ['type' => 'textarea', 'translate' => true],
-                                ]]]],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => [
-                                'structure' => $structure,
-                                'object' => $object,
-                                'layout' => $layout,
-                            ]],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => self::pluginOptions(),
-        ]);
-    }
-
-    private function appWithFilterableFieldsPage(): App
-    {
-        return new App([
-            'languages' => self::threeLanguages(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'title' => ['type' => 'text', 'translate' => true],
-                        'text' => ['type' => 'textarea', 'translate' => true],
-                        'tags' => ['type' => 'tags', 'translate' => true],
-                        'structure' => [
-                            'type' => 'structure',
-                            'translate' => true,
-                            'fields' => [
-                                'heading' => ['type' => 'text', 'translate' => true],
-                                'description' => ['type' => 'textarea', 'translate' => true],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'home',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => [
-                                'title' => 'Home',
-                                'text' => 'Welcome to our website',
-                                'tags' => 'tag1, tag2',
-                                'structure' => Yaml::encode([
-                                    ['heading' => 'Section 1', 'description' => 'Description 1'],
-                                ]),
-                            ]],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => self::pluginOptions(),
-        ]);
-    }
-
-    private function appWithKirbyTagsPage(): App
-    {
-        return new App([
-            'languages' => self::threeLanguages(),
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'title' => ['type' => 'text', 'translate' => true],
-                        'text' => ['type' => 'textarea', 'translate' => true],
-                    ],
-                ],
-            ],
-            'site' => [
-                'children' => [
-                    [
-                        'slug' => 'kirbytags',
-                        'template' => 'default',
-                        'translations' => [
-                            ['code' => 'en', 'content' => [
-                                'title' => 'KirbyTags Test',
-                                'text' => 'Visit (link: https://example.com text: our website title: Click here)!',
-                            ]],
-                        ],
-                    ],
-                ],
-            ],
-            'options' => self::pluginOptions(),
-            'tags' => [
-                'link' => [
-                    'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
-                    'html' => fn ($tag) => '<a href="' . $tag->link . '">' . ($tag->text ?? $tag->link) . '</a>',
-                ],
-            ],
-        ]);
-    }
-
     /** @return array<string, array{0: string}> */
     public static function whitespaceTexts(): array
     {
@@ -665,5 +359,311 @@ final class TranslatorTest extends TestCase
             '[de]Visit (link: https://example.com text: [de]our website title: [de]Click here)!',
             $translator->model()->content('en')->get('text')->value()
         );
+    }
+
+    private static function threeLanguages(): array
+    {
+        return [
+            ['code' => 'en', 'name' => 'English', 'default' => true],
+            ['code' => 'de', 'name' => 'Deutsch'],
+            ['code' => 'fr', 'name' => 'Français'],
+        ];
+    }
+
+    private static function fakeTranslateFn(): \Closure
+    {
+        return function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
+            $prefix = $fromLanguageCode !== null ? "[$toLanguageCode:$fromLanguageCode]" : "[$toLanguageCode]";
+            return "$prefix$text";
+        };
+    }
+
+    private static function pluginOptions(): array
+    {
+        return [
+            'debug' => true,
+            'johannschopplich.content-translator' => [
+                'translateFn' => self::fakeTranslateFn(),
+            ],
+        ];
+    }
+
+    private function appWithTranslateFn(): App
+    {
+        return new App([
+            'languages' => self::threeLanguages(),
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    private function appWithScalarFieldPage(): App
+    {
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'title' => ['type' => 'text', 'translate' => true],
+                        'text' => ['type' => 'textarea', 'translate' => true],
+                        'untranslatableText' => ['type' => 'text', 'translate' => false],
+                        'tags' => ['type' => 'tags', 'translate' => true],
+                        'list' => ['type' => 'list', 'translate' => true],
+                        'writer' => ['type' => 'writer', 'translate' => true],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            [
+                                'code' => 'en',
+                                'content' => [
+                                    'title' => 'Home',
+                                    'text' => 'Welcome to our website',
+                                    'untranslatableText' => 'Do not translate',
+                                    'tags' => 'tag1, tag2',
+                                    'list' => 'item1, item2',
+                                    'writer' => 'Writer content',
+                                ],
+                            ],
+                            ['code' => 'de', 'content' => []],
+                        ],
+                    ],
+                    [
+                        'slug' => 'about',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['title' => 'About']],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    private function appWithBlocksPage(): App
+    {
+        $blocks = Json::encode([
+            ['type' => 'text', 'id' => '1234', 'content' => ['text' => 'Block content']],
+            ['type' => 'heading', 'id' => '5678', 'content' => ['title' => 'Block heading', 'level' => 'h2']],
+            ['type' => 'text', 'id' => '9999', 'isHidden' => true, 'content' => ['text' => 'Hidden block content']],
+            ['type' => 'container', 'id' => 'cont1', 'content' => [
+                'heading' => 'Container heading',
+                'blocks' => Json::encode([
+                    ['type' => 'text', 'id' => 'nested1', 'content' => ['text' => 'Nested block text']],
+                ]),
+            ]],
+        ]);
+
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'blocks' => [
+                            'type' => 'blocks',
+                            'translate' => true,
+                            'fieldsets' => [
+                                'text' => ['tabs' => ['content' => ['fields' => [
+                                    'text' => ['type' => 'textarea', 'translate' => true],
+                                ]]]],
+                                'heading' => ['tabs' => ['content' => ['fields' => [
+                                    'title' => ['type' => 'text', 'translate' => true],
+                                    'level' => [
+                                        'type' => 'select',
+                                        'translate' => false,
+                                        'options' => ['h1' => 'H1', 'h2' => 'H2', 'h3' => 'H3'],
+                                    ],
+                                ]]]],
+                                'container' => ['tabs' => ['content' => ['fields' => [
+                                    'heading' => ['type' => 'text', 'translate' => true],
+                                    'blocks' => [
+                                        'type' => 'blocks',
+                                        'translate' => true,
+                                        'fieldsets' => [
+                                            'text' => ['tabs' => ['content' => ['fields' => [
+                                                'text' => ['type' => 'text', 'translate' => true],
+                                            ]]]],
+                                        ],
+                                    ],
+                                ]]]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['blocks' => $blocks]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    private function appWithNestedFieldsPage(): App
+    {
+        $structure = Yaml::encode([
+            ['heading' => 'Section 1', 'description' => 'Description 1'],
+            ['heading' => 'Section 2', 'description' => 'Description 2'],
+        ]);
+        $object = Yaml::encode([
+            'title' => 'Object title',
+            'description' => 'Object description',
+        ]);
+        $layout = Json::encode([
+            [
+                'id' => 'layout1',
+                'attrs' => [],
+                'columns' => [
+                    [
+                        'id' => 'col1',
+                        'blocks' => [
+                            ['type' => 'text', 'id' => 'block1', 'content' => ['text' => 'Layout block content']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'structure' => [
+                            'type' => 'structure',
+                            'translate' => true,
+                            'fields' => [
+                                'heading' => ['type' => 'text', 'translate' => true],
+                                'description' => ['type' => 'textarea', 'translate' => true],
+                            ],
+                        ],
+                        'object' => [
+                            'type' => 'object',
+                            'translate' => true,
+                            'fields' => [
+                                'title' => ['type' => 'text', 'translate' => true],
+                                'description' => ['type' => 'textarea', 'translate' => true],
+                            ],
+                        ],
+                        'layout' => [
+                            'type' => 'layout',
+                            'translate' => true,
+                            'fieldsets' => [
+                                'text' => ['tabs' => ['content' => ['fields' => [
+                                    'text' => ['type' => 'textarea', 'translate' => true],
+                                ]]]],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'structure' => $structure,
+                                'object' => $object,
+                                'layout' => $layout,
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    private function appWithFilterableFieldsPage(): App
+    {
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'title' => ['type' => 'text', 'translate' => true],
+                        'text' => ['type' => 'textarea', 'translate' => true],
+                        'tags' => ['type' => 'tags', 'translate' => true],
+                        'structure' => [
+                            'type' => 'structure',
+                            'translate' => true,
+                            'fields' => [
+                                'heading' => ['type' => 'text', 'translate' => true],
+                                'description' => ['type' => 'textarea', 'translate' => true],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'title' => 'Home',
+                                'text' => 'Welcome to our website',
+                                'tags' => 'tag1, tag2',
+                                'structure' => Yaml::encode([
+                                    ['heading' => 'Section 1', 'description' => 'Description 1'],
+                                ]),
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    private function appWithKirbyTagsPage(): App
+    {
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'title' => ['type' => 'text', 'translate' => true],
+                        'text' => ['type' => 'textarea', 'translate' => true],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'kirbytags',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'title' => 'KirbyTags Test',
+                                'text' => 'Visit (link: https://example.com text: our website title: Click here)!',
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+            'tags' => [
+                'link' => [
+                    'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
+                    'html' => fn ($tag) => '<a href="' . $tag->link . '">' . ($tag->text ?? $tag->link) . '</a>',
+                ],
+            ],
+        ]);
     }
 }

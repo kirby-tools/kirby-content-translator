@@ -36,51 +36,6 @@ final class CopilotAIStrategyTest extends TestCase
         App::destroy();
     }
 
-    /**
-     * @param array<int, array<string, mixed>> $responses
-     * @param list<array{messages: list<array{role: string, content: string}>, schema: array<string, mixed>}> $captured
-     */
-    private function client(array $responses, array &$captured = []): Client
-    {
-        $provider = new class ($responses, $captured) implements Provider {
-            /**
-             * @param list<array<string, mixed>> $responses
-             */
-            public function __construct(
-                private array $responses,
-                private array &$captured,
-            ) {
-            }
-
-            public function generateObject(array $messages, array $schema): array
-            {
-                $this->captured[] = ['messages' => $messages, 'schema' => $schema];
-                if ($this->responses === []) {
-                    throw new RuntimeException('no more responses queued');
-                }
-                return array_shift($this->responses);
-            }
-
-            public function generateText(array $messages): string
-            {
-                throw new RuntimeException('generateText should not be called');
-            }
-        };
-
-        return new Client(
-            resolver: new Resolver(defaultProvider: ProviderName::OpenAI, providers: []),
-            providerOverride: $provider,
-        );
-    }
-
-    private static function options(): ExecutionOptions
-    {
-        return new ExecutionOptions(
-            targetLanguage: new TranslationLanguage('de', 'Deutsch'),
-            sourceLanguage: new TranslationLanguage('en', 'English'),
-        );
-    }
-
     #[Test]
     public function prefers_constructor_system_prompt_over_config(): void
     {
@@ -380,5 +335,50 @@ final class CopilotAIStrategyTest extends TestCase
 
         $this->assertSame(array_fill(0, 50, 'X'), $firstChunk);
         $this->assertSame(['t50'], $secondChunk);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $responses
+     * @param list<array{messages: list<array{role: string, content: string}>, schema: array<string, mixed>}> $captured
+     */
+    private function client(array $responses, array &$captured = []): Client
+    {
+        $provider = new class ($responses, $captured) implements Provider {
+            /**
+             * @param list<array<string, mixed>> $responses
+             */
+            public function __construct(
+                private array $responses,
+                private array &$captured,
+            ) {
+            }
+
+            public function generateObject(array $messages, array $schema): array
+            {
+                $this->captured[] = ['messages' => $messages, 'schema' => $schema];
+                if ($this->responses === []) {
+                    throw new RuntimeException('no more responses queued');
+                }
+                return array_shift($this->responses);
+            }
+
+            public function generateText(array $messages): string
+            {
+                throw new RuntimeException('generateText should not be called');
+            }
+        };
+
+        return new Client(
+            resolver: new Resolver(defaultProvider: ProviderName::OpenAI, providers: []),
+            providerOverride: $provider,
+        );
+    }
+
+    private static function options(): ExecutionOptions
+    {
+        return new ExecutionOptions(
+            targetLanguage: new TranslationLanguage('de', 'Deutsch'),
+            sourceLanguage: new TranslationLanguage('en', 'English'),
+        );
     }
 }

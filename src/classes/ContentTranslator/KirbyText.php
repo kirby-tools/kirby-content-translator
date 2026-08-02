@@ -12,6 +12,10 @@ use Kirby\Text\KirbyTag;
 
 final class KirbyText
 {
+    /**
+     * Must match `PLACEHOLDER_PATTERN` in `src/panel/translation/kirby-text.ts`.
+     */
+    public const PLACEHOLDER_PATTERN = '!<c(\d+)/>!';
     /** @see https://github.com/getkirby/kirby/blob/main/src/Text/KirbyTags.php */
     private const KIRBY_TAGS_REGEX = '!
         (?=[^\]])               # positive lookahead that matches a group after the main expression without including ] in the result
@@ -20,11 +24,6 @@ final class KirbyText
             (?:[^()]+|(?1))*+   # repetitions of any chars other than ( and ) or the whole group 1 pattern (recursed)
         \))                     # end of capturing group 1
     !isx';
-
-    /**
-     * Must match `PLACEHOLDER_PATTERN` in `src/panel/translation/kirby-text.ts`.
-     */
-    public const PLACEHOLDER_PATTERN = '!<c(\d+)/>!';
 
     /**
      * Splits KirbyText prose from KirbyTags structurally.

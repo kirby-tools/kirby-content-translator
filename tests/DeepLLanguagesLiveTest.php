@@ -17,6 +17,22 @@ use PHPUnit\Framework\TestCase;
 #[Group('network')]
 final class DeepLLanguagesLiveTest extends TestCase
 {
+    #[Test]
+    public function constants_match_the_languages_api(): void
+    {
+        ['source' => $sourceCodes, 'target' => $targetCodes] = $this->fetchSupportedCodes();
+
+        sort($sourceCodes);
+        sort($targetCodes);
+
+        $supportedSourceCodes = DeepLLanguages::SUPPORTED_SOURCE_CODES;
+        $supportedTargetCodes = DeepLLanguages::SUPPORTED_TARGET_CODES;
+        sort($supportedSourceCodes);
+        sort($supportedTargetCodes);
+
+        $this->assertSame($sourceCodes, $supportedSourceCodes);
+        $this->assertSame($targetCodes, $supportedTargetCodes);
+    }
     /** @return array{source: list<string>, target: list<string>} */
     private function fetchSupportedCodes(): array
     {
@@ -54,22 +70,5 @@ final class DeepLLanguagesLiveTest extends TestCase
             'source' => $codesFor('usable_as_source'),
             'target' => $codesFor('usable_as_target'),
         ];
-    }
-
-    #[Test]
-    public function constants_match_the_languages_api(): void
-    {
-        ['source' => $sourceCodes, 'target' => $targetCodes] = $this->fetchSupportedCodes();
-
-        sort($sourceCodes);
-        sort($targetCodes);
-
-        $supportedSourceCodes = DeepLLanguages::SUPPORTED_SOURCE_CODES;
-        $supportedTargetCodes = DeepLLanguages::SUPPORTED_TARGET_CODES;
-        sort($supportedSourceCodes);
-        sort($supportedTargetCodes);
-
-        $this->assertSame($sourceCodes, $supportedSourceCodes);
-        $this->assertSame($targetCodes, $supportedTargetCodes);
     }
 }
