@@ -26,7 +26,7 @@ final class DeepLLanguages
      * `EN` and `PT` are targets here even though DeepL's own client throws on
      * both, calling them deprecated. The languages API reports
      * `usable_as_target: true` for each, so the client is stricter than the
-     * service — do not drop them to match the SDK.
+     * service – do not drop them to match the SDK.
      */
     public const SUPPORTED_TARGET_CODES = ['ACE', 'AF', 'AN', 'AR', 'AS', 'AY', 'AZ', 'BA', 'BE', 'BG', 'BHO', 'BN', 'BR', 'BS', 'CA', 'CEB', 'CKB', 'CS', 'CY', 'DA', 'DE', 'DE-CH', 'DE-DE', 'EL', 'EN', 'EN-GB', 'EN-US', 'EO', 'ES', 'ES-419', 'ET', 'EU', 'FA', 'FI', 'FR', 'FR-CA', 'FR-FR', 'GA', 'GL', 'GN', 'GOM', 'GU', 'HA', 'HE', 'HI', 'HR', 'HT', 'HU', 'HY', 'ID', 'IG', 'IS', 'IT', 'JA', 'JV', 'KA', 'KK', 'KMR', 'KO', 'KY', 'LA', 'LB', 'LMO', 'LN', 'LT', 'LV', 'MAI', 'MG', 'MI', 'MK', 'ML', 'MN', 'MR', 'MS', 'MT', 'MY', 'NB', 'NE', 'NL', 'OC', 'OM', 'PA', 'PAG', 'PAM', 'PL', 'PRS', 'PS', 'PT', 'PT-BR', 'PT-PT', 'QU', 'RO', 'RU', 'SA', 'SCN', 'SK', 'SL', 'SQ', 'SR', 'ST', 'SU', 'SV', 'SW', 'TA', 'TE', 'TG', 'TH', 'TK', 'TL', 'TN', 'TR', 'TS', 'TT', 'UK', 'UR', 'UZ', 'VI', 'WO', 'XH', 'YI', 'YUE', 'ZH', 'ZH-HANS', 'ZH-HANT', 'ZU'];
 
@@ -41,8 +41,8 @@ final class DeepLLanguages
     ];
 
     /**
-     * Languages DeepL splits along a line no locale draws — by script for
-     * Chinese, by a UN M.49 region group for Spanish — so their region subtag
+     * Languages DeepL splits along a line no locale draws – by script for
+     * Chinese, by a UN M.49 region group for Spanish – so their region subtag
      * has to be mapped instead of appended. Each entry names the regions that
      * keep `code`; every other region takes `fallback`.
      */
@@ -73,7 +73,7 @@ final class DeepLLanguages
         // The code identifies the language: it names the content file and the
         // Panel switch. A locale only formats dates and numbers, and servers
         // routinely carry a neighbouring one because the exact locale is not
-        // installed — so it may sharpen a bare code, never overrule a specific
+        // installed – so it may sharpen a bare code, never overrule a specific
         // one. Without this, `de-ch` on a `de_DE.UTF-8` box translates to
         // Germany's German.
         if ($codeTarget !== null && str_contains($codeTarget, '-')) {
