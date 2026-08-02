@@ -72,7 +72,6 @@ const {
 
     isInitialized.value = true;
   } catch (error) {
-    // A misconfigured plugin option makes the context endpoint fail – without this the section would render nothing at all
     initializationError.value = error as Error;
   }
 })();
