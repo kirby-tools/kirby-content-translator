@@ -56,7 +56,7 @@ final class DeepLLanguages
 
     /**
      * @param array<string,string> $targetLanguageOverrides Target codes by Kirby language code
-     * @throws LogicException When neither the code nor the locale names a supported target.
+     * @throws LogicException When neither the code nor an override names a supported target.
      */
     public static function resolveTarget(string $languageCode, string|null $locale = null, array $targetLanguageOverrides = []): string
     {
@@ -73,22 +73,27 @@ final class DeepLLanguages
         // The code identifies the language: it names the content file and the
         // Panel switch. A locale only formats dates and numbers, and servers
         // routinely carry a neighbouring one because the exact locale is not
-        // installed – so it may sharpen a bare code, never overrule a specific
-        // one. Without this, `de-ch` on a `de_DE.UTF-8` box translates to
-        // Germany's German.
-        if ($codeTarget !== null && str_contains($codeTarget, '-')) {
-            return $codeTarget;
-        }
+        // installed – so it may sharpen the code into a regional variant, never
+        // name another language. Without this, `de-ch` on a `de_DE.UTF-8` box
+        // translates to Germany's German and `ca` on an `es_ES.UTF-8` one
+        // overwrites Catalan pages with Spanish. A foreign-language locale
+        // cannot stand in for an unresolvable code either: `cn` with a `zh_CN`
+        // locale throws instead of picking a script, the very guess
+        // `BASE_CODE_ALIASES` refuses to make.
+        $localeTarget = $locale !== null && self::localeSharpensCode($locale, $languageCode)
+            ? self::fromLanguageTag($locale)
+            : null;
 
-        // Kirby neither validates nor normalises locales, so a language-less
-        // system locale such as `C` leaves the code as the only usable signal
-        $targetCode = ($locale === null ? null : self::fromLanguageTag($locale)) ?? $codeTarget;
+        $targetCode = $localeTarget ?? $codeTarget;
 
         if ($targetCode === null) {
+            // Naming a `locale` as a remedy would be a dead end: a locale is
+            // only read when its base language equals the code's, and that base
+            // is just as unresolvable
             throw new LogicException(
                 'Cannot resolve a DeepL target language for Kirby language "' . $languageCode . '"' .
                 ($locale === null ? '' : ' (locale "' . $locale . '")') .
-                '. Set a `locale` for it in the Kirby language setup, or a supported code via the ' .
+                '. Use a code DeepL knows, or map this one via the ' .
                 '`johannschopplich.content-translator.DeepL.targetLanguageOverrides` option.'
             );
         }
@@ -124,8 +129,7 @@ final class DeepLLanguages
     private static function fromLanguageTag(string $tag): string|null
     {
         $subtags = self::splitSubtags($tag);
-        $baseCode = array_shift($subtags);
-        $baseCode = self::BASE_CODE_ALIASES[$baseCode] ?? $baseCode;
+        $baseCode = self::baseCode(array_shift($subtags));
 
         foreach ($subtags as $subtag) {
             $regionSpecificCode = $baseCode . '-' . $subtag;
@@ -154,6 +158,23 @@ final class DeepLLanguages
     }
 
     /**
+     * Checks whether a locale may refine the language code's own resolution.
+     */
+    private static function localeSharpensCode(string $locale, string $languageCode): bool
+    {
+        $codeSubtags = self::splitSubtags($languageCode);
+
+        // A code carrying a region subtag has already named the variant it wants
+        if (count($codeSubtags) > 1) {
+            return false;
+        }
+
+        // Kirby neither validates nor normalises locales, so a language-less
+        // system locale such as `C` names no base code and is discarded here
+        return self::baseCode(self::splitSubtags($locale)[0]) === self::baseCode($codeSubtags[0]);
+    }
+
+    /**
      * Splits a language tag into its uppercased subtags, tolerating both the
      * POSIX (`zh_Hant_TW.UTF-8`) and BCP 47 (`zh-Hant-TW`) spellings, since
      * Kirby validates neither and reports the bare code when no locale is set.
@@ -167,5 +188,10 @@ final class DeepLLanguages
         [$languageTag] = explode('.', str_replace('@', '.', $tag), 2);
 
         return explode('-', strtoupper(strtr($languageTag, '_', '-')));
+    }
+
+    private static function baseCode(string $subtag): string
+    {
+        return self::BASE_CODE_ALIASES[$subtag] ?? $subtag;
     }
 }

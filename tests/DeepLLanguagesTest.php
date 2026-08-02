@@ -19,6 +19,7 @@ final class DeepLLanguagesTest extends TestCase
             'charset suffix is ignored' => ['pt', 'pt_BR.UTF-8', 'PT-BR'],
             'numeric region subtag' => ['es-419', null, 'ES-419'],
             'extlang outranks its macrolanguage' => ['zh-yue', null, 'YUE'],
+            'extlang outranks a macrolanguage locale' => ['zh-yue', 'zh_HK', 'YUE'],
             'traditional region' => ['zh', 'zh_TW', 'ZH-HANT'],
             'traditional region (Hong Kong)' => ['zh', 'zh_HK', 'ZH-HANT'],
             'traditional region (Macau)' => ['zh', 'zh_MO', 'ZH-HANT'],
@@ -44,6 +45,15 @@ final class DeepLLanguagesTest extends TestCase
             'specific code outranks a conflicting locale' => ['de-ch', 'de_DE.UTF-8', 'DE-CH'],
             'specific code outranks a conflicting locale (English)' => ['en-gb', 'en_US.UTF-8', 'EN-GB'],
             'bare code still defers to the locale' => ['de', 'de_CH.UTF-8', 'DE-CH'],
+            // A minority language is set up with the state locale it shares its
+            // server with; only the code names what the pages are written in
+            'locale of another language is discarded' => ['ca', 'es_ES.UTF-8', 'CA'],
+            'locale of another language is discarded (Basque)' => ['eu', 'es_ES', 'EU'],
+            'locale of another language is discarded (Welsh)' => ['cy', 'en_GB', 'CY'],
+            // The locale may sharpen, so a region subtag it does not share must
+            // not be replaced by the one the locale carries
+            'region subtag survives a same-language locale' => ['de-at', 'de_DE.UTF-8', 'DE'],
+            'region subtag survives a same-language locale (Spanish)' => ['es-es', 'es_MX', 'ES'],
         ];
     }
 
@@ -66,6 +76,8 @@ final class DeepLLanguagesTest extends TestCase
             'Brazilian Portuguese narrows to Portuguese' => ['pt', 'pt_BR', 'PT'],
             'extlang is a source of its own' => ['zh-yue', null, 'YUE'],
             'plain code passes through' => ['de', 'de_DE.UTF-8', 'DE'],
+            'locale of another language is discarded' => ['ca', 'es_ES.UTF-8', 'CA'],
+            'locale of another language is discarded (Welsh)' => ['cy', 'en_GB', 'CY'],
             'unresolvable code falls back to auto-detection' => ['cn', null, null],
         ];
     }
@@ -106,6 +118,17 @@ final class DeepLLanguagesTest extends TestCase
         $this->expectExceptionMessageMatches('/language "cn" \(locale "cn_CN"\).+DeepL\.targetLanguageOverrides/');
 
         DeepLLanguages::resolveTarget('cn', 'cn_CN');
+    }
+
+    #[Test]
+    public function throws_when_only_a_foreign_locale_names_a_language(): void
+    {
+        // `cn` is missing from `BASE_CODE_ALIASES` because either Chinese
+        // script would be a guess – a `zh_CN` locale must not make that guess
+        // on the code's behalf
+        $this->expectException(LogicException::class);
+
+        DeepLLanguages::resolveTarget('cn', 'zh_CN.UTF-8');
     }
 
     #[Test]
