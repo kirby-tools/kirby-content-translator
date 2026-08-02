@@ -112,7 +112,7 @@ describe("AIStrategy", () => {
   });
 
   describe("chunk failure handling", () => {
-    it("keeps original text when chunk fails", async () => {
+    it("throws when every chunk fails", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -124,9 +124,9 @@ describe("AIStrategy", () => {
         { text: "World", fieldKey: "body" },
       ];
 
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(results).toEqual(["Hello", "World"]);
+      await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
+        /API Error/,
+      );
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -157,43 +157,6 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("placeholder preservation", () => {
-    it("keeps source text and warns when placeholder count drops", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Click here"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Click <c0/> now", fieldKey: "body" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(results).toEqual(["Click <c0/> now"]);
-      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("body"));
-      warnSpy.mockRestore();
-    });
-
-    it("accepts translation when placeholder count matches", async () => {
-      const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-      mockStreamText.mockResolvedValueOnce({
-        output: Promise.resolve({ translations: ["Klick <c0/> jetzt"] }),
-      });
-
-      const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Click <c0/> now", fieldKey: "body" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(results).toEqual(["Klick <c0/> jetzt"]);
-      expect(warnSpy).not.toHaveBeenCalled();
-      warnSpy.mockRestore();
-    });
-  });
 
   describe("copilot seam", () => {
     it("passes a plain schema across the seam instead of AI SDK values", async () => {

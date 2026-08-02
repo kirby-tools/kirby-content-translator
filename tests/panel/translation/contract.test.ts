@@ -9,7 +9,7 @@ import {
   MAX_BATCH_SIZE,
   MAX_CHARS_PER_BATCH,
 } from "../../../src/panel/translation/strategies/ai";
-import { shouldSkipTranslation } from "../../../src/panel/translation/utils";
+import { isUntranslatable } from "../../../src/panel/translation/untranslatable";
 import { REQUIRED_COPILOT_API_VERSION } from "../../../src/panel/utils/copilot-contract";
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
@@ -34,7 +34,7 @@ describe("translation contract", () => {
   it.each(contract.skipCases)(
     "evaluates skip('$text') as $skip",
     ({ text, skip }) => {
-      expect(shouldSkipTranslation(text)).toBe(skip);
+      expect(isUntranslatable(text)).toBe(skip);
     },
   );
 

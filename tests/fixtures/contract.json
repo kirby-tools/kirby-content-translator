@@ -3,6 +3,11 @@
   "skipCases": [
     { "text": "", "skip": true },
     { "text": "   ", "skip": true },
+    { "text": "\u00a0", "skip": true },
+    { "text": "\ufeff", "skip": true },
+    { "text": "\u2009", "skip": true },
+    { "text": "\u0000", "skip": false },
+    { "text": "\u00a042\u00a0", "skip": true },
     { "text": "42", "skip": true },
     { "text": "-3.14", "skip": true },
     { "text": "+5", "skip": true },
@@ -13,7 +18,10 @@
     { "text": "http://localhost:3000", "skip": true },
     { "text": "Hello world", "skip": false },
     { "text": "42 apples", "skip": false },
-    { "text": "Visit https://example.com today", "skip": false }
+    { "text": "Visit https://example.com today", "skip": false },
+    { "text": "<c0/>", "skip": true },
+    { "text": "<c0/> <c1/>", "skip": true },
+    { "text": "Text <c0/>", "skip": false }
   ],
   "placeholder": {
     "format": "<c{n}/>",

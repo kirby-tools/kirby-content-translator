@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
-use JohannSchopplich\ContentTranslator\Translation\TextFilter;
+use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +36,7 @@ final class ContractTest extends TestCase
     #[DataProvider('skipCases')]
     public function evaluates_skip_predicate_per_contract(string $text, bool $skip): void
     {
-        $this->assertSame($skip, TextFilter::shouldSkip($text));
+        $this->assertSame($skip, UntranslatableText::matches($text));
     }
 
     #[Test]

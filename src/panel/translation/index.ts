@@ -4,6 +4,7 @@ import type {
   TranslationStrategy,
 } from "./types";
 import { collectTranslations } from "./collector";
+import { translateUnits } from "./dispatch";
 
 export * from "./strategies";
 export * from "./text";
@@ -48,8 +49,9 @@ export async function translateContent(
 
   if (translations.length === 0) return obj;
 
-  const results = await strategy.execute(
+  const results = await translateUnits(
     translations.map((item) => item.unit),
+    strategy,
     {
       sourceLanguage,
       targetLanguage,

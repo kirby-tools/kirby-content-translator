@@ -1,5 +1,6 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { TranslationProvider } from "../types";
+import { translateUnits } from "./dispatch";
 import { AIStrategy, DeepLStrategy } from "./strategies";
 
 /**
@@ -22,7 +23,7 @@ export async function translateText(
 ): Promise<string> {
   const strategy =
     provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
-  const results = await strategy.execute([{ text }], {
+  const results = await translateUnits([{ text }], strategy, {
     sourceLanguage,
     targetLanguage,
   });

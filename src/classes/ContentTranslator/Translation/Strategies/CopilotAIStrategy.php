@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator\Translation\Strategies;
 
-use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
@@ -106,11 +105,6 @@ final readonly class CopilotAIStrategy implements Strategy
                     continue;
                 }
 
-                if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
-                    self::warn($unit, 'placeholder count mismatch', null);
-                    continue;
-                }
-
                 $results[$index] = $translation;
                 $translatedCount++;
             }
@@ -208,11 +202,6 @@ final readonly class CopilotAIStrategy implements Strategy
         );
 
         return "Translate each string in the `texts` array from {$sourceName} to {$targetName}.\n\n{$json}";
-    }
-
-    private static function countPlaceholders(string $text): int
-    {
-        return preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text);
     }
 
     /**

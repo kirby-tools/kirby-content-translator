@@ -212,28 +212,6 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function keeps_source_text_when_translation_drops_a_placeholder(): void
-    {
-        new App();
-        $captured = [];
-        $client = $this->client(
-            [['translations' => ['Click here', 'Hallo']]],
-            $captured,
-        );
-        $strategy = new CopilotAIStrategy(client: $client);
-
-        $result = $strategy->execute(
-            units: [
-                new TranslationUnit('Click <c0/> now', 'body'),
-                new TranslationUnit('Hello', 'title'),
-            ],
-            options: self::options(),
-        );
-
-        $this->assertSame(['Click <c0/> now', 'Hallo'], $result);
-    }
-
-    #[Test]
     public function keeps_source_text_when_translation_is_empty(): void
     {
         new App();
@@ -250,42 +228,6 @@ final class CopilotAIStrategyTest extends TestCase
         );
 
         $this->assertSame(['Hello', 'Hallo'], $result);
-    }
-
-    #[Test]
-    public function fires_translate_warning_hook_on_placeholder_mismatch(): void
-    {
-        $warnings = [];
-        new App([
-            'hooks' => [
-                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
-                    $warnings[] = [
-                        'fieldKey' => $unit->fieldKey,
-                        'reason' => $reason,
-                        'previous' => $previous,
-                    ];
-                },
-            ],
-        ]);
-
-        $captured = [];
-        $client = $this->client(
-            [['translations' => ['Click here', 'Hallo']]],
-            $captured,
-        );
-        $strategy = new CopilotAIStrategy(client: $client);
-
-        $strategy->execute(
-            units: [
-                new TranslationUnit('Click <c0/> now', 'body'),
-                new TranslationUnit('Hello', 'title'),
-            ],
-            options: self::options(),
-        );
-
-        $this->assertSame([
-            ['fieldKey' => 'body', 'reason' => 'placeholder count mismatch', 'previous' => null],
-        ], $warnings);
     }
 
     #[Test]

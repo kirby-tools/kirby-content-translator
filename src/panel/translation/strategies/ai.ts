@@ -6,7 +6,6 @@ import type {
 import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
 import { REQUIRED_COPILOT_API_VERSION } from "../../utils/copilot-contract";
-import { PLACEHOLDER_PATTERN } from "../kirby-text";
 
 export interface AIStrategyOptions {
   /**
@@ -55,6 +54,8 @@ export class AIStrategy implements TranslationStrategy {
 
     // Units that fail to translate keep their source text
     const results: string[] = units.map((unit) => unit.text);
+    let translatedCount = 0;
+    let lastReason: string | undefined;
 
     // The original index travels with each unit so a failed chunk leaves the
     // other results in place
@@ -84,19 +85,19 @@ export class AIStrategy implements TranslationStrategy {
 
         for (const [i, { unit, originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
-          if (translation) {
-            const expectedCount = countPlaceholders(unit.text);
-            const actualCount = countPlaceholders(translation);
-            if (expectedCount !== actualCount) {
-              console.warn(
-                `Placeholder count mismatch in "${unit.fieldKey}": expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
-              );
-              continue;
-            }
-            results[originalIndex] = translation;
+          if (!translation) {
+            lastReason = "empty or non-string translation";
+            console.warn(
+              `Empty translation for "${unit.fieldKey}". Keeping source text.`,
+            );
+            continue;
           }
+
+          results[originalIndex] = translation;
+          translatedCount++;
         }
       } catch (error) {
+        lastReason = error instanceof Error ? error.message : String(error);
         console.error(
           `Failed to translate chunk (${chunk.map(({ unit }) => unit.fieldKey).join(", ")})`,
         );
@@ -105,12 +106,16 @@ export class AIStrategy implements TranslationStrategy {
       }
     }
 
+    // Mirrors `CopilotAIStrategy`: a run where the provider produced nothing
+    // usable is an error, not a silent no-op that reports success
+    if (translatedCount === 0 && !signal?.aborted) {
+      throw new Error(
+        `AI translation failed for all ${units.length} texts: ${lastReason ?? "unknown error"}`,
+      );
+    }
+
     return results;
   }
-}
-
-function countPlaceholders(text: string): number {
-  return (text.match(PLACEHOLDER_PATTERN) ?? []).length;
 }
 
 function buildTranslationPrompt(

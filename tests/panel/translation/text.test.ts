@@ -30,6 +30,16 @@ describe("translateText", () => {
     expect(result).toBe("Hallo");
   });
 
+  it("returns untranslatable text without reaching the strategy", async () => {
+    const result = await translateText("2024", {
+      provider: "deepl",
+      targetLanguage: GERMAN,
+    });
+
+    expect(mockApiPost).not.toHaveBeenCalled();
+    expect(result).toBe("2024");
+  });
+
   it("falls back to the source text when the strategy returns no result", async () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
 

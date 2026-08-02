@@ -2,6 +2,9 @@
 
 declare(strict_types = 1);
 
+use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
+use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
@@ -46,6 +49,69 @@ final class TranslatorTest extends TestCase
                 'translateFn' => self::fakeTranslateFn(),
             ],
         ];
+    }
+
+    /** Records the texts handed to the strategy, one entry per `execute` call. */
+    private static function recordingStrategy(): Strategy
+    {
+        return new class () implements Strategy {
+            /** @var list<list<string>> */
+            public array $calls = [];
+
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                $texts = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
+                $this->calls[] = $texts;
+
+                return array_map(static fn (string $text): string => '[de]' . $text, $texts);
+            }
+        };
+    }
+
+    /** Strips `<cN/>` placeholders, the way a careless model would. */
+    private static function mangledPlaceholderStrategy(): Strategy
+    {
+        return new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return array_map(
+                    static fn (TranslationUnit $unit): string => preg_replace('!<c\d+/>\s*!', '', '[de]' . $unit->text),
+                    $units,
+                );
+            }
+        };
+    }
+
+    private function appWithUntranslatableFieldsPage(): App
+    {
+        return new App([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'intro' => ['type' => 'text'],
+                        'price' => ['type' => 'text'],
+                        'website' => ['type' => 'text'],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'untranslatable',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'intro' => 'Hello',
+                                'price' => '49.99',
+                                'website' => 'https://example.com',
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
     }
 
     private function appWithTranslateFn(): App
@@ -312,6 +378,16 @@ final class TranslatorTest extends TestCase
                             ['code' => 'en', 'content' => [
                                 'title' => 'KirbyTags Test',
                                 'text' => 'Visit (link: https://example.com text: our website title: Click here)!',
+                            ]],
+                        ],
+                    ],
+                    [
+                        'slug' => 'tag-attributes',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'title' => 'Tag Attributes',
+                                'text' => 'Photo (image: photo.jpg alt: 2024 caption: Our team)',
                             ]],
                         ],
                     ],
@@ -644,5 +720,93 @@ final class TranslatorTest extends TestCase
             '[de]Visit (link: https://example.com text: [de]our website title: [de]Click here)!',
             $translator->model()->content('en')->get('text')->value()
         );
+    }
+
+    #[Test]
+    public function skips_untranslatable_kirby_tag_attributes(): void
+    {
+        $app = $this->appWithKirbyTagsPage();
+        $translator = new Translator($app->page('tag-attributes'), [
+            'kirbyTags' => [
+                'image' => ['alt', 'caption'],
+            ],
+        ]);
+        $translator->translateContent('en', 'de');
+
+        $this->assertSame(
+            '[de]Photo (image: photo.jpg alt: 2024 caption: [de]Our team)',
+            $translator->model()->content('en')->get('text')->value()
+        );
+    }
+
+    #[Test]
+    public function translate_texts_sends_only_translatable_entries(): void
+    {
+        $this->appWithTranslateFn();
+        $strategy = self::recordingStrategy();
+
+        $result = Translator::translateTexts(['', 'Hello', '2024', 'https://example.com'], 'de', null, $strategy);
+
+        $this->assertSame([['Hello']], $strategy->calls);
+        $this->assertSame(['', '[de]Hello', '2024', 'https://example.com'], $result);
+    }
+
+    #[Test]
+    public function translate_texts_skips_the_strategy_when_nothing_is_translatable(): void
+    {
+        $this->appWithTranslateFn();
+        $strategy = self::recordingStrategy();
+
+        $result = Translator::translateTexts(['', '2024'], 'de', null, $strategy);
+
+        $this->assertSame([], $strategy->calls);
+        $this->assertSame(['', '2024'], $result);
+    }
+
+    #[Test]
+    public function leaves_untranslatable_fields_untouched_while_translating_the_rest(): void
+    {
+        $app = $this->appWithUntranslatableFieldsPage();
+        $translator = new Translator($app->page('untranslatable'));
+        $translator->translateContent('en', 'de');
+
+        $content = $translator->model()->content('en');
+        $this->assertSame('[de]Hello', $content->get('intro')->value());
+        $this->assertSame('49.99', $content->get('price')->value());
+        $this->assertSame('https://example.com', $content->get('website')->value());
+    }
+
+    #[Test]
+    public function keeps_source_text_when_a_translation_drops_a_placeholder(): void
+    {
+        $this->appWithTranslateFn();
+
+        $this->assertSame(
+            ['Click <c0/> now', '[de]Hello'],
+            Translator::translateTexts(
+                ['Click <c0/> now', 'Hello'],
+                'de',
+                null,
+                self::mangledPlaceholderStrategy(),
+            ),
+        );
+    }
+
+    #[Test]
+    public function fires_translate_warning_hook_on_placeholder_mismatch(): void
+    {
+        $warnings = [];
+        new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = [$unit->text, $reason, $previous];
+                },
+            ],
+        ]);
+
+        Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
+
+        $this->assertSame([['Click <c0/> now', 'placeholder count mismatch', null]], $warnings);
     }
 }

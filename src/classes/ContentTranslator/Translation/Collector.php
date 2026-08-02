@@ -16,6 +16,10 @@ use Throwable;
  * Walks a content array and emits translatable units plus
  * post-translation finalisers.
  *
+ * Emits every unit that holds content, including ones a provider would only
+ * corrupt – `Translator::translateUnits` makes that call once, downstream,
+ * where it also sees the KirbyTag fragments this class fans out.
+ *
  * Closures capture `&$node` – callers must keep the same array reference
  * live between `collect()` and `writeBack` invocations.
  *
@@ -110,7 +114,7 @@ final class Collector
 
         if (in_array($fieldType, ['list', 'text', 'writer'], true)) {
             $text = (string)$value;
-            if ($text === '' || TextFilter::shouldSkip($text)) {
+            if ($text === '') {
                 return;
             }
 
@@ -129,7 +133,7 @@ final class Collector
 
         if (in_array($fieldType, ['textarea', 'markdown'], true)) {
             $text = (string)$value;
-            if (TextFilter::shouldSkip($text)) {
+            if ($text === '') {
                 return;
             }
 
@@ -156,7 +160,9 @@ final class Collector
         }
 
         if ($fieldType === 'tags') {
-            if (!is_string($value) || TextFilter::shouldSkip($value)) {
+            // Content files store tags comma-joined – the Panel collector sees
+            // the same field as an array, which is why the guards differ
+            if (!is_string($value) || $value === '') {
                 return;
             }
 

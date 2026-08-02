@@ -16,7 +16,6 @@ import { isObject } from "utilful";
 import * as yaml from "yaml";
 import { flattenTabFields, isBlockTranslatable } from "../utils/fields";
 import { splitKirbyText } from "./kirby-text";
-import { shouldSkipTranslation } from "./utils";
 
 interface CollectorContext {
   options: CollectorOptions;
@@ -27,6 +26,10 @@ interface CollectorContext {
 /**
  * Walks content and returns translatable units with their
  * apply callbacks and post-translation finalizers.
+ *
+ * Emits every unit that holds content, including ones a provider would only
+ * corrupt – `translateUnits` makes that call once, downstream, where it also
+ * sees the KirbyTag fragments this function fans out.
  */
 export function collectTranslations(
   obj: Record<string, unknown>,
@@ -71,6 +74,7 @@ function collectFromObject(
     const value = obj[key];
 
     if (value === null || value === undefined || value === "") continue;
+    if (Array.isArray(value) && value.length === 0) continue;
     if (!fields[key]) continue;
     if (fields[key].translate === false) continue;
     if (!fieldTypes.includes(fields[key].type)) continue;
@@ -87,8 +91,8 @@ function collectFromField(
   context: CollectorContext,
 ) {
   if (["list", "text", "writer"].includes(field.type)) {
-    const text = value as string;
-    if (!text || shouldSkipTranslation(text)) return;
+    const text = value;
+    if (typeof text !== "string" || !text) return;
 
     context.translations.push({
       unit: {
@@ -104,8 +108,8 @@ function collectFromField(
   // KirbyTags are split out so their structure survives translation intact and
   // is reassembled in a finalizer once every fragment came back
   else if (["textarea", "markdown"].includes(field.type)) {
-    const text = value as string;
-    if (!text || shouldSkipTranslation(text)) return;
+    const text = value;
+    if (typeof text !== "string" || !text) return;
 
     const { fragments, restore } = splitKirbyText(
       text,
@@ -126,6 +130,8 @@ function collectFromField(
       obj[key] = restore(translated);
     });
   } else if (field.type === "tags") {
+    // Panel form state holds tags as an array – the PHP collector sees the
+    // same field comma-joined from the content file, hence the differing guard
     const tags = value;
     if (!Array.isArray(tags) || !tags.length) return;
 

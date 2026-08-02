@@ -544,31 +544,10 @@ describe("collectTranslations", () => {
 
   describe("value filtering", () => {
     it.each([
-      // Falsy / empty values
       { kind: "empty string", fieldType: "text", value: "" },
       { kind: "null value", fieldType: "text", value: null },
       { kind: "undefined value", fieldType: "text", value: undefined },
-      // Numeric-only strings carry no translatable prose
-      { kind: "pure integer", fieldType: "text", value: "123" },
-      { kind: "decimal", fieldType: "text", value: "45.67" },
-      { kind: "negative number", fieldType: "text", value: "-99" },
-      { kind: "scientific notation", fieldType: "text", value: "1.5e10" },
-      // URL-only strings
-      { kind: "https URL", fieldType: "text", value: "https://example.com" },
-      {
-        kind: "http URL with path",
-        fieldType: "text",
-        value: "http://localhost:3000/path?query=1",
-      },
-      // Whitespace / structural empties
-      { kind: "whitespace-only textarea", fieldType: "textarea", value: "   " },
-      // Textareas share the skip predicate with text fields
-      { kind: "numeric-only textarea", fieldType: "textarea", value: "42" },
-      {
-        kind: "URL-only markdown",
-        fieldType: "markdown",
-        value: "https://example.com/docs",
-      },
+      { kind: "non-string value", fieldType: "text", value: 42 },
       { kind: "empty markdown", fieldType: "markdown", value: "" },
       { kind: "empty tags array", fieldType: "tags", value: [] },
       {
@@ -576,7 +555,7 @@ describe("collectTranslations", () => {
         fieldType: "table",
         value: [["", "  ", null]],
       },
-    ])("skips $kind", ({ fieldType, value }) => {
+    ])("skips structurally empty $kind", ({ fieldType, value }) => {
       const content = { x: value };
       const fields = { x: field({ type: fieldType, name: fieldType }) };
 
@@ -588,14 +567,11 @@ describe("collectTranslations", () => {
       expect(translations).toHaveLength(0);
     });
 
-    it("translates non-empty content alongside skipped values", () => {
-      const content = {
-        skipped: "123",
-        valid: "Visit https://example.com today",
-      };
+    it("emits numeric and URL values as units", () => {
+      const content = { price: "45.67", url: "https://example.com" };
       const fields = {
-        skipped: field({ type: "text", name: "text" }),
-        valid: field({ type: "text", name: "text" }),
+        price: field({ type: "text", name: "text" }),
+        url: field({ type: "text", name: "text" }),
       };
 
       const { translations } = collectTranslations(content, {
@@ -603,10 +579,10 @@ describe("collectTranslations", () => {
         fields,
       });
 
-      expect(translations).toHaveLength(1);
-      expect(translations[0]!.unit.text).toBe(
-        "Visit https://example.com today",
-      );
+      expect(translations.map((t) => t.unit.text)).toEqual([
+        "45.67",
+        "https://example.com",
+      ]);
     });
   });
 

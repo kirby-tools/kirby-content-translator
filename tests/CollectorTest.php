@@ -545,42 +545,11 @@ final class CollectorTest extends TestCase
         $this->assertSame('Hello', $result->translations[0]->unit->text);
     }
 
-    #[Test]
-    public function translates_remaining_fields_when_some_are_skippable(): void
-    {
-        $content = [
-            'title' => 'Hello',
-            'price' => '49.99',
-            'url' => 'https://example.com',
-            'body' => 'World',
-        ];
-        $fields = [
-            'title' => self::field(['type' => 'text']),
-            'price' => self::field(['type' => 'text']),
-            'url' => self::field(['type' => 'text']),
-            'body' => self::field(['type' => 'text']),
-        ];
-
-        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
-
-        $this->assertSame(
-            ['Hello', 'World'],
-            array_map(fn ($t) => $t->unit->text, $result->translations),
-        );
-    }
-
     /** @return array<string, array{0: string, 1: mixed}> */
-    public static function skippableValues(): array
+    public static function emptyValues(): array
     {
         return [
             'empty string' => ['text', ''],
-            'pure integer' => ['text', '123'],
-            'decimal' => ['text', '45.67'],
-            'negative number' => ['text', '-99'],
-            'scientific notation' => ['text', '1.5e10'],
-            'https URL' => ['text', 'https://example.com'],
-            'http URL with path' => ['text', 'http://localhost:3000/path?query=1'],
-            'whitespace-only textarea' => ['textarea', '   '],
             'empty markdown' => ['markdown', ''],
             'empty tags array' => ['tags', []],
             'empty table cells' => ['table', [['', '  ', null]]],
@@ -588,8 +557,8 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    #[DataProvider('skippableValues')]
-    public function skips_filtered_values(string $fieldType, mixed $value): void
+    #[DataProvider('emptyValues')]
+    public function skips_structurally_empty_values(string $fieldType, mixed $value): void
     {
         $content = ['x' => $value];
         $fields = ['x' => self::field(['type' => $fieldType])];
@@ -598,5 +567,22 @@ final class CollectorTest extends TestCase
         $result = $collector->collect($content);
 
         $this->assertCount(0, $result->translations);
+    }
+
+    #[Test]
+    public function emits_numeric_and_url_values_as_units(): void
+    {
+        $content = ['price' => '49.99', 'url' => 'https://example.com'];
+        $fields = [
+            'price' => self::field(['type' => 'text']),
+            'url' => self::field(['type' => 'text']),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertSame(
+            ['49.99', 'https://example.com'],
+            array_map(fn ($t) => $t->unit->text, $result->translations),
+        );
     }
 }

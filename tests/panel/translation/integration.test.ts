@@ -51,6 +51,62 @@ describe("translateContent", () => {
     expect(seenInputs).toContain("Start");
   });
 
+  it("keeps untranslatable KirbyTag attributes away from the strategy", async () => {
+    const seenInputs: string[] = [];
+    const spyStrategy: TranslationStrategy = {
+      async execute(units) {
+        for (const unit of units) seenInputs.push(unit.text);
+        return units.map((u) => `[de]${u.text}`);
+      },
+    };
+
+    const content = {
+      body: "Photo (image: photo.jpg alt: 2024 caption: Our team)",
+    };
+    const fields = {
+      body: field({ type: "textarea", name: "textarea" }),
+    };
+
+    await translateContent(content, {
+      strategy: spyStrategy,
+      targetLanguage: { code: "de", name: "German" },
+      fieldTypes: ["textarea"] as const,
+      kirbyTags: { image: ["alt", "caption"] },
+      fields,
+    });
+
+    expect(seenInputs).not.toContain("2024");
+    expect(content.body).toBe(
+      "[de]Photo (image: photo.jpg alt: 2024 caption: [de]Our team)",
+    );
+  });
+
+  it("keeps source text when a strategy drops a placeholder", async () => {
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const manglingStrategy: TranslationStrategy = {
+      async execute(units) {
+        return units.map((u) => u.text.replace(/<c\d+\/>\s*/g, ""));
+      },
+    };
+
+    const content = { body: "Click (link: /a text: here) now" };
+    const fields = {
+      body: field({ type: "textarea", name: "textarea" }),
+    };
+
+    await translateContent(content, {
+      strategy: manglingStrategy,
+      targetLanguage: { code: "de", name: "German" },
+      fieldTypes: ["textarea"] as const,
+      kirbyTags: {},
+      fields,
+    });
+
+    expect(content.body).toBe("Click (link: /a text: here) now");
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("body"));
+    warnSpy.mockRestore();
+  });
+
   it("drives an AIStrategy end-to-end through the orchestration", async () => {
     mockStreamText.mockResolvedValueOnce({
       output: Promise.resolve({ translations: ["Hallo", "Welt"] }),

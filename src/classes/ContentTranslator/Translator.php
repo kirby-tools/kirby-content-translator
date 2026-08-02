@@ -12,9 +12,9 @@ use JohannSchopplich\ContentTranslator\Translation\Strategies\CallableStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\DeepLStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
-use JohannSchopplich\ContentTranslator\Translation\TextFilter;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
+use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
@@ -53,10 +53,6 @@ final class Translator
      */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
-        if (TextFilter::shouldSkip($text)) {
-            return $text;
-        }
-
         $result = self::translateTexts([$text], $targetLanguage, $sourceLanguage, $strategy);
         return $result[0];
     }
@@ -93,7 +89,7 @@ final class Translator
             $texts,
         );
 
-        $translatedResult = $strategy->execute($units, $options);
+        $translatedResult = self::translateUnits($units, $options, $strategy);
 
         $translatedTexts = [];
         foreach ($translatedResult as $index => $translatedText) {
@@ -185,7 +181,7 @@ final class Translator
                     $result->translations,
                 );
 
-                $translations = $strategy->execute($processedUnits, $options);
+                $translations = self::translateUnits($processedUnits, $options, $strategy);
 
                 foreach ($result->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
@@ -252,6 +248,75 @@ final class Translator
 
             $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
         });
+    }
+
+    /**
+     * Sends only the units worth translating to the strategy, splicing source
+     * text into the skipped slots so callers keep a 1:1 mapping with `$units`.
+     *
+     * Also enforces the KirbyTag placeholder invariant here rather than inside
+     * a strategy, so every adapter is covered – including user-supplied ones.
+     *
+     * @param list<TranslationUnit> $units
+     * @return list<string>
+     */
+    private static function translateUnits(array $units, ExecutionOptions $options, Strategy $strategy): array
+    {
+        $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
+
+        $translatableIndexes = [];
+        $translatableUnits = [];
+
+        foreach ($units as $index => $unit) {
+            if (!UntranslatableText::matches($unit->text)) {
+                $translatableIndexes[] = $index;
+                $translatableUnits[] = $unit;
+            }
+        }
+
+        if ($translatableUnits === []) {
+            return $results;
+        }
+
+        $translations = $strategy->execute($translatableUnits, $options);
+
+        // Iterate our own indexes: a `Strategy` that ignores the `list<string>`
+        // contract must not be able to write outside the result list
+        foreach ($translatableIndexes as $position => $index) {
+            if (!isset($translations[$position])) {
+                continue;
+            }
+
+            $unit = $translatableUnits[$position];
+            $translation = $translations[$position];
+
+            if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
+                self::warn($unit, 'placeholder count mismatch');
+                continue;
+            }
+
+            $results[$index] = $translation;
+        }
+
+        return $results;
+    }
+
+    /**
+     * A lost or invented `<cN/>` means `KirbyText::split()` can no longer
+     * rebuild the tag, so the source text has to stand.
+     */
+    private static function countPlaceholders(string $text): int
+    {
+        return preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text);
+    }
+
+    private static function warn(TranslationUnit $unit, string $reason): void
+    {
+        App::instance()->trigger('content-translator.translate:warning', [
+            'unit' => $unit,
+            'reason' => $reason,
+            'previous' => null,
+        ]);
     }
 
     private static function resolveStrategy(): Strategy
