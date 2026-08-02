@@ -214,11 +214,16 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $originalTitle = $this->model->content($contentLanguageCode)->get('title')->value();
 
-            if (empty($originalTitle) && $fromLanguageCode && $fromLanguageCode !== $contentLanguageCode) {
+            if (
+                ($originalTitle === null || $originalTitle === '') &&
+                $fromLanguageCode !== null &&
+                $fromLanguageCode !== '' &&
+                $fromLanguageCode !== $contentLanguageCode
+            ) {
                 $originalTitle = $this->model->content($fromLanguageCode)->get('title')->value();
             }
 
-            if (!empty($originalTitle)) {
+            if ($originalTitle !== null && $originalTitle !== '') {
                 $translatedTitle = self::translateText(
                     text: $originalTitle,
                     targetLanguage: $toLanguageCode,

@@ -243,13 +243,15 @@ final class KirbyText
             $hasTranslations = false;
 
             $newValue = $tag->value;
-            if (in_array('value', $translatableAttributes, true) && !empty($tag->value)) {
+            if (in_array('value', $translatableAttributes, true) && $tag->value !== null && $tag->value !== '') {
                 $newValue = Translator::translateText($tag->value, $targetLanguage, $sourceLanguage);
                 $hasTranslations = true;
             }
 
             foreach ($tag->attrs as $attrName => $attrValue) {
-                if (in_array($attrName, $translatableAttributes, true) && !empty($attrValue)) {
+                // `kirbytext.<type>` option defaults land in `attrs` untouched,
+                // so an attribute value is not guaranteed to be a string
+                if (in_array($attrName, $translatableAttributes, true) && is_string($attrValue) && $attrValue !== '') {
                     $newAttributes[$attrName] = Translator::translateText($attrValue, $targetLanguage, $sourceLanguage);
                     $hasTranslations = true;
                 } else {
@@ -276,14 +278,16 @@ final class KirbyText
     {
         $parts = [];
 
-        if (!empty($value)) {
+        if ($value !== null && $value !== '') {
             $parts[] = $type . ': ' . $value;
         } else {
             $parts[] = $type;
         }
 
         foreach ($attributes as $name => $attrValue) {
-            if (!empty($attrValue)) {
+            // A `false` default from the `kirbytext.<type>` options would
+            // otherwise render as a bare `name: `
+            if ($attrValue !== null && $attrValue !== '' && $attrValue !== false) {
                 $parts[] = $name . ': ' . $attrValue;
             }
         }
