@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { PluginContextResponse, TranslationProvider } from "../../types";
+import type { PluginContextResponse } from "../../types";
 import { isKirby5, ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
@@ -44,10 +44,6 @@ const props = defineProps({
   },
   kirbyTags: {
     type: Object as PropType<Record<string, string[]>>,
-  },
-  provider: {
-    type: String as PropType<TranslationProvider>,
-    default: null,
   },
   theme: {
     type: String,
