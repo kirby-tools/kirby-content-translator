@@ -47,8 +47,8 @@ final readonly class TranslationLanguage
     {
         $language = App::instance()->languages()->find($code);
 
-        // Kirby falls back to a per-category locale array, which names no single
-        // language and is unusable here
+        // A language configured with per-category locales but no `LC_ALL` entry
+        // has no single locale string – Kirby returns `null` for it
         $locale = $language?->locale(LC_ALL);
 
         return new self(
