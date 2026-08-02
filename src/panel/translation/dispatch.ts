@@ -6,10 +6,6 @@ import type {
 import { PLACEHOLDER_PATTERN } from "./kirby-text";
 import { isUntranslatable } from "./untranslatable";
 
-function countPlaceholders(text: string): number {
-  return (text.match(PLACEHOLDER_PATTERN) ?? []).length;
-}
-
 /**
  * Sends only the units worth translating to the strategy, splicing source text
  * into the skipped slots so callers keep a 1:1 mapping with `units`.
@@ -58,4 +54,8 @@ export async function translateUnits(
   }
 
   return results;
+}
+
+function countPlaceholders(text: string): number {
+  return (text.match(PLACEHOLDER_PATTERN) ?? []).length;
 }

@@ -160,8 +160,7 @@ final class Collector
         }
 
         if ($fieldType === 'tags') {
-            // Content files store tags comma-joined – the Panel collector sees
-            // the same field as an array, which is why the guards differ
+            // Content files store tags comma-joined
             if (!is_string($value) || $value === '') {
                 return;
             }

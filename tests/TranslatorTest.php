@@ -51,7 +51,6 @@ final class TranslatorTest extends TestCase
         ];
     }
 
-    /** Records the texts handed to the strategy, one entry per `execute` call. */
     private static function recordingStrategy(): Strategy
     {
         return new class () implements Strategy {
@@ -68,7 +67,6 @@ final class TranslatorTest extends TestCase
         };
     }
 
-    /** Strips `<cN/>` placeholders, the way a careless model would. */
     private static function mangledPlaceholderStrategy(): Strategy
     {
         return new class () implements Strategy {

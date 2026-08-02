@@ -157,7 +157,6 @@ describe("AIStrategy", () => {
     });
   });
 
-
   describe("copilot seam", () => {
     it("passes a plain schema across the seam instead of AI SDK values", async () => {
       mockStreamText.mockResolvedValueOnce({

@@ -89,7 +89,7 @@ final class Translator
             $texts,
         );
 
-        $translatedResult = self::translateUnits($units, $options, $strategy);
+        $translatedResult = self::translateUnits($units, $strategy, $options);
 
         $translatedTexts = [];
         foreach ($translatedResult as $index => $translatedText) {
@@ -181,7 +181,7 @@ final class Translator
                     $result->translations,
                 );
 
-                $translations = self::translateUnits($processedUnits, $options, $strategy);
+                $translations = self::translateUnits($processedUnits, $strategy, $options);
 
                 foreach ($result->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
@@ -255,12 +255,12 @@ final class Translator
      * text into the skipped slots so callers keep a 1:1 mapping with `$units`.
      *
      * Also enforces the KirbyTag placeholder invariant here rather than inside
-     * a strategy, so every adapter is covered – including user-supplied ones.
+     * a strategy, so every strategy is covered – including user-supplied ones.
      *
      * @param list<TranslationUnit> $units
      * @return list<string>
      */
-    private static function translateUnits(array $units, ExecutionOptions $options, Strategy $strategy): array
+    private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): array
     {
         $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
 

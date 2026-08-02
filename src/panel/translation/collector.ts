@@ -91,12 +91,11 @@ function collectFromField(
   context: CollectorContext,
 ) {
   if (["list", "text", "writer"].includes(field.type)) {
-    const text = value;
-    if (typeof text !== "string" || !text) return;
+    if (typeof value !== "string" || !value) return;
 
     context.translations.push({
       unit: {
-        text,
+        text: value,
         fieldKey: key,
       },
       apply(translatedText) {
@@ -108,11 +107,10 @@ function collectFromField(
   // KirbyTags are split out so their structure survives translation intact and
   // is reassembled in a finalizer once every fragment came back
   else if (["textarea", "markdown"].includes(field.type)) {
-    const text = value;
-    if (typeof text !== "string" || !text) return;
+    if (typeof value !== "string" || !value) return;
 
     const { fragments, restore } = splitKirbyText(
-      text,
+      value,
       context.options.kirbyTags ?? {},
     );
     const translated: string[] = Array.from({ length: fragments.length });
@@ -130,8 +128,6 @@ function collectFromField(
       obj[key] = restore(translated);
     });
   } else if (field.type === "tags") {
-    // Panel form state holds tags as an array – the PHP collector sees the
-    // same field comma-joined from the content file, hence the differing guard
     const tags = value;
     if (!Array.isArray(tags) || !tags.length) return;
 
