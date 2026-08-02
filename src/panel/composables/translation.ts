@@ -98,7 +98,9 @@ export function useContentTranslator() {
     errorPageId.value = context.errorPageId;
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
-    hasAnyProvider.value = getProviderAvailability(context.config).hasAnyProvider;
+    hasAnyProvider.value = getProviderAvailability(
+      context.config,
+    ).hasAnyProvider;
   }
 
   // TODO: Next major version – unify import flow through a server-side

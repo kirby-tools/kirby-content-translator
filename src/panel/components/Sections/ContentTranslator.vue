@@ -184,7 +184,9 @@ async function handleBatchTranslate() {
             }}
           </k-button>
           <k-button
-            v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
+            v-if="
+              hasAnyProvider && allowBatchTranslation && panel.language.default
+            "
             :disabled="isTranslating"
             :icon="isTranslating ? 'loader' : 'content-translator-global'"
             variant="filled"
