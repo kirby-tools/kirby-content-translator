@@ -20,6 +20,7 @@ export function usePluginContext() {
       context = response;
       return context;
     })
+    // Without this a failing request stays cached as a rejection and no later view recovers without a full reload
     .finally(() => {
       pendingPromise = undefined;
     });
