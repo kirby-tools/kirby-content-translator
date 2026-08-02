@@ -13,17 +13,12 @@ use PHPUnit\Framework\Attributes\Test;
 final class TreeCoverageTest extends TranslationCoverageTestCase
 {
     #[Test]
-    public function aggregates_language_totals(): void
+    public function excludes_the_default_language_from_the_language_list(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $coverage = new TranslationCoverage($app->site()->index());
-        $result = $coverage->treeCoverage();
 
-        $this->assertCount(2, $result['languages']);
-
-        foreach ($result['tree'] as $entry) {
-            $this->assertNotSame('no-fields', $entry['id']);
-        }
+        $this->assertCount(2, $coverage->treeCoverage()['languages']);
     }
 
     #[Test]
@@ -47,6 +42,7 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
         $incompleteIds = array_column($coverage->treeCoverage()['tree'], 'id');
 
         $this->assertNotContains('fully-translated', $incompleteIds);
+        $this->assertNotContains('no-fields', $incompleteIds);
         $this->assertContains('partially-translated', $incompleteIds);
         $this->assertContains('untranslated', $incompleteIds);
     }

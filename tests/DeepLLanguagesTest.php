@@ -59,9 +59,11 @@ final class DeepLLanguagesTest extends TestCase
     {
         return [
             'regional variant narrows to its base code' => ['zh-tw', 'zh_TW', 'ZH'],
+            'Traditional Chinese locale narrows to Chinese' => ['zh', 'zh_TW', 'ZH'],
             'Swiss German narrows to German' => ['de-ch', 'de_CH.UTF-8', 'DE'],
             'British English narrows to English' => ['en', 'en_GB.UTF-8', 'EN'],
             'Latin American Spanish narrows to Spanish' => ['es', 'es_MX', 'ES'],
+            'Brazilian Portuguese narrows to Portuguese' => ['pt', 'pt_BR', 'PT'],
             'extlang is a source of its own' => ['zh-yue', null, 'YUE'],
             'plain code passes through' => ['de', 'de_DE.UTF-8', 'DE'],
             'unresolvable code falls back to auto-detection' => ['cn', null, null],
@@ -73,18 +75,6 @@ final class DeepLLanguagesTest extends TestCase
     public function resolves_source_language(string $code, string|null $locale, string|null $expected): void
     {
         $this->assertSame($expected, DeepLLanguages::resolveSource($code, $locale));
-    }
-
-    #[Test]
-    public function source_resolution_never_yields_a_regional_variant(): void
-    {
-        // DeepL answers a regional variant in `source_lang` with a 400, so no
-        // input may produce one, however specific the code and locale are
-        foreach ([['de-ch', 'de_CH'], ['zh', 'zh_TW'], ['pt', 'pt_BR'], ['es', 'es_AR'], ['en', 'en_GB']] as [$code, $locale]) {
-            $this->assertNotNull($source = DeepLLanguages::resolveSource($code, $locale));
-            $this->assertStringNotContainsString('-', $source);
-            $this->assertContains($source, DeepLLanguages::SUPPORTED_SOURCE_CODES);
-        }
     }
 
     #[Test]

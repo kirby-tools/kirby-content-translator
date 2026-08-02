@@ -517,26 +517,19 @@ final class TranslatorTest extends TestCase
         $this->assertSame('de-about', $translator->model()->slug('en'));
     }
 
-    /** @return array<string, array{0: string, 1: string}> */
-    public static function scalarTextFieldCases(): array
-    {
-        return [
-            'tags' => ['tags', 'tag1, tag2'],
-            'list' => ['list', 'item1, item2'],
-            'writer' => ['writer', 'Writer content'],
-        ];
-    }
-
     #[Test]
-    #[DataProvider('scalarTextFieldCases')]
-    public function translates_scalar_text_field_types(string $field, string $original): void
+    public function translates_scalar_text_field_types(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
         $translator = new Translator($page);
         $translator->translateContent('en', 'de');
 
-        $this->assertSame("[de]$original", $translator->model()->content('en')->get($field)->value());
+        $content = $translator->model()->content('en');
+
+        $this->assertSame('[de]tag1, tag2', $content->get('tags')->value());
+        $this->assertSame('[de]item1, item2', $content->get('list')->value());
+        $this->assertSame('[de]Writer content', $content->get('writer')->value());
     }
 
     #[Test]
@@ -570,39 +563,25 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translates_structure_field_entries(): void
+    public function translates_nested_field_types_through_the_model(): void
     {
         $app = $this->appWithNestedFieldsPage();
         $translator = new Translator($app->page('home'));
         $translator->translateContent('en', 'de');
 
-        $structure = Yaml::decode($translator->model()->content('en')->get('structure')->value());
+        $content = $translator->model()->content('en');
+
+        $structure = Yaml::decode($content->get('structure')->value());
         $this->assertSame('[de]Section 1', $structure[0]['heading']);
         $this->assertSame('[de]Description 1', $structure[0]['description']);
         $this->assertSame('[de]Section 2', $structure[1]['heading']);
         $this->assertSame('[de]Description 2', $structure[1]['description']);
-    }
 
-    #[Test]
-    public function translates_object_field_properties(): void
-    {
-        $app = $this->appWithNestedFieldsPage();
-        $translator = new Translator($app->page('home'));
-        $translator->translateContent('en', 'de');
-
-        $object = Yaml::decode($translator->model()->content('en')->get('object')->value());
+        $object = Yaml::decode($content->get('object')->value());
         $this->assertSame('[de]Object title', $object['title']);
         $this->assertSame('[de]Object description', $object['description']);
-    }
 
-    #[Test]
-    public function translates_blocks_inside_layout_columns(): void
-    {
-        $app = $this->appWithNestedFieldsPage();
-        $translator = new Translator($app->page('home'));
-        $translator->translateContent('en', 'de');
-
-        $layout = Json::decode($translator->model()->content('en')->get('layout')->value());
+        $layout = Json::decode($content->get('layout')->value());
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
     }
 
