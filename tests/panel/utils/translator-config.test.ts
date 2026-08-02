@@ -1,9 +1,22 @@
-import { describe, expect, it } from "vitest";
+import type { PluginConfig } from "../../../src/panel/types";
+import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_FIELD_TYPES } from "../../../src/panel/constants";
 import {
-  resolveInitialProvider,
+  getProviderAvailability,
   resolveTranslatorConfig,
 } from "../../../src/panel/utils/translator-config";
+
+// Assigned per test and read lazily by the `kirbyuse` mock below
+let thirdPartyPlugins: Record<string, unknown> = {};
+
+vi.mock("kirbyuse", () => ({
+  usePanel: () => ({ plugins: { thirdParty: thirdPartyPlugins } }),
+}));
+
+function resolveAvailability(config: PluginConfig, hasCopilot = false) {
+  thirdPartyPlugins = hasCopilot ? { copilot: { apiVersion: 2 } } : {};
+  return getProviderAvailability(config);
+}
 
 describe("resolveTranslatorConfig", () => {
   it("prefers options over config over defaults", () => {
@@ -50,19 +63,42 @@ describe("resolveTranslatorConfig", () => {
   });
 });
 
-describe("resolveInitialProvider", () => {
-  it.each([
-    ["ai", { hasDefaultProvider: true, hasMultipleProviders: true }, "ai"],
-    ["ai", { hasDefaultProvider: true, hasMultipleProviders: false }, "deepl"],
-    ["deepl", { hasDefaultProvider: true, hasMultipleProviders: true }, "deepl"],
-    [undefined, { hasDefaultProvider: false, hasMultipleProviders: false }, "ai"],
-    ["invalid", { hasDefaultProvider: true, hasMultipleProviders: true }, "deepl"],
-  ])(
-    "resolves requested provider %j with availability %j to %j",
-    (requestedProvider, availability, expectedProvider) => {
-      expect(resolveInitialProvider(requestedProvider, availability)).toBe(
-        expectedProvider,
-      );
-    },
-  );
+describe("getProviderAvailability", () => {
+  it("treats a custom strategy as a usable backend without a DeepL key", () => {
+    const availability = resolveAvailability({ strategy: "custom" });
+
+    expect(availability.hasAnyProvider).toBe(true);
+    expect(availability.hasDefaultProvider).toBe(true);
+    expect(availability.hasMultipleProviders).toBe(false);
+  });
+
+  it("requires a DeepL API key when the strategy resolves to DeepL", () => {
+    expect(resolveAvailability({ strategy: "deepl" }).hasAnyProvider).toBe(
+      false,
+    );
+    expect(
+      resolveAvailability({ strategy: "deepl", DeepL: { apiKey: true } })
+        .hasAnyProvider,
+    ).toBe(true);
+  });
+
+  it("offers Copilot alone when the strategy resolves to AI", () => {
+    const availability = resolveAvailability(
+      { strategy: "ai", DeepL: { apiKey: true } },
+      true,
+    );
+
+    expect(availability.hasAnyProvider).toBe(true);
+    expect(availability.hasDefaultProvider).toBe(false);
+    expect(availability.hasMultipleProviders).toBe(false);
+  });
+
+  it("offers both providers when a usable backend and Copilot are available", () => {
+    const availability = resolveAvailability(
+      { strategy: "deepl", DeepL: { apiKey: true } },
+      true,
+    );
+
+    expect(availability.hasMultipleProviders).toBe(true);
+  });
 });

@@ -1,6 +1,5 @@
 import type { PanelLanguage } from "kirby-types";
 import type {
-  PluginConfig,
   PluginContextResponse,
   TranslatorOptions,
 } from "../../../src/panel/types";
@@ -87,66 +86,6 @@ async function createContentTranslator(options: TranslatorOptions = {}) {
   translator.initializeConfig(createPluginContext(), options);
   return translator;
 }
-
-async function resolveAvailability(config: PluginConfig) {
-  const { getProviderAvailability } =
-    await import("../../../src/panel/composables/translation");
-  return getProviderAvailability(config);
-}
-
-function installCopilot() {
-  panel.plugins.thirdParty = { copilot: { apiVersion: 2 } };
-}
-
-describe("getProviderAvailability", () => {
-  beforeEach(() => {
-    vi.resetModules();
-    panel = createPanelStub();
-  });
-
-  it("treats a custom strategy as a usable backend without a DeepL key", async () => {
-    const availability = await resolveAvailability({ strategy: "custom" });
-
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(true);
-    expect(availability.hasMultipleProviders).toBe(false);
-  });
-
-  it("requires a DeepL API key when the strategy resolves to DeepL", async () => {
-    expect((await resolveAvailability({ strategy: "deepl" })).hasAnyProvider)
-      .toBe(false);
-    expect(
-      (await resolveAvailability({
-        strategy: "deepl",
-        DeepL: { apiKey: true },
-      })).hasAnyProvider,
-    ).toBe(true);
-  });
-
-  it("offers Copilot alone when the strategy resolves to AI", async () => {
-    installCopilot();
-
-    const availability = await resolveAvailability({
-      strategy: "ai",
-      DeepL: { apiKey: true },
-    });
-
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(false);
-    expect(availability.hasMultipleProviders).toBe(false);
-  });
-
-  it("offers both providers when a usable backend and Copilot are available", async () => {
-    installCopilot();
-
-    const availability = await resolveAvailability({
-      strategy: "deepl",
-      DeepL: { apiKey: true },
-    });
-
-    expect(availability.hasMultipleProviders).toBe(true);
-  });
-});
 
 describe("useContentTranslator", () => {
   beforeEach(() => {

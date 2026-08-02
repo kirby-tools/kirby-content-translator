@@ -1,9 +1,6 @@
-import type {
-  PluginConfig,
-  TranslationProvider,
-  TranslatorOptions,
-} from "../types";
-import { DEFAULT_FIELD_TYPES, TRANSLATION_PROVIDERS } from "../constants";
+import type { PluginConfig, TranslatorOptions } from "../types";
+import { DEFAULT_FIELD_TYPES } from "../constants";
+import { resolveCopilot } from "./copilot";
 
 /**
  * Translator configuration resolved from section/view button props and the
@@ -25,8 +22,10 @@ export interface ResolvedTranslatorConfig {
 }
 
 export interface ProviderAvailability {
+  isCopilotAvailable: boolean;
   hasDefaultProvider: boolean;
   hasMultipleProviders: boolean;
+  hasAnyProvider: boolean;
 }
 
 export function resolveTranslatorConfig(
@@ -49,22 +48,22 @@ export function resolveTranslatorConfig(
   };
 }
 
-export function resolveInitialProvider(
-  requestedProvider: unknown,
-  availability: ProviderAvailability,
-): TranslationProvider {
-  const provider = isValidProvider(requestedProvider)
-    ? requestedProvider
-    : undefined;
+export function getProviderAvailability(
+  config: PluginConfig,
+): ProviderAvailability {
+  const isCopilotAvailable = !!resolveCopilot();
 
-  if (provider === "ai" && availability.hasMultipleProviders) return "ai";
-  if (provider === "deepl" && availability.hasDefaultProvider) return "deepl";
+  // A DeepL key stays in config even when the strategy no longer uses it
+  const hasDefaultProvider =
+    config.strategy === "custom" ||
+    (config.strategy !== "ai" && !!config.DeepL?.apiKey);
 
-  return availability.hasDefaultProvider ? "deepl" : "ai";
-}
-
-function isValidProvider(value: unknown): value is TranslationProvider {
-  return TRANSLATION_PROVIDERS.includes(value as TranslationProvider);
+  return {
+    isCopilotAvailable,
+    hasDefaultProvider,
+    hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
+    hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
+  };
 }
 
 /**

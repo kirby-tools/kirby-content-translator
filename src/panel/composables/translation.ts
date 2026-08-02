@@ -26,10 +26,9 @@ import {
   planImport,
   planSingleTranslation,
 } from "../translation/plan";
-import { resolveCopilot } from "../utils/copilot";
 import { filterSyncableContent } from "../utils/filter";
 import {
-  resolveInitialProvider,
+  getProviderAvailability,
   resolveTranslatorConfig,
 } from "../utils/translator-config";
 import { useModel } from "./model";
@@ -99,9 +98,7 @@ export function useContentTranslator() {
     errorPageId.value = context.errorPageId;
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
-    const availability = getProviderAvailability(context.config);
-    hasAnyProvider.value = availability.hasAnyProvider;
-    provider.value = resolveInitialProvider(options.provider, availability);
+    hasAnyProvider.value = getProviderAvailability(context.config).hasAnyProvider;
   }
 
   // TODO: Next major version – unify import flow through a server-side
@@ -449,21 +446,5 @@ export function useContentTranslator() {
     syncModelContent,
     translateModelContent,
     batchTranslateModelContent,
-  };
-}
-
-export function getProviderAvailability(config: PluginConfig) {
-  const isCopilotAvailable = !!resolveCopilot();
-
-  // Under `ai` the second option would run the same backend as the first
-  const hasDefaultProvider =
-    config.strategy === "custom" ||
-    (config.strategy !== "ai" && !!config.DeepL?.apiKey);
-
-  return {
-    isCopilotAvailable,
-    hasDefaultProvider,
-    hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
-    hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
   };
 }

@@ -59,7 +59,6 @@ export interface TranslatorOptions {
   kirbyTags?: Record<string, string[]>;
   /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`) */
   systemPrompt?: string;
-  provider?: TranslationProvider;
   /** Only available when passed from section computed props */
   fields?: Record<string, KirbyFieldProps>;
 }

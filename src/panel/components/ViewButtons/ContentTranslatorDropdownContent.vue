@@ -7,7 +7,6 @@ import { usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "../../composables/dialogs";
 import { useModel } from "../../composables/model";
 import {
-  getProviderAvailability,
   useContentTranslator,
   useTranslationState,
 } from "../../composables/translation";
@@ -47,6 +46,7 @@ const {
   // Runtime state
   fields,
   licenseStatus,
+  hasAnyProvider,
 
   // Methods
   initializeConfig,
@@ -62,14 +62,13 @@ const {
   showCopilotLicenseToastOnce,
 } = useTranslationDialogs();
 
-const { hasAnyProvider } = getProviderAvailability(props.context.config);
-if (!hasAnyProvider) {
+initializeConfig(props.context, props.props);
+
+if (!hasAnyProvider.value) {
   panel.notification.error(
     'Configure the "johannschopplich.content-translator.strategy" or "johannschopplich.content-translator.DeepL.apiKey" plugin option, or install Kirby Copilot for AI-powered translations.',
   );
 }
-
-initializeConfig(props.context, props.props);
 
 // Lazily fetch required view data (same as `computed` section methods)
 const initializationPromise = (async () => {

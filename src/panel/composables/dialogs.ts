@@ -1,11 +1,12 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { TranslationProvider } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
+import type { ProviderAvailability } from "../utils/translator-config";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot } from "../utils/copilot";
+import { getProviderAvailability } from "../utils/translator-config";
 import { usePluginContext } from "./plugin";
-import { getProviderAvailability } from "./translation";
 
 const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}licenseToastCount`;
 const PROVIDER_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
@@ -193,15 +194,10 @@ async function getProviderConfig() {
   const context = await usePluginContext();
   const copilot = resolveCopilot();
 
-  const { isCopilotAvailable, hasDefaultProvider, hasMultipleProviders } =
-    getProviderAvailability(context.config);
+  const availability = getProviderAvailability(context.config);
+  const provider = resolveProvider(availability);
 
-  const provider = getValidStoredProvider({
-    isCopilotAvailable,
-    hasDefaultProvider,
-  });
-
-  if (!hasMultipleProviders) {
+  if (!availability.hasMultipleProviders) {
     return { provider, providerField: undefined };
   }
 
@@ -249,20 +245,11 @@ async function getProviderConfig() {
   return { provider, providerField };
 }
 
-/**
- * Validates the stored provider preference against current availability.
- *
- * @remarks
- * Returns the stored preference when it's still available, otherwise falls
- * back to the first available provider.
- */
-function getValidStoredProvider(availability: {
-  isCopilotAvailable: boolean;
-  hasDefaultProvider: boolean;
-}): TranslationProvider {
+function resolveProvider(
+  availability: ProviderAvailability,
+): TranslationProvider {
   const storedProvider = localStorage.getItem(PROVIDER_PREFERENCE_KEY);
 
-  // Validate stored preference is still available
   if (storedProvider === "ai" && availability.isCopilotAvailable) {
     return "ai";
   }
@@ -270,11 +257,7 @@ function getValidStoredProvider(availability: {
     return "deepl";
   }
 
-  // Fall back to first available provider
-  if (availability.hasDefaultProvider) return "deepl";
-  if (availability.isCopilotAvailable) return "ai";
-
-  return "deepl";
+  return availability.hasDefaultProvider ? "deepl" : "ai";
 }
 
 function storeProviderPreference(provider: TranslationProvider) {
