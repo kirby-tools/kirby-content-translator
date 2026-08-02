@@ -1,9 +1,8 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
+use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use JohannSchopplich\ContentTranslator\Translator;
-use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use JohannSchopplich\KirbyTools\FieldResolver;
 use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\LicensePanel;
@@ -19,28 +18,9 @@ return [
             'method' => 'GET',
             'action' => function () use ($kirby) {
                 $licenses = Licenses::read('johannschopplich/kirby-content-translator');
-                $config = $kirby->option('johannschopplich.content-translator', []);
-
-                // Don't leak the API key to the Panel frontend
-                if (isset($config['DeepL']['apiKey'])) {
-                    $config['DeepL'] = [
-                        'apiKey' => !empty($config['DeepL']['apiKey'])
-                    ];
-                }
-
-                $config['translateFn'] = isset($config['translateFn']) && is_callable($config['translateFn']);
-
-                if (class_exists(CopilotClient::class)) {
-                    $config['ai'] ??= [];
-                    $config['ai']['systemPrompt'] = CopilotAIStrategy::resolveDefaultSystemPrompt();
-                }
-
-                // Keep backwards compatibility with Kirby 4
-                // TODO: Deprecated, remove in Kirby 6
-                $config['viewButton'] ??= true;
 
                 return [
-                    'config' => $config,
+                    'config' => PanelContext::config(),
                     'homePageId' => $kirby->site()->homePageId(),
                     'errorPageId' => $kirby->site()->errorPageId(),
                     'licenseStatus' => $licenses->getStatus()

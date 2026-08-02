@@ -229,7 +229,7 @@ async function getProviderConfig() {
       {
         value: "deepl",
         text: panel.t(
-          context.config.translateFn
+          context.config.strategy === "custom"
             ? "johannschopplich.content-translator.provider.custom"
             : "johannschopplich.content-translator.provider.deepl",
         ),

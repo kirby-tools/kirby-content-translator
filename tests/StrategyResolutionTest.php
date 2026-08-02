@@ -142,4 +142,52 @@ final class StrategyResolutionTest extends TestCase
 
         Translator::translateText('hi', 'de');
     }
+
+    #[Test]
+    public function resolved_strategy_name_defaults_to_deepl(): void
+    {
+        new App();
+
+        $this->assertSame('deepl', Translator::resolveStrategyName());
+    }
+
+    #[Test]
+    public function resolved_strategy_name_is_ai_for_the_ai_preset(): void
+    {
+        new App([
+            'options' => [
+                'johannschopplich.content-translator' => ['strategy' => 'ai'],
+            ],
+        ]);
+
+        $this->assertSame('ai', Translator::resolveStrategyName());
+    }
+
+    #[Test]
+    public function resolved_strategy_name_is_custom_for_a_closure_strategy(): void
+    {
+        new App([
+            'options' => [
+                'johannschopplich.content-translator' => [
+                    'strategy' => fn (string $text, string $lang): string => $text,
+                ],
+            ],
+        ]);
+
+        $this->assertSame('custom', Translator::resolveStrategyName());
+    }
+
+    #[Test]
+    public function resolved_strategy_name_is_custom_for_the_deprecated_translate_fn(): void
+    {
+        new App([
+            'options' => [
+                'johannschopplich.content-translator' => [
+                    'translateFn' => fn (string $text, string $lang): string => $text,
+                ],
+            ],
+        ]);
+
+        $this->assertSame('custom', Translator::resolveStrategyName());
+    }
 }

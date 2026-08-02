@@ -21,8 +21,8 @@ export interface PluginConfig {
   kirbyTags?: Record<string, string[]>;
   /** Concurrency for batch translations */
   batchConcurrency?: number;
-  /** Whether a custom translate function is configured */
-  translateFn?: boolean;
+  /** Backend the translate endpoint resolves to, named server-side */
+  strategy?: TranslationProvider | "custom";
   /** DeepL API configuration (sanitized, only contains boolean indicating if API key is set) */
   DeepL?: {
     apiKey?: boolean;

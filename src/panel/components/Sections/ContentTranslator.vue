@@ -124,10 +124,9 @@ async function handleBatchTranslate() {
     </k-box>
     <k-box v-else-if="!hasAnyProvider" theme="empty">
       <k-text>
-        Either a custom <code>translateFn</code> or <code>DeepL.apiKey</code> in
-        the <code>johannschopplich.content-translator</code> plugin
-        configuration is required. Alternatively, install Kirby Copilot for
-        AI-powered translations.
+        Configure a <code>strategy</code> or <code>DeepL.apiKey</code> in the
+        <code>johannschopplich.content-translator</code> plugin configuration,
+        or install Kirby Copilot for AI-powered translations.
       </k-text>
     </k-box>
 

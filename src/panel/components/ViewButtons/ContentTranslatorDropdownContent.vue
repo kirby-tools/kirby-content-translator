@@ -65,7 +65,7 @@ const {
 const { hasAnyProvider } = getProviderAvailability(props.context.config);
 if (!hasAnyProvider) {
   panel.notification.error(
-    'Either a custom "johannschopplich.content-translator.translateFn" or the "johannschopplich.content-translator.DeepL.apiKey" plugin option is required. Alternatively, install Kirby Copilot for AI-powered translations.',
+    'Configure the "johannschopplich.content-translator.strategy" or "johannschopplich.content-translator.DeepL.apiKey" plugin option, or install Kirby Copilot for AI-powered translations.',
   );
 }
 

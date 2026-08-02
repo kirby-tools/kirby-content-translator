@@ -111,44 +111,17 @@ final class Translator
         return $translatedTexts;
     }
 
-    private static function resolveStrategy(): Strategy
+    /**
+     * Names the strategy the Panel would reach through the translate endpoint.
+     *
+     * @return 'ai'|'custom'|'deepl'
+     *
+     * @throws LogicException
+     */
+    public static function resolveStrategyName(): string
     {
-        $kirby = App::instance();
-        $strategyOption = $kirby->option('johannschopplich.content-translator.strategy');
-
-        if ($strategyOption instanceof Strategy) {
-            return $strategyOption;
-        }
-
-        if ($strategyOption instanceof Closure) {
-            return new CallableStrategy($strategyOption);
-        }
-
-        if (is_string($strategyOption)) {
-            return match ($strategyOption) {
-                'deepl' => new DeepLStrategy(),
-                'ai' => class_exists(CopilotClient::class)
-                    ? new CopilotAIStrategy()
-                    : throw new LogicException('Strategy "ai" requires the kirby-copilot plugin'),
-                default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
-            };
-        }
-
-        // TODO: remove `translateFn` fallback in v4 – use the `strategy` option instead
-        $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
-        if (is_callable($translateFn)) {
-            return new CallableStrategy(Closure::fromCallable($translateFn));
-        }
-
-        return new DeepLStrategy();
-    }
-
-    private static function buildOptions(string $targetLanguage, string|null $sourceLanguage): ExecutionOptions
-    {
-        return new ExecutionOptions(
-            targetLanguage: TranslationLanguage::fromCode($targetLanguage),
-            sourceLanguage: $sourceLanguage !== null ? TranslationLanguage::fromCode($sourceLanguage) : null,
-        );
+        $source = self::resolveStrategySource();
+        return is_string($source) ? $source : 'custom';
     }
 
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
@@ -274,5 +247,63 @@ final class Translator
 
             $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
         });
+    }
+
+    private static function resolveStrategy(): Strategy
+    {
+        $source = self::resolveStrategySource();
+
+        if ($source instanceof Strategy) {
+            return $source;
+        }
+
+        if ($source instanceof Closure) {
+            return new CallableStrategy($source);
+        }
+
+        return match ($source) {
+            'deepl' => new DeepLStrategy(),
+            'ai' => class_exists(CopilotClient::class)
+                ? new CopilotAIStrategy()
+                : throw new LogicException('Strategy "ai" requires the kirby-copilot plugin'),
+        };
+    }
+
+    /**
+     * @return 'ai'|'deepl'|Closure|Strategy
+     *
+     * @throws LogicException
+     */
+    private static function resolveStrategySource(): string|Closure|Strategy
+    {
+        $kirby = App::instance();
+        $strategyOption = $kirby->option('johannschopplich.content-translator.strategy');
+
+        if ($strategyOption instanceof Strategy || $strategyOption instanceof Closure) {
+            return $strategyOption;
+        }
+
+        if (is_string($strategyOption)) {
+            return match ($strategyOption) {
+                'deepl', 'ai' => $strategyOption,
+                default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
+            };
+        }
+
+        // TODO: remove `translateFn` fallback in v4 – use the `strategy` option instead
+        $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
+        if (is_callable($translateFn)) {
+            return Closure::fromCallable($translateFn);
+        }
+
+        return 'deepl';
+    }
+
+    private static function buildOptions(string $targetLanguage, string|null $sourceLanguage): ExecutionOptions
+    {
+        return new ExecutionOptions(
+            targetLanguage: TranslationLanguage::fromCode($targetLanguage),
+            sourceLanguage: $sourceLanguage !== null ? TranslationLanguage::fromCode($sourceLanguage) : null,
+        );
     }
 }

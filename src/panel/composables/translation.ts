@@ -454,7 +454,11 @@ export function useContentTranslator() {
 
 export function getProviderAvailability(config: PluginConfig) {
   const isCopilotAvailable = !!resolveCopilot();
-  const hasDefaultProvider = !!(config.translateFn || config.DeepL?.apiKey);
+
+  // Under `ai` the second option would run the same backend as the first
+  const hasDefaultProvider =
+    config.strategy === "custom" ||
+    (config.strategy !== "ai" && !!config.DeepL?.apiKey);
 
   return {
     isCopilotAvailable,
