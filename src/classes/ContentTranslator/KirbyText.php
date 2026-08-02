@@ -285,9 +285,10 @@ final class KirbyText
         }
 
         foreach ($attributes as $name => $attrValue) {
-            // A `false` default from the `kirbytext.<type>` options would
-            // otherwise render as a bare `name: `
-            if ($attrValue !== null && $attrValue !== '' && $attrValue !== false) {
+            // `kirbytext.<type>` option defaults land in `attrs` untouched: an
+            // array default would stringify into `Array`, a `false` default
+            // would render as a bare `name: `
+            if (is_scalar($attrValue) && $attrValue !== '' && $attrValue !== false) {
                 $parts[] = $name . ': ' . $attrValue;
             }
         }
