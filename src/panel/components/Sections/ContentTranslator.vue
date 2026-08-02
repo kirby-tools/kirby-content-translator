@@ -27,6 +27,7 @@ const { isTranslating } = useTranslationState();
 
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 const isInitialized = ref(false);
+const initializationError = ref<Error>();
 
 const {
   // Configuration state
@@ -57,17 +58,23 @@ const {
 
 (async () => {
   const { load } = useSection();
-  const [context, sectionProps] = await Promise.all([
-    usePluginContext(),
-    load({
-      parent: props.parent!,
-      name: props.name!,
-    }),
-  ]);
 
-  initializeConfig(context, sectionProps);
+  try {
+    const [context, sectionProps] = await Promise.all([
+      usePluginContext(),
+      load({
+        parent: props.parent!,
+        name: props.name!,
+      }),
+    ]);
 
-  isInitialized.value = true;
+    initializeConfig(context, sectionProps);
+
+    isInitialized.value = true;
+  } catch (error) {
+    // A misconfigured plugin option makes the context endpoint fail – without this the section would render nothing at all
+    initializationError.value = error as Error;
+  }
 })();
 
 async function handleImport(sourceLanguage?: PanelLanguageInfo) {
@@ -107,7 +114,16 @@ async function handleBatchTranslate() {
 </script>
 
 <template>
-  <k-section v-if="isInitialized" :label="label">
+  <k-section v-if="initializationError" :label="panel.t('error')">
+    <k-box
+      :text="initializationError.message"
+      :html="false"
+      icon="alert"
+      theme="negative"
+    />
+  </k-section>
+
+  <k-section v-else-if="isInitialized" :label="label">
     <template v-if="licenseStatus !== undefined" slot="options">
       <LicensingButtonGroup
         label="Kirby Content Translator"

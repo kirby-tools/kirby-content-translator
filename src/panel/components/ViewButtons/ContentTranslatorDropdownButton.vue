@@ -61,9 +61,18 @@ const { isTranslating } = useTranslationState();
 
 const dropdownContent = ref();
 const context = ref<PluginContextResponse>();
+const initializationError = ref<Error>();
 
 (async () => {
-  context.value = await usePluginContext();
+  try {
+    context.value = await usePluginContext();
+  } catch (error) {
+    // A misconfigured plugin option makes the context endpoint fail. Without the notification the failure would go
+    // unnoticed on Kirby 4, where the button is gated by the `viewButton` option of the very context that just failed
+    initializationError.value = error as Error;
+    panel.notification.error((error as Error).message);
+    return;
+  }
 
   if (!panel.multilang) {
     panel.notification.error(
@@ -98,6 +107,14 @@ function toggle() {
         :context="context"
         :props="props"
       />
+      <k-dropdown-item
+        v-else-if="initializationError"
+        disabled
+        icon="alert"
+        theme="negative"
+      >
+        {{ initializationError.message }}
+      </k-dropdown-item>
     </k-dropdown-content>
   </div>
 </template>
