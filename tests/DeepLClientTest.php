@@ -32,10 +32,10 @@ final class DeepLClientTest extends TestCase
         if ($apiKey !== null) {
             $pluginOptions['DeepL.apiKey'] = $apiKey;
         }
-        if (!empty($requestOptions)) {
+        if ($requestOptions !== []) {
             $pluginOptions['DeepL.requestOptions'] = $requestOptions;
         }
-        if (!empty($targetLanguageOverrides)) {
+        if ($targetLanguageOverrides !== []) {
             $pluginOptions['DeepL.targetLanguageOverrides'] = $targetLanguageOverrides;
         }
 
