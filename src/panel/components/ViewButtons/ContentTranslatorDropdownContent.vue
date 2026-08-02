@@ -131,25 +131,24 @@ async function handleBatchTranslate() {
 <template>
   <div>
     <template v-if="allowImport && importFrom === 'all'">
-      <template v-if="allowImport">
-        <k-dropdown-item
-          v-for="language in panel.languages.filter(
-            (language) => language.code !== panel.language.code,
-          )"
-          :key="language.code"
-          :disabled="isTranslating"
-          icon="import"
-          @click="handleImport(language)"
-        >
-          {{
-            panel.t("johannschopplich.content-translator.importFrom", {
-              language: language.code.toUpperCase(),
-            })
-          }}
-        </k-dropdown-item>
-        <hr />
-      </template>
       <k-dropdown-item
+        v-for="language in panel.languages.filter(
+          (language) => language.code !== panel.language.code,
+        )"
+        :key="language.code"
+        :disabled="isTranslating"
+        icon="import"
+        @click="handleImport(language)"
+      >
+        {{
+          panel.t("johannschopplich.content-translator.importFrom", {
+            language: language.code.toUpperCase(),
+          })
+        }}
+      </k-dropdown-item>
+      <hr v-if="hasAnyProvider" />
+      <k-dropdown-item
+        v-if="hasAnyProvider"
         :disabled="isTranslating"
         icon="translate"
         @click="handleTranslate()"
@@ -161,7 +160,7 @@ async function handleBatchTranslate() {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="allowBatchTranslation && panel.language.default"
+        v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
         :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
@@ -187,10 +186,12 @@ async function handleBatchTranslate() {
         >
           {{ panel.t("johannschopplich.content-translator.import") }}
         </k-dropdown-item>
-        <hr />
+        <hr v-if="hasAnyProvider" />
       </template>
       <k-dropdown-item
-        v-if="!allowBatchTranslation || !panel.language.default"
+        v-if="
+          hasAnyProvider && (!allowBatchTranslation || !panel.language.default)
+        "
         :disabled="panel.language.default || isTranslating"
         icon="translate"
         @click="handleTranslate(defaultLanguage)"
@@ -202,7 +203,7 @@ async function handleBatchTranslate() {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="allowBatchTranslation && panel.language.default"
+        v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
         :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"

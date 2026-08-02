@@ -122,17 +122,21 @@ async function handleBatchTranslate() {
         This section requires multi-language support to be enabled.
       </k-text>
     </k-box>
-    <k-box v-else-if="!hasAnyProvider" theme="empty">
-      <k-text>
-        Configure a <code>strategy</code> or <code>DeepL.apiKey</code> in the
-        <code>johannschopplich.content-translator</code> plugin configuration,
-        or install Kirby Copilot for AI-powered translations.
-      </k-text>
-    </k-box>
+    <template v-else>
+      <k-box v-if="!hasAnyProvider" theme="empty">
+        <k-text>
+          Configure a <code>strategy</code> or <code>DeepL.apiKey</code> in the
+          <code>johannschopplich.content-translator</code> plugin configuration,
+          or install Kirby Copilot for AI-powered translations.
+        </k-text>
+      </k-box>
 
-    <k-box v-else-if="allowImport && importFrom === 'all'" theme="none">
-      <k-button-group layout="collapsed">
-        <template v-if="allowImport">
+      <k-box
+        v-if="allowImport && importFrom === 'all'"
+        theme="none"
+        :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
+      >
+        <k-button-group layout="collapsed">
           <k-button
             v-for="language in panel.languages.filter(
               (language) => language.code !== panel.language.code,
@@ -149,58 +153,13 @@ async function handleBatchTranslate() {
               })
             }}
           </k-button>
-        </template>
-        <k-button
-          :disabled="isTranslating"
-          :icon="isTranslating ? 'loader' : 'translate'"
-          variant="filled"
-          theme="notice-icon"
-          @click="handleTranslate()"
-        >
-          {{
-            panel.t("johannschopplich.content-translator.translate", {
-              language: panel.language.code?.toUpperCase(),
-            })
-          }}
-        </k-button>
-        <k-button
-          v-if="allowBatchTranslation && panel.language.default"
-          :disabled="isTranslating"
-          :icon="isTranslating ? 'loader' : 'content-translator-global'"
-          variant="filled"
-          theme="notice-icon"
-          @click="handleBatchTranslate()"
-        >
-          {{
-            panel.t("johannschopplich.content-translator.batchTranslate", {
-              language: defaultLanguage.code.toUpperCase(),
-            })
-          }}
-        </k-button>
-      </k-button-group>
-    </k-box>
-
-    <template v-else>
-      <k-box theme="none">
-        <k-button-group layout="collapsed">
           <k-button
-            v-if="
-              allowImport && (!allowBatchTranslation || !panel.language.default)
-            "
-            :disabled="panel.language.default || isTranslating"
-            icon="import"
-            variant="filled"
-            @click="handleImport()"
-          >
-            {{ panel.t("johannschopplich.content-translator.import") }}
-          </k-button>
-          <k-button
-            v-if="!allowBatchTranslation || !panel.language.default"
-            :disabled="panel.language.default || isTranslating"
+            v-if="hasAnyProvider"
+            :disabled="isTranslating"
             :icon="isTranslating ? 'loader' : 'translate'"
             variant="filled"
             theme="notice-icon"
-            @click="handleTranslate(defaultLanguage)"
+            @click="handleTranslate()"
           >
             {{
               panel.t("johannschopplich.content-translator.translate", {
@@ -209,7 +168,7 @@ async function handleBatchTranslate() {
             }}
           </k-button>
           <k-button
-            v-if="allowBatchTranslation && panel.language.default"
+            v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
             :disabled="isTranslating"
             :icon="isTranslating ? 'loader' : 'content-translator-global'"
             variant="filled"
@@ -225,16 +184,75 @@ async function handleBatchTranslate() {
         </k-button-group>
       </k-box>
 
-      <k-box
-        v-show="!allowBatchTranslation && panel.language.default"
-        theme="none"
-        :text="
-          panel.t(
-            'johannschopplich.content-translator.help.defaultLanguageInfo',
-          )
-        "
-        class="kct-mt-[var(--spacing-1)]"
-      />
+      <template v-else-if="allowImport || hasAnyProvider">
+        <k-box
+          theme="none"
+          :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
+        >
+          <k-button-group layout="collapsed">
+            <k-button
+              v-if="
+                allowImport &&
+                (!allowBatchTranslation || !panel.language.default)
+              "
+              :disabled="panel.language.default || isTranslating"
+              icon="import"
+              variant="filled"
+              @click="handleImport()"
+            >
+              {{ panel.t("johannschopplich.content-translator.import") }}
+            </k-button>
+            <k-button
+              v-if="
+                hasAnyProvider &&
+                (!allowBatchTranslation || !panel.language.default)
+              "
+              :disabled="panel.language.default || isTranslating"
+              :icon="isTranslating ? 'loader' : 'translate'"
+              variant="filled"
+              theme="notice-icon"
+              @click="handleTranslate(defaultLanguage)"
+            >
+              {{
+                panel.t("johannschopplich.content-translator.translate", {
+                  language: panel.language.code?.toUpperCase(),
+                })
+              }}
+            </k-button>
+            <k-button
+              v-if="
+                hasAnyProvider &&
+                allowBatchTranslation &&
+                panel.language.default
+              "
+              :disabled="isTranslating"
+              :icon="isTranslating ? 'loader' : 'content-translator-global'"
+              variant="filled"
+              theme="notice-icon"
+              @click="handleBatchTranslate()"
+            >
+              {{
+                panel.t("johannschopplich.content-translator.batchTranslate", {
+                  language: defaultLanguage.code.toUpperCase(),
+                })
+              }}
+            </k-button>
+          </k-button-group>
+        </k-box>
+
+        <k-box
+          v-show="
+            hasAnyProvider && !allowBatchTranslation && panel.language.default
+          "
+          theme="none"
+          :text="
+            panel.t(
+              'johannschopplich.content-translator.help.defaultLanguageInfo',
+            )
+          "
+          class="kct-mt-[var(--spacing-1)]"
+        />
+      </template>
     </template>
   </k-section>
 </template>
