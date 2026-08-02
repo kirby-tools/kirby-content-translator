@@ -18,8 +18,10 @@ export function usePluginContext() {
     )
     .then((response) => {
       context = response;
-      pendingPromise = undefined;
       return context;
+    })
+    .finally(() => {
+      pendingPromise = undefined;
     });
 
   return pendingPromise;
