@@ -133,18 +133,9 @@ final class DeepL
      */
     private function asTranslationLanguage(string|TranslationLanguage $language): TranslationLanguage
     {
-        if ($language instanceof TranslationLanguage) {
-            return $language;
-        }
-
-        $kirbyLanguage = App::instance()->languages()->find($language);
-        $locale = $kirbyLanguage?->locale(LC_ALL);
-
-        return new TranslationLanguage(
-            code: $language,
-            name: $kirbyLanguage?->name() ?? $language,
-            locale: is_string($locale) ? $locale : null,
-        );
+        return $language instanceof TranslationLanguage
+            ? $language
+            : TranslationLanguage::fromAnyCode($language);
     }
 
     /**

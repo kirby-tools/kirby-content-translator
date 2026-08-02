@@ -29,14 +29,23 @@ final readonly class TranslationLanguage
     public static function fromCode(string $code): self
     {
         $kirby = App::instance();
-        $language = $kirby->languages()->find($code);
 
-        if ($language === null && $kirby->multilang()) {
+        if ($kirby->languages()->find($code) === null && $kirby->multilang()) {
             // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
             throw new InvalidArgumentException(
                 ['fallback' => 'Unknown language code "' . $code . '"; not registered in Kirby languages.'],
             );
         }
+
+        return self::fromAnyCode($code);
+    }
+
+    /**
+     * Builds a language from a code that need not be registered in Kirby.
+     */
+    public static function fromAnyCode(string $code): self
+    {
+        $language = App::instance()->languages()->find($code);
 
         // Kirby falls back to a per-category locale array, which names no single
         // language and is unusable here
