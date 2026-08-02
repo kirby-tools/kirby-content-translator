@@ -7,7 +7,7 @@ import type {
 import { isObject } from "utilful";
 
 /**
- * Checks if a block is translatable based on its content structure and visibility.
+ * Checks whether a block carries translatable content and is not hidden.
  */
 export function isBlockTranslatable(block: KirbyBlock) {
   return isObject(block.content) && block.id != null && block.isHidden !== true;

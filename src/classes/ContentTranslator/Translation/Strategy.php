@@ -12,7 +12,7 @@ use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationExceptio
 interface Strategy
 {
     /**
-     * Translate units and return results in the same order as the input.
+     * Translates units and returns results in the same order as the input.
      *
      * @param list<TranslationUnit> $units
      * @return list<string>

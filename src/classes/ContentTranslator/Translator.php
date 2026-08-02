@@ -47,9 +47,9 @@ final class Translator
     }
 
     /**
-     * @throws TranslationException
-     * @throws LogicException
-     * @throws AuthException
+     * @throws TranslationException When the strategy translates no unit at all.
+     * @throws LogicException When the configured strategy cannot be resolved or the provider rejects the request.
+     * @throws AuthException When the DeepL API key is missing or refused.
      */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
@@ -65,9 +65,9 @@ final class Translator
      * @param list<string> $texts
      * @return list<string>
      *
-     * @throws TranslationException
-     * @throws LogicException
-     * @throws AuthException
+     * @throws TranslationException When the strategy translates no unit at all.
+     * @throws LogicException When the configured strategy cannot be resolved or the provider rejects the request.
+     * @throws AuthException When the DeepL API key is missing or refused.
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
@@ -116,7 +116,7 @@ final class Translator
      *
      * @return 'ai'|'custom'|'deepl'
      *
-     * @throws LogicException
+     * @throws LogicException When the `strategy` option names an unknown backend.
      */
     public static function resolveStrategyName(): string
     {
@@ -156,9 +156,9 @@ final class Translator
     }
 
     /**
-     * @throws TranslationException
-     * @throws LogicException
-     * @throws AuthException
+     * @throws TranslationException When the strategy translates no unit at all.
+     * @throws LogicException When the configured strategy cannot be resolved or the provider rejects the request.
+     * @throws AuthException When the DeepL API key is missing or refused.
      */
     public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
     {
@@ -272,7 +272,7 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException
+     * @throws LogicException When the `strategy` option names an unknown backend.
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {

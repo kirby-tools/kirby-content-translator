@@ -34,7 +34,6 @@ export function filterSyncableContent(
     if (includeFields.length && !includeFields.includes(key)) continue;
     if (excludeFields.length && excludeFields.includes(key)) continue;
 
-    // Handle blocks fields
     if (field.type === "blocks" && Array.isArray(value)) {
       syncableContent[key] = filterBlocksContent(
         value as KirbyBlock[],
@@ -43,7 +42,7 @@ export function filterSyncableContent(
       continue;
     }
 
-    // Handle layout fields (which contain blocks)
+    // Layouts nest their blocks inside columns, so they need their own walk
     if (field.type === "layout" && Array.isArray(value)) {
       syncableContent[key] = filterLayoutContent(
         value as KirbyLayout[],

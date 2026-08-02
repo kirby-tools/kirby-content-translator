@@ -54,7 +54,9 @@ final class TranslationCoverage
 
     /**
      * Returns pruned tree children for a given parent page.
-     * Only includes pages that are incomplete or are ancestors of incomplete pages.
+     *
+     * Only pages that are incomplete themselves, or ancestors of one, survive
+     * the pruning.
      *
      * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendants: int, missing: array|null}>
      */
@@ -143,7 +145,6 @@ final class TranslationCoverage
                 $languages = [];
                 $incompleteIds = [];
 
-                // Initialize per-language counters
                 foreach ($this->kirby->languages() as $language) {
                     if ($language->code() === $defaultLanguage->code()) {
                         continue;
@@ -158,7 +159,6 @@ final class TranslationCoverage
                     ];
                 }
 
-                // Iterate all pages to find incomplete ones and aggregate language stats
                 foreach ($this->pages as $page) {
                     $pageCoverage = $this->pageCoverage($page);
 
@@ -192,14 +192,12 @@ final class TranslationCoverage
                     }
                 }
 
-                // Compute percentages
                 foreach ($languages as &$lang) {
                     $lang['percentage'] = $lang['totalFields'] > 0
                         ? (int)round($lang['translatedFields'] / $lang['totalFields'] * 100)
                         : 100;
                 }
 
-                // Compute ancestor IDs and descendant counts from incomplete page IDs
                 $ancestorIds = [];
                 $descendantCounts = [];
 
@@ -214,7 +212,8 @@ final class TranslationCoverage
                     }
                 }
 
-                // Visible IDs = incomplete pages + their ancestors (paths shown in pruned tree)
+                // Ancestors stay visible so the pruned tree keeps a path down to
+                // every incomplete page
                 $visibleIds = $ancestorIds;
 
                 foreach (array_keys($incompleteIds) as $id) {
@@ -244,9 +243,11 @@ final class TranslationCoverage
     }
 
     /**
-     * Returns top-level translatable field keys that are non-empty in
-     * the default language. The denominator is content-driven so that
-     * stub pages without source data don't get flagged as untranslated.
+     * Returns top-level translatable field keys that are non-empty in the
+     * default language.
+     *
+     * The denominator is content-driven so that stub pages without source data
+     * don't get flagged as untranslated.
      *
      * @return array<string>
      */

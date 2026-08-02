@@ -122,7 +122,7 @@ final class KirbyText
     }
 
     /**
-     * Locates paren-balanced KirbyTag spans in `$text` and returns their byte offsets.
+     * Locates paren-balanced KirbyTag spans in `$text`.
      *
      * @return list<array{int, int}> List of [start, endExclusive] pairs
      */

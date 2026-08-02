@@ -207,7 +207,7 @@ async function getProviderConfig() {
     try {
       copilotContext = await copilot.resolvePluginContext();
     } catch {
-      // Copilot context not available
+      // A missing Copilot context only costs the provider's own label
     }
   }
 

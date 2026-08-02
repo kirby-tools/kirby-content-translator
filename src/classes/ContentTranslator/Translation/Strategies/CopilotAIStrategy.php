@@ -14,7 +14,8 @@ use Kirby\Cms\App;
 use Throwable;
 
 /**
- * AI translation strategy backed by the Copilot PHP AI client.
+ * Requires the kirby-copilot plugin, which owns the provider credentials –
+ * this plugin never talks to an AI provider directly.
  */
 final readonly class CopilotAIStrategy implements Strategy
 {

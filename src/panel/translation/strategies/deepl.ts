@@ -7,9 +7,6 @@ import { useApi } from "kirbyuse";
 import { TRANSLATE_BATCH_API_ROUTE } from "../../constants";
 
 /**
- * DeepL translation strategy.
- *
- * @remarks
  * Translates all units in a single batch API call.
  */
 export class DeepLStrategy implements TranslationStrategy {
@@ -20,7 +17,7 @@ export class DeepLStrategy implements TranslationStrategy {
     const api = useApi();
     const { signal } = options;
 
-    // Initialize results array with original texts (fallback for empty)
+    // Units the endpoint does not answer for keep their source text
     const results: string[] = units.map((unit) => unit.text);
 
     if (units.length > 0 && !signal?.aborted) {

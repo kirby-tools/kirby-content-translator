@@ -86,7 +86,6 @@ function collectFromField(
   field: KirbyFieldProps,
   context: CollectorContext,
 ) {
-  // Text-like fields: batch translation
   if (["list", "text", "writer"].includes(field.type)) {
     const text = value as string;
     if (!text || shouldSkipTranslation(text)) return;
@@ -102,9 +101,8 @@ function collectFromField(
     });
   }
 
-  // Markdown/textarea: split out KirbyTags for structural protection,
-  // emit each translatable fragment as a batch unit, and reassemble in
-  // a finalizer once all translations come back.
+  // KirbyTags are split out so their structure survives translation intact and
+  // is reassembled in a finalizer once every fragment came back
   else if (["textarea", "markdown"].includes(field.type)) {
     const text = value as string;
     if (!text || shouldSkipTranslation(text)) return;
@@ -127,10 +125,7 @@ function collectFromField(
     context.finalizers.push(() => {
       obj[key] = restore(translated);
     });
-  }
-
-  // Tags: batch translation with join/split
-  else if (field.type === "tags") {
+  } else if (field.type === "tags") {
     const tags = value;
     if (!Array.isArray(tags) || !tags.length) return;
 
@@ -144,31 +139,19 @@ function collectFromField(
         obj[key] = translatedText.split("|").map((tag) => tag.trim());
       },
     });
-  }
-
-  // Table fields
-  else if (field.type === "table") {
+  } else if (field.type === "table") {
     collectFromTableField(obj, key, value, context);
-  }
-
-  // Structure fields: recurse into items
-  else if (field.type === "structure" && Array.isArray(value)) {
+  } else if (field.type === "structure" && Array.isArray(value)) {
     const structureField = field as KirbyStructureFieldProps;
     for (const item of value) {
       if (isObject(item)) {
         collectFromObject(item, structureField.fields, context);
       }
     }
-  }
-
-  // Object fields: recurse into content
-  else if (field.type === "object" && isObject(value)) {
+  } else if (field.type === "object" && isObject(value)) {
     const objectField = field as KirbyObjectFieldProps;
     collectFromObject(value, objectField.fields, context);
-  }
-
-  // Layout fields: recurse into columns and blocks
-  else if (field.type === "layout" && Array.isArray(value)) {
+  } else if (field.type === "layout" && Array.isArray(value)) {
     const layoutField = field as KirbyLayoutFieldProps;
     for (const layout of value as KirbyLayout[]) {
       for (const column of layout.columns ?? []) {
@@ -181,10 +164,7 @@ function collectFromField(
         }
       }
     }
-  }
-
-  // Blocks fields: recurse into blocks
-  else if (field.type === "blocks" && Array.isArray(value)) {
+  } else if (field.type === "blocks" && Array.isArray(value)) {
     const blocksField = field as KirbyBlocksFieldProps;
     for (const block of value as KirbyBlock[]) {
       if (!isBlockTranslatable(block)) continue;
@@ -221,7 +201,6 @@ function collectFromTableField(
   // Store reference for cell updates and YAML serialization
   const tableRef = tableData;
 
-  // Collect each non-empty cell
   for (const [rowIndex, row] of tableData.entries()) {
     if (!Array.isArray(row)) continue;
 
@@ -243,7 +222,6 @@ function collectFromTableField(
   // Update the object reference (handles non-YAML case)
   obj[key] = tableData;
 
-  // Register finalizer for YAML re-serialization
   if (isYamlEncoded) {
     context.finalizers.push(() => {
       const rowStrings = tableRef.map((row) => {

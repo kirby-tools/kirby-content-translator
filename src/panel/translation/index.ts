@@ -8,6 +8,12 @@ import { collectTranslations } from "./collector";
 export * from "./strategies";
 export * from "./text";
 
+/**
+ * Translates every collected unit and writes the results back into `obj`.
+ *
+ * Finalizers run only after all units have been applied, so a finalizer may
+ * re-serialize a field that several units wrote into.
+ */
 export async function translateContent(
   obj: Record<string, unknown>,
   options: CollectorOptions & {
@@ -32,7 +38,6 @@ export async function translateContent(
 
   if (signal?.aborted) return obj;
 
-  // Phase 1: Collect translation units and finalizers
   const { translations, finalizers } = collectTranslations(obj, {
     fields,
     fieldTypes,
@@ -43,7 +48,6 @@ export async function translateContent(
 
   if (translations.length === 0) return obj;
 
-  // Phase 2: Execute translations via strategy
   const results = await strategy.execute(
     translations.map((item) => item.unit),
     {
@@ -53,15 +57,13 @@ export async function translateContent(
     },
   );
 
-  // Skip applying results if aborted during execution
+  // A late abort must not write stale results back into the content
   if (signal?.aborted) return obj;
 
-  // Phase 3: Apply results back to content
   for (const [index, { apply }] of translations.entries()) {
     apply(results[index]!);
   }
 
-  // Phase 4: Run finalizers (e.g., YAML serialization)
   for (const finalizer of finalizers) {
     finalizer();
   }

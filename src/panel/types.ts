@@ -5,7 +5,6 @@ import type { TRANSLATION_PROVIDERS } from "./constants";
 /** Loose boolean type for raw props coming from PHP/YAML */
 type BooleanInput = boolean | string | number | null;
 
-/** Available translation providers */
 export type TranslationProvider = (typeof TRANSLATION_PROVIDERS)[number];
 
 export interface PluginConfig {
@@ -19,15 +18,13 @@ export interface PluginConfig {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
-  /** Concurrency for batch translations */
   batchConcurrency?: number;
   /** Backend the translate endpoint resolves to, named server-side */
   strategy?: TranslationProvider | "custom";
-  /** DeepL API configuration (sanitized, only contains boolean indicating if API key is set) */
+  /** Sanitized DeepL configuration – only whether an API key is set, never the key */
   DeepL?: {
     apiKey?: boolean;
   };
-  /** AI translation configuration */
   ai?: {
     /** Custom system prompt to replace the default translation instructions */
     systemPrompt?: string;

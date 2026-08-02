@@ -115,8 +115,6 @@ export function useContentTranslator() {
     let title: string;
     let content: Record<string, unknown>;
 
-    // If a language is passed, use the content of that language as the source,
-    // otherwise use the default language
     if (language) {
       const data = await panel.api.get<PanelModelData>(
         panel.view.path,

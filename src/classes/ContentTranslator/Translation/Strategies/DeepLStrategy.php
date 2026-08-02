@@ -12,9 +12,6 @@ use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use Kirby\Cms\App;
 use Throwable;
 
-/**
- * DeepL translation strategy.
- */
 final readonly class DeepLStrategy implements Strategy
 {
     public function __construct(

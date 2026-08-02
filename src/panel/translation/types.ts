@@ -9,9 +9,8 @@ export interface TranslationLanguage {
 }
 
 export interface TranslationUnit {
-  /** Text content to translate */
   text: string;
-  /** Field key for error reporting (e.g., 'title', 'blocks[0].text') */
+  /** Field key for error reporting (e.g. `title`, `blocks[0].text`) */
   fieldKey?: string;
 }
 
@@ -45,7 +44,6 @@ export interface TranslationStrategy {
   ) => Promise<string[]>;
 }
 
-/** Options for the content collector. */
 export interface CollectorOptions {
   fieldTypes: string[] | readonly string[];
   includeFields?: string[];

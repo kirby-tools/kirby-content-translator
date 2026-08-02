@@ -11,7 +11,8 @@ export function useModel() {
   const panel = usePanel();
   const defaultLanguage = panel.languages.find((language) => language.default);
 
-  // Ensure event listener is only set once
+  // `useModel` runs once per component instance, but the cache and its
+  // invalidation listeners are module-global
   if (!isListenerRegistered) {
     panel.events.on("model.update", clearModelData);
     panel.events.on("page.changeSlug", clearModelData);

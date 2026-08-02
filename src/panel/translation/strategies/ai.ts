@@ -23,11 +23,8 @@ export const MAX_BATCH_SIZE = 50;
 export const MAX_CHARS_PER_BATCH = 100_000;
 
 /**
- * AI translation strategy using Kirby Copilot.
- *
- * @remarks
- * Requires the Kirby Copilot plugin to be installed and configured.
- * Uses structured outputs with Zod schemas for reliable JSON responses.
+ * Requires the Kirby Copilot plugin, which owns the provider credentials –
+ * this plugin never talks to an AI provider directly.
  */
 export class AIStrategy implements TranslationStrategy {
   private systemPrompt?: string;
@@ -56,14 +53,14 @@ export class AIStrategy implements TranslationStrategy {
     const { signal } = options;
     const { streamText } = copilot;
 
-    // Initialize results with original texts (fallback)
+    // Units that fail to translate keep their source text
     const results: string[] = units.map((unit) => unit.text);
 
-    // Chunk units with their original indices for efficient mapping
+    // The original index travels with each unit so a failed chunk leaves the
+    // other results in place
     const chunks = chunkUnitsWithIndices(units);
 
     for (const chunk of chunks) {
-      // Stop processing if aborted
       if (signal?.aborted) break;
 
       try {
@@ -85,7 +82,6 @@ export class AIStrategy implements TranslationStrategy {
 
         const result = await finalOutput;
 
-        // Map translations back using tracked indices
         for (const [i, { unit, originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
           if (translation) {
