@@ -807,4 +807,30 @@ final class TranslatorTest extends TestCase
 
         $this->assertSame([['Click <c0/> now', 'placeholder count mismatch', null]], $warnings);
     }
+
+    #[Test]
+    public function keeps_source_text_when_a_strategy_returns_a_non_string(): void
+    {
+        $warnings = [];
+        new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = [$unit->text, $reason, $previous];
+                },
+            ],
+        ]);
+
+        $strategy = new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return [123, 'Welt'];
+            }
+        };
+
+        $result = Translator::translateTexts(['Hello', 'World'], 'de', null, $strategy);
+
+        $this->assertSame(['Hello', 'Welt'], $result);
+        $this->assertSame([['Hello', 'non-string translation', null]], $warnings);
+    }
 }

@@ -303,6 +303,22 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
+    public function names_the_reason_when_every_translation_comes_back_empty(): void
+    {
+        new App();
+        $client = $this->client([['translations' => ['', '']]]);
+        $strategy = new CopilotAIStrategy(client: $client);
+
+        $this->expectException(TranslationException::class);
+        $this->expectExceptionMessageMatches('/empty or non-string translation/');
+
+        $strategy->execute(
+            units: [new TranslationUnit('A', 'a'), new TranslationUnit('B', 'b')],
+            options: self::options(),
+        );
+    }
+
+    #[Test]
     public function keeps_source_for_failed_units_when_others_succeed(): void
     {
         new App();

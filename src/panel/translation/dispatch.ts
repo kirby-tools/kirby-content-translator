@@ -36,8 +36,9 @@ export async function translateUnits(
 
   for (const [position, index] of translatableIndexes.entries()) {
     const translation = translations[position];
-    // A short response leaves the source text in place rather than blanking it
-    if (translation === undefined) continue;
+    // A short or non-string response leaves the source text in place rather
+    // than blanking it
+    if (typeof translation !== "string") continue;
 
     const unit = translatableUnits[position]!;
     const expectedCount = countPlaceholders(unit.text);

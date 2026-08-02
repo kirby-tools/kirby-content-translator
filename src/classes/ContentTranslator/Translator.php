@@ -290,6 +290,11 @@ final class Translator
             $unit = $translatableUnits[$position];
             $translation = $translations[$position];
 
+            if (!is_string($translation)) {
+                self::warn($unit, 'non-string translation');
+                continue;
+            }
+
             if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
                 self::warn($unit, 'placeholder count mismatch');
                 continue;

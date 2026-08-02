@@ -101,7 +101,8 @@ final readonly class CopilotAIStrategy implements Strategy
                 $translation = $translations[$chunkIndex];
 
                 if (!is_string($translation) || $translation === '') {
-                    self::warn($unit, 'empty or non-string translation', null);
+                    $lastReason = 'empty or non-string translation';
+                    self::warn($unit, $lastReason, null);
                     continue;
                 }
 
