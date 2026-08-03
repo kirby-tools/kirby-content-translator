@@ -66,10 +66,10 @@ final class DeepL
             throw new AuthException('Missing DeepL API key');
         }
 
-        $configuredRequestOptions = $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', []);
+        $requestOptions = $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', []);
 
         $this->apiKey = $apiKey;
-        $this->hasConfiguredTagHandling = array_key_exists('tag_handling', $configuredRequestOptions);
+        $this->hasConfiguredTagHandling = array_key_exists('tag_handling', $requestOptions);
         $this->requestOptions = A::merge(
             [
                 // Default for markup-bearing text, such as the Writer field;
@@ -80,7 +80,7 @@ final class DeepL
                 // newlines, and is the DeepL default without tag handling
                 'split_sentences' => '1'
             ],
-            $configuredRequestOptions
+            $requestOptions
         );
         $this->targetLanguageOverrides = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguageOverrides', []);
     }
