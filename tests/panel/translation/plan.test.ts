@@ -101,7 +101,7 @@ describe("planSingleTranslation", () => {
 });
 
 describe("planBatchLanguageTranslation", () => {
-  it("patches the slug when only slug translation is enabled", () => {
+  it("requests a title translation when only the slug is enabled", () => {
     const plan = planBatchLanguageTranslation({
       ...TRANSLATABLE_MODEL,
       isTitleTranslationEnabled: false,

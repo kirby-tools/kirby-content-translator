@@ -105,7 +105,7 @@ final class CoverageHooksTest extends TestCase
     }
 
     #[Test]
-    public function preserves_page_coverage_on_page_render(): void
+    public function keeps_page_coverage_on_page_render(): void
     {
         $app = $this->appWithHomePage();
         $page = $app->page('home');

@@ -404,7 +404,7 @@ final class DeepLClientTest extends TestCase
 
     #[Test]
     #[DataProvider('terminalStatusCodes')]
-    public function maps_terminal_status_to_named_exception(int $statusCode, string $exceptionClass, string $messageFragment): void
+    public function throws_naming_the_failure_for_each_terminal_status(int $statusCode, string $exceptionClass, string $messageFragment): void
     {
         $this->appWithDeepLConfig();
 

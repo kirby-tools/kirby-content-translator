@@ -110,7 +110,7 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function splits_tags_string_per_item_and_round_trips_in_same_shape(): void
+    public function joins_tags_into_one_unit_and_round_trips_in_the_same_shape(): void
     {
         $content = ['colors' => 'Red, Green, Blue'];
         $fields = ['colors' => self::field(['type' => 'tags'])];

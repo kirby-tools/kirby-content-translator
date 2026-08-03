@@ -131,7 +131,7 @@ describe("AIStrategy", () => {
       consoleSpy.mockRestore();
     });
 
-    it("continues processing after chunk failure", async () => {
+    it("keeps source text for a failed chunk while the others succeed", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -158,7 +158,7 @@ describe("AIStrategy", () => {
   });
 
   describe("copilot seam", () => {
-    it("passes a plain schema across the seam instead of AI SDK values", async () => {
+    it("passes an output schema across the seam", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Hallo"] }),
       });

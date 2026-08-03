@@ -45,7 +45,7 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function strategy_config_string_deepl_selects_deepl_strategy(): void
+    public function throws_the_missing_deepl_api_key_error_when_the_strategy_string_is_deepl(): void
     {
         new App([
             'options' => [
@@ -60,7 +60,7 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function strategy_config_string_ai_selects_copilot_strategy(): void
+    public function throws_naming_the_copilot_api_key_option_when_the_strategy_string_is_ai(): void
     {
         if (!class_exists(CopilotClient::class)) {
             $this->markTestSkipped('kirby-copilot is not installed in this dev tree');
