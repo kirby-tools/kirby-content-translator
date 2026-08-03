@@ -27,8 +27,3 @@ export function usePluginContext() {
 
   return pendingPromise;
 }
-
-export function invalidatePluginContext() {
-  context = undefined;
-  pendingPromise = undefined;
-}

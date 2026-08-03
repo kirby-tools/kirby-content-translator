@@ -57,13 +57,14 @@ const { isTranslating } = useTranslationState();
 
 const dropdownContent = ref();
 const context = ref<PluginContextResponse>();
-const initializationError = ref<Error>();
+const hasInitializationError = ref(false);
 
 (async () => {
   try {
     context.value = await usePluginContext();
   } catch (error) {
-    initializationError.value = error as Error;
+    hasInitializationError.value = true;
+    panel.error(error as Error);
     return;
   }
 
@@ -80,7 +81,9 @@ function toggle() {
 </script>
 
 <template>
-  <div v-if="_isKirby5 || context?.config?.viewButton">
+  <div
+    v-if="(_isKirby5 || context?.config?.viewButton) && !hasInitializationError"
+  >
     <k-button
       :dropdown="true"
       :text="
@@ -100,14 +103,6 @@ function toggle() {
         :context="context"
         :props="props"
       />
-      <k-dropdown-item
-        v-else-if="initializationError"
-        disabled
-        icon="alert"
-        theme="negative"
-      >
-        {{ initializationError.message }}
-      </k-dropdown-item>
     </k-dropdown-content>
   </div>
 </template>
