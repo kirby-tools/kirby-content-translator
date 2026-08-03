@@ -275,6 +275,116 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
+    public function translate_many_omits_tag_handling_for_text_without_markup(): void
+    {
+        $this->appWithDeepLConfig();
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $deepL->translateMany(["Don't miss it, 5 < 10", '<?php echo $page->title() ?>'], 'de');
+
+        $this->assertCount(1, $requests);
+        $this->assertArrayNotHasKey('tag_handling', $requests[0]['requestOptions']);
+        $this->assertSame('1', $requests[0]['requestOptions']['split_sentences']);
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function markupTexts(): array
+    {
+        return [
+            'html tag' => ['<p>Hello <strong>world</strong></p>'],
+            'self-closing tag' => ['Line one<br />Line two'],
+            'html comment' => ['Teaser<!-- more -->Body'],
+            'kirbytag placeholder' => ['Read the <c0/> for details'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('markupTexts')]
+    public function translate_many_keeps_tag_handling_for_text_with_markup(string $text): void
+    {
+        $this->appWithDeepLConfig();
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $deepL->translateMany([$text], 'de');
+
+        $this->assertSame('html', $requests[0]['requestOptions']['tag_handling']);
+    }
+
+    #[Test]
+    public function translate_many_sends_markup_and_plain_text_as_separate_requests(): void
+    {
+        $this->appWithDeepLConfig();
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $results = $deepL->translateMany(["Don't", '<p>Markup</p>', 'Plain'], 'de');
+
+        $this->assertCount(2, $requests);
+        $this->assertSame(['<p>Markup</p>'], $requests[0]['texts']);
+        $this->assertSame('html', $requests[0]['requestOptions']['tag_handling']);
+        $this->assertSame(["Don't", 'Plain'], $requests[1]['texts']);
+        $this->assertArrayNotHasKey('tag_handling', $requests[1]['requestOptions']);
+
+        // Translations return under the indexes of their sources, not in the
+        // order the groups were requested
+        $this->assertSame(
+            ["[translated]Don't", '[translated]<p>Markup</p>', '[translated]Plain'],
+            $results
+        );
+    }
+
+    #[Test]
+    public function translate_many_sends_a_mixed_batch_in_one_request_when_tag_handling_is_configured(): void
+    {
+        $this->appWithDeepLConfig(requestOptions: ['tag_handling' => 'html']);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $results = $deepL->translateMany(['Plain', '<p>Markup</p>'], 'de');
+
+        $this->assertCount(1, $requests);
+        $this->assertSame('html', $requests[0]['requestOptions']['tag_handling']);
+        $this->assertSame(['[translated]Plain', '[translated]<p>Markup</p>'], $results);
+    }
+
+    /** @return array<string, array{0: string, 1: mixed}> */
+    public static function tagHandlingDependentOptions(): array
+    {
+        return [
+            'ignore tags'          => ['ignore_tags', 'x'],
+            'splitting tags'       => ['splitting_tags', 'p'],
+            'non-splitting tags'   => ['non_splitting_tags', 'br'],
+            'outline detection'    => ['outline_detection', false],
+            'tag handling version' => ['tag_handling_version', 'v2'],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('tagHandlingDependentOptions')]
+    public function translate_many_strips_tag_handling_dependent_options_from_a_plain_request(string $option, mixed $value): void
+    {
+        $this->appWithDeepLConfig(requestOptions: [$option => $value]);
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $deepL->translateMany(['Plain', '<p>Markup</p>'], 'de');
+
+        $this->assertCount(2, $requests);
+        $this->assertSame('html', $requests[0]['requestOptions']['tag_handling']);
+        $this->assertSame($value, $requests[0]['requestOptions'][$option]);
+        // DeepL rejects several of these when no `tag_handling` accompanies them
+        $this->assertArrayNotHasKey('tag_handling', $requests[1]['requestOptions']);
+        $this->assertArrayNotHasKey($option, $requests[1]['requestOptions']);
+    }
+
+    #[Test]
     public function translate_many_forces_html_tag_handling_for_no_translate_spans(): void
     {
         $this->appWithDeepLConfig(requestOptions: ['tag_handling' => 'xml']);
@@ -318,6 +428,79 @@ final class DeepLClientTest extends TestCase
         $this->assertCount(50, $requests[0]['texts']);
         $this->assertCount(10, $requests[1]['texts']);
         $this->assertCount(60, $results);
+    }
+
+    #[Test]
+    public function translate_many_partitions_by_markup_before_chunking(): void
+    {
+        $this->appWithDeepLConfig();
+
+        $texts = [];
+        for ($index = 0; $index < 120; $index++) {
+            $texts[] = $index % 2 === 0 ? "<p>Markup {$index}</p>" : "Plain {$index}";
+        }
+
+        $requests = [];
+        $deepL = $this->createMockDeepL($requests);
+
+        $results = $deepL->translateMany($texts, 'de');
+
+        // Each group fills whole requests before the next one starts, so the
+        // split costs one extra request in total rather than one per chunk
+        $this->assertSame([50, 10, 50, 10], array_map(
+            static fn (array $request): int => count($request['texts']),
+            $requests
+        ));
+        $this->assertSame(['html', 'html', null, null], array_map(
+            static fn (array $request): string|null => $request['requestOptions']['tag_handling'] ?? null,
+            $requests
+        ));
+
+        $this->assertSame(
+            array_map(static fn (string $text): string => "[translated]{$text}", $texts),
+            $results
+        );
+    }
+
+    /** @return array<string, array{0: array<string, mixed>}> */
+    public static function incompleteResponseBodies(): array
+    {
+        return [
+            'short translations'   => [['translations' => [['text' => 'Hallo']]]],
+            'missing translations' => [['message' => 'Something went wrong']],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('incompleteResponseBodies')]
+    public function translate_many_throws_when_the_response_is_incomplete(array $body): void
+    {
+        $this->appWithDeepLConfig();
+
+        $deepL = new DeepL(
+            remote: static fn (): object => new class ($body) {
+                public function __construct(private array $body)
+                {
+                }
+                public function code(): int
+                {
+                    return 200;
+                }
+                public function content(): string
+                {
+                    return '';
+                }
+                public function json(): array
+                {
+                    return $this->body;
+                }
+            }
+        );
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('translations for 3 texts');
+
+        $deepL->translateMany(['Hello', 'World', 'Foo'], 'de');
     }
 
     /** @return array<string, array{0: array<string, mixed>}> */

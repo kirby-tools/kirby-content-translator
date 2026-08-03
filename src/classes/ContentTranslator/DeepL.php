@@ -25,8 +25,30 @@ final class DeepL
     private const INITIAL_RETRY_DELAY_MS = 500;
     private const MAX_RETRY_DELAY_MS = 8000;
 
+    /**
+     * Markup that must survive translation: an HTML tag or comment. `<cN/>`
+     * KirbyTag placeholders match the tag branch, so they are covered too.
+     */
+    private const MARKUP_PATTERN = '!</?[a-z][^>]*>|<\!--!i';
+
+    /**
+     * Dropped as a set from a request without tag handling: DeepL rejects
+     * `splitting_tags`, `non_splitting_tags` and `ignore_tags` outright when
+     * `tag_handling` does not accompany them, and reads none of the rest either.
+     */
+    private const TAG_HANDLING_OPTIONS = [
+        'tag_handling',
+        'tag_handling_version',
+        'outline_detection',
+        'splitting_tags',
+        'non_splitting_tags',
+        'ignore_tags'
+    ];
+
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
+    /** A configured `tag_handling` applies to every text and turns detection off */
+    private readonly bool $hasConfiguredTagHandling;
     /** @var array<string,string> Target codes by Kirby language code */
     private readonly array $targetLanguageOverrides;
     private readonly string|null $apiKey;
@@ -43,16 +65,21 @@ final class DeepL
             throw new AuthException('Missing DeepL API key');
         }
 
+        $configuredRequestOptions = $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', []);
+
         $this->apiKey = $apiKey;
+        $this->hasConfiguredTagHandling = array_key_exists('tag_handling', $configuredRequestOptions);
         $this->requestOptions = A::merge(
             [
-                // Enable HTML tag handling by default for the Writer field
+                // Reaches markup-bearing text only, such as the Writer field;
+                // `buildRequestOptions` drops it again where there is none
                 'tag_handling' => 'html',
                 // HTML tag handling implies `split_sentences=nonewlines`, which
-                // breaks markdown; `1` restores splitting on punctuation and newlines
+                // breaks markdown; `1` restores splitting on punctuation and
+                // newlines, and is the DeepL default without tag handling
                 'split_sentences' => '1'
             ],
-            $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', [])
+            $configuredRequestOptions
         );
         $this->targetLanguageOverrides = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguageOverrides', []);
     }
@@ -75,7 +102,7 @@ final class DeepL
 
     /**
      * @param array<int,string> $texts
-     * @return array<int,string>
+     * @return array<int,string> One entry per input text, in input order
      */
     public function translateMany(array $texts, string|TranslationLanguage $targetLanguage, string|TranslationLanguage|null $sourceLanguage = null): array
     {
@@ -85,23 +112,86 @@ final class DeepL
 
         [$sourceLanguage, $targetLanguage] = $this->resolveLanguages($sourceLanguage, $targetLanguage);
 
-        $results = [];
+        $texts = array_values($texts);
 
-        // 50 texts per request is the DeepL API limit
-        $chunks = array_chunk($texts, 50);
+        if ($this->hasConfiguredTagHandling) {
+            return $this->translateGroup($texts, $targetLanguage, $sourceLanguage, true);
+        }
 
-        foreach ($chunks as $chunk) {
-            $requestOptions = $this->buildRequestOptions($chunk);
+        // Splitting before chunking costs one extra request in total, where
+        // splitting inside each chunk would cost one per chunk
+        [$markupTexts, $plainTexts] = self::partitionByMarkup($texts);
 
-            $response = $this->request($chunk, $targetLanguage, $sourceLanguage, $requestOptions);
-            $data = $response->json();
+        // The source texts supply the order the two sparse groups splice into
+        return array_replace(
+            $texts,
+            $this->translateGroup($markupTexts, $targetLanguage, $sourceLanguage, true),
+            $this->translateGroup($plainTexts, $targetLanguage, $sourceLanguage, false)
+        );
+    }
 
-            foreach ($data['translations'] as $translation) {
-                $results[] = $translation['text'];
+    /**
+     * Each text keeps its original index, so the caller can splice translations
+     * back into the input order.
+     *
+     * @param array<int,string> $texts
+     * @return array{0: array<int,string>, 1: array<int,string>} [markup, plain]
+     */
+    private static function partitionByMarkup(array $texts): array
+    {
+        $markupTexts = [];
+        $plainTexts = [];
+
+        foreach ($texts as $index => $text) {
+            if (preg_match(self::MARKUP_PATTERN, $text) === 1) {
+                $markupTexts[$index] = $text;
+            } else {
+                $plainTexts[$index] = $text;
             }
         }
 
-        return $results;
+        return [$markupTexts, $plainTexts];
+    }
+
+    /**
+     * @param array<int,string> $texts
+     * @return array<int,string> Translations under the indexes of their sources
+     */
+    private function translateGroup(
+        array $texts,
+        string $targetLanguage,
+        string|null $sourceLanguage,
+        bool $shouldHandleTags
+    ): array {
+        $translations = [];
+
+        // 50 texts per request is the DeepL API limit
+        foreach (array_chunk($texts, 50, preserve_keys: true) as $chunk) {
+            $response = $this->request(
+                array_values($chunk),
+                $targetLanguage,
+                $sourceLanguage,
+                $this->buildRequestOptions($chunk, $shouldHandleTags)
+            );
+            $responseTranslations = $response->json()['translations'] ?? [];
+
+            // DeepL answers a batch one to one, so a mismatch means a truncated
+            // or rewritten response that no positional mapping can survive
+            if (count($responseTranslations) !== count($chunk)) {
+                throw new LogicException(
+                    'DeepL returned ' . count($responseTranslations) .
+                    ' translations for ' . count($chunk) . ' texts.'
+                );
+            }
+
+            $indexes = array_keys($chunk);
+
+            foreach ($responseTranslations as $position => $translation) {
+                $translations[$indexes[$position]] = $translation['text'];
+            }
+        }
+
+        return $translations;
     }
 
     /**
@@ -143,9 +233,17 @@ final class DeepL
     /**
      * @param array<string> $texts
      */
-    private function buildRequestOptions(array $texts): array
+    private function buildRequestOptions(array $texts, bool $shouldHandleTags): array
     {
         $options = $this->requestOptions;
+
+        // Tag handling makes DeepL escape `<`, `>` and `'` in its output, which
+        // corrupts text that has no markup to protect. Sending no tag handling
+        // at all is the DeepL default, so plain text falls back to it.
+        // @see https://developers.deepl.com/docs/xml-and-html-handling/html
+        if (!$shouldHandleTags) {
+            $options = array_diff_key($options, array_flip(self::TAG_HANDLING_OPTIONS));
+        }
 
         // `translate="no"` is only honoured under HTML tag handling, so it has to
         // override whatever the user configured
