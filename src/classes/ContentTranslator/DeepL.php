@@ -27,14 +27,15 @@ final class DeepL
 
     /**
      * Markup that must survive translation: an HTML tag or comment. `<cN/>`
-     * KirbyTag placeholders match the tag branch, so they are covered too.
+     * KirbyTag placeholders are tag-shaped, so the same pattern catches them.
      */
     private const MARKUP_PATTERN = '!</?[a-z][^>]*>|<\!--!i';
 
     /**
-     * Dropped as a set from a request without tag handling: DeepL rejects
-     * `splitting_tags`, `non_splitting_tags` and `ignore_tags` outright when
-     * `tag_handling` does not accompany them, and reads none of the rest either.
+     * Options DeepL only reads alongside `tag_handling`. It rejects
+     * `splitting_tags`, `non_splitting_tags` and `ignore_tags` outright without
+     * it, so `buildRequestOptions` removes the whole set from a plain-text
+     * request rather than just `tag_handling` itself.
      */
     private const TAG_HANDLING_OPTIONS = [
         'tag_handling',
@@ -47,7 +48,7 @@ final class DeepL
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
-    /** A configured `tag_handling` applies to every text and turns detection off */
+    /** A configured `tag_handling` applies to every text and turns the per-text markup detection off */
     private readonly bool $hasConfiguredTagHandling;
     /** @var array<string,string> Target codes by Kirby language code */
     private readonly array $targetLanguageOverrides;
@@ -71,8 +72,8 @@ final class DeepL
         $this->hasConfiguredTagHandling = array_key_exists('tag_handling', $configuredRequestOptions);
         $this->requestOptions = A::merge(
             [
-                // Reaches markup-bearing text only, such as the Writer field;
-                // `buildRequestOptions` drops it again where there is none
+                // Default for markup-bearing text, such as the Writer field;
+                // `buildRequestOptions` removes it for text without markup
                 'tag_handling' => 'html',
                 // HTML tag handling implies `split_sentences=nonewlines`, which
                 // breaks markdown; `1` restores splitting on punctuation and
@@ -118,11 +119,11 @@ final class DeepL
             return $this->translateGroup($texts, $targetLanguage, $sourceLanguage, true);
         }
 
-        // Splitting before chunking costs one extra request in total, where
-        // splitting inside each chunk would cost one per chunk
+        // Splitting before chunking costs one extra request in total, whereas
+        // splitting inside each chunk would cost one extra per chunk
         [$markupTexts, $plainTexts] = self::partitionByMarkup($texts);
 
-        // The source texts supply the order the two sparse groups splice into
+        // Base for the merge, because each group only fills the indexes it owns
         return array_replace(
             $texts,
             $this->translateGroup($markupTexts, $targetLanguage, $sourceLanguage, true),
@@ -176,7 +177,8 @@ final class DeepL
             $responseTranslations = $response->json()['translations'] ?? [];
 
             // DeepL answers a batch one to one, so a mismatch means a truncated
-            // or rewritten response that no positional mapping can survive
+            // or rewritten response, where matching translations back to their
+            // texts by position would misalign them
             if (count($responseTranslations) !== count($chunk)) {
                 throw new LogicException(
                     'DeepL returned ' . count($responseTranslations) .
@@ -238,15 +240,15 @@ final class DeepL
         $options = $this->requestOptions;
 
         // Tag handling makes DeepL escape `<`, `>` and `'` in its output, which
-        // corrupts text that has no markup to protect. Sending no tag handling
-        // at all is the DeepL default, so plain text falls back to it.
+        // corrupts text that has no markup to protect. No tag handling at all is
+        // the DeepL default, which is exactly what plain text needs.
         // @see https://developers.deepl.com/docs/xml-and-html-handling/html
         if (!$shouldHandleTags) {
             $options = array_diff_key($options, array_flip(self::TAG_HANDLING_OPTIONS));
         }
 
-        // `translate="no"` is only honoured under HTML tag handling, so it has to
-        // override whatever the user configured
+        // `translate="no"` is only honoured under HTML tag handling, so a text
+        // carrying one forces `html`, whatever the user configured
         foreach ($texts as $text) {
             if (str_contains($text, '<span translate="no">')) {
                 $options['tag_handling'] = 'html';
