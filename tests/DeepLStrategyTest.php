@@ -83,12 +83,13 @@ final class DeepLStrategyTest extends TestCase
     }
 
     #[Test]
-    public function translates_all_units_in_one_batch_call(): void
+    public function translates_all_units_in_one_request(): void
     {
         $this->appWithDeepLConfig();
         $captured = [];
         $strategy = new DeepLStrategy(deepL: $this->createMockDeepL($captured));
 
+        // Both units are markup-free, so the client keeps them in one group
         $result = $strategy->execute(
             units: [
                 new TranslationUnit('Hello', 'a'),
