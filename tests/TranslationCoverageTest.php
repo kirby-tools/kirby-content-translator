@@ -162,7 +162,7 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
-    public function memoises_translatable_keys_per_blueprint(): void
+    public function memoizes_translatable_keys_per_blueprint(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $coverage = new TranslationCoverage($app->site()->index());

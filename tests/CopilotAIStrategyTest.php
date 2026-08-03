@@ -303,7 +303,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function names_the_reason_when_every_translation_comes_back_empty(): void
+    public function throws_naming_the_reason_when_every_translation_comes_back_empty(): void
     {
         new App();
         $client = $this->client([['translations' => ['', '']]]);
