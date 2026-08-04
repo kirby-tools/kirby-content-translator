@@ -2,45 +2,24 @@
 
 Commercial Kirby CMS plugin for translating content between languages using DeepL or custom AI providers.
 
-## Tech Stack
-
-- Panel: Vue 2.7 with Composition API (`<script setup>`, composables)
-- Build: kirbyup (Vite-based bundler for Kirby Panel plugins)
-- Vue utilities: kirbyuse (provides `usePanel`, `useSection`, `useContent`, etc.)
-- Styles: UnoCSS with `presetWind3` (Tailwind v3-compatible utilities, prefixed with `kct-`)
-- PHP: Kirby 4/5 compatible
-
 ## Commands
 
-- `pnpm run test --run` - run Vitest tests
-- `pnpm run test:types` - typecheck
+- `composer test` – PHPUnit
+- `composer csfix` – php-cs-fixer, which lives in `tools/phpcs/vendor/bin/`, not `vendor/bin/`
+- `pnpm run test --run` – Vitest
+- `pnpm run test:types` – typecheck
+- `pnpm run lint` – ESLint
 
-## Entry Points
+## Conventions
 
-- Plugin ID: `johannschopplich/content-translator`
-- PHP bootstrap: `index.php` (registers sections, API routes, model methods)
-- Panel entry: `src/panel/index.ts` (registers Vue components via `window.panel.plugin()`)
-- API routes: `src/extensions/api.php`
-- Local dev: `playground/` (self-contained Kirby installation)
-
-## Architecture
-
-Panel extensions are registered in `src/panel/index.ts`:
-
-- `sections`: Custom Panel sections (ContentTranslator)
-- `viewButtons`: Header dropdown buttons
-- `icons`: SVG icons
-- `use`: Vue mixins for Kirby 4 compatibility
-
-PHP extensions in `src/extensions/`:
-
-- `api.php`: REST endpoints for translation operations
-- `sections.php`: Section blueprints and props
-- `translations.php`: i18n strings
+- `__PLAYGROUND__` is a build-time constant from `kirbyup.config.js`, declared to TypeScript in `src/env.d.ts`.
+- `playground/site/plugins/kirby-copilot` is a symlink to the sibling copilot checkout, for developing the two together.
+- Comments explain why, not what. In `src/classes/**` a wrapped comment ends with a full stop and a single-line one does not; comments in `tests/**` and `src/panel/**` never do.
+- Test methods are snake_case and named after the behavior they pin; data providers are camelCase.
 
 ## Search Hints
 
-- `window.panel.plugin("johannschopplich/content-translator"` - Panel registration
-- `Kirby::plugin(` - PHP plugin registration
-- `translator(` - model method and global helper
-- `useContentTranslator` - main translation composable
+- `window.panel.plugin("johannschopplich/content-translator"` – Panel registration
+- `Kirby::plugin(` – PHP plugin registration
+- `translator(` – model method and global helper
+- `useContentTranslator` – main translation composable
