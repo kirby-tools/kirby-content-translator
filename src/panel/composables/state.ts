@@ -1,7 +1,7 @@
 import { effectScope } from "kirbyuse";
 
 /**
- * Keeps state in a global scope so it is shared across Vue instances.
+ * Keeps state in the global scope so it is shared across Vue instances.
  *
  * @see https://vueuse.org/createGlobalState
  */

@@ -12,14 +12,15 @@ final class PanelContext
 {
     /**
      * An allowlist, because the namespace also holds closures and `Strategy`
-     * instances with whatever properties their author gave them.
+     * instances with whatever properties their author gave them. Not the whole
+     * payload: `config()` adds `strategy` and `ai` below.
      */
     private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'fieldTypes', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title', 'viewButton'];
 
     /**
      * Builds the plugin configuration the Panel receives.
      *
-     * @return array<string,mixed>
+     * @return array<string, mixed>
      */
     public static function config(): array
     {

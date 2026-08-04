@@ -22,7 +22,7 @@ final class PanelContextTest extends TestCase
     }
 
     #[Test]
-    public function drops_config_keys_the_panel_never_reads(): void
+    public function omits_options_the_panel_never_reads(): void
     {
         new App([
             'options' => [
