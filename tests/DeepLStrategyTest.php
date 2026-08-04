@@ -39,7 +39,7 @@ final class DeepLStrategyTest extends TestCase
     }
 
     /**
-     * @param array<int,array{texts: array<string>, ...}> $capturedRequests
+     * @param array<int, array{texts: array<string>, ...}> $capturedRequests
      */
     private function createMockDeepL(array &$capturedRequests = []): DeepL
     {

@@ -50,7 +50,7 @@ final class DeepL
     private readonly array $requestOptions;
     /** A configured `tag_handling` applies to every text and turns the per-text markup detection off */
     private readonly bool $hasConfiguredTagHandling;
-    /** @var array<string,string> Target codes by Kirby language code */
+    /** @var array<string, string> Target codes by Kirby language code */
     private readonly array $targetLanguageOverrides;
     private readonly string|null $apiKey;
     private static DeepL|null $instance = null;
@@ -73,7 +73,7 @@ final class DeepL
         $this->requestOptions = A::merge(
             [
                 // Default for markup-bearing text, such as the Writer field;
-                // `buildRequestOptions` removes it for text without markup
+                // `buildRequestOptions` removes it for text witphout markup
                 'tag_handling' => 'html',
                 // HTML tag handling implies `split_sentences=nonewlines`, which
                 // breaks markdown; `1` restores splitting on punctuation and
@@ -102,8 +102,8 @@ final class DeepL
     }
 
     /**
-     * @param array<int,string> $texts
-     * @return array<int,string> One entry per input text, in input order
+     * @param array<int, string> $texts
+     * @return array<int, string> One entry per input text, in input order
      */
     public function translateMany(array $texts, string|TranslationLanguage $targetLanguage, string|TranslationLanguage|null $sourceLanguage = null): array
     {
@@ -135,8 +135,8 @@ final class DeepL
      * Each text keeps its original index, so the caller can splice translations
      * back into the input order.
      *
-     * @param array<int,string> $texts
-     * @return array{0: array<int,string>, 1: array<int,string>} [markup, plain]
+     * @param array<int, string> $texts
+     * @return array{0: array<int, string>, 1: array<int, string>} [markup, plain]
      */
     private static function partitionByMarkup(array $texts): array
     {
@@ -155,8 +155,8 @@ final class DeepL
     }
 
     /**
-     * @param array<int,string> $texts
-     * @return array<int,string> Translations under the indexes of their sources
+     * @param array<int, string> $texts
+     * @return array<int, string> Translations under the indexes of their sources
      */
     private function translateGroup(
         array $texts,
@@ -304,8 +304,8 @@ final class DeepL
 
     /**
      * @param array<string> $texts
-     * @param array<string,mixed> $requestOptions
-     * @return array<string,mixed>
+     * @param array<string, mixed> $requestOptions
+     * @return array<string, mixed>
      */
     private static function buildPayload(array $texts, string $targetLanguage, string|null $sourceLanguage, array $requestOptions): array
     {

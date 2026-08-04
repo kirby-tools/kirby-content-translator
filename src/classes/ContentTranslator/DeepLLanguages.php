@@ -55,7 +55,7 @@ final class DeepLLanguages
     ];
 
     /**
-     * @param array<string,string> $targetLanguageOverrides Target codes by Kirby language code
+     * @param array<string, string> $targetLanguageOverrides Target codes by Kirby language code
      * @throws LogicException When neither the code nor an override names a supported target.
      */
     public static function resolveTarget(string $languageCode, string|null $locale = null, array $targetLanguageOverrides = []): string
@@ -104,7 +104,7 @@ final class DeepLLanguages
     /**
      * Resolves a Kirby language to a DeepL source code, `null` for auto-detection.
      *
-     * @param array<string,string> $targetLanguageOverrides Target codes by Kirby language code
+     * @param array<string, string> $targetLanguageOverrides Target codes by Kirby language code
      */
     public static function resolveSource(string $languageCode, string|null $locale = null, array $targetLanguageOverrides = []): string|null
     {
