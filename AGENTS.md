@@ -14,7 +14,6 @@ Commercial Kirby CMS plugin for translating content between languages using Deep
 
 - `__PLAYGROUND__` is a build-time constant from `kirbyup.config.js`, declared to TypeScript in `src/env.d.ts`.
 - `playground/site/plugins/kirby-copilot` is a symlink to the sibling copilot checkout, for developing the two together.
-- Comments explain why, not what. In `src/classes/**` a wrapped comment ends with a full stop and a single-line one does not; comments in `tests/**` and `src/panel/**` never do.
 - Test methods are snake_case and named after the behavior they pin; data providers are camelCase.
 
 ## Search Hints
