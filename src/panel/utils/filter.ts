@@ -8,7 +8,7 @@ import type {
 import { flattenTabFields } from "./fields";
 
 /**
- * Filters content to syncable fields only, honouring `translate: false` on nested blocks and layouts.
+ * Filters content to syncable fields only, honoring `translate: false` on nested blocks and layouts.
  */
 export function filterSyncableContent(
   obj: Record<string, unknown>,
@@ -42,7 +42,7 @@ export function filterSyncableContent(
       continue;
     }
 
-    // Layouts nest their blocks inside columns, so they need their own walk
+    // Layouts nest their blocks inside columns, so they need their own walk.
     if (field.type === "layout" && Array.isArray(value)) {
       syncableContent[key] = filterLayoutContent(
         value as KirbyLayout[],

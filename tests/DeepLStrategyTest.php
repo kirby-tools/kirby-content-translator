@@ -89,7 +89,7 @@ final class DeepLStrategyTest extends TestCase
         $captured = [];
         $strategy = new DeepLStrategy(deepL: $this->createMockDeepL($captured));
 
-        // Both units are markup-free, so the client keeps them in one group
+        // Both units are markup-free, so the client keeps them in one group.
         $result = $strategy->execute(
             units: [
                 new TranslationUnit('Hello', 'a'),

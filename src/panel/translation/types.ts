@@ -1,41 +1,36 @@
 import type { KirbyFieldProps } from "kirby-types";
 
-/** Language identifier for translation operations. */
 export interface TranslationLanguage {
-  /** Language code (e.g., `en`, `de`) */
+  /** Language code (e.g., `en`, `de`). */
   code: string;
-  /** Display name (e.g., `English`, `German`) */
+  /** Display name (e.g., `English`, `German`). */
   name: string;
 }
 
 export interface TranslationUnit {
   text: string;
-  /** Field key for error reporting (e.g. `title`, `blocks[0].text`) */
+  /** Field key for error reporting (e.g. `title`, `blocks[0].text`). */
   fieldKey?: string;
 }
 
 /** A translation unit paired with a callback that writes the result back. */
 export interface CollectedTranslation {
   unit: TranslationUnit;
-  /** Callback to apply the translated text to the original content */
   apply: (translatedText: string) => void;
 }
 
-/** Collector output: translation units plus post-translation finalizers. */
 export interface CollectorResult {
   translations: CollectedTranslation[];
-  /** Post-translation callbacks (e.g., YAML serialization) */
+  /** Post-translation callbacks (e.g., YAML serialization). */
   finalizers: (() => void)[];
 }
 
-/** Options passed to a translation strategy during execution. */
 export interface TranslationExecutionOptions {
   sourceLanguage?: TranslationLanguage;
   targetLanguage: TranslationLanguage;
   signal?: AbortSignal;
 }
 
-/** Strategy interface for translation implementations. */
 export interface TranslationStrategy {
   /** Translates `units` and returns results in the same order as the input. */
   execute: (

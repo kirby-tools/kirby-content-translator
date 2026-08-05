@@ -162,7 +162,7 @@ export function useTranslationDialogs() {
 
     const context = await copilot.resolvePluginContext();
 
-    // Only show toast for unlicensed users
+    // Only show toast for unlicensed users.
     if (["inactive", "invalid"].includes(context.licenseStatus!)) {
       panel.notification.info({
         icon: "key",
@@ -201,13 +201,13 @@ async function getProviderConfig() {
     return { provider, providerField: undefined };
   }
 
-  // Fetch Copilot context for provider name
+  // Fetch Copilot context for the provider name.
   let copilotContext: PluginContextResponse | undefined;
   if (copilot) {
     try {
       copilotContext = await copilot.resolvePluginContext();
     } catch {
-      // A missing Copilot context only costs the provider's own label
+      // A missing Copilot context only costs the provider's own label.
     }
   }
 

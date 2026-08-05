@@ -155,7 +155,7 @@ final class DeepLClientTest extends TestCase
         $this->expectExceptionMessage('Cannot resolve a DeepL target language');
 
         // Mocked so that a resolver that stops throwing fails the assertion
-        // instead of reaching the live DeepL API
+        // instead of reaching the live DeepL API.
         $this->createMockDeepL()->translateMany(['Hello'], 'invalid');
     }
 
@@ -218,7 +218,7 @@ final class DeepLClientTest extends TestCase
         $deepL = $this->createMockDeepL($requests);
         $deepL->translateMany(['你好'], 'de', 'cn');
 
-        // Letting `FR` stand would hand DeepL Chinese text labelled as French
+        // Letting `FR` stand would hand DeepL Chinese text labeled as French.
         $this->assertNull($requests[0]['sourceLanguage']);
     }
 
@@ -226,7 +226,7 @@ final class DeepLClientTest extends TestCase
     public function a_passed_language_carries_its_own_locale(): void
     {
         // `de-ch` is deliberately absent from the registry: the locale has to
-        // come from the passed language, not from a second lookup
+        // come from the passed language, not from a second lookup.
         $this->appWithDeepLConfig(languages: [
             ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
         ]);
@@ -266,7 +266,7 @@ final class DeepLClientTest extends TestCase
         $deepL->translateMany(['Hello'], 'de', 'en');
         $this->assertSame('EN', $requests[0]['sourceLanguage']);
 
-        // Degrades to auto-detect if `SUPPORTED_SOURCE_CODES` ever loses a language
+        // Degrades to auto-detect if `SUPPORTED_SOURCE_CODES` ever loses a language.
         $deepL->translateMany(['Hello'], 'de', 'sw');
         $this->assertSame('SW', $requests[1]['sourceLanguage']);
 
@@ -331,7 +331,7 @@ final class DeepLClientTest extends TestCase
         $this->assertArrayNotHasKey('tag_handling', $requests[1]['requestOptions']);
 
         // Translations return under the indexes of their sources, not in the
-        // order the groups were requested
+        // order the groups were requested.
         $this->assertSame(
             ["[translated]Don't", '[translated]<p>Markup</p>', '[translated]Plain'],
             $results
@@ -379,7 +379,7 @@ final class DeepLClientTest extends TestCase
         $this->assertCount(2, $requests);
         $this->assertSame('html', $requests[0]['requestOptions']['tag_handling']);
         $this->assertSame($value, $requests[0]['requestOptions'][$option]);
-        // DeepL rejects several of these when no `tag_handling` accompanies them
+        // DeepL rejects several of these when no `tag_handling` accompanies them.
         $this->assertArrayNotHasKey('tag_handling', $requests[1]['requestOptions']);
         $this->assertArrayNotHasKey($option, $requests[1]['requestOptions']);
     }
@@ -446,7 +446,7 @@ final class DeepLClientTest extends TestCase
         $results = $deepL->translateMany($texts, 'de');
 
         // Each group fills whole requests before the next one starts, so the
-        // split costs one extra request in total rather than one per chunk
+        // split costs one extra request in total rather than one per chunk.
         $this->assertSame([50, 10, 50, 10], array_map(
             static fn (array $request): int => count($request['texts']),
             $requests

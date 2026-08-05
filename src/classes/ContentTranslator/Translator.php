@@ -47,9 +47,9 @@ final class Translator
     }
 
     /**
-     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request.
-     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin.
-     * @throws AuthException When the DeepL API key is missing.
+     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
+     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
+     * @throws AuthException When the DeepL API key is missing
      */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
@@ -61,9 +61,9 @@ final class Translator
      * @param list<string> $texts
      * @return list<string>
      *
-     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request.
-     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin.
-     * @throws AuthException When the DeepL API key is missing.
+     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
+     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
+     * @throws AuthException When the DeepL API key is missing
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
@@ -112,7 +112,7 @@ final class Translator
      *
      * @return 'ai'|'custom'|'deepl'
      *
-     * @throws LogicException When the `strategy` option names an unknown backend.
+     * @throws LogicException When the `strategy` option names an unknown backend
      */
     public static function resolveStrategyName(): string
     {
@@ -128,7 +128,7 @@ final class Translator
             // When copying from the default language to a secondary language,
             // delete the target content file so Kirby's built-in inheritance
             // keeps it in sync with the default language automatically.
-            // TODO: Remove `method_exists` check in the next major version
+            // TODO: Remove `method_exists` check in the next major version.
             if (
                 $defaultLanguage !== null &&
                 $defaultLanguage->code() === $fromLanguageCode &&
@@ -152,9 +152,9 @@ final class Translator
     }
 
     /**
-     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request.
-     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin.
-     * @throws AuthException When the DeepL API key is missing.
+     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
+     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
+     * @throws AuthException When the DeepL API key is missing
      */
     public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
     {
@@ -281,7 +281,7 @@ final class Translator
         $translations = $strategy->execute($translatableUnits, $options);
 
         // Iterate our own indexes: a `Strategy` that ignores the `list<string>`
-        // contract must not be able to write outside the result list
+        // contract must not be able to write outside the result list.
         foreach ($translatableIndexes as $position => $index) {
             if (!isset($translations[$position])) {
                 continue;
@@ -347,7 +347,7 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException When the `strategy` option names an unknown backend.
+     * @throws LogicException When the `strategy` option names an unknown backend
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {
@@ -365,7 +365,7 @@ final class Translator
             };
         }
 
-        // TODO: remove `translateFn` fallback in v4 – use the `strategy` option instead
+        // TODO: Remove the `translateFn` fallback in v4 – use the `strategy` option instead.
         $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
         if (is_callable($translateFn)) {
             return Closure::fromCallable($translateFn);

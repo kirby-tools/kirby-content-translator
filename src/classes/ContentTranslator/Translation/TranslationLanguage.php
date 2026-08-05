@@ -24,14 +24,14 @@ final readonly class TranslationLanguage
     }
 
     /**
-     * @throws InvalidArgumentException When the code is unknown on a multi-language site.
+     * @throws InvalidArgumentException When the code is unknown on a multi-language site
      */
     public static function fromCode(string $code): self
     {
         $kirby = App::instance();
 
         if ($kirby->languages()->find($code) === null && $kirby->multilang()) {
-            // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
+            // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
             throw new InvalidArgumentException(
                 ['fallback' => 'Unknown language code "' . $code . '"; not registered in Kirby languages.'],
             );
@@ -48,7 +48,7 @@ final readonly class TranslationLanguage
         $language = App::instance()->languages()->find($code);
 
         // A language configured with per-category locales but no `LC_ALL` entry
-        // has no single locale string – Kirby returns `null` for it
+        // has no single locale string – Kirby returns `null` for it.
         $locale = $language?->locale(LC_ALL);
 
         return new self(

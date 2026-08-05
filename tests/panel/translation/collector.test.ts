@@ -162,11 +162,9 @@ describe("collectTranslations", () => {
         fields,
       });
 
-      // Apply translations
       translations[0]!.apply("X");
       translations[1]!.apply("Y");
 
-      // Run finalizer
       finalizers[0]!();
 
       expect(content.table).toBe("-\n  - X\n  - Y");

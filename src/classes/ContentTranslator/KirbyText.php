@@ -74,7 +74,7 @@ final class KirbyText
 
         $restore = static function (array $translatedFragments) use ($tagSlots, $expectedLength): string {
             if (count($translatedFragments) !== $expectedLength) {
-                // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
+                // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
                 throw new LogicException(
                     'Expected ' . $expectedLength . ' translated fragments, got ' . count($translatedFragments)
                 );
@@ -250,7 +250,7 @@ final class KirbyText
 
             foreach ($tag->attrs as $attrName => $attrValue) {
                 // `kirbytext.<type>` option defaults land in `attrs` untouched,
-                // so an attribute value is not guaranteed to be a string
+                // so an attribute value is not guaranteed to be a string.
                 if (in_array($attrName, $translatableAttributes, true) && is_string($attrValue) && $attrValue !== '') {
                     $newAttributes[$attrName] = Translator::translateText($attrValue, $targetLanguage, $sourceLanguage);
                     $hasTranslations = true;
@@ -287,7 +287,7 @@ final class KirbyText
         foreach ($attributes as $name => $attrValue) {
             // `kirbytext.<type>` option defaults land in `attrs` untouched: an
             // array default would stringify into `Array`, a `false` default
-            // would render as a bare `name: `
+            // would render as a bare `name: `.
             if (is_scalar($attrValue) && $attrValue !== '' && $attrValue !== false) {
                 $parts[] = $name . ': ' . $attrValue;
             }

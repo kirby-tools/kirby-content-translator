@@ -14,7 +14,7 @@ use Throwable;
 
 /**
  * Walks a content array and emits translatable units plus
- * post-translation finalisers.
+ * post-translation finalizers.
  *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `Translator::translateUnits` makes that call once, downstream,
@@ -160,7 +160,7 @@ final class Collector
         }
 
         if ($fieldType === 'tags') {
-            // Content files store tags comma-joined
+            // Content files store tags comma-joined.
             if (!is_string($value) || $value === '') {
                 return;
             }
@@ -189,7 +189,7 @@ final class Collector
                 try {
                     $node[$fieldName] = Data::decode($value, 'yaml');
                 } catch (Throwable) {
-                    // Tolerate malformed third-party YAML
+                    // Tolerate malformed third-party YAML.
                     return;
                 }
             }

@@ -2,7 +2,7 @@ import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { KirbyFieldProps } from "kirby-types";
 import type { TRANSLATION_PROVIDERS } from "./constants";
 
-/** Loose boolean type for raw props coming from PHP/YAML */
+/** Loose boolean type for raw props coming from PHP/YAML. */
 type BooleanInput = boolean | string | number | null;
 
 export type TranslationProvider = (typeof TRANSLATION_PROVIDERS)[number];
@@ -19,14 +19,14 @@ export interface PluginConfig {
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
   batchConcurrency?: number;
-  /** Backend the translate endpoint resolves to, named server-side */
+  /** Backend the translate endpoint resolves to, named server-side. */
   strategy?: TranslationProvider | "custom";
-  /** Sanitized DeepL configuration – only whether an API key is set, never the key */
+  /** Sanitized DeepL configuration – only whether an API key is set, never the key. */
   DeepL?: {
     apiKey?: boolean;
   };
   ai?: {
-    /** Custom system prompt to replace the default translation instructions */
+    /** Custom system prompt to replace the default translation instructions. */
     systemPrompt?: string;
   };
   /** @deprecated Will be removed in Kirby 6 */
@@ -54,9 +54,9 @@ export interface TranslatorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
-  /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`) */
+  /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`). */
   systemPrompt?: string;
-  /** Only available when passed from section computed props */
+  /** Only available when passed from section computed props. */
   fields?: Record<string, KirbyFieldProps>;
 }
 

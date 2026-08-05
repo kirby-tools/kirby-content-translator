@@ -53,7 +53,7 @@ export function getProviderAvailability(
 ): ProviderAvailability {
   const isCopilotAvailable = !!resolveCopilot();
 
-  // A DeepL key stays in config even when the strategy no longer uses it
+  // A DeepL key stays in config even when the strategy no longer uses it.
   const hasDefaultProvider =
     config.strategy === "custom" ||
     (config.strategy !== "ai" && !!config.DeepL?.apiKey);

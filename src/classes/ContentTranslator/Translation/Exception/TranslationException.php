@@ -21,7 +21,7 @@ final class TranslationException extends Exception
         int $unitsAttempted,
         int $unitsTranslated = 0,
     ) {
-        // TODO: Drop K4 compat in v4 – use named args (message:, details:) once Kirby 5 is the floor
+        // TODO: Drop K4 compat in v4 – use the named arguments `message:` and `details:` once Kirby 5 is the floor.
         parent::__construct([
             'fallback' => sprintf(
                 '%s strategy failed: %s (%d/%d units translated)',

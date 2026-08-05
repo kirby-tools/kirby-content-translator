@@ -13,7 +13,7 @@ import TranslationCoverageView from "./TranslationCoverageView.vue";
 type ResolvedExtends = VueConstructor & { options: ComponentOptions<Vue> };
 
 export default {
-  extends: "k-languages-view", // Resolved by Kirby's plugin loader
+  extends: "k-languages-view", // Resolved by Kirby's plugin loader.
   render(this: Vue, h: CreateElement): VNode {
     const parent = this.$options.extends as ResolvedExtends;
     const parentRender = parent.options.render as (

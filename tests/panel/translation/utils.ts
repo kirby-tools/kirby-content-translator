@@ -9,7 +9,7 @@ import type {
 } from "kirby-types";
 
 /**
- * Helper to create a field definition with sensible defaults for testing.
+ * Creates a field definition with sensible defaults for testing.
  */
 export function field<T extends Partial<KirbyAnyFieldProps>>(
   partial: T & { type: string; name: string },
@@ -26,9 +26,6 @@ export function field<T extends Partial<KirbyAnyFieldProps>>(
   } as KirbyFieldProps;
 }
 
-/**
- * Helper to create a structure field definition for testing.
- */
 export function structureField(
   name: string,
   fields: Record<string, KirbyFieldProps>,
@@ -40,9 +37,6 @@ export function structureField(
   }) as unknown as KirbyStructureFieldProps;
 }
 
-/**
- * Helper to create an object field definition for testing.
- */
 export function objectField(
   name: string,
   fields: Record<string, KirbyFieldProps>,
@@ -54,9 +48,6 @@ export function objectField(
   }) as unknown as KirbyObjectFieldProps;
 }
 
-/**
- * Helper to create a blocks field definition for testing.
- */
 export function blocksField(
   name: string,
   blockTypes: Record<string, Record<string, KirbyFieldProps>>,
@@ -80,9 +71,6 @@ export function blocksField(
   }) as unknown as KirbyBlocksFieldProps;
 }
 
-/**
- * Helper to create a layout field definition for testing.
- */
 export function layoutField(
   name: string,
   blockTypes: Record<string, Record<string, KirbyFieldProps>>,

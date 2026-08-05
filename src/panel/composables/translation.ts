@@ -49,7 +49,7 @@ export function useContentTranslator() {
   const { getModelData, isFileModel, isSiteModel } = useModel();
   const { isTranslating } = useTranslationState();
 
-  // Configuration state
+  // #region Configuration state
   const label = ref<string>();
   const allowImport = ref<boolean>();
   const importFrom = ref<string>();
@@ -63,14 +63,16 @@ export function useContentTranslator() {
   const kirbyTags = ref<Record<string, string[]>>({});
   const provider = ref<TranslationProvider>("deepl");
   const systemPrompt = ref<string>();
+  // #endregion
 
-  // Runtime state
+  // #region Runtime state
   const fields = ref<Record<string, KirbyFieldProps>>();
   const config = ref<PluginConfig>();
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
   const licenseStatus = ref<LicenseStatus>();
   const hasAnyProvider = ref(false);
+  // #endregion
 
   function initializeConfig(
     context: PluginContextResponse,
@@ -110,7 +112,7 @@ export function useContentTranslator() {
   // sources, the server-side copy behavior is kept. This also removes the
   // need for client-side `filterSyncableContent` during import and the
   // title/slug patching for default-language imports.
-  // TODO: Next major version – remove confirm dialog options entirely
+  // TODO: Next major version – remove confirm dialog options entirely.
   async function syncModelContent(
     language?: PanelLanguageInfo | PanelLanguage,
   ) {
@@ -122,7 +124,7 @@ export function useContentTranslator() {
         panel.view.path,
         { language: language.code },
         undefined,
-        // Avoid showing Panel loading indicator
+        // Avoid showing Panel loading indicator.
         true,
       );
       title = data.title;
@@ -218,7 +220,7 @@ export function useContentTranslator() {
       });
 
       if (plan.shouldRequestTitleTranslation) {
-        // Non-null: the plan requests a title translation only when the view has one
+        // Non-null: the plan requests a title translation only when the view has one.
         const translatedTitle = await translateText(panel.view.title!, {
           provider: provider.value,
           targetLanguage,
@@ -238,7 +240,7 @@ export function useContentTranslator() {
         }
 
         isTranslating.value = false;
-        // Reload will also end Panel loading state
+        // Reload will also end Panel loading state.
         await panel.view.reload();
       } else {
         isTranslating.value = false;
@@ -306,7 +308,7 @@ export function useContentTranslator() {
       );
 
       isTranslating.value = false;
-      // Reload will also end Panel loading state
+      // Reload will also end Panel loading state.
       await panel.view.reload();
     } catch (error) {
       isTranslating.value = false;
@@ -422,7 +424,6 @@ export function useContentTranslator() {
   }
 
   return {
-    // Configuration state
     label,
     allowImport,
     importFrom,
@@ -436,12 +437,10 @@ export function useContentTranslator() {
     kirbyTags,
     provider,
 
-    // Runtime state
     fields,
     licenseStatus,
     hasAnyProvider,
 
-    // Methods
     initializeConfig,
     syncModelContent,
     translateModelContent,

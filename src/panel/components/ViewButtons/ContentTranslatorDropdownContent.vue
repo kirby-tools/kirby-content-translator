@@ -36,19 +36,16 @@ const { isTranslating } = useTranslationState();
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 
 const {
-  // Configuration state
   allowImport,
   importFrom,
   allowBatchTranslation,
   shouldConfirm,
   provider,
 
-  // Runtime state
   fields,
   licenseStatus,
   hasAnyProvider,
 
-  // Methods
   initializeConfig,
   syncModelContent,
   translateModelContent,
@@ -70,7 +67,7 @@ if (!hasAnyProvider.value) {
   );
 }
 
-// Lazily fetch required view data (same as `computed` section methods)
+// Lazily fetch required view data (same as `computed` section methods).
 const initializationPromise = (async () => {
   const defaultLanguageData = await getModelData();
 
@@ -78,7 +75,7 @@ const initializationPromise = (async () => {
     MODEL_FIELDS_API_ROUTE,
     { id: defaultLanguageData.id ?? "site" },
     undefined,
-    // Avoid showing Panel loading indicator
+    // Avoid showing Panel loading indicator.
     true,
   );
 

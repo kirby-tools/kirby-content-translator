@@ -48,7 +48,7 @@ final class DeepL
 
     /** @see https://developers.deepl.com/docs/api-reference/translate */
     private readonly array $requestOptions;
-    /** A configured `tag_handling` applies to every text and turns the per-text markup detection off */
+    /** A configured `tag_handling` applies to every text and turns the per-text markup detection off. */
     private readonly bool $hasConfiguredTagHandling;
     /** @var array<string, string> Target codes by Kirby language code */
     private readonly array $targetLanguageOverrides;
@@ -73,11 +73,11 @@ final class DeepL
         $this->requestOptions = A::merge(
             [
                 // Default for markup-bearing text, such as the Writer field;
-                // `buildRequestOptions` removes it for text witphout markup
+                // `buildRequestOptions` removes it for text without markup.
                 'tag_handling' => 'html',
                 // HTML tag handling implies `split_sentences=nonewlines`, which
                 // breaks markdown; `1` restores splitting on punctuation and
-                // newlines, and is the DeepL default without tag handling
+                // newlines, and is the DeepL default without tag handling.
                 'split_sentences' => '1'
             ],
             $requestOptions
@@ -120,10 +120,10 @@ final class DeepL
         }
 
         // Splitting before chunking costs one extra request in total, whereas
-        // splitting inside each chunk would cost one extra per chunk
+        // splitting inside each chunk would cost one extra per chunk.
         [$markupTexts, $plainTexts] = self::partitionByMarkup($texts);
 
-        // Base for the merge, because each group only fills the indexes it owns
+        // Base for the merge, because each group only fills the indexes it owns.
         return array_replace(
             $texts,
             $this->translateGroup($markupTexts, $targetLanguage, $sourceLanguage, true),
@@ -166,7 +166,7 @@ final class DeepL
     ): array {
         $translations = [];
 
-        // 50 texts per request is the DeepL API limit
+        // 50 texts per request is the DeepL API limit.
         foreach (array_chunk($texts, 50, preserve_keys: true) as $chunk) {
             $response = $this->request(
                 array_values($chunk),
@@ -178,7 +178,7 @@ final class DeepL
 
             // DeepL answers a batch one to one, so a mismatch means a truncated
             // or rewritten response, where matching translations back to their
-            // texts by position would misalign them
+            // texts by position would misalign them.
             if (count($responseTranslations) !== count($chunk)) {
                 throw new LogicException(
                     'DeepL returned ' . count($responseTranslations) .
@@ -247,8 +247,8 @@ final class DeepL
             $options = array_diff_key($options, array_flip(self::TAG_HANDLING_OPTIONS));
         }
 
-        // `translate="no"` is only honoured under HTML tag handling, so a text
-        // carrying one forces `html`, whatever the user configured
+        // `translate="no"` is only honored under HTML tag handling, so a text
+        // carrying one forces `html`, whatever the user configured.
         foreach ($texts as $text) {
             if (str_contains($text, '<span translate="no">')) {
                 $options['tag_handling'] = 'html';
@@ -313,12 +313,12 @@ final class DeepL
 
         // Assigned rather than merged, because a merge lets a user-supplied
         // `text` survive next to the texts being translated and turn the JSON
-        // array into an object DeepL rejects
+        // array into an object DeepL rejects.
         $payload['text'] = $texts;
         $payload['target_lang'] = $targetLanguage;
 
         // A configured `source_lang` must not stand in for one that failed to
-        // resolve, or the text goes out labelled as an unrelated language
+        // resolve, or the text goes out labeled as an unrelated language.
         if ($sourceLanguage === null) {
             unset($payload['source_lang']);
         } else {
@@ -347,13 +347,13 @@ final class DeepL
                 );
             }
 
-            // Exponential backoff with jitter
+            // Exponential backoff with jitter.
             $exponentDelay = (int)(self::INITIAL_RETRY_DELAY_MS * (2 ** $attempt));
             if ($exponentDelay > self::MAX_RETRY_DELAY_MS) {
                 $exponentDelay = self::MAX_RETRY_DELAY_MS;
             }
 
-            // Floor the jitter so a retry never fires immediately
+            // Floor the jitter so a retry never fires immediately.
             $minBackoff = (int)(self::INITIAL_RETRY_DELAY_MS / 2);
 
             $delay = $this->delay ?? static function (int $minMs, int $maxMs): void {

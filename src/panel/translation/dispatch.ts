@@ -37,7 +37,7 @@ export async function translateUnits(
   for (const [position, index] of translatableIndexes.entries()) {
     const translation = translations[position];
     // A short or non-string response leaves the source text in place rather
-    // than blanking it
+    // than blanking it.
     if (typeof translation !== "string") continue;
 
     const unit = translatableUnits[position]!;

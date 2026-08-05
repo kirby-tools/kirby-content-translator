@@ -59,7 +59,7 @@ export async function translateContent(
     },
   );
 
-  // A late abort must not write stale results back into the content
+  // A late abort must not write stale results back into the content.
   if (signal?.aborted) return obj;
 
   for (const [index, { apply }] of translations.entries()) {

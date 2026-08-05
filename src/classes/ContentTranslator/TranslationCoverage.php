@@ -24,7 +24,7 @@ final class TranslationCoverage
     private array $translatableKeysByBlueprint = [];
 
     /**
-     * @throws LogicException When called on a single-language Kirby installation.
+     * @throws LogicException When called on a single-language Kirby installation
      */
     public function __construct(
         private readonly Pages $pages,
@@ -33,7 +33,7 @@ final class TranslationCoverage
         $this->kirby = App::instance();
 
         if (!$this->kirby->multilang()) {
-            // TODO: Drop K4 compat in v4 – use named arg (message:) once Kirby 5 is the floor
+            // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
             throw new LogicException(
                 ['fallback' => 'TranslationCoverage requires a multi-language Kirby installation.'],
             );
@@ -213,7 +213,7 @@ final class TranslationCoverage
                 }
 
                 // Ancestors stay visible so the pruned tree keeps a path down to
-                // every incomplete page
+                // every incomplete page.
                 $visibleIds = $ancestorIds;
 
                 foreach (array_keys($incompleteIds) as $id) {
@@ -254,7 +254,7 @@ final class TranslationCoverage
     private function translatableFields(Page $page, Language $defaultLanguage): array
     {
         // Read raw default-language content _without_ fallback so the
-        // denominator reflects only fields actually filled at the source
+        // denominator reflects only fields actually filled at the source.
         if (!$page->version()->exists($defaultLanguage)) {
             return [];
         }
@@ -278,7 +278,7 @@ final class TranslationCoverage
     }
 
     /**
-     * Resolves and memoises the blueprint-level translatable field keys
+     * Resolves and memoizes the blueprint-level translatable field keys
      * per blueprint name, so Form construction runs once per blueprint
      * instead of once per page.
      *
@@ -315,12 +315,12 @@ final class TranslationCoverage
         array $translatableFields,
         int $totalFields
     ): array {
-        // Fast path: no content file means nothing is translated
+        // Fast path: no content file means nothing is translated.
         if (!$page->version()->exists($language)) {
             return ['totalFields' => $totalFields, 'translatedFields' => 0];
         }
 
-        // Read raw content _without_ default-language fallback
+        // Read raw content _without_ default-language fallback.
         $fields = $page->version()->read($language);
 
         if ($fields === null) {

@@ -9,7 +9,7 @@ use JohannSchopplich\ContentTranslator\KirbyText;
 /**
  * Text a translation provider would only corrupt: it either holds no language
  * at all, or holds a value – a price, a URL – that a translator will happily
- * localise into something broken.
+ * localize into something broken.
  *
  * Structural emptiness ("this field has no content") is a separate question,
  * answered by the callers that walk the content.
@@ -38,7 +38,7 @@ final class UntranslatableText
         }
 
         // A textarea holding nothing but KirbyTags splits into prose that is
-        // only placeholders – there is no language in it to translate
+        // only placeholders – there is no language in it to translate.
         if (self::trim(preg_replace(KirbyText::PLACEHOLDER_PATTERN, '', $trimmedText) ?? $trimmedText) === '') {
             return true;
         }

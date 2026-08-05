@@ -52,13 +52,13 @@ export class AIStrategy implements TranslationStrategy {
     const { signal } = options;
     const { streamText } = copilot;
 
-    // Units that fail to translate keep their source text
+    // Units that fail to translate keep their source text.
     const results: string[] = units.map((unit) => unit.text);
     let translatedCount = 0;
     let lastReason: string | undefined;
 
     // The original index travels with each unit so a failed chunk leaves the
-    // other results in place
+    // other results in place.
     const chunks = chunkUnitsWithIndices(units);
 
     for (const chunk of chunks) {
@@ -78,7 +78,7 @@ export class AIStrategy implements TranslationStrategy {
           outputSchema: schema,
         });
 
-        // Prevent unhandled rejection
+        // Prevent unhandled rejection.
         finalOutput.catch(() => {});
 
         const result = await finalOutput;
@@ -102,12 +102,12 @@ export class AIStrategy implements TranslationStrategy {
           `Failed to translate chunk (${chunk.map(({ unit }) => unit.fieldKey).join(", ")})`,
         );
         console.error(error);
-        // Keep original texts (already in results)
+        // Keep original texts (already in results).
       }
     }
 
     // Mirrors `CopilotAIStrategy`: a run where the provider produced nothing
-    // usable is an error, not a silent no-op that reports success
+    // usable is an error, not a silent no-op that reports success.
     if (translatedCount === 0 && !signal?.aborted) {
       throw new Error(
         `AI translation failed for all ${units.length} texts: ${lastReason ?? "unknown error"}`,

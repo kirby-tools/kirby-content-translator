@@ -6,7 +6,7 @@ import type {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { field } from "../translation/utils";
 
-// Assigned in `beforeEach` and read lazily by the `kirbyuse` mock below
+// Assigned in `beforeEach` and read lazily by the `kirbyuse` mock below.
 let panel: ReturnType<typeof createPanelStub>;
 let currentContent: { value: Record<string, unknown> };
 let updateContent: ReturnType<typeof vi.fn>;
@@ -200,7 +200,7 @@ describe("useContentTranslator", () => {
     });
 
     it("notifies success before reloading the view", async () => {
-      // Inverse of the single-translation teardown ordering
+      // Inverse of the single-translation teardown ordering.
       const callOrder: string[] = [];
       panel.view.reload.mockImplementation(() => {
         callOrder.push("reload");

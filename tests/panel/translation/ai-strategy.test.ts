@@ -88,7 +88,7 @@ describe("AIStrategy", () => {
 
   describe("chunking", () => {
     it("splits large content into multiple chunks", async () => {
-      // Create text that exceeds maximum character limit (100k)
+      // Create text that exceeds maximum character limit (100k).
       const largeText = "x".repeat(60000);
       mockStreamText
         .mockResolvedValueOnce({
@@ -150,8 +150,8 @@ describe("AIStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results[0]).toBe(largeText); // Original kept
-      expect(results[1]).toBe("Success"); // Second chunk succeeded
+      expect(results[0]).toBe(largeText); // Original kept.
+      expect(results[1]).toBe("Success"); // Second chunk succeeded.
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();
     });
@@ -227,7 +227,7 @@ describe("AIStrategy", () => {
       const controller = new AbortController();
       const largeText = "x".repeat(60000);
 
-      // First chunk succeeds, then abort
+      // First chunk succeeds, then abort.
       mockStreamText.mockImplementationOnce(async () => {
         controller.abort();
         return { output: Promise.resolve({ translations: ["First"] }) };
@@ -246,7 +246,7 @@ describe("AIStrategy", () => {
 
       expect(mockStreamText).toHaveBeenCalledOnce();
       expect(results[0]).toBe("First");
-      expect(results[1]).toBe(largeText); // Original kept
+      expect(results[1]).toBe(largeText); // Original kept.
     });
   });
 });

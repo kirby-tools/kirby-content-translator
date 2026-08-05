@@ -36,7 +36,7 @@ final class PanelContextTest extends TestCase
         $config = PanelContext::config();
 
         $this->assertArrayNotHasKey('coverage', $config);
-        // Registered by the plugin itself, so it reaches the Panel unasked for
+        // Registered by the plugin itself, so it reaches the Panel unasked for.
         $this->assertArrayNotHasKey('cache', $config);
         $this->assertTrue($config['title']);
     }

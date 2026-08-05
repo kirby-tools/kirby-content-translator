@@ -29,7 +29,6 @@ const defaultLanguage = panel.languages.find((language) => language.default)!;
 const isInitialized = ref(false);
 
 const {
-  // Configuration state
   label,
   allowImport,
   importFrom,
@@ -37,11 +36,9 @@ const {
   shouldConfirm,
   provider,
 
-  // Runtime state
   licenseStatus,
   hasAnyProvider,
 
-  // Methods
   initializeConfig,
   syncModelContent,
   translateModelContent,

@@ -41,17 +41,17 @@ final class DeepLLanguagesTest extends TestCase
             'alias for a code DeepL spells differently' => ['gr', null, 'EL'],
             'alias resolves as a source too' => ['jp', null, 'JA'],
             // A server without `de_CH` installed carries `de_DE` for date
-            // formatting; that must not redirect the translation
+            // formatting; that must not redirect the translation.
             'specific code outranks a conflicting locale' => ['de-ch', 'de_DE.UTF-8', 'DE-CH'],
             'specific code outranks a conflicting locale (English)' => ['en-gb', 'en_US.UTF-8', 'EN-GB'],
             'bare code still defers to the locale' => ['de', 'de_CH.UTF-8', 'DE-CH'],
             // A minority language is set up with the state locale it shares its
-            // server with; only the code names what the pages are written in
+            // server with; only the code names what the pages are written in.
             'locale of another language is discarded' => ['ca', 'es_ES.UTF-8', 'CA'],
             'locale of another language is discarded (Basque)' => ['eu', 'es_ES', 'EU'],
             'locale of another language is discarded (Welsh)' => ['cy', 'en_GB', 'CY'],
             // The locale may sharpen, so a region subtag it does not share must
-            // not be replaced by the one the locale carries
+            // not be replaced by the one the locale carries.
             'region subtag survives a same-language locale' => ['de-at', 'de_DE.UTF-8', 'DE'],
             'region subtag survives a same-language locale (Spanish)' => ['es-es', 'es_MX', 'ES'],
         ];
@@ -93,7 +93,7 @@ final class DeepLLanguagesTest extends TestCase
     public function no_source_code_is_a_regional_variant(): void
     {
         // `resolveSource` returns a listed base code verbatim, so a variant in
-        // the constant would reach `source_lang` after all
+        // the constant would reach `source_lang` after all.
         $this->assertSame([], array_values(array_filter(
             DeepLLanguages::SUPPORTED_SOURCE_CODES,
             static fn (string $code): bool => str_contains($code, '-')
@@ -104,7 +104,7 @@ final class DeepLLanguagesTest extends TestCase
     public function every_source_code_is_also_a_target_code(): void
     {
         // `resolveSource` narrows a resolved target to its base code, so a
-        // source outside the target list would be unreachable
+        // source outside the target list would be unreachable.
         $this->assertSame([], array_values(array_diff(
             DeepLLanguages::SUPPORTED_SOURCE_CODES,
             DeepLLanguages::SUPPORTED_TARGET_CODES
@@ -125,7 +125,7 @@ final class DeepLLanguagesTest extends TestCase
     {
         // `cn` is missing from `BASE_CODE_ALIASES` because either Chinese
         // script would be a guess – a `zh_CN` locale must not make that guess
-        // on the code's behalf
+        // on the code's behalf.
         $this->expectException(LogicException::class);
 
         DeepLLanguages::resolveTarget('cn', 'zh_CN.UTF-8');
@@ -135,7 +135,7 @@ final class DeepLLanguagesTest extends TestCase
     public function override_outranks_locale_and_skips_the_supported_codes(): void
     {
         // Deliberately not a code DeepL ships, since the option exists to carry
-        // a language the constant does not know yet
+        // a language the constant does not know yet.
         $this->assertSame(
             'ZH-FUTURE',
             DeepLLanguages::resolveTarget('zh', 'zh_CN', ['zh' => 'ZH-FUTURE']),
@@ -152,7 +152,7 @@ final class DeepLLanguagesTest extends TestCase
     public function override_reaches_the_source_language_too(): void
     {
         // Configuring a language once should tell the client what it is in both
-        // directions, not just where it translates to
+        // directions, not just where it translates to.
         $this->assertSame('ZH', DeepLLanguages::resolveSource('cn', null, ['cn' => 'ZH-HANS']));
     }
 }

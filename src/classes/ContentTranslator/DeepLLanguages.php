@@ -47,23 +47,23 @@ final class DeepLLanguages
      * keep `code`; every other region takes `fallback`.
      */
     private const REGION_GROUPS = [
-        // The Traditional-script regions among the `zh` locales systems ship
+        // The Traditional-script regions among the `zh` locales systems ship.
         'ZH' => ['regions' => ['TW', 'HK', 'MO'], 'code' => 'ZH-HANT', 'fallback' => 'ZH-HANS'],
         // `ES-419` covers all of Latin America, which no locale spells, so
-        // European Spanish is the exception and everything else the rule
+        // European Spanish is the exception and everything else the rule.
         'ES' => ['regions' => ['ES', 'GQ'], 'code' => 'ES', 'fallback' => 'ES-419'],
     ];
 
     /**
      * @param array<string, string> $targetLanguageOverrides Target codes by Kirby language code
-     * @throws LogicException When neither the code nor an override names a supported target.
+     * @throws LogicException When neither the code nor an override names a supported target
      */
     public static function resolveTarget(string $languageCode, string|null $locale = null, array $targetLanguageOverrides = []): string
     {
         // An override is the user asserting they know better than
         // `SUPPORTED_TARGET_CODES`, the only escape hatch when DeepL ships a
         // code before this release does. Checking it against the constant would
-        // defeat that, so only its case is normalised.
+        // defeat that, so only its case is normalized.
         if (isset($targetLanguageOverrides[$languageCode])) {
             return strtoupper($targetLanguageOverrides[$languageCode]);
         }
@@ -72,7 +72,7 @@ final class DeepLLanguages
 
         // The code identifies the language: it names the content file and the
         // Panel switch. A locale only formats dates and numbers, and servers
-        // routinely carry a neighbouring one because the exact locale is not
+        // routinely carry a neighboring one because the exact locale is not
         // installed – so it may sharpen the code into a regional variant, never
         // name another language. Without this, `de-ch` on a `de_DE.UTF-8` box
         // translates to Germany's German and `ca` on an `es_ES.UTF-8` one
@@ -89,7 +89,7 @@ final class DeepLLanguages
         if ($targetCode === null) {
             // Naming a `locale` as a remedy would be a dead end: a locale is
             // only read when its base language equals the code's, and that base
-            // is just as unresolvable
+            // is just as unresolvable.
             throw new LogicException(
                 'Cannot resolve a DeepL target language for Kirby language "' . $languageCode . '"' .
                 ($locale === null ? '' : ' (locale "' . $locale . '")') .
@@ -112,12 +112,12 @@ final class DeepLLanguages
             $targetCode = self::resolveTarget($languageCode, $locale, $targetLanguageOverrides);
         } catch (LogicException) {
             // Auto-detection is a usable answer for a source; only the target
-            // has to be right
+            // has to be right.
             return null;
         }
 
         // DeepL answers every regional variant in `source_lang` with a 400, so
-        // the resolved target is stripped back to the code it varies
+        // the resolved target is stripped back to the code it varies.
         [$baseCode] = explode('-', $targetCode, 2);
 
         return in_array($baseCode, self::SUPPORTED_SOURCE_CODES, true) ? $baseCode : null;
@@ -138,7 +138,7 @@ final class DeepLLanguages
                 return $regionSpecificCode;
             }
 
-            // BCP 47 canonicalises an extlang away from its macrolanguage, so
+            // BCP 47 canonicalizes an extlang away from its macrolanguage, so
             // `zh-yue` names Cantonese rather than a variant of Chinese. Only a
             // three-letter subtag can be one; regions are two letters or three digits.
             if (strlen($subtag) === 3 && ctype_alpha($subtag) && in_array($subtag, self::SUPPORTED_TARGET_CODES, true)) {
@@ -164,13 +164,13 @@ final class DeepLLanguages
     {
         $codeSubtags = self::splitSubtags($languageCode);
 
-        // A code carrying a region subtag has already named the variant it wants
+        // A code carrying a region subtag has already named the variant it wants.
         if (count($codeSubtags) > 1) {
             return false;
         }
 
-        // Kirby neither validates nor normalises locales, so a language-less
-        // system locale such as `C` names no base code and is discarded here
+        // Kirby neither validates nor normalizes locales, so a language-less
+        // system locale such as `C` names no base code and is discarded here.
         return self::baseCode(self::splitSubtags($locale)[0]) === self::baseCode($codeSubtags[0]);
     }
 
@@ -184,7 +184,7 @@ final class DeepLLanguages
     private static function splitSubtags(string $tag): array
     {
         // `.charset` and `@modifier` both terminate the subtag list, so folding one
-        // into the other lets a single split drop whichever the locale carries
+        // into the other lets a single split drop whichever the locale carries.
         [$languageTag] = explode('.', str_replace('@', '.', $tag), 2);
 
         return explode('-', strtoupper(strtr($languageTag, '_', '-')));

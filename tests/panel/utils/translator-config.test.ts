@@ -6,7 +6,7 @@ import {
   resolveTranslatorConfig,
 } from "../../../src/panel/utils/translator-config";
 
-// Assigned per test and read lazily by the `kirbyuse` mock below
+// Assigned per test and read lazily by the `kirbyuse` mock below.
 let thirdPartyPlugins: Record<string, unknown> = {};
 
 vi.mock("kirbyuse", () => ({

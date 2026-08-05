@@ -28,7 +28,7 @@ final class DeepLLanguagesLiveTest extends TestCase
 
         $host = str_ends_with($apiKey, ':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
 
-        // `include=beta` is absent for the reason `DeepLLanguages` documents
+        // `include=beta` is absent for the reason `DeepLLanguages` documents.
         $response = file_get_contents(
             $host . '/v3/languages?resource=translate_text',
             context: stream_context_create([

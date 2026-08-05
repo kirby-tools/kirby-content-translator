@@ -41,7 +41,7 @@ export function collectTranslations(
     finalizers: [],
   };
 
-  // Apply include/exclude filters by narrowing the top-level fields
+  // Apply include/exclude filters by narrowing the top-level fields.
   const { includeFields = [], excludeFields = [] } = options;
   let { fields } = options;
 
@@ -105,7 +105,7 @@ function collectFromField(
   }
 
   // KirbyTags are split out so their structure survives translation intact and
-  // is reassembled in a finalizer once every fragment came back
+  // is reassembled in a finalizer once every fragment came back.
   else if (["textarea", "markdown"].includes(field.type)) {
     if (typeof value !== "string" || !value) return;
 
@@ -187,7 +187,7 @@ function collectFromTableField(
   let tableData = value as string | string[][];
   let isYamlEncoded = false;
 
-  // Parse YAML-encoded table data from the Panel
+  // Parse YAML-encoded table data from the Panel.
   if (typeof tableData === "string") {
     isYamlEncoded = true;
     try {
@@ -200,7 +200,7 @@ function collectFromTableField(
 
   if (!Array.isArray(tableData)) return;
 
-  // Store reference for cell updates and YAML serialization
+  // Store reference for cell updates and YAML serialization.
   const tableRef = tableData;
 
   for (const [rowIndex, row] of tableData.entries()) {
@@ -221,7 +221,7 @@ function collectFromTableField(
     }
   }
 
-  // Update the object reference (handles non-YAML case)
+  // Update the object reference (handles non-YAML case).
   obj[key] = tableData;
 
   if (isYamlEncoded) {

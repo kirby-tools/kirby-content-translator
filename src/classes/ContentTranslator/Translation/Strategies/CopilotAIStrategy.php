@@ -164,7 +164,7 @@ final readonly class CopilotAIStrategy implements Strategy
         foreach ($units as $index => $unit) {
             $byteLength = strlen($unit->text);
 
-            // Lone oversize units ride alone – never split a unit
+            // Lone oversize units ride alone – never split a unit.
             if (
                 count($currentChunk) >= self::MAX_BATCH_SIZE ||
                 ($currentChunk !== [] && ($currentBytes + $byteLength) > self::MAX_BYTES_PER_BATCH)

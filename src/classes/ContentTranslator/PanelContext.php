@@ -30,7 +30,7 @@ final class PanelContext
 
         if (isset($panelConfig['DeepL'])) {
             // Mirrors the check in `DeepL::__construct`, so the flag means
-            // "a key DeepL would accept" rather than "a key is present"
+            // "a key DeepL would accept" rather than "a key is present".
             $apiKey = $config['DeepL']['apiKey'] ?? null;
             $panelConfig['DeepL'] = [
                 'apiKey' => is_string($apiKey) && $apiKey !== ''
@@ -45,8 +45,8 @@ final class PanelContext
             ];
         }
 
-        // Keep backwards compatibility with Kirby 4
-        // TODO: Deprecated, remove in Kirby 6
+        // Keep backwards compatibility with Kirby 4.
+        // TODO: Deprecated, remove in Kirby 6.
         $panelConfig['viewButton'] ??= true;
 
         return $panelConfig;
