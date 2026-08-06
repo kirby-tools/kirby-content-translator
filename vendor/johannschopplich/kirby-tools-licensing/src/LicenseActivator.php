@@ -11,8 +11,6 @@ use Kirby\Exception\LogicException;
 use Kirby\Http\Request;
 
 /**
- * Handles license activation for Kirby Tools plugins.
- *
  * @link      https://kirby.tools
  * @copyright Johann Schopplich
  * @license   AGPL-3.0
@@ -33,7 +31,10 @@ final class LicenseActivator
     }
 
     /**
-     * Activates a license with the given credentials.
+     * Thrown messages are matched verbatim by `LicensePanel::ACTIVATION_ERROR_KEYS`
+     * to resolve a translation, so they cannot be reworded on their own.
+     *
+     * @throws LogicException When the license is already activated, belongs to another plugin, does not cover the installed version, or when the licensing API rejects the request (message taken verbatim from the response).
      */
     public function activate(string $email, string $licenseKey): void
     {
@@ -71,7 +72,7 @@ final class LicenseActivator
     }
 
     /**
-     * Activates a license from a Kirby request.
+     * @throws LogicException When `email` or `licenseKey` is missing, or when activation fails.
      */
     public function activateFromRequest(Request|null $request = null): array
     {
@@ -94,7 +95,8 @@ final class LicenseActivator
     }
 
     /**
-     * Refreshes the license data if the plugin version has changed.
+     * Refetches the license data when the installed plugin version differs from
+     * the one it was last stored for.
      */
     public function refresh(): void
     {
@@ -102,7 +104,6 @@ final class LicenseActivator
         $storedVersion = $this->repository->getPluginVersion($this->packageName);
         $currentVersion = $this->validator->getPluginVersion();
 
-        // If the plugin version has changed, refresh the license data for the package
         if (
             $this->validator->isValid($licenseKey) &&
             $currentVersion !== $storedVersion
@@ -113,7 +114,7 @@ final class LicenseActivator
     }
 
     /**
-     * Checks if the license is already activated and compatible.
+     * Checks whether a valid license is stored and covers the installed version.
      */
     public function isActivated(): bool
     {
@@ -124,9 +125,6 @@ final class LicenseActivator
             $this->validator->isCompatible($compatibility);
     }
 
-    /**
-     * Makes an API request.
-     */
     private function request(string $path, array $options = []): array
     {
         $headers = $options['headers'] ?? [];

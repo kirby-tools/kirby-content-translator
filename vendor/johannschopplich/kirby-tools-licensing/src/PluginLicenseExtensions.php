@@ -5,10 +5,10 @@ declare(strict_types = 1);
 namespace JohannSchopplich\Licensing;
 
 /**
- * @deprecated Use LicensePanel instead. Will be removed in 1.0.0.
+ * Backward compatibility wrapper for the API that predates `LicensePanel` and
+ * `LicenseUtils`.
  *
- * Backward compatibility wrapper for `PluginLicenseExtensions`.
- * This class proxies all calls to the new `LicensePanel` class.
+ * @deprecated Use `LicensePanel` and `LicenseUtils` instead. Will be removed in 1.0.0.
  *
  * @link      https://kirby.tools
  * @copyright Johann Schopplich

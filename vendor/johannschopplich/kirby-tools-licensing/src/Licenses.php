@@ -53,7 +53,7 @@ final class Licenses
     }
 
     /**
-     * @return string One of: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
+     * @return 'active'|'inactive'|'invalid'|'incompatible'|'upgradeable'
      */
     public function getStatus(): string
     {

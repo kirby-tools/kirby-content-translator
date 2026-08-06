@@ -10,8 +10,6 @@ use Kirby\Plugin\Plugin;
 use Kirby\Toolkit\I18n;
 
 /**
- * Integrates the custom license system for Kirby Tools plugins with Kirby's plugin license system.
- *
  * @link      https://kirby.tools
  * @copyright Johann Schopplich
  * @license   AGPL-3.0

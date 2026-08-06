@@ -2,7 +2,7 @@
 
 Backend licensing system for all commercial [Kirby Tools plugins](https://kirby.tools). This package provides server-side license validation, activation, and management that enables:
 
-- Trial periods and license enforcement
+- License validation and enforcement
 - Seamless license activation from within Kirby
 - Version-based license compatibility checking
 - [Panel integration for license status display](https://getkirby.com/releases/5/plugin-license)
@@ -27,7 +27,7 @@ The main licensing engine that:
 - Communicates with the Kirby Tools API at `https://repo.kirby.tools/api`
 - Validates license keys using the pattern `KT{generation}-{hash}-{hash}`
 - Manages license status: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
-- Handles license activation via email and order ID
+- Handles license activation via email and license key
 
 ### `PluginLicense`
 

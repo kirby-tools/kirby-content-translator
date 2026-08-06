@@ -7,7 +7,7 @@ namespace JohannSchopplich\Licensing\Http;
 interface HttpClientInterface
 {
     /**
-     * @throws \Exception when the curl request failed
+     * @throws \Exception When the request fails or the response status is outside the 2xx range.
      */
     public function request(string $url, array $options = []): array;
 }
