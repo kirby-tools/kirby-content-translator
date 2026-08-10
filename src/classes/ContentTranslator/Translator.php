@@ -22,6 +22,7 @@ use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
 use Kirby\Exception\AuthException;
+use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\LogicException;
 
 final class Translator
@@ -50,6 +51,7 @@ final class Translator
      * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
      * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
      * @throws AuthException When the DeepL API key is missing
+     * @throws InvalidArgumentException When a language code is not registered in the site's languages
      */
     public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): string
     {
@@ -64,6 +66,7 @@ final class Translator
      * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
      * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
      * @throws AuthException When the DeepL API key is missing
+     * @throws InvalidArgumentException When a language code is not registered in the site's languages
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
@@ -155,6 +158,7 @@ final class Translator
      * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
      * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
      * @throws AuthException When the DeepL API key is missing
+     * @throws InvalidArgumentException When a language code is not registered in the site's languages
      */
     public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
     {
