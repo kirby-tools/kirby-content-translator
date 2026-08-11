@@ -19,27 +19,9 @@ return [
             'title' => fn ($title = null) => is_bool($title) ? $title : null,
             'slug' => fn ($slug = null) => is_bool($slug) ? $slug : null,
             'confirm' => fn ($confirm = null) => is_bool($confirm) ? $confirm : null,
-            'fieldTypes' => function ($fieldTypes = null) {
-                if (!is_array($fieldTypes)) {
-                    return null;
-                }
-
-                return array_map('strtolower', $fieldTypes);
-            },
-            'includeFields' => function ($includeFields = null) {
-                if (!is_array($includeFields)) {
-                    return null;
-                }
-
-                return array_map('strtolower', $includeFields);
-            },
-            'excludeFields' => function ($excludeFields = null) {
-                if (!is_array($excludeFields)) {
-                    return null;
-                }
-
-                return array_map('strtolower', $excludeFields);
-            },
+            'fieldTypes' => fn ($fieldTypes = null) => is_array($fieldTypes) ? $fieldTypes : null,
+            'includeFields' => fn ($includeFields = null) => is_array($includeFields) ? $includeFields : null,
+            'excludeFields' => fn ($excludeFields = null) => is_array($excludeFields) ? $excludeFields : null,
             'kirbyTags' => function ($kirbyTags = null) {
                 if (!is_array($kirbyTags)) {
                     return null;

@@ -39,10 +39,15 @@ export function resolveTranslatorConfig(
     translateTitle: toBool(options.title ?? config.title, false),
     translateSlug: toBool(options.slug ?? config.slug, false),
     shouldConfirm: toBool(options.confirm ?? config.confirm, false),
-    fieldTypes: options.fieldTypes ??
-      config.fieldTypes ?? [...DEFAULT_FIELD_TYPES],
-    includeFields: options.includeFields ?? config.includeFields ?? [],
-    excludeFields: options.excludeFields ?? config.excludeFields ?? [],
+    fieldTypes: toLowercaseNames(
+      options.fieldTypes ?? config.fieldTypes ?? [...DEFAULT_FIELD_TYPES],
+    ),
+    includeFields: toLowercaseNames(
+      options.includeFields ?? config.includeFields ?? [],
+    ),
+    excludeFields: toLowercaseNames(
+      options.excludeFields ?? config.excludeFields ?? [],
+    ),
     kirbyTags: options.kirbyTags ?? config.kirbyTags ?? {},
     systemPrompt: options.systemPrompt ?? config.ai?.systemPrompt ?? undefined,
   };
@@ -64,6 +69,10 @@ export function getProviderAvailability(
     hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
     hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
   };
+}
+
+function toLowercaseNames(names: string[]) {
+  return names.map((name) => name.toLowerCase());
 }
 
 /**
