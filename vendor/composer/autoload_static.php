@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit4ea95f856eb827ab5018631643964336
+class ComposerStaticInit5fd7703ebd07f64ad768b665655b6a47
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -62,6 +62,7 @@ class ComposerStaticInit4ea95f856eb827ab5018631643964336
         'JohannSchopplich\\KirbyTools\\FieldNormalizer' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
         'JohannSchopplich\\KirbyTools\\FieldResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
         'JohannSchopplich\\KirbyTools\\ModelResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
+        'JohannSchopplich\\KirbyTools\\QueryResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/QueryResolver.php',
         'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',
         'JohannSchopplich\\Licensing\\Http\\KirbyHttpClient' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/Http/KirbyHttpClient.php',
         'JohannSchopplich\\Licensing\\LicenseActivator' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-licensing/src/LicenseActivator.php',
@@ -82,9 +83,9 @@ class ComposerStaticInit4ea95f856eb827ab5018631643964336
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit4ea95f856eb827ab5018631643964336::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit4ea95f856eb827ab5018631643964336::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit4ea95f856eb827ab5018631643964336::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit5fd7703ebd07f64ad768b665655b6a47::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit5fd7703ebd07f64ad768b665655b6a47::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit5fd7703ebd07f64ad768b665655b6a47::$classMap;
 
         }, null, ClassLoader::class);
     }

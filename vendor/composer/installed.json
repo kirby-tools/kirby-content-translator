@@ -101,24 +101,27 @@
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
-            "version": "0.1.2",
-            "version_normalized": "0.1.2.0",
+            "version": "0.1.3",
+            "version_normalized": "0.1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/utils.git",
-                "reference": "f36810328810a33d572422fc08d395d69b1b4113"
+                "reference": "795cfaf76158739dbcc1d81a1e2ed7165ce1fbbc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/f36810328810a33d572422fc08d395d69b1b4113",
-                "reference": "f36810328810a33d572422fc08d395d69b1b4113",
+                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/795cfaf76158739dbcc1d81a1e2ed7165ce1fbbc",
+                "reference": "795cfaf76158739dbcc1d81a1e2ed7165ce1fbbc",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
             },
             "require-dev": {
                 "getkirby/cms": "^5",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-05-01T07:41:41+00:00",
+            "time": "2026-08-10T20:01:57+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -144,7 +147,7 @@
             "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/utils/issues",
-                "source": "https://github.com/kirby-tools/utils/tree/v0.1.2"
+                "source": "https://github.com/kirby-tools/utils/tree/v0.1.3"
             },
             "install-path": "../johannschopplich/kirby-tools-utils"
         }

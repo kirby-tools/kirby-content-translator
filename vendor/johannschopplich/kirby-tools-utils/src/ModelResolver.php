@@ -11,10 +11,7 @@ use Kirby\Cms\ModelWithContent;
 final class ModelResolver
 {
     /**
-     * Resolves a model from a model ID.
-     *
-     * @param string $modelId The model identifier (e.g., `site`, `page-id`, `file-id`)
-     * @return ModelWithContent|null The resolved model or null if not found
+     * Resolves a model from a model ID: `site`, a page ID or a file ID.
      */
     public static function resolveFromId(string $modelId): ModelWithContent|null
     {
@@ -26,24 +23,22 @@ final class ModelResolver
     }
 
     /**
-     * Resolves a model from a Panel view path.
+     * Resolves a model from a Panel view path, e.g. `site`, `pages/xxx` or `pages/xxx/files/yyy`.
      *
-     * @param string $path The Panel view path (e.g., `site`, `pages/xxx`, `pages/xxx/files/yyy`)
-     * @return ModelWithContent|null The resolved model or null if the path pattern is unrecognized
+     * Returns `null` only for unrecognized path patterns – a recognized path
+     * whose model is missing throws instead.
      *
-     * @throws \Kirby\Exception\NotFoundException If the matched model does not exist or is not accessible
+     * @throws \Kirby\Exception\NotFoundException When the matched model does not exist or is not accessible
      */
     public static function resolveFromPath(string $path): ModelWithContent|null
     {
         $kirby = App::instance();
 
         return match (true) {
-            // File patterns: account/files/*, pages/xxx/files/*, site/files/*, users/xxx/files/*
+            // Covers `account/files/*`, `pages/xxx/files/*`, `site/files/*` and `users/xxx/files/*`.
             preg_match('!(account|pages\/[^\/]+|site|users\/[^\/]+)\/files\/(.+)!', $path, $matches) === 1
                 => Find::file($matches[1], $matches[2]),
-            // Page pattern: pages/xxx
             str_starts_with($path, 'pages/') => Find::page(substr($path, 6)),
-            // Site
             $path === 'site' => $kirby->site(),
             default => null
         };

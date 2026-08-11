@@ -29,6 +29,7 @@ return array(
     'JohannSchopplich\\KirbyTools\\FieldNormalizer' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
     'JohannSchopplich\\KirbyTools\\FieldResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
     'JohannSchopplich\\KirbyTools\\ModelResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
+    'JohannSchopplich\\KirbyTools\\QueryResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/QueryResolver.php',
     'JohannSchopplich\\Licensing\\Http\\HttpClientInterface' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Http/HttpClientInterface.php',
     'JohannSchopplich\\Licensing\\Http\\KirbyHttpClient' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/Http/KirbyHttpClient.php',
     'JohannSchopplich\\Licensing\\LicenseActivator' => $vendorDir . '/johannschopplich/kirby-tools-licensing/src/LicenseActivator.php',
