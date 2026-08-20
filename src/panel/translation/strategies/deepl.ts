@@ -15,12 +15,11 @@ export class DeepLStrategy implements TranslationStrategy {
     options: TranslationExecutionOptions,
   ) {
     const api = useApi();
-    const { signal } = options;
 
     // Units the endpoint does not answer for keep their source text.
     const results: string[] = units.map((unit) => unit.text);
 
-    if (units.length > 0 && !signal?.aborted) {
+    if (units.length > 0) {
       const response = await api.post<{ texts: string[] }>(
         TRANSLATE_BATCH_API_ROUTE,
         {

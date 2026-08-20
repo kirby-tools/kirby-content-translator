@@ -22,7 +22,6 @@ export async function translateContent(
     sourceLanguage?: TranslationLanguage;
     targetLanguage: TranslationLanguage;
     kirbyTags?: Record<string, string[]>;
-    signal?: AbortSignal;
   },
 ): Promise<Record<string, unknown>> {
   const {
@@ -34,10 +33,7 @@ export async function translateContent(
     fieldTypes,
     includeFields = [],
     excludeFields = [],
-    signal,
   } = options;
-
-  if (signal?.aborted) return obj;
 
   const { translations, finalizers } = collectTranslations(obj, {
     fields,
@@ -55,12 +51,8 @@ export async function translateContent(
     {
       sourceLanguage,
       targetLanguage,
-      signal,
     },
   );
-
-  // A late abort must not write stale results back into the content.
-  if (signal?.aborted) return obj;
 
   for (const [index, { apply }] of translations.entries()) {
     apply(results[index]!);

@@ -49,7 +49,6 @@ export class AIStrategy implements TranslationStrategy {
       );
     }
 
-    const { signal } = options;
     const { streamText } = copilot;
 
     // Units that fail to translate keep their source text.
@@ -62,8 +61,6 @@ export class AIStrategy implements TranslationStrategy {
     const chunks = chunkUnitsWithIndices(units);
 
     for (const chunk of chunks) {
-      if (signal?.aborted) break;
-
       try {
         const schema = z.strictObject({
           translations: z.array(z.string()).check(z.length(chunk.length)),
@@ -108,7 +105,7 @@ export class AIStrategy implements TranslationStrategy {
 
     // Mirrors `CopilotAIStrategy`: a run where the provider produced nothing
     // usable is an error, not a silent no-op that reports success.
-    if (translatedCount === 0 && !signal?.aborted) {
+    if (translatedCount === 0) {
       throw new Error(
         `AI translation failed for all ${units.length} texts: ${lastReason ?? "unknown error"}`,
       );

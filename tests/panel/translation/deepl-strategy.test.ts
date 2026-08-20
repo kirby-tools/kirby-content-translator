@@ -76,25 +76,4 @@ describe("DeepLStrategy", () => {
       );
     });
   });
-
-  describe("abort signal", () => {
-    it("skips the API call when signal is pre-aborted", async () => {
-      const controller = new AbortController();
-      controller.abort();
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Hello", fieldKey: "title" },
-        { text: "Test", fieldKey: "cell" },
-      ];
-
-      const results = await strategy.execute(units, {
-        ...defaultOptions,
-        signal: controller.signal,
-      });
-
-      expect(mockApiPost).not.toHaveBeenCalled();
-      expect(results).toEqual(["Hello", "Test"]);
-    });
-  });
 });

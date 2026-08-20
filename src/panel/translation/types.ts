@@ -28,7 +28,6 @@ export interface CollectorResult {
 export interface TranslationExecutionOptions {
   sourceLanguage?: TranslationLanguage;
   targetLanguage: TranslationLanguage;
-  signal?: AbortSignal;
 }
 
 export interface TranslationStrategy {
