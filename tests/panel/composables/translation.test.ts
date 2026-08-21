@@ -39,6 +39,12 @@ const SECONDARY_LANGUAGE: PanelLanguage = {
   default: false,
 } as PanelLanguage;
 
+const THIRD_LANGUAGE: PanelLanguage = {
+  code: "it",
+  name: "Italiano",
+  default: false,
+} as PanelLanguage;
+
 function createPanelStub() {
   return {
     t: vi.fn((key: string, data?: Record<string, unknown>) =>
@@ -91,11 +97,23 @@ async function createContentTranslator(options: TranslatorOptions = {}) {
 
 /**
  * Kirby's own rules, so a test asserts against them rather than against a
- * literal: `k-panel-notification` skips anything typed `error`, and every
- * falsy timeout is coerced back to four seconds.
+ * literal: `k-panel-notification` skips anything typed `error` or `fatal`, and
+ * coerces every falsy timeout back to `KIRBY_DEFAULT_TIMEOUT`. Clearing that
+ * default is what "stays on screen" has to mean – merely non-zero would pass at
+ * one millisecond.
  */
+const KIRBY_DEFAULT_TIMEOUT = 4000;
+
+function lastNotification() {
+  return panel.notification.open.mock.calls.at(-1)![0];
+}
+
 function staysOnScreen(options: { type?: string; timeout?: number }) {
-  return options.type !== "error" && (options.timeout ?? 0) > 0;
+  return (
+    options.type !== "error" &&
+    options.type !== "fatal" &&
+    (options.timeout ?? 0) > KIRBY_DEFAULT_TIMEOUT
+  );
 }
 
 describe("useContentTranslator", () => {
@@ -210,6 +228,68 @@ describe("useContentTranslator", () => {
       );
     });
 
+    it("keeps translating the other languages when one language fails", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      panel.api.post.mockImplementation(
+        async (
+          _route: string,
+          payload: { texts: string[]; targetLanguage: string },
+        ) => {
+          if (payload.targetLanguage === "fr") throw new Error("provider down");
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example",
+        expect.anything(),
+        expect.objectContaining({ headers: { "x-language": "it" } }),
+      );
+      expect(error).toHaveBeenCalledWith(
+        'Failed to translate into "fr":',
+        expect.any(Error),
+      );
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        expect.stringContaining('"fr"'),
+      );
+      error.mockRestore();
+    });
+
+    it("reloads the view before reporting a failed language", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      const callOrder: string[] = [];
+      panel.api.post.mockImplementation(async () => {
+        throw new Error("provider down");
+      });
+      panel.view.reload.mockImplementation(() => {
+        callOrder.push("reload");
+      });
+      panel.notification.error.mockImplementation(() => {
+        callOrder.push("error");
+      });
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(callOrder).toEqual(["reload", "error"]);
+      error.mockRestore();
+    });
+
     it("notifies success before reloading the view", async () => {
       // Inverse of the single-translation teardown ordering.
       const callOrder: string[] = [];
@@ -250,12 +330,12 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("reports 1 of 2 text segments as untranslated", async () => {
+    it("reports 1 of 2 text segments as keeping its source text", async () => {
       currentContent = { value: { text: "Hello", intro: "World" } };
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejectedIndexes: [0],
+          rejected: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
 
@@ -270,19 +350,19 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.notification.success).not.toHaveBeenCalled();
-      const shown = panel.notification.open.mock.calls.at(-1)![0];
-      expect(shown.message).toBe(
-        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
+      expect(panel.t).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.notification.partiallyTranslated",
+        { untranslated: 1, total: 2 },
       );
-      expect(staysOnScreen(shown)).toBe(true);
+      expect(staysOnScreen(lastNotification())).toBe(true);
     });
 
-    it("keeps the nothingTranslated notification on screen", async () => {
+    it("reports every text segment as untranslated", async () => {
       currentContent = { value: { text: "Hello" } };
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejectedIndexes: [0],
+          rejected: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
 
@@ -295,11 +375,11 @@ describe("useContentTranslator", () => {
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.notification.error).not.toHaveBeenCalled();
-      const shown = panel.notification.open.mock.calls.at(-1)![0];
-      expect(shown.message).toBe(
-        'johannschopplich.content-translator.notification.nothingTranslated {"total":1}',
+      expect(panel.t).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.notification.nothingTranslated",
+        { total: 1 },
       );
-      expect(staysOnScreen(shown)).toBe(true);
+      expect(staysOnScreen(lastNotification())).toBe(true);
     });
 
     it("reports the title as untranslated when its translation throws", async () => {
@@ -324,9 +404,9 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith("pages/example/title", {
         title: "Example",
       });
-      const shown = panel.notification.open.mock.calls.at(-1)![0];
-      expect(shown.message).toBe(
-        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
+      expect(panel.t).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.notification.partiallyTranslated",
+        { untranslated: 1, total: 2 },
       );
     });
 

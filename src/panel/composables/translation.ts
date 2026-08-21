@@ -139,8 +139,7 @@ export function useContentTranslator() {
 
     if (result.translatedCount === 0) {
       // Not `notification.error`, which in a view also opens Kirby's blocking
-      // error dialog. `type: "error"` is out for the same reason: the view
-      // shell refuses to render one, expecting that dialog to carry it.
+      // error dialog.
       panel.notification.open({
         message: panel.t(
           "johannschopplich.content-translator.notification.nothingTranslated",
@@ -166,12 +165,9 @@ export function useContentTranslator() {
   }
 
   /**
-   * Translates the model title, patches whichever of title and slug the plan
-   * asks for, and reports the title's own outcome so a caller can fold it into
-   * the run it is reporting.
-   *
-   * `patch` carries the call shape rather than a flag, because a batch run
-   * addresses another language and silences the Panel's request indicator.
+   * Reports the title's own outcome so a caller can fold it into the run it is
+   * reporting. `patch` is injected because a batch run addresses a language
+   * other than the one on screen.
    */
   async function translateAndPatchTitle({
     title,
@@ -202,8 +198,7 @@ export function useContentTranslator() {
     } catch (error) {
       // `AIStrategy` throws once nothing in a run came back usable, which for a
       // lone title is any failure at all. The content is already saved by now,
-      // so the run reports the title as untranslated instead of ending in the
-      // error dialog and leaving the user to guess what was written.
+      // so the run reports the title as untranslated rather than erroring out.
       console.error("Failed to translate the title:", error);
       translatedTitle = {
         text: title,
@@ -271,7 +266,11 @@ export function useContentTranslator() {
 
     const hasSyncableContent = Object.keys(syncableContent).length > 0;
 
-    if (!hasSyncableContent && !plan.shouldPatchTitle && !plan.shouldPatchSlug) {
+    if (
+      !hasSyncableContent &&
+      !plan.shouldPatchTitle &&
+      !plan.shouldPatchSlug
+    ) {
       panel.notification.open({
         message: panel.t(
           "johannschopplich.content-translator.notification.nothingToImport",
@@ -428,14 +427,31 @@ export function useContentTranslator() {
         },
       );
 
-      notifyTranslationResult(
-        mergeTranslationResults(results),
-        "johannschopplich.content-translator.notification.batchTranslated",
+      const failedLanguages = selectedLanguages.filter(
+        (_, index) => results[index] === null,
       );
+
+      if (failedLanguages.length === 0) {
+        notifyTranslationResult(
+          mergeTranslationResults(results.filter((result) => result !== null)),
+          "johannschopplich.content-translator.notification.batchTranslated",
+        );
+      }
 
       isTranslating.value = false;
       // Reload will also end Panel loading state.
       await panel.view.reload();
+
+      if (failedLanguages.length > 0) {
+        // Reported after the reload, so the languages that did land are on
+        // screen before the dialog covers them. Folding a dead language into
+        // the segment counts would report it as a handful of skipped segments.
+        panel.notification.error(
+          `Failed to translate into ${failedLanguages
+            .map(({ code }) => `"${code}"`)
+            .join(", ")}. See the browser console for the reason.`,
+        );
+      }
     } catch (error) {
       isTranslating.value = false;
       panel.view.isLoading = false;
@@ -457,71 +473,87 @@ export function useContentTranslator() {
 
     let completed = 0;
 
+    // A language is isolated so one dead provider call cannot discard the
+    // languages already patched or skip the ones still queued.
     return await pAll(
       selectedLanguages.map((targetLanguage) => async () => {
-        const syncableContent = filterSyncableContent(
-          defaultLanguageData.content,
-          {
-            fields: fields.value!,
-            fieldTypes: fieldTypes.value,
-            includeFields: includeFields.value,
-            excludeFields: excludeFields.value,
-          },
-        );
-
-        const contentCopy = JSON.parse(JSON.stringify(syncableContent));
-
-        const contentResult = await translateContent(contentCopy, {
-          strategy,
-          sourceLanguage: defaultLanguage,
-          targetLanguage,
-          fieldTypes: fieldTypes.value,
-          includeFields: includeFields.value,
-          excludeFields: excludeFields.value,
-          kirbyTags: kirbyTags.value,
-          fields: fields.value!,
-        });
-
-        await panel.api.patch(modelApiPath, contentCopy, {
-          headers: { "x-language": targetLanguage.code! },
-          silent: true,
-        });
-
-        const plan = planBatchLanguageTranslation({
-          isHomePage: defaultLanguageData.id === homePageId.value,
-          isErrorPage: defaultLanguageData.id === errorPageId.value,
-          isFileModel: isFileModel(),
-          isSiteModel: isSiteModel(),
-          isTitleTranslationEnabled: translateTitle.value === true,
-          isSlugTranslationEnabled: translateSlug.value === true,
-          isTargetLanguageDefault: targetLanguage.default === true,
-        });
-
-        const languageResults = [contentResult];
-
-        if (plan.shouldRequestTitleTranslation) {
-          languageResults.push(
-            await translateAndPatchTitle({
-              title: defaultLanguageData.title,
-              plan,
-              targetLanguage,
-              sourceLanguage: defaultLanguage,
-              patch: (endpoint, data) =>
-                panel.api.patch(`${modelApiPath}/${endpoint}`, data, {
-                  headers: { "x-language": targetLanguage.code! },
-                  silent: true,
-                }),
-            }),
+        try {
+          return await translateIntoLanguage(targetLanguage);
+        } catch (error) {
+          console.error(
+            `Failed to translate into "${targetLanguage.code}":`,
+            error,
           );
+          return null;
         }
-
-        completed++;
-        onProgress?.(completed, selectedLanguages.length);
-
-        return mergeTranslationResults(languageResults);
       }),
       { concurrency },
     );
+
+    async function translateIntoLanguage(
+      targetLanguage: PanelLanguageInfo | PanelLanguage,
+    ) {
+      const syncableContent = filterSyncableContent(
+        defaultLanguageData.content,
+        {
+          fields: fields.value!,
+          fieldTypes: fieldTypes.value,
+          includeFields: includeFields.value,
+          excludeFields: excludeFields.value,
+        },
+      );
+
+      const contentCopy = JSON.parse(JSON.stringify(syncableContent));
+
+      const contentResult = await translateContent(contentCopy, {
+        strategy,
+        sourceLanguage: defaultLanguage,
+        targetLanguage,
+        fieldTypes: fieldTypes.value,
+        includeFields: includeFields.value,
+        excludeFields: excludeFields.value,
+        kirbyTags: kirbyTags.value,
+        fields: fields.value!,
+      });
+
+      await panel.api.patch(modelApiPath, contentCopy, {
+        headers: { "x-language": targetLanguage.code! },
+        silent: true,
+      });
+
+      const plan = planBatchLanguageTranslation({
+        isHomePage: defaultLanguageData.id === homePageId.value,
+        isErrorPage: defaultLanguageData.id === errorPageId.value,
+        isFileModel: isFileModel(),
+        isSiteModel: isSiteModel(),
+        isTitleTranslationEnabled: translateTitle.value === true,
+        isSlugTranslationEnabled: translateSlug.value === true,
+        isTargetLanguageDefault: targetLanguage.default === true,
+      });
+
+      const languageResults = [contentResult];
+
+      if (plan.shouldRequestTitleTranslation) {
+        languageResults.push(
+          await translateAndPatchTitle({
+            title: defaultLanguageData.title,
+            plan,
+            targetLanguage,
+            sourceLanguage: defaultLanguage,
+            patch: (endpoint, data) =>
+              panel.api.patch(`${modelApiPath}/${endpoint}`, data, {
+                headers: { "x-language": targetLanguage.code! },
+                silent: true,
+              }),
+          }),
+        );
+      }
+
+      completed++;
+      onProgress?.(completed, selectedLanguages.length);
+
+      return mergeTranslationResults(languageResults);
+    }
   }
 
   async function isHomePage() {
