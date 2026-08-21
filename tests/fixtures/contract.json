@@ -24,6 +24,7 @@
     { "text": "Visit https://example.com today", "skip": false },
     { "text": "<c0/>", "skip": true },
     { "text": "<c0/> <c1/>", "skip": true },
+    { "text": "<c0 />", "skip": true },
     { "text": "Text <c0/>", "skip": false }
   ],
   "placeholder": {

@@ -129,4 +129,25 @@ describe("translateContent", () => {
     expect(content).toEqual({ title: "Hallo", subtitle: "Welt" });
     expect(mockStreamText).toHaveBeenCalledOnce();
   });
+
+  it("restores the KirbyTag when a strategy pads a placeholder with a space", async () => {
+    const paddingStrategy: TranslationStrategy = {
+      async execute(units) {
+        // A stricter AI reformats the placeholder it was handed.
+        return units.map(() => "Klick <c0 /> jetzt");
+      },
+    };
+
+    const content = { body: "Click (link: /a text: here) now" };
+
+    await translateContent(content, {
+      strategy: paddingStrategy,
+      targetLanguage: { code: "de", name: "German" },
+      fieldTypes: ["textarea"] as const,
+      kirbyTags: {},
+      fields: { body: field({ type: "textarea", name: "textarea" }) },
+    });
+
+    expect(content.body).toBe("Klick (link: /a text: here) jetzt");
+  });
 });

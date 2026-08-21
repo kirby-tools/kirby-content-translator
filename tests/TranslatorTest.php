@@ -41,12 +41,12 @@ final class TranslatorTest extends TestCase
         };
     }
 
-    private static function pluginOptions(): array
+    private static function pluginOptions(\Closure|null $translateFn = null): array
     {
         return [
             'debug' => true,
             'johannschopplich.content-translator' => [
-                'translateFn' => self::fakeTranslateFn(),
+                'translateFn' => $translateFn ?? self::fakeTranslateFn(),
             ],
         ];
     }
@@ -369,7 +369,7 @@ final class TranslatorTest extends TestCase
         ]);
     }
 
-    private function appWithKirbyTagsPage(): App
+    private function appWithKirbyTagsPage(\Closure|null $translateFn = null): App
     {
         return new App([
             'languages' => self::threeLanguages(),
@@ -405,7 +405,7 @@ final class TranslatorTest extends TestCase
                     ],
                 ],
             ],
-            'options' => self::pluginOptions(),
+            'options' => self::pluginOptions($translateFn),
             'tags' => [
                 'link' => [
                     'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
@@ -820,6 +820,22 @@ final class TranslatorTest extends TestCase
         Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
 
         $this->assertSame([['Click <c0/> now', 'placeholder count mismatch', null]], $warnings);
+    }
+
+    #[Test]
+    public function restores_the_kirby_tag_when_a_translation_pads_a_placeholder_with_a_space(): void
+    {
+        // A stricter provider reformats the placeholder it was handed.
+        $app = $this->appWithKirbyTagsPage(
+            static fn (string $text): string => str_replace('<c0/>', '<c0 />', "[de]$text"),
+        );
+        $translator = new Translator($app->page('kirbytags'));
+        $translator->translateContent('en', 'de');
+
+        $this->assertSame(
+            '[de]Visit (link: https://example.com text: our website title: Click here)!',
+            $translator->model()->content('en')->get('text')->value()
+        );
     }
 
     #[Test]
