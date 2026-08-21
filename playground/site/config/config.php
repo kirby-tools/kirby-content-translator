@@ -41,6 +41,17 @@ return [
     ],
 
     'johannschopplich.content-translator' => [
+        // Drives the translation notifications without spending a provider
+        // call. `blank` makes every unit come back unusable, `partial` only
+        // the fields holding a KirbyTag. Unset, the playground uses DeepL.
+        'strategy' => match (env('FAKE_TRANSLATOR')) {
+            'blank' => fn (string $text): string => '',
+            'partial' => fn (string $text): string => str_contains($text, '<c')
+                ? (preg_replace('!<c\d+\s*/>!', '', '[xx] ' . $text) ?? $text)
+                : '[xx] ' . $text,
+            default => null
+        },
+
         'DeepL' => [
             'apiKey' => env('DEEPL_API_KEY'),
             'targetLanguageOverrides' => [

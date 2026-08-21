@@ -166,6 +166,48 @@ export function useContentTranslator() {
     });
   }
 
+  /**
+   * Translates the model title, patches whichever of title and slug the plan
+   * asks for, and reports the title's own outcome so a caller can fold it into
+   * the run it is reporting.
+   *
+   * `patch` carries the call shape rather than a flag, because a batch run
+   * addresses another language and silences the Panel's request indicator.
+   */
+  async function translateAndPatchTitle({
+    title,
+    plan,
+    targetLanguage,
+    sourceLanguage,
+    patch,
+  }: {
+    title: string;
+    plan: { shouldPatchTitle: boolean; shouldPatchSlug: boolean };
+    targetLanguage: PanelLanguageInfo | PanelLanguage;
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+    patch: (
+      endpoint: "title" | "slug",
+      data: Record<string, unknown>,
+    ) => Promise<unknown>;
+  }): Promise<ContentTranslationResult> {
+    const translatedTitle = await translateText(title, {
+      provider: provider.value,
+      targetLanguage,
+      sourceLanguage,
+      systemPrompt: systemPrompt.value,
+    });
+
+    if (plan.shouldPatchTitle) {
+      await patch("title", { title: translatedTitle.text });
+    }
+
+    if (plan.shouldPatchSlug) {
+      await patch("slug", { slug: slugify(translatedTitle.text) });
+    }
+
+    return translatedTitle.result;
+  }
+
   // TODO: Next major version – unify import flow through a server-side
   // `copyContent` API endpoint. When importing from the default language,
   // delete the content file (Kirby inherits automatically) and reload the
@@ -271,7 +313,7 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      const result = await translateContent(contentCopy, {
+      const contentResult = await translateContent(contentCopy, {
         strategy,
         sourceLanguage,
         targetLanguage,
@@ -294,28 +336,20 @@ export function useContentTranslator() {
         hasViewTitle: Boolean(panel.view.title),
       });
 
-      const results = [result];
+      const results = [contentResult];
 
       if (plan.shouldRequestTitleTranslation) {
-        // Non-null: the plan requests a title translation only when the view has one.
-        const translatedTitle = await translateText(panel.view.title!, {
-          provider: provider.value,
-          targetLanguage,
-          sourceLanguage,
-          systemPrompt: systemPrompt.value,
-        });
-        results.push(translatedTitle.result);
-
-        if (plan.shouldPatchTitle) {
-          await panel.api.patch(`${panel.view.path}/title`, {
-            title: translatedTitle.text,
-          });
-        }
-
-        if (plan.shouldPatchSlug) {
-          const slug = slugify(translatedTitle.text);
-          await panel.api.patch(`${panel.view.path}/slug`, { slug });
-        }
+        results.push(
+          await translateAndPatchTitle({
+            // Non-null: the plan requests a title translation only when the view has one.
+            title: panel.view.title!,
+            plan,
+            targetLanguage,
+            sourceLanguage,
+            patch: (endpoint, data) =>
+              panel.api.patch(`${panel.view.path}/${endpoint}`, data),
+          }),
+        );
 
         isTranslating.value = false;
         // Reload will also end Panel loading state.
@@ -423,7 +457,7 @@ export function useContentTranslator() {
 
         const contentCopy = JSON.parse(JSON.stringify(syncableContent));
 
-        const result = await translateContent(contentCopy, {
+        const contentResult = await translateContent(contentCopy, {
           strategy,
           sourceLanguage: defaultLanguage,
           targetLanguage,
@@ -449,48 +483,28 @@ export function useContentTranslator() {
           isTargetLanguageDefault: targetLanguage.default === true,
         });
 
-        const results = [result];
+        const languageResults = [contentResult];
 
         if (plan.shouldRequestTitleTranslation) {
-          const translatedTitle = await translateText(
-            defaultLanguageData.title,
-            {
-              provider: provider.value,
+          languageResults.push(
+            await translateAndPatchTitle({
+              title: defaultLanguageData.title,
+              plan,
               targetLanguage,
               sourceLanguage: defaultLanguage,
-              systemPrompt: systemPrompt.value,
-            },
+              patch: (endpoint, data) =>
+                panel.api.patch(`${modelApiPath}/${endpoint}`, data, {
+                  headers: { "x-language": targetLanguage.code! },
+                  silent: true,
+                }),
+            }),
           );
-          results.push(translatedTitle.result);
-
-          if (plan.shouldPatchTitle) {
-            await panel.api.patch(
-              `${modelApiPath}/title`,
-              { title: translatedTitle.text },
-              {
-                headers: { "x-language": targetLanguage.code! },
-                silent: true,
-              },
-            );
-          }
-
-          if (plan.shouldPatchSlug) {
-            const slug = slugify(translatedTitle.text);
-            await panel.api.patch(
-              `${modelApiPath}/slug`,
-              { slug },
-              {
-                headers: { "x-language": targetLanguage.code! },
-                silent: true,
-              },
-            );
-          }
         }
 
         completed++;
         onProgress?.(completed, selectedLanguages.length);
 
-        return mergeTranslationResults(results);
+        return mergeTranslationResults(languageResults);
       }),
       { concurrency },
     );
