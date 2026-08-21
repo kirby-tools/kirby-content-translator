@@ -344,9 +344,10 @@ final class Translator
 
     /**
      * The `<cN/>` indexes a text carries, sorted so two texts compare directly.
-     * A lost or invented placeholder means `KirbyText::restore()` can no longer
-     * rebuild the tag, and counting alone would accept `<c0/> <c0/>` for a
-     * source holding `<c0/> <c1/>`, which rebuilds tag 0 twice and drops tag 1.
+     * A lost or invented placeholder means the `restore` closure from
+     * `KirbyText::split()` can no longer rebuild the tag, and counting alone
+     * would accept `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, which
+     * rebuilds tag 0 twice and drops tag 1.
      *
      * @return list<int>
      */
@@ -368,6 +369,9 @@ final class Translator
 
     private static function warn(TranslationUnit $unit, string $reason): void
     {
+        // TODO: Next major version – back the reason strings with an enum. This
+        // hook publishes them, so a consumer branches on them, yet a rename is
+        // invisible to the compiler and to both test suites.
         App::instance()->trigger('content-translator.translate:warning', [
             'unit' => $unit,
             'reason' => $reason,

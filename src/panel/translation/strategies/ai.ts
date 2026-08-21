@@ -116,8 +116,10 @@ export class AIStrategy implements TranslationStrategy {
       }
     }
 
-    // A provider that answered gets its own reason: `lastReason` then holds a
-    // message this file wrote rather than anything the provider said.
+    // A provider that answered at least once gets its own reason. `lastReason`
+    // may by then hold a later chunk's transport error, which would report the
+    // run as a connection failure when the bulk of it was unusable output – and
+    // that error already reached the console above.
     if (translatedCount === 0) {
       const reason = hasProviderAnswer
         ? `the provider answered, but all ${units.length} translations were unusable`

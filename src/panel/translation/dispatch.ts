@@ -12,19 +12,18 @@ import { isUntranslatable } from "./untranslatable";
  * into the skipped slots so callers keep a 1:1 mapping with `units`.
  *
  * Also enforces the KirbyTag placeholder invariant here rather than inside a
- * strategy, so every strategy is covered.
+ * strategy, so a new strategy cannot forget it. `DeepLStrategy` is the
+ * exception: the PHP tier has already adjudicated its units, so its rejections
+ * arrive as outcomes and never reach the check.
  *
  * The counts travel with the texts because a translation may legitimately equal
  * its source text, so no caller can recover them by diffing the result.
- *
- * Warnings name the target language because a batch run repeats every field
- * once per language.
  */
 export async function translateUnits(
   units: TranslationUnit[],
   strategy: TranslationStrategy,
   options: TranslationExecutionOptions,
-): Promise<BatchTranslationResult> {
+): Promise<UnitTranslationResult> {
   const texts = units.map((unit) => unit.text);
 
   const translatableIndexes: number[] = [];
