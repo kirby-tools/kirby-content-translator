@@ -41,10 +41,11 @@ return [
     ],
 
     'johannschopplich.content-translator' => [
-        // Drives the translation notifications without spending a provider
-        // call. `blank` makes every unit come back unusable, `partial` only
-        // the fields holding a KirbyTag. Unset, the playground uses DeepL.
-        'strategy' => match (env('FAKE_TRANSLATOR')) {
+        // Drives the notifications without spending a DeepL call. `blank`
+        // makes every unit come back unusable, `partial` only the fields
+        // holding a KirbyTag. The AI provider goes straight to Copilot from
+        // the Panel, so this never reaches it.
+        'strategy' => match (env('TRANSLATOR_STRATEGY')) {
             'blank' => fn (string $text): string => '',
             'partial' => fn (string $text): string => str_contains($text, '<c')
                 ? (preg_replace('!<c\d+\s*/>!', '', '[xx] ' . $text) ?? $text)
