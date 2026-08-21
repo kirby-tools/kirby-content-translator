@@ -41,7 +41,9 @@ const SECONDARY_LANGUAGE: PanelLanguage = {
 
 function createPanelStub() {
   return {
-    t: vi.fn((key: string) => key),
+    t: vi.fn((key: string, data?: Record<string, unknown>) =>
+      data ? `${key} ${JSON.stringify(data)}` : key,
+    ),
     language: SECONDARY_LANGUAGE,
     languages: [DEFAULT_LANGUAGE, SECONDARY_LANGUAGE],
     view: {
@@ -85,6 +87,16 @@ async function createContentTranslator(options: TranslatorOptions = {}) {
   const translator = useContentTranslator();
   translator.initializeConfig(createPluginContext(), options);
   return translator;
+}
+
+/**
+ * Kirby auto-closes a notification after four seconds unless it is an `error`
+ * or carries a positive timeout; every falsy timeout is coerced back to the
+ * default. Encoding the rule here rather than a literal keeps a regression to
+ * `timeout: false` failing.
+ */
+function staysOnScreen(options: { type?: string; timeout?: number }) {
+  return options.type === "error" || (options.timeout ?? 0) > 0;
 }
 
 describe("useContentTranslator", () => {
@@ -216,6 +228,104 @@ describe("useContentTranslator", () => {
       await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
 
       expect(callOrder).toEqual(["success", "reload"]);
+    });
+  });
+
+  describe("translation outcome", () => {
+    it("reports nothing to translate when every field value is untranslatable", async () => {
+      currentContent = { value: { text: "2024" } };
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.api.post).not.toHaveBeenCalled();
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            "johannschopplich.content-translator.notification.nothingToTranslate",
+        }),
+      );
+    });
+
+    it("reports 1 of 2 text segments as untranslated", async () => {
+      currentContent = { value: { text: "Hello", intro: "World" } };
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => ({
+          texts: payload.texts,
+          rejectedIndexes: [0],
+        }),
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: {
+          text: field({ type: "text", name: "text" }),
+          intro: field({ type: "text", name: "intro" }),
+        },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      const shown = panel.notification.open.mock.calls.at(-1)![0];
+      expect(shown.message).toBe(
+        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
+      );
+      expect(staysOnScreen(shown)).toBe(true);
+    });
+
+    it("keeps the nothingTranslated notification on screen", async () => {
+      currentContent = { value: { text: "Hello" } };
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => ({
+          texts: payload.texts,
+          rejectedIndexes: [0],
+        }),
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      const shown = panel.notification.open.mock.calls.at(-1)![0];
+      expect(shown.message).toBe(
+        'johannschopplich.content-translator.notification.nothingTranslated {"total":1}',
+      );
+      expect(staysOnScreen(shown)).toBe(true);
+    });
+
+    it("reports nothing to import when no content field is syncable", async () => {
+      panel.api.get.mockResolvedValue({
+        id: "example",
+        title: "Example",
+        content: { untracked: "Hello" },
+      });
+
+      const translator = await createContentTranslator({
+        title: false,
+        slug: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.syncModelContent(DEFAULT_LANGUAGE);
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            "johannschopplich.content-translator.notification.nothingToImport",
+        }),
+      );
     });
   });
 });

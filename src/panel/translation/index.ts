@@ -1,5 +1,6 @@
 import type {
   CollectorOptions,
+  ContentTranslationResult,
   TranslationLanguage,
   TranslationStrategy,
 } from "./types";
@@ -10,7 +11,8 @@ export * from "./strategies";
 export * from "./text";
 
 /**
- * Translates every collected unit and writes the results back into `obj`.
+ * Translates every collected unit, writes the results back into `obj` and
+ * reports how much of it was translated.
  *
  * Finalizers run only after all units have been applied, so a finalizer may
  * re-serialize a field that several units wrote into.
@@ -23,7 +25,7 @@ export async function translateContent(
     targetLanguage: TranslationLanguage;
     kirbyTags?: Record<string, string[]>;
   },
-): Promise<Record<string, unknown>> {
+): Promise<ContentTranslationResult> {
   const {
     strategy,
     sourceLanguage,
@@ -43,9 +45,11 @@ export async function translateContent(
     kirbyTags,
   });
 
-  if (translations.length === 0) return obj;
+  if (translations.length === 0) {
+    return { translatableCount: 0, translatedCount: 0 };
+  }
 
-  const results = await translateUnits(
+  const { texts, translatableCount, translatedCount } = await translateUnits(
     translations.map((item) => item.unit),
     strategy,
     {
@@ -55,12 +59,12 @@ export async function translateContent(
   );
 
   for (const [index, { apply }] of translations.entries()) {
-    apply(results[index]!);
+    apply(texts[index]!);
   }
 
   for (const finalizer of finalizers) {
     finalizer();
   }
 
-  return obj;
+  return { translatableCount, translatedCount };
 }

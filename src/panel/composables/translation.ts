@@ -1,10 +1,12 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type {
   KirbyFieldProps,
+  NotificationTheme,
   PanelLanguage,
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
+import type { ContentTranslationResult } from "../translation/types";
 import type {
   PluginConfig,
   PluginContextResponse,
@@ -33,6 +35,12 @@ import {
 } from "../utils/translator-config";
 import { useModel } from "./model";
 import { createGlobalState } from "./state";
+
+/**
+ * Long enough that a notification stays until something replaces it. Kirby
+ * coerces any falsy timeout back to four seconds for every theme but `error`.
+ */
+const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
@@ -105,6 +113,59 @@ export function useContentTranslator() {
     ).hasAnyProvider;
   }
 
+  // Only one notification is visible at a time, so the most specific outcome wins.
+  function notifyTranslationResult(
+    result: ContentTranslationResult,
+    successMessageKey: string,
+  ) {
+    if (result.translatableCount === 0) {
+      panel.notification.open({
+        message: panel.t(
+          "johannschopplich.content-translator.notification.nothingToTranslate",
+        ),
+        icon: "info",
+        theme: "info",
+      });
+      return;
+    }
+
+    const untranslatedCount = result.translatableCount - result.translatedCount;
+
+    if (untranslatedCount === 0) {
+      panel.notification.success(panel.t(successMessageKey));
+      return;
+    }
+
+    if (result.translatedCount === 0) {
+      // A toast, not `notification.error`: that also opens Kirby's blocking
+      // error dialog, and a provider that answered with nothing usable is
+      // nothing the user can act on beyond running the translation again.
+      // `type: "error"` is what keeps it on screen, since Kirby coerces any
+      // falsy timeout back to four seconds for every other type.
+      panel.notification.open({
+        message: panel.t(
+          "johannschopplich.content-translator.notification.nothingTranslated",
+          { total: result.translatableCount },
+        ),
+        icon: "alert",
+        theme: "negative",
+        type: "error",
+      });
+      return;
+    }
+
+    panel.notification.open({
+      message: panel.t(
+        "johannschopplich.content-translator.notification.partiallyTranslated",
+        { untranslated: untranslatedCount, total: result.translatableCount },
+      ),
+      icon: "alert",
+      // The Panel styles `notice`, but `kirby-types` omits it from the union.
+      theme: "notice" as NotificationTheme,
+      timeout: PERSISTENT_TIMEOUT,
+    });
+  }
+
   // TODO: Next major version – unify import flow through a server-side
   // `copyContent` API endpoint. When importing from the default language,
   // delete the content file (Kirby inherits automatically) and reload the
@@ -142,7 +203,6 @@ export function useContentTranslator() {
       excludeFields: excludeFields.value,
     });
 
-    await updateContent(syncableContent);
     const plan = planImport({
       isHomePage: await isHomePage(),
       isErrorPage: await isErrorPage(),
@@ -152,6 +212,21 @@ export function useContentTranslator() {
       isSlugTranslationEnabled: translateSlug.value === true,
       isCurrentLanguageDefault: panel.language.default,
     });
+
+    const hasSyncableContent = Object.keys(syncableContent).length > 0;
+
+    if (!hasSyncableContent && !plan.shouldPatchTitle && !plan.shouldPatchSlug) {
+      panel.notification.open({
+        message: panel.t(
+          "johannschopplich.content-translator.notification.nothingToImport",
+        ),
+        icon: "info",
+        theme: "info",
+      });
+      return;
+    }
+
+    await updateContent(syncableContent);
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
@@ -183,7 +258,7 @@ export function useContentTranslator() {
       ),
       icon: "loader",
       theme: "info",
-      timeout: false as any,
+      timeout: PERSISTENT_TIMEOUT,
     });
 
     try {
@@ -196,7 +271,7 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      await translateContent(contentCopy, {
+      const result = await translateContent(contentCopy, {
         strategy,
         sourceLanguage,
         targetLanguage,
@@ -219,6 +294,8 @@ export function useContentTranslator() {
         hasViewTitle: Boolean(panel.view.title),
       });
 
+      const results = [result];
+
       if (plan.shouldRequestTitleTranslation) {
         // Non-null: the plan requests a title translation only when the view has one.
         const translatedTitle = await translateText(panel.view.title!, {
@@ -227,15 +304,16 @@ export function useContentTranslator() {
           sourceLanguage,
           systemPrompt: systemPrompt.value,
         });
+        results.push(translatedTitle.result);
 
         if (plan.shouldPatchTitle) {
           await panel.api.patch(`${panel.view.path}/title`, {
-            title: translatedTitle,
+            title: translatedTitle.text,
           });
         }
 
         if (plan.shouldPatchSlug) {
-          const slug = slugify(translatedTitle);
+          const slug = slugify(translatedTitle.text);
           await panel.api.patch(`${panel.view.path}/slug`, { slug });
         }
 
@@ -247,8 +325,9 @@ export function useContentTranslator() {
         panel.view.isLoading = false;
       }
 
-      panel.notification.success(
-        panel.t("johannschopplich.content-translator.notification.translated"),
+      notifyTranslationResult(
+        mergeTranslationResults(results),
+        "johannschopplich.content-translator.notification.translated",
       );
     } catch (error) {
       isTranslating.value = false;
@@ -274,7 +353,7 @@ export function useContentTranslator() {
       ),
       icon: "loader",
       theme: "info",
-      timeout: false as any,
+      timeout: PERSISTENT_TIMEOUT,
     });
 
     const defaultLanguageData = await getModelData();
@@ -284,7 +363,7 @@ export function useContentTranslator() {
         : new DeepLStrategy();
 
     try {
-      await batchTranslateLanguages(
+      const results = await batchTranslateLanguages(
         selectedLanguages,
         defaultLanguageData,
         strategy,
@@ -296,15 +375,14 @@ export function useContentTranslator() {
             ),
             icon: "loader",
             theme: "info",
-            timeout: false as any,
+            timeout: PERSISTENT_TIMEOUT,
           });
         },
       );
 
-      panel.notification.success(
-        panel.t(
-          "johannschopplich.content-translator.notification.batchTranslated",
-        ),
+      notifyTranslationResult(
+        mergeTranslationResults(results),
+        "johannschopplich.content-translator.notification.batchTranslated",
       );
 
       isTranslating.value = false;
@@ -331,7 +409,7 @@ export function useContentTranslator() {
 
     let completed = 0;
 
-    await pAll(
+    return await pAll(
       selectedLanguages.map((targetLanguage) => async () => {
         const syncableContent = filterSyncableContent(
           defaultLanguageData.content,
@@ -345,7 +423,7 @@ export function useContentTranslator() {
 
         const contentCopy = JSON.parse(JSON.stringify(syncableContent));
 
-        await translateContent(contentCopy, {
+        const result = await translateContent(contentCopy, {
           strategy,
           sourceLanguage: defaultLanguage,
           targetLanguage,
@@ -371,6 +449,8 @@ export function useContentTranslator() {
           isTargetLanguageDefault: targetLanguage.default === true,
         });
 
+        const results = [result];
+
         if (plan.shouldRequestTitleTranslation) {
           const translatedTitle = await translateText(
             defaultLanguageData.title,
@@ -381,11 +461,12 @@ export function useContentTranslator() {
               systemPrompt: systemPrompt.value,
             },
           );
+          results.push(translatedTitle.result);
 
           if (plan.shouldPatchTitle) {
             await panel.api.patch(
               `${modelApiPath}/title`,
-              { title: translatedTitle },
+              { title: translatedTitle.text },
               {
                 headers: { "x-language": targetLanguage.code! },
                 silent: true,
@@ -394,7 +475,7 @@ export function useContentTranslator() {
           }
 
           if (plan.shouldPatchSlug) {
-            const slug = slugify(translatedTitle);
+            const slug = slugify(translatedTitle.text);
             await panel.api.patch(
               `${modelApiPath}/slug`,
               { slug },
@@ -408,6 +489,8 @@ export function useContentTranslator() {
 
         completed++;
         onProgress?.(completed, selectedLanguages.length);
+
+        return mergeTranslationResults(results);
       }),
       { concurrency },
     );
@@ -445,5 +528,20 @@ export function useContentTranslator() {
     syncModelContent,
     translateModelContent,
     batchTranslateModelContent,
+  };
+}
+
+function mergeTranslationResults(
+  results: ContentTranslationResult[],
+): ContentTranslationResult {
+  return {
+    translatableCount: results.reduce(
+      (total, result) => total + result.translatableCount,
+      0,
+    ),
+    translatedCount: results.reduce(
+      (total, result) => total + result.translatedCount,
+      0,
+    ),
   };
 }

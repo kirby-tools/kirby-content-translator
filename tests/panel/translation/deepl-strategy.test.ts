@@ -57,7 +57,7 @@ describe("DeepLStrategy", () => {
       expect(results).toEqual(["B1", "B2", "B3"]);
     });
 
-    it("keeps source text for a whitespace-only translation", async () => {
+    it("returns null for a whitespace-only translation", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["\u00A0 ", "Welt"] });
 
       const strategy = new DeepLStrategy();
@@ -68,7 +68,38 @@ describe("DeepLStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results).toEqual(["Hello", "Welt"]);
+      expect(results).toEqual([null, "Welt"]);
+    });
+
+    it("returns null for an index in rejectedIndexes", async () => {
+      mockApiPost.mockResolvedValueOnce({
+        texts: ["Hello", "Welt"],
+        rejectedIndexes: [0],
+      });
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "subtitle" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual([null, "Welt"]);
+    });
+
+    it("returns null for units the response leaves unanswered", async () => {
+      mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "subtitle" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual(["Hallo", null]);
     });
   });
 

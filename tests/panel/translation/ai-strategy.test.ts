@@ -131,7 +131,7 @@ describe("AIStrategy", () => {
       consoleSpy.mockRestore();
     });
 
-    it("keeps source text for a failed chunk while the others succeed", async () => {
+    it("returns null for a failed chunk while the others succeed", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -150,9 +150,31 @@ describe("AIStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results[0]).toBe(largeText); // Original kept.
-      expect(results[1]).toBe("Success"); // Second chunk succeeded.
+      expect(results[0]).toBeNull();
+      expect(results[1]).toBe("Success");
       expect(consoleSpy).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe("unusable responses", () => {
+    it("names the provider answer in the error when every translation is blank", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {});
+      mockStreamText.mockResolvedValueOnce({
+        output: Promise.resolve({ translations: ["", " "] }),
+      });
+
+      const strategy = new AIStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", fieldKey: "a" },
+        { text: "World", fieldKey: "b" },
+      ];
+
+      await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
+        "the provider answered, but all 2 translations were unusable",
+      );
       consoleSpy.mockRestore();
     });
   });

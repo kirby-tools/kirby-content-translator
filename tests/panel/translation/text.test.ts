@@ -27,7 +27,8 @@ describe("translateText", () => {
       expect.any(String),
       expect.objectContaining({ texts: ["Hello"] }),
     );
-    expect(result).toBe("Hallo");
+    expect(result.text).toBe("Hallo");
+    expect(result.result).toEqual({ translatableCount: 1, translatedCount: 1 });
   });
 
   it("returns untranslatable text without reaching the strategy", async () => {
@@ -37,7 +38,8 @@ describe("translateText", () => {
     });
 
     expect(mockApiPost).not.toHaveBeenCalled();
-    expect(result).toBe("2024");
+    expect(result.text).toBe("2024");
+    expect(result.result.translatableCount).toBe(0);
   });
 
   it("falls back to the source text when the strategy returns no result", async () => {
@@ -48,6 +50,7 @@ describe("translateText", () => {
       targetLanguage: GERMAN,
     });
 
-    expect(result).toBe("Hello");
+    expect(result.text).toBe("Hello");
+    expect(result.result).toEqual({ translatableCount: 1, translatedCount: 0 });
   });
 });

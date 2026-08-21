@@ -54,10 +54,11 @@ return [
                     throw new BadMethodCallException('Missing "targetLanguage" parameter');
                 }
 
-                $translatedTexts = Translator::translateTexts($texts, $targetLanguage, $sourceLanguage);
+                $result = Translator::translateBatch($texts, $targetLanguage, $sourceLanguage);
 
                 return [
-                    'texts' => $translatedTexts
+                    'texts' => $result->texts,
+                    'rejectedIndexes' => $result->rejectedIndexes
                 ];
             }
         ],

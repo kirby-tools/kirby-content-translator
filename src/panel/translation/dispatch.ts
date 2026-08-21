@@ -2,6 +2,7 @@ import type {
   TranslationExecutionOptions,
   TranslationStrategy,
   TranslationUnit,
+  UnitTranslationResult,
 } from "./types";
 import { PLACEHOLDER_PATTERN } from "./kirby-text";
 import { isUntranslatable } from "./untranslatable";
@@ -12,13 +13,16 @@ import { isUntranslatable } from "./untranslatable";
  *
  * Also enforces the KirbyTag placeholder invariant here rather than inside a
  * strategy, so every strategy is covered.
+ *
+ * The counts travel with the texts because a translation may legitimately equal
+ * its source text, so no caller can recover them by diffing the result.
  */
 export async function translateUnits(
   units: TranslationUnit[],
   strategy: TranslationStrategy,
   options: TranslationExecutionOptions,
-): Promise<string[]> {
-  const results = units.map((unit) => unit.text);
+): Promise<UnitTranslationResult> {
+  const texts = units.map((unit) => unit.text);
 
   const translatableIndexes: number[] = [];
   const translatableUnits: TranslationUnit[] = [];
@@ -30,19 +34,29 @@ export async function translateUnits(
     }
   }
 
-  if (!translatableUnits.length) return results;
+  if (!translatableUnits.length) {
+    return { texts, translatableCount: 0, translatedCount: 0 };
+  }
 
   const translations = await strategy.execute(translatableUnits, options);
 
-  for (const [position, index] of translatableIndexes.entries()) {
-    const translation = translations[position];
-    // A short, non-string or blank response leaves the source text in place
-    // rather than blanking the field. `isUntranslatable` already dropped the
-    // blank sources, so nothing that reaches a strategy can legitimately come
-    // back blank.
-    if (typeof translation !== "string" || !translation.trim()) continue;
+  let translatedCount = 0;
 
+  for (const [position, index] of translatableIndexes.entries()) {
     const unit = translatableUnits[position]!;
+    const translation = translations[position];
+
+    // `null`, a missing slot, a non-string, or a blank string leaves the source
+    // text in place rather than blanking the field. `isUntranslatable` already
+    // dropped the blank sources, so nothing that reaches a strategy can
+    // legitimately come back blank.
+    if (typeof translation !== "string" || !translation.trim()) {
+      console.warn(
+        `No usable translation for "${unit.fieldKey}". Keeping source text.`,
+      );
+      continue;
+    }
+
     const expectedCount = countPlaceholders(unit.text);
     const actualCount = countPlaceholders(translation);
 
@@ -53,10 +67,15 @@ export async function translateUnits(
       continue;
     }
 
-    results[index] = translation;
+    texts[index] = translation;
+    translatedCount++;
   }
 
-  return results;
+  return {
+    texts,
+    translatableCount: translatableUnits.length,
+    translatedCount,
+  };
 }
 
 function countPlaceholders(text: string): number {

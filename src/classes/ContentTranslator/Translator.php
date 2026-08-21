@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
+use JohannSchopplich\ContentTranslator\Translation\BatchTranslationResult;
 use JohannSchopplich\ContentTranslator\Translation\Collector;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
@@ -70,8 +71,29 @@ final class Translator
      */
     public static function translateTexts(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): array
     {
+        return self::translateBatch($texts, $targetLanguage, $sourceLanguage, $strategy)->texts;
+    }
+
+    /**
+     * Translates `$texts` and names the positions that kept their source text.
+     *
+     * The Panel needs them because a strategy running on the server hands back
+     * the source text for a unit it dropped, which no caller can tell apart
+     * from a translation that legitimately equals its source.
+     *
+     * @internal Serves the batch API route, not the published surface.
+     *
+     * @param list<string> $texts
+     *
+     * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
+     * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
+     * @throws AuthException When the DeepL API key is missing
+     * @throws InvalidArgumentException When a language code is not registered in the site's languages
+     */
+    public static function translateBatch(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): BatchTranslationResult
+    {
         if ($texts === []) {
-            return [];
+            return new BatchTranslationResult([], []);
         }
 
         $kirby = App::instance();
@@ -95,7 +117,7 @@ final class Translator
         $translatedResult = self::translateUnits($units, $strategy, $options);
 
         $translatedTexts = [];
-        foreach ($translatedResult as $index => $translatedText) {
+        foreach ($translatedResult->texts as $index => $translatedText) {
             $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
                 'text' => $translatedText,
                 'originalText' => $texts[$index],
@@ -107,7 +129,7 @@ final class Translator
             ], 'text');
         }
 
-        return $translatedTexts;
+        return new BatchTranslationResult($translatedTexts, $translatedResult->rejectedIndexes);
     }
 
     /**
@@ -185,7 +207,7 @@ final class Translator
                     $result->translations,
                 );
 
-                $translations = self::translateUnits($processedUnits, $strategy, $options);
+                $translations = self::translateUnits($processedUnits, $strategy, $options)->texts;
 
                 foreach ($result->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
@@ -262,11 +284,11 @@ final class Translator
      * a strategy, so every strategy is covered – including user-supplied ones.
      *
      * @param list<TranslationUnit> $units
-     * @return list<string>
      */
-    private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): array
+    private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): BatchTranslationResult
     {
         $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
+        $rejectedIndexes = [];
 
         $translatableIndexes = [];
         $translatableUnits = [];
@@ -279,7 +301,7 @@ final class Translator
         }
 
         if ($translatableUnits === []) {
-            return $results;
+            return new BatchTranslationResult($results, []);
         }
 
         $translations = $strategy->execute($translatableUnits, $options);
@@ -288,6 +310,7 @@ final class Translator
         // contract must not be able to write outside the result list.
         foreach ($translatableIndexes as $position => $index) {
             if (!isset($translations[$position])) {
+                $rejectedIndexes[] = $index;
                 continue;
             }
 
@@ -296,6 +319,7 @@ final class Translator
 
             if (!is_string($translation)) {
                 self::warn($unit, 'non-string translation');
+                $rejectedIndexes[] = $index;
                 continue;
             }
 
@@ -303,18 +327,20 @@ final class Translator
             // that reaches a strategy cannot legitimately come back blank.
             if (UntranslatableText::isBlank($translation)) {
                 self::warn($unit, 'empty translation');
+                $rejectedIndexes[] = $index;
                 continue;
             }
 
             if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
                 self::warn($unit, 'placeholder count mismatch');
+                $rejectedIndexes[] = $index;
                 continue;
             }
 
             $results[$index] = $translation;
         }
 
-        return $results;
+        return new BatchTranslationResult($results, $rejectedIndexes);
     }
 
     /**

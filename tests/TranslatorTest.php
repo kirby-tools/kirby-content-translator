@@ -823,6 +823,34 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function translate_batch_reports_the_index_of_a_unit_it_could_not_translate(): void
+    {
+        $this->appWithTranslateFn();
+
+        $result = Translator::translateBatch(
+            ['Click <c0/> now', 'Hello'],
+            'de',
+            null,
+            self::mangledPlaceholderStrategy(),
+        );
+
+        $this->assertSame(['Click <c0/> now', '[de]Hello'], $result->texts);
+        $this->assertSame([0], $result->rejectedIndexes);
+    }
+
+    #[Test]
+    public function translate_batch_omits_an_untranslatable_text_from_rejectedIndexes(): void
+    {
+        $this->appWithTranslateFn();
+
+        // Never handed to the strategy, so it is skipped rather than rejected.
+        $result = Translator::translateBatch(['2024'], 'de', null, self::recordingStrategy());
+
+        $this->assertSame(['2024'], $result->texts);
+        $this->assertSame([], $result->rejectedIndexes);
+    }
+
+    #[Test]
     public function restores_the_kirby_tag_when_a_translation_pads_a_placeholder_with_a_space(): void
     {
         // A stricter provider reformats the placeholder it was handed.

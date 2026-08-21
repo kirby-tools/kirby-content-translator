@@ -35,7 +35,7 @@ export class AIStrategy implements TranslationStrategy {
   async execute(
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
-  ): Promise<string[]> {
+  ): Promise<(string | null)[]> {
     const copilot = resolveCopilot();
     if (!copilot) {
       throw new Error("Kirby Copilot plugin is required for AI translations");
@@ -51,9 +51,9 @@ export class AIStrategy implements TranslationStrategy {
 
     const { streamText } = copilot;
 
-    // Units that fail to translate keep their source text.
-    const results: string[] = units.map((unit) => unit.text);
+    const results: (string | null)[] = units.map(() => null);
     let translatedCount = 0;
+    let hasProviderAnswer = false;
     let lastReason: string | undefined;
 
     // The original index travels with each unit so a failed chunk leaves the
@@ -79,6 +79,7 @@ export class AIStrategy implements TranslationStrategy {
         finalOutput.catch(() => {});
 
         const result = await finalOutput;
+        hasProviderAnswer = true;
 
         for (const [i, { unit, originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
@@ -99,15 +100,20 @@ export class AIStrategy implements TranslationStrategy {
           `Failed to translate chunk (${chunk.map(({ unit }) => unit.fieldKey).join(", ")})`,
         );
         console.error(error);
-        // Keep original texts (already in results).
       }
     }
 
     // Mirrors `CopilotAIStrategy`: a run where the provider produced nothing
-    // usable is an error, not a silent no-op that reports success.
+    // usable is an error, not a silent no-op that reports success. A provider
+    // that answered gets its own reason, because `lastReason` then holds a
+    // message this file wrote rather than anything the provider said.
     if (translatedCount === 0) {
+      const reason = hasProviderAnswer
+        ? `the provider answered, but all ${units.length} translations were unusable`
+        : (lastReason ?? "unknown error");
+
       throw new Error(
-        `AI translation failed for all ${units.length} texts: ${lastReason ?? "unknown error"}`,
+        `AI translation failed for all ${units.length} texts: ${reason}`,
       );
     }
 

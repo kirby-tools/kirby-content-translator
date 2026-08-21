@@ -31,11 +31,18 @@ export interface TranslationExecutionOptions {
 }
 
 export interface TranslationStrategy {
-  /** Translates `units` and returns results in the same order as the input. */
+  /**
+   * Translates `units` and returns results in the same order as the input.
+   *
+   * `null` marks a unit the strategy could not translate – the caller splices
+   * the source text back in and counts the unit as untranslated. Returning the
+   * source text instead would be indistinguishable from a translation that
+   * legitimately equals its source.
+   */
   execute: (
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
-  ) => Promise<string[]>;
+  ) => Promise<(string | null)[]>;
 }
 
 export interface CollectorOptions {
@@ -46,3 +53,14 @@ export interface CollectorOptions {
   /** Translatable KirbyTag attributes per tag type, e.g. `{ link: ["text"] }`. */
   kirbyTags?: Record<string, string[]>;
 }
+
+export interface UnitTranslationResult {
+  /** Final text per unit, in input order – source text wherever no translation was applied. */
+  texts: string[];
+  /** Units handed to the strategy, i.e. everything `isUntranslatable` did not filter out. */
+  translatableCount: number;
+  /** Units the strategy translated, excluding those rejected for a placeholder mismatch. */
+  translatedCount: number;
+}
+
+export type ContentTranslationResult = Omit<UnitTranslationResult, "texts">;
