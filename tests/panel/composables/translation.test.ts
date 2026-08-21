@@ -90,12 +90,12 @@ async function createContentTranslator(options: TranslatorOptions = {}) {
 }
 
 /**
- * Kirby's own rule, so a test asserts against it rather than against a literal:
- * every falsy timeout is coerced back to four seconds unless the type is
- * `error`.
+ * Kirby's own rules, so a test asserts against them rather than against a
+ * literal: `k-panel-notification` skips anything typed `error`, and every
+ * falsy timeout is coerced back to four seconds.
  */
 function staysOnScreen(options: { type?: string; timeout?: number }) {
-  return options.type === "error" || (options.timeout ?? 0) > 0;
+  return options.type !== "error" && (options.timeout ?? 0) > 0;
 }
 
 describe("useContentTranslator", () => {
