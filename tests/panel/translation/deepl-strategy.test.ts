@@ -74,7 +74,7 @@ describe("DeepLStrategy", () => {
     it("carries the reason the route names for a rejected index", async () => {
       mockApiPost.mockResolvedValueOnce({
         texts: ["Hello", "Welt"],
-        rejected: [{ index: 0, reason: "placeholder count mismatch" }],
+        rejected: [{ index: 0, reason: "some reason the route named" }],
       });
 
       const strategy = new DeepLStrategy();
@@ -86,12 +86,12 @@ describe("DeepLStrategy", () => {
       const results = await strategy.execute(units, defaultOptions);
 
       expect(results).toEqual([
-        { reason: "placeholder count mismatch" },
+        { reason: "some reason the route named" },
         "Welt",
       ]);
     });
 
-    it("reports units the response leaves unanswered as rejected", async () => {
+    it("answers only for the units the response covers", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
 
       const strategy = new DeepLStrategy();
@@ -102,7 +102,7 @@ describe("DeepLStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results).toEqual(["Hallo", { reason: "missing translation" }]);
+      expect(results).toEqual(["Hallo"]);
     });
   });
 

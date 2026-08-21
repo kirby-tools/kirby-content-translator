@@ -17,11 +17,7 @@ export class DeepLStrategy implements TranslationStrategy {
   ) {
     const api = useApi();
 
-    // Pre-filled so a response that answers for fewer units than it was given
-    // still names a reason for the rest.
-    const results: TranslationOutcome[] = units.map(() => ({
-      reason: "missing translation",
-    }));
+    const results: TranslationOutcome[] = [];
 
     if (units.length > 0) {
       const response = await api.post<{

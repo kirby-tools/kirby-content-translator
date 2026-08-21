@@ -52,11 +52,7 @@ export class AIStrategy implements TranslationStrategy {
 
     const { streamText } = copilot;
 
-    // Pre-filled so a chunk that never reaches the provider still names a
-    // reason for its units.
-    const results: TranslationOutcome[] = units.map(() => ({
-      reason: "missing translation",
-    }));
+    const results: TranslationOutcome[] = [];
     let translatedCount = 0;
     let hasProviderAnswer = false;
     let lastReason: string | undefined;
