@@ -56,6 +56,20 @@ describe("DeepLStrategy", () => {
 
       expect(results).toEqual(["B1", "B2", "B3"]);
     });
+
+    it("keeps source text for a whitespace-only translation", async () => {
+      mockApiPost.mockResolvedValueOnce({ texts: ["\u00A0 ", "Welt"] });
+
+      const strategy = new DeepLStrategy();
+      const units: TranslationUnit[] = [
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "subtitle" },
+      ];
+
+      const results = await strategy.execute(units, defaultOptions);
+
+      expect(results).toEqual(["Hello", "Welt"]);
+    });
   });
 
   describe("source language", () => {

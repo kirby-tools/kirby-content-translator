@@ -23,4 +23,15 @@ describe("translateUnits", () => {
 
     expect(results).toEqual(["Hello", "Welt"]);
   });
+
+  it("keeps source text when a strategy returns only whitespace", async () => {
+    const results = await translateUnits(
+      [{ text: "Hello" }, { text: "World" }],
+      // A no-break space: `isUntranslatable` would drop this as a source.
+      { execute: async () => ["\u00A0 ", "Welt"] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(results).toEqual(["Hello", "Welt"]);
+  });
 });

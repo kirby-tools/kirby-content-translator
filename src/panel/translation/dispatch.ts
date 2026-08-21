@@ -36,9 +36,11 @@ export async function translateUnits(
 
   for (const [position, index] of translatableIndexes.entries()) {
     const translation = translations[position];
-    // A short or non-string response leaves the source text in place rather
-    // than blanking it.
-    if (typeof translation !== "string") continue;
+    // A short, non-string or blank response leaves the source text in place
+    // rather than blanking the field. `isUntranslatable` already dropped the
+    // blank sources, so nothing that reaches a strategy can legitimately come
+    // back blank.
+    if (typeof translation !== "string" || !translation.trim()) continue;
 
     const unit = translatableUnits[position]!;
     const expectedCount = countPlaceholders(unit.text);

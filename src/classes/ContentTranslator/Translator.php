@@ -299,6 +299,13 @@ final class Translator
                 continue;
             }
 
+            // `UntranslatableText` already dropped the blank sources, so a unit
+            // that reaches a strategy cannot legitimately come back blank.
+            if (UntranslatableText::isBlank($translation)) {
+                self::warn($unit, 'empty translation');
+                continue;
+            }
+
             if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
                 self::warn($unit, 'placeholder count mismatch');
                 continue;

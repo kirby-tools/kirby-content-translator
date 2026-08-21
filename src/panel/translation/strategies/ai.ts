@@ -82,7 +82,7 @@ export class AIStrategy implements TranslationStrategy {
 
         for (const [i, { unit, originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
-          if (!translation) {
+          if (!translation?.trim()) {
             lastReason = "empty or non-string translation";
             console.warn(
               `Empty translation for "${unit.fieldKey}". Keeping source text.`,

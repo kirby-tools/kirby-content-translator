@@ -47,6 +47,14 @@ final class UntranslatableText
     }
 
     /**
+     * Reports blankness by the Unicode-aware `trim()`, not PHP's.
+     */
+    public static function isBlank(string $text): bool
+    {
+        return self::trim($text) === '';
+    }
+
+    /**
      * Mirrors JavaScript's `String.prototype.trim` so both pipelines agree on
      * what is blank: PHP's `trim` leaves Unicode whitespace and the BOM in
      * place – both of which editors paste in – and strips NUL, which

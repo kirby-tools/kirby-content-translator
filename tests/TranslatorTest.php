@@ -80,6 +80,20 @@ final class TranslatorTest extends TestCase
         };
     }
 
+    private static function blankTranslationStrategy(string $text = ''): Strategy
+    {
+        return new class ($text) implements Strategy {
+            public function __construct(private string $text)
+            {
+            }
+
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return array_map(fn (): string => $this->text, $units);
+            }
+        };
+    }
+
     private function appWithUntranslatableFieldsPage(): App
     {
         return new App([
@@ -806,6 +820,41 @@ final class TranslatorTest extends TestCase
         Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
 
         $this->assertSame([['Click <c0/> now', 'placeholder count mismatch', null]], $warnings);
+    }
+
+    #[Test]
+    public function keeps_source_text_when_a_translation_is_only_whitespace(): void
+    {
+        $this->appWithTranslateFn();
+
+        $this->assertSame(
+            ['Hello'],
+            Translator::translateTexts(
+                ['Hello'],
+                'de',
+                null,
+                // A no-break space: `UntranslatableText` would drop this as a source.
+                self::blankTranslationStrategy("\u{00A0} "),
+            ),
+        );
+    }
+
+    #[Test]
+    public function fires_translate_warning_hook_on_an_empty_translation(): void
+    {
+        $warnings = [];
+        new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = [$unit->text, $reason, $previous];
+                },
+            ],
+        ]);
+
+        Translator::translateTexts(['Hello'], 'de', null, self::blankTranslationStrategy());
+
+        $this->assertSame([['Hello', 'empty translation', null]], $warnings);
     }
 
     #[Test]

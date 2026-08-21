@@ -8,6 +8,7 @@ use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationExceptio
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
+use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use JohannSchopplich\Copilot\AI\Client;
 use Kirby\Cms\App;
 use Throwable;
@@ -100,7 +101,7 @@ final readonly class CopilotAIStrategy implements Strategy
             foreach ($chunk as $chunkIndex => [$index, $unit]) {
                 $translation = $translations[$chunkIndex];
 
-                if (!is_string($translation) || $translation === '') {
+                if (!is_string($translation) || UntranslatableText::isBlank($translation)) {
                     $lastReason = 'empty or non-string translation';
                     self::warn($unit, $lastReason, null);
                     continue;
