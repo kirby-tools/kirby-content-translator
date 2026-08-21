@@ -14,6 +14,7 @@ use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\DeepLStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
@@ -129,7 +130,7 @@ final class Translator
             ], 'text');
         }
 
-        return new BatchTranslationResult($translatedTexts, $translatedResult->rejectedIndexes);
+        return new BatchTranslationResult($translatedTexts, $translatedResult->rejections);
     }
 
     /**
@@ -288,7 +289,7 @@ final class Translator
     private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): BatchTranslationResult
     {
         $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
-        $rejectedIndexes = [];
+        $rejections = [];
 
         $translatableIndexes = [];
         $translatableUnits = [];
@@ -309,38 +310,36 @@ final class Translator
         // Iterate our own indexes: a `Strategy` that ignores the `list<string>`
         // contract must not be able to write outside the result list.
         foreach ($translatableIndexes as $position => $index) {
+            $unit = $translatableUnits[$position];
+
             if (!isset($translations[$position])) {
-                $rejectedIndexes[] = $index;
+                $rejections[] = self::reject($unit, $index, 'missing translation');
                 continue;
             }
 
-            $unit = $translatableUnits[$position];
             $translation = $translations[$position];
 
             if (!is_string($translation)) {
-                self::warn($unit, 'non-string translation');
-                $rejectedIndexes[] = $index;
+                $rejections[] = self::reject($unit, $index, 'non-string translation');
                 continue;
             }
 
             // `UntranslatableText` already dropped the blank sources, so a unit
             // that reaches a strategy cannot legitimately come back blank.
             if (UntranslatableText::isBlank($translation)) {
-                self::warn($unit, 'empty translation');
-                $rejectedIndexes[] = $index;
+                $rejections[] = self::reject($unit, $index, 'empty translation');
                 continue;
             }
 
             if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
-                self::warn($unit, 'placeholder count mismatch');
-                $rejectedIndexes[] = $index;
+                $rejections[] = self::reject($unit, $index, 'placeholder count mismatch');
                 continue;
             }
 
             $results[$index] = $translation;
         }
 
-        return new BatchTranslationResult($results, $rejectedIndexes);
+        return new BatchTranslationResult($results, $rejections);
     }
 
     /**
@@ -350,6 +349,12 @@ final class Translator
     private static function countPlaceholders(string $text): int
     {
         return preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text);
+    }
+
+    private static function reject(TranslationUnit $unit, int $index, string $reason): TranslationRejection
+    {
+        self::warn($unit, $reason);
+        return new TranslationRejection($index, $reason);
     }
 
     private static function warn(TranslationUnit $unit, string $reason): void

@@ -823,7 +823,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_batch_reports_the_index_of_a_unit_it_could_not_translate(): void
+    public function translate_batch_reports_the_index_and_reason_of_a_unit_it_could_not_translate(): void
     {
         $this->appWithTranslateFn();
 
@@ -835,11 +835,13 @@ final class TranslatorTest extends TestCase
         );
 
         $this->assertSame(['Click <c0/> now', '[de]Hello'], $result->texts);
-        $this->assertSame([0], $result->rejectedIndexes);
+        $this->assertCount(1, $result->rejections);
+        $this->assertSame(0, $result->rejections[0]->index);
+        $this->assertSame('placeholder count mismatch', $result->rejections[0]->reason);
     }
 
     #[Test]
-    public function translate_batch_omits_an_untranslatable_text_from_rejectedIndexes(): void
+    public function translate_batch_omits_an_untranslatable_text_from_rejections(): void
     {
         $this->appWithTranslateFn();
 
@@ -847,7 +849,24 @@ final class TranslatorTest extends TestCase
         $result = Translator::translateBatch(['2024'], 'de', null, self::recordingStrategy());
 
         $this->assertSame(['2024'], $result->texts);
-        $this->assertSame([], $result->rejectedIndexes);
+        $this->assertSame([], $result->rejections);
+    }
+
+    #[Test]
+    public function translate_batch_reports_a_unit_the_strategy_left_unanswered(): void
+    {
+        $this->appWithTranslateFn();
+
+        $result = Translator::translateBatch(['Hello'], 'de', null, new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return [];
+            }
+        });
+
+        $this->assertSame(['Hello'], $result->texts);
+        $this->assertCount(1, $result->rejections);
+        $this->assertSame('missing translation', $result->rejections[0]->reason);
     }
 
     #[Test]

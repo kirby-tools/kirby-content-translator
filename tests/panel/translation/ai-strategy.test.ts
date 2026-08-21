@@ -131,7 +131,7 @@ describe("AIStrategy", () => {
       consoleSpy.mockRestore();
     });
 
-    it("returns null for a failed chunk while the others succeed", async () => {
+    it("reports the chunk error as the reason while the others succeed", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -150,7 +150,7 @@ describe("AIStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results[0]).toBeNull();
+      expect(results[0]).toEqual({ reason: "First chunk failed" });
       expect(results[1]).toBe("Success");
       expect(consoleSpy).toHaveBeenCalled();
       consoleSpy.mockRestore();

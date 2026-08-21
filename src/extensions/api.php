@@ -58,7 +58,20 @@ return [
 
                 return [
                     'texts' => $result->texts,
-                    'rejectedIndexes' => $result->rejectedIndexes
+                    'rejected' => array_map(
+                        static fn ($rejection): array => [
+                            'index' => $rejection->index,
+                            'reason' => $rejection->reason
+                        ],
+                        $result->rejections
+                    ),
+                    // A stale `media/plugins` bundle serves the 3.13 Panel against
+                    // this route, and that one only reads `rejectedIndexes`.
+                    // TODO: Drop once 3.13 is out of support.
+                    'rejectedIndexes' => array_map(
+                        static fn ($rejection): int => $rejection->index,
+                        $result->rejections
+                    )
                 ];
             }
         ],

@@ -52,8 +52,12 @@ export async function translateUnits(
     // `isUntranslatable` dropped the blank sources, so nothing that reaches a
     // strategy can legitimately come back blank.
     if (typeof translation !== "string" || !translation.trim()) {
+      const reason =
+        typeof translation === "object" && translation !== null
+          ? translation.reason
+          : "no usable translation";
       console.warn(
-        `No usable translation for "${unit.fieldKey}" (${options.targetLanguage.code}). Keeping source text.`,
+        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): ${reason}. Keeping source text.`,
       );
       continue;
     }
@@ -63,7 +67,7 @@ export async function translateUnits(
 
     if (expectedCount !== actualCount) {
       console.warn(
-        `Placeholder count mismatch in "${unit.fieldKey}" (${options.targetLanguage.code}): expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
+        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): placeholder count mismatch, expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
       );
       continue;
     }

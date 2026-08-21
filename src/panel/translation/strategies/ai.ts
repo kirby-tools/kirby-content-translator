@@ -1,5 +1,6 @@
 import type {
   TranslationExecutionOptions,
+  TranslationOutcome,
   TranslationStrategy,
   TranslationUnit,
 } from "../types";
@@ -35,7 +36,7 @@ export class AIStrategy implements TranslationStrategy {
   async execute(
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
-  ): Promise<(string | null)[]> {
+  ): Promise<TranslationOutcome[]> {
     const copilot = resolveCopilot();
     if (!copilot) {
       throw new Error("Kirby Copilot plugin is required for AI translations");
@@ -51,7 +52,7 @@ export class AIStrategy implements TranslationStrategy {
 
     const { streamText } = copilot;
 
-    const results: (string | null)[] = units.map(() => null);
+    const results: TranslationOutcome[] = units.map(() => null);
     let translatedCount = 0;
     let hasProviderAnswer = false;
     let lastReason: string | undefined;
@@ -81,13 +82,11 @@ export class AIStrategy implements TranslationStrategy {
         const result = await finalOutput;
         hasProviderAnswer = true;
 
-        for (const [i, { unit, originalIndex }] of chunk.entries()) {
+        for (const [i, { originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
           if (!translation?.trim()) {
             lastReason = "empty or non-string translation";
-            console.warn(
-              `Empty translation for "${unit.fieldKey}". Keeping source text.`,
-            );
+            results[originalIndex] = { reason: lastReason };
             continue;
           }
 
@@ -96,9 +95,11 @@ export class AIStrategy implements TranslationStrategy {
         }
       } catch (error) {
         lastReason = error instanceof Error ? error.message : String(error);
-        console.error(
-          `Failed to translate chunk (${chunk.map(({ unit }) => unit.fieldKey).join(", ")})`,
-        );
+        for (const { originalIndex } of chunk) {
+          results[originalIndex] = { reason: lastReason };
+        }
+        // The reason reaches the console through `translateUnits`; only the
+        // stack has to be logged here, and only once per chunk.
         console.error(error);
       }
     }

@@ -37,6 +37,21 @@ describe("translateUnits", () => {
     warn.mockRestore();
   });
 
+  it("names the reason a strategy supplies in the warning", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await translateUnits(
+      [{ text: "Hello", fieldKey: "intro" }],
+      { execute: async () => [{ reason: "placeholder count mismatch" }] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('"intro" (de): placeholder count mismatch'),
+    );
+    warn.mockRestore();
+  });
+
   it("keeps source text when a strategy returns only whitespace", async () => {
     const { texts } = await translateUnits(
       [{ text: "Hello" }, { text: "World" }],
