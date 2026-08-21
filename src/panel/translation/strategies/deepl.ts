@@ -17,7 +17,7 @@ export class DeepLStrategy implements TranslationStrategy {
   ) {
     const api = useApi();
 
-    const results: TranslationOutcome[] = [];
+    const outcomes: TranslationOutcome[] = [];
 
     if (units.length > 0) {
       const response = await api.post<{
@@ -38,15 +38,15 @@ export class DeepLStrategy implements TranslationStrategy {
       response.texts.forEach((text, index) => {
         const reason = reasons.get(index);
         if (reason !== undefined) {
-          results[index] = { reason };
+          outcomes[index] = { reason };
           return;
         }
         // A `content-translator.translate:after` hook runs after the route's
         // own blank check, so a blank can still arrive here.
-        results[index] = text.trim() ? text : { reason: "empty translation" };
+        outcomes[index] = text.trim() ? text : { reason: "empty translation" };
       });
     }
 
-    return results;
+    return outcomes;
   }
 }

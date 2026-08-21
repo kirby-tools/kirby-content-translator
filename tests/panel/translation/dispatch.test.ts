@@ -120,7 +120,7 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["Read <c0/>"]);
   });
 
-  it("translates when a strategy reorders the placeholders", async () => {
+  it("keeps a translation that reorders the placeholders", async () => {
     const { texts } = await translateUnits(
       [{ text: "<c0/> then <c1/>", fieldKey: "intro" }],
       { execute: async () => ["<c1/> zuerst, dann <c0/>"] },

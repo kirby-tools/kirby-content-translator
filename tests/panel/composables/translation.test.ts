@@ -108,11 +108,11 @@ function lastNotification() {
   return panel.notification.open.mock.calls.at(-1)![0];
 }
 
-function staysOnScreen(options: { type?: string; timeout?: number }) {
+function staysOnScreen(notification: { type?: string; timeout?: number }) {
   return (
-    options.type !== "error" &&
-    options.type !== "fatal" &&
-    (options.timeout ?? 0) > KIRBY_DEFAULT_TIMEOUT
+    notification.type !== "error" &&
+    notification.type !== "fatal" &&
+    (notification.timeout ?? 0) > KIRBY_DEFAULT_TIMEOUT
   );
 }
 
@@ -435,7 +435,7 @@ describe("useContentTranslator", () => {
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.notification.error).not.toHaveBeenCalled();
       expect(panel.t).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.notification.nothingTranslated",
+        "johannschopplich.content-translator.notification.noSegmentTranslated",
         { total: 1 },
       );
       expect(staysOnScreen(lastNotification())).toBe(true);

@@ -52,13 +52,13 @@ export class AIStrategy implements TranslationStrategy {
 
     const { streamText } = copilot;
 
-    const results: TranslationOutcome[] = [];
+    const outcomes: TranslationOutcome[] = [];
     let translatedCount = 0;
     let hasProviderAnswer = false;
     let lastReason: string | undefined;
 
     // The original index travels with each unit so a failed chunk leaves the
-    // other results in place.
+    // other outcomes in place.
     const chunks = chunkUnitsWithIndices(units);
 
     for (const chunk of chunks) {
@@ -86,22 +86,22 @@ export class AIStrategy implements TranslationStrategy {
           const translation = result?.translations?.[i];
           if (typeof translation !== "string") {
             lastReason = "non-string translation";
-            results[originalIndex] = { reason: lastReason };
+            outcomes[originalIndex] = { reason: lastReason };
             continue;
           }
           if (!translation.trim()) {
             lastReason = "empty translation";
-            results[originalIndex] = { reason: lastReason };
+            outcomes[originalIndex] = { reason: lastReason };
             continue;
           }
 
-          results[originalIndex] = translation;
+          outcomes[originalIndex] = translation;
           translatedCount++;
         }
       } catch (error) {
         lastReason = error instanceof Error ? error.message : String(error);
         for (const { originalIndex } of chunk) {
-          results[originalIndex] = { reason: lastReason };
+          outcomes[originalIndex] = { reason: lastReason };
         }
         // `translateUnits` never sees this chunk when `execute` goes on to
         // throw, so the fields it covers are named here rather than there.
@@ -126,7 +126,7 @@ export class AIStrategy implements TranslationStrategy {
       );
     }
 
-    return results;
+    return outcomes;
   }
 }
 

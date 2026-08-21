@@ -153,7 +153,7 @@ export function useContentTranslator() {
       // error dialog.
       panel.notification.open({
         message: panel.t(
-          "johannschopplich.content-translator.notification.nothingTranslated",
+          "johannschopplich.content-translator.notification.noSegmentTranslated",
           { total: result.translatableCount },
         ),
         icon: "alert",
@@ -175,11 +175,6 @@ export function useContentTranslator() {
     });
   }
 
-  /**
-   * Reports the title's own outcome so a caller can fold it into the run it is
-   * reporting. `patch` is injected because a batch run addresses a language
-   * other than the one on screen.
-   */
   async function translateAndPatchTitle({
     title,
     plan,
@@ -371,10 +366,10 @@ export function useContentTranslator() {
         hasViewTitle: Boolean(panel.view.title),
       });
 
-      const results = [contentResult];
+      const languageResults = [contentResult];
 
       if (plan.shouldRequestTitleTranslation) {
-        results.push(
+        languageResults.push(
           await translateAndPatchTitle({
             // Non-null: the plan requests a title translation only when the view has one.
             title: panel.view.title!,
@@ -394,7 +389,7 @@ export function useContentTranslator() {
         panel.view.isLoading = false;
       }
 
-      const mergedResult = mergeTranslationResults(results);
+      const mergedResult = mergeTranslationResults(languageResults);
       reportRejections(mergedResult, targetLanguage);
       notifyTranslationResult(
         mergedResult,
@@ -434,7 +429,7 @@ export function useContentTranslator() {
         : new DeepLStrategy();
 
     try {
-      const results = await batchTranslateLanguages(
+      const batchResults = await batchTranslateLanguages(
         selectedLanguages,
         defaultLanguageData,
         strategy,
@@ -452,12 +447,14 @@ export function useContentTranslator() {
       );
 
       const failedLanguages = selectedLanguages.filter(
-        (_, index) => results[index] === null,
+        (_, index) => batchResults[index] === null,
       );
 
       if (failedLanguages.length === 0) {
         notifyTranslationResult(
-          mergeTranslationResults(results.filter((result) => result !== null)),
+          mergeTranslationResults(
+            batchResults.filter((result) => result !== null),
+          ),
           "johannschopplich.content-translator.notification.batchTranslated",
         );
       }
