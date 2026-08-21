@@ -312,6 +312,63 @@ describe("useContentTranslator", () => {
     });
   });
 
+  describe("rejection reporting", () => {
+    it("names the field, the language and the reason in the console", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => ({
+          texts: payload.texts,
+          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+        }),
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(warn).toHaveBeenCalledWith(
+        'Rejected "text" (fr): placeholder mismatch. Keeping source text.',
+      );
+      warn.mockRestore();
+    });
+
+    it("warns for a surviving language when another language fails", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      panel.api.post.mockImplementation(
+        async (
+          _route: string,
+          payload: { texts: string[]; targetLanguage: string },
+        ) => {
+          if (payload.targetLanguage === "fr") throw new Error("provider down");
+          return {
+            texts: payload.texts,
+            rejected: [{ index: 0, reason: "empty translation" }],
+          };
+        },
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(warn).toHaveBeenCalledWith(
+        'Rejected "text" (it): empty translation. Keeping source text.',
+      );
+      warn.mockRestore();
+      error.mockRestore();
+    });
+  });
+
   describe("translation outcome", () => {
     it("reports nothing to translate when every field value is untranslatable", async () => {
       currentContent = { value: { text: "2024" } };

@@ -46,10 +46,10 @@ export async function translateContent(
   });
 
   if (translations.length === 0) {
-    return { translatableCount: 0, translatedCount: 0 };
+    return { translatableCount: 0, translatedCount: 0, rejections: [] };
   }
 
-  const { texts, translatableCount, translatedCount } = await translateUnits(
+  const { texts, translatableCount, translatedCount, rejections } = await translateUnits(
     translations.map((item) => item.unit),
     strategy,
     {
@@ -66,5 +66,5 @@ export async function translateContent(
     finalizer();
   }
 
-  return { translatableCount, translatedCount };
+  return { translatableCount, translatedCount, rejections };
 }

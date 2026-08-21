@@ -24,32 +24,52 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["Hello", "Welt"]);
   });
 
-  it("names the target language in the warning", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    await translateUnits(
+  it("returns the reason a strategy supplies for a rejected unit", async () => {
+    const { rejections } = await translateUnits(
       [{ text: "Hello", fieldKey: "intro" }],
       { execute: async () => [{ reason: "provider timed out" }] },
       { targetLanguage: GERMAN },
     );
 
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"intro" (de)'));
-    warn.mockRestore();
+    expect(rejections).toEqual([
+      { fieldKey: "intro", reason: "provider timed out" },
+    ]);
   });
 
-  it("names the reason a strategy supplies in the warning", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-
-    await translateUnits(
+  it("rejects an unanswered slot as a missing translation", async () => {
+    const { rejections } = await translateUnits(
       [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => [{ reason: "provider timed out" }] },
+      { execute: async () => [] },
       { targetLanguage: GERMAN },
     );
 
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('"intro" (de): provider timed out'),
+    expect(rejections).toEqual([
+      { fieldKey: "intro", reason: "missing translation" },
+    ]);
+  });
+
+  it("rejects a non-string slot as a non-string translation", async () => {
+    const { rejections } = await translateUnits(
+      [{ text: "Hello", fieldKey: "intro" }],
+      { execute: async () => [123] as unknown as Promise<string[]> },
+      { targetLanguage: GERMAN },
     );
-    warn.mockRestore();
+
+    expect(rejections).toEqual([
+      { fieldKey: "intro", reason: "non-string translation" },
+    ]);
+  });
+
+  it("rejects a blank answer as an empty translation", async () => {
+    const { rejections } = await translateUnits(
+      [{ text: "Hello", fieldKey: "intro" }],
+      { execute: async () => ["   "] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(rejections).toEqual([
+      { fieldKey: "intro", reason: "empty translation" },
+    ]);
   });
 
   it("keeps source text when a strategy returns only whitespace", async () => {
@@ -75,6 +95,7 @@ describe("translateUnits", () => {
       texts: ["2024"],
       translatableCount: 0,
       translatedCount: 0,
+      rejections: [],
     });
   });
 
@@ -107,6 +128,22 @@ describe("translateUnits", () => {
     );
 
     expect(texts).toEqual(["<c1/> zuerst, dann <c0/>"]);
+  });
+
+  it("names the placeholder indexes in the rejection detail", async () => {
+    const { rejections } = await translateUnits(
+      [{ text: "Read <c0/> and <c1/>", fieldKey: "intro" }],
+      { execute: async () => ["Lies <c0/> und <c0/>"] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(rejections).toEqual([
+      {
+        fieldKey: "intro",
+        reason: "placeholder mismatch",
+        detail: "placeholder mismatch, expected 0,1, got 0,0",
+      },
+    ]);
   });
 
   it("counts only the units a strategy translated", async () => {

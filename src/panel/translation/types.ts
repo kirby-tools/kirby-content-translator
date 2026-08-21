@@ -54,13 +54,23 @@ export interface CollectorOptions {
   kirbyTags?: Record<string, string[]>;
 }
 
-export interface BatchTranslationResult {
+/** A unit that kept its source text, and the reason it did. */
+export interface TranslationRejection {
+  fieldKey?: string;
+  /** One of the terms `tests/fixtures/contract.json` pins. */
+  reason: string;
+  /** The reason spelled out, where the check that raised it has specifics to add. */
+  detail?: string;
+}
+
+export interface UnitTranslationResult {
   /** Final text per unit, in input order – source text wherever no translation was applied. */
   texts: string[];
   /** Units handed to the strategy, i.e. everything `isUntranslatable` did not filter out. */
   translatableCount: number;
-  /** Units the strategy translated, excluding those rejected for a placeholder mismatch. */
   translatedCount: number;
+  /** In input order. A unit `isUntranslatable` filtered out is skipped, not rejected. */
+  rejections: TranslationRejection[];
 }
 
-export type ContentTranslationResult = Omit<BatchTranslationResult, "texts">;
+export type ContentTranslationResult = Omit<UnitTranslationResult, "texts">;

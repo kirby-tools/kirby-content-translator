@@ -82,10 +82,9 @@ describe("translateContent", () => {
   });
 
   it("keeps source text when a strategy drops a placeholder", async () => {
-    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
     const manglingStrategy: TranslationStrategy = {
       async execute(units) {
-        return units.map((u) => u.text.replace(/<c\d+\/>\s*/g, ""));
+        return units.map((unit) => unit.text.replace(/<c\d+\/>\s*/g, ""));
       },
     };
 
@@ -94,7 +93,7 @@ describe("translateContent", () => {
       body: field({ type: "textarea", name: "textarea" }),
     };
 
-    await translateContent(content, {
+    const result = await translateContent(content, {
       strategy: manglingStrategy,
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["textarea"] as const,
@@ -103,8 +102,13 @@ describe("translateContent", () => {
     });
 
     expect(content.body).toBe("Click (link: /a text: here) now");
-    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("body"));
-    warnSpy.mockRestore();
+    expect(result.rejections).toEqual([
+      {
+        fieldKey: "body",
+        reason: "placeholder mismatch",
+        detail: "placeholder mismatch, expected 0, got none",
+      },
+    ]);
   });
 
   it("drives an AIStrategy end-to-end through the orchestration", async () => {

@@ -1,8 +1,9 @@
 import type {
-  BatchTranslationResult,
   TranslationExecutionOptions,
+  TranslationRejection,
   TranslationStrategy,
   TranslationUnit,
+  UnitTranslationResult,
 } from "./types";
 import { PLACEHOLDER_PATTERN } from "./kirby-text";
 import { isUntranslatable } from "./untranslatable";
@@ -37,34 +38,54 @@ export async function translateUnits(
   }
 
   if (!translatableUnits.length) {
-    return { texts, translatableCount: 0, translatedCount: 0 };
+    return { texts, translatableCount: 0, translatedCount: 0, rejections: [] };
   }
 
   const translations = await strategy.execute(translatableUnits, options);
 
+  const rejections: TranslationRejection[] = [];
   let translatedCount = 0;
+
+  function reject(unit: TranslationUnit, reason: string, detail?: string) {
+    rejections.push({ fieldKey: unit.fieldKey, reason, detail });
+  }
 
   for (const [position, index] of translatableIndexes.entries()) {
     const unit = translatableUnits[position]!;
     const outcome = translations[position];
 
-    // `isUntranslatable` dropped the blank sources, so nothing that reaches a
-    // strategy can legitimately come back blank.
-    if (typeof outcome !== "string" || !outcome.trim()) {
-      const reason =
-        typeof outcome === "object" ? outcome.reason : "missing translation";
-      console.warn(
-        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): ${reason}. Keeping source text.`,
-      );
+    // The PHP tier calls a `null` slot unanswered too, and `contract.json` pins
+    // both tiers to the same name for it.
+    if (outcome === undefined || outcome === null) {
+      reject(unit, "missing translation");
       continue;
     }
 
-    const expected = placeholderIndexes(unit.text);
-    const actual = placeholderIndexes(outcome);
+    if (typeof outcome === "object") {
+      reject(unit, outcome.reason);
+      continue;
+    }
 
-    if (expected !== actual) {
-      console.warn(
-        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): placeholder mismatch, expected ${expected || "none"}, got ${actual || "none"}. Keeping source text.`,
+    if (typeof outcome !== "string") {
+      reject(unit, "non-string translation");
+      continue;
+    }
+
+    // `isUntranslatable` dropped the blank sources, so nothing that reaches a
+    // strategy can legitimately come back blank.
+    if (!outcome.trim()) {
+      reject(unit, "empty translation");
+      continue;
+    }
+
+    const expectedIndexes = placeholderIndexes(unit.text);
+    const actualIndexes = placeholderIndexes(outcome);
+
+    if (expectedIndexes !== actualIndexes) {
+      reject(
+        unit,
+        "placeholder mismatch",
+        `placeholder mismatch, expected ${expectedIndexes || "none"}, got ${actualIndexes || "none"}`,
       );
       continue;
     }
@@ -77,6 +98,7 @@ export async function translateUnits(
     texts,
     translatableCount: translatableUnits.length,
     translatedCount,
+    rejections,
   };
 }
 

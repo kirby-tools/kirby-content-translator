@@ -24,13 +24,13 @@ export async function translateText(
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
     systemPrompt?: string;
-    /** Names the text in a console warning, since there is no field to name it. */
+    /** Names the text in a rejection, since there is no field to name it. */
     fieldKey: string;
   },
 ): Promise<{ text: string; result: ContentTranslationResult }> {
   const strategy =
     provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
-  const { texts, translatableCount, translatedCount } = await translateUnits(
+  const { texts, translatableCount, translatedCount, rejections } = await translateUnits(
     [{ text, fieldKey }],
     strategy,
     { sourceLanguage, targetLanguage },
@@ -38,6 +38,6 @@ export async function translateText(
 
   return {
     text: texts[0] ?? text,
-    result: { translatableCount, translatedCount },
+    result: { translatableCount, translatedCount, rejections },
   };
 }

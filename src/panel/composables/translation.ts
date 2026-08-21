@@ -114,6 +114,17 @@ export function useContentTranslator() {
     ).hasAnyProvider;
   }
 
+  function reportRejections(
+    result: ContentTranslationResult,
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
+  ) {
+    for (const { fieldKey, reason, detail } of result.rejections) {
+      console.warn(
+        `Rejected "${fieldKey}" (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
+      );
+    }
+  }
+
   // Only one notification is visible at a time, so the most specific outcome wins.
   function notifyTranslationResult(
     result: ContentTranslationResult,
@@ -196,13 +207,24 @@ export function useContentTranslator() {
         fieldKey: "title",
       });
     } catch (error) {
-      // `AIStrategy` throws once nothing in a run came back usable, which for a
-      // lone title is any failure at all. The content is already saved by now,
-      // so the run reports the title as untranslated rather than erroring out.
+      // Every failure of the lone title unit lands here, not just `AIStrategy`
+      // throwing when nothing came back usable – a route error or a rejected
+      // DeepL key does too. The content is already saved, so the run reports
+      // the title as untranslated rather than erroring out.
       console.error("Failed to translate the title:", error);
       translatedTitle = {
         text: title,
-        result: { translatableCount: 1, translatedCount: 0 },
+        result: {
+          translatableCount: 1,
+          translatedCount: 0,
+          rejections: [
+            {
+              fieldKey: "title",
+              reason: "missing translation",
+              detail: error instanceof Error ? error.message : String(error),
+            },
+          ],
+        },
       };
     }
 
@@ -372,8 +394,10 @@ export function useContentTranslator() {
         panel.view.isLoading = false;
       }
 
+      const mergedResult = mergeTranslationResults(results);
+      reportRejections(mergedResult, targetLanguage);
       notifyTranslationResult(
-        mergeTranslationResults(results),
+        mergedResult,
         "johannschopplich.content-translator.notification.translated",
       );
     } catch (error) {
@@ -557,7 +581,9 @@ export function useContentTranslator() {
       completed++;
       onProgress?.(completed, selectedLanguages.length);
 
-      return mergeTranslationResults(languageResults);
+      const mergedResult = mergeTranslationResults(languageResults);
+      reportRejections(mergedResult, targetLanguage);
+      return mergedResult;
     }
   }
 
@@ -608,5 +634,6 @@ function mergeTranslationResults(
       (total, result) => total + result.translatedCount,
       0,
     ),
+    rejections: results.flatMap((result) => result.rejections),
   };
 }

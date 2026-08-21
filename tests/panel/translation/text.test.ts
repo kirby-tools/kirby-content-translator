@@ -29,7 +29,11 @@ describe("translateText", () => {
       expect.objectContaining({ texts: ["Hello"] }),
     );
     expect(result.text).toBe("Hallo");
-    expect(result.result).toEqual({ translatableCount: 1, translatedCount: 1 });
+    expect(result.result).toEqual({
+      translatableCount: 1,
+      translatedCount: 1,
+      rejections: [],
+    });
   });
 
   it("returns untranslatable text without reaching the strategy", async () => {
@@ -44,18 +48,18 @@ describe("translateText", () => {
     expect(result.result.translatableCount).toBe(0);
   });
 
-  it("names the fieldKey in the warning when the strategy returns no result", async () => {
+  it("names the fieldKey in the rejection", async () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    await translateText("Hello", {
+    const result = await translateText("Hello", {
       provider: "deepl",
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
 
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"title"'));
-    warn.mockRestore();
+    expect(result.result.rejections).toEqual([
+      { fieldKey: "title", reason: "missing translation" },
+    ]);
   });
 
   it("falls back to the source text when the strategy returns no result", async () => {
@@ -68,6 +72,10 @@ describe("translateText", () => {
     });
 
     expect(result.text).toBe("Hello");
-    expect(result.result).toEqual({ translatableCount: 1, translatedCount: 0 });
+    expect(result.result).toEqual({
+      translatableCount: 1,
+      translatedCount: 0,
+      rejections: [{ fieldKey: "title", reason: "missing translation" }],
+    });
   });
 });
