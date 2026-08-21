@@ -852,6 +852,42 @@ final class TranslatorTest extends TestCase
         $this->assertSame([], $result->rejections);
     }
 
+    /**
+     * @return iterable<string, array{string, string, string|int|null}>
+     */
+    public static function rejectionReasons(): iterable
+    {
+        $contract = json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
+
+        foreach ($contract['rejectionReasons'] as $case) {
+            yield $case['reason'] => [$case['reason'], $case['sourceText'], $case['answer']];
+        }
+    }
+
+    /**
+     * Shared with `contract.test.ts` – a one-sided rename fails here first.
+     */
+    #[Test]
+    #[DataProvider('rejectionReasons')]
+    public function names_a_rejection_per_contract_vocabulary(string $reason, string $sourceText, string|int|null $answer): void
+    {
+        $this->appWithTranslateFn();
+
+        $result = Translator::translateBatch([$sourceText], 'de', null, new class ($answer) implements Strategy {
+            public function __construct(private string|int|null $answer)
+            {
+            }
+
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return [$this->answer];
+            }
+        });
+
+        $this->assertCount(1, $result->rejections);
+        $this->assertSame($reason, $result->rejections[0]->reason);
+    }
+
     #[Test]
     public function translate_batch_reports_a_unit_the_strategy_left_unanswered(): void
     {

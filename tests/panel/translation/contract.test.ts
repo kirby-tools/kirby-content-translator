@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { translateUnits } from "../../../src/panel/translation/dispatch";
 import {
   PLACEHOLDER_PATTERN,
   splitKirbyText,
@@ -18,6 +19,11 @@ vi.mock("../../../src/panel/utils/copilot", () => ({
 
 interface TranslationContract {
   skipCases: { text: string; skip: boolean }[];
+  rejectionReasons: {
+    reason: string;
+    sourceText: string;
+    answer: string | number | null;
+  }[];
   placeholder: { format: string; indexBase: number };
   batching: { maxBatchSize: number; maxSizePerBatch: number };
 }
@@ -35,6 +41,20 @@ describe("translation contract", () => {
     "evaluates skip('$text') as $skip",
     ({ text, skip }) => {
       expect(isUntranslatable(text)).toBe(skip);
+    },
+  );
+
+  it.each(contract.rejectionReasons)(
+    "rejects $sourceText as $reason",
+    async ({ reason, sourceText, answer }) => {
+      const { rejections } = await translateUnits(
+        [{ text: sourceText, fieldKey: "body" }],
+        { execute: async () => [answer] as unknown as string[] },
+        { targetLanguage: { code: "de", name: "Deutsch" } },
+      );
+
+      expect(rejections).toHaveLength(1);
+      expect(rejections[0]!.reason).toBe(reason);
     },
   );
 

@@ -27,6 +27,12 @@
     { "text": "<c0 />", "skip": true },
     { "text": "Text <c0/>", "skip": false }
   ],
+  "rejectionReasons": [
+    { "reason": "missing translation", "sourceText": "Hello", "answer": null },
+    { "reason": "non-string translation", "sourceText": "Hello", "answer": 42 },
+    { "reason": "empty translation", "sourceText": "Hello", "answer": "  " },
+    { "reason": "placeholder mismatch", "sourceText": "Read <c0/>", "answer": "Lies" }
+  ],
   "placeholder": {
     "format": "<c{n}/>",
     "indexBase": 0
