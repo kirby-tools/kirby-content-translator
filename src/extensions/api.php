@@ -59,7 +59,7 @@ return [
 
                 return [
                     'texts' => $result->texts,
-                    'rejected' => array_map(
+                    'rejections' => array_map(
                         static fn (TranslationRejection $rejection): array => [
                             'index' => $rejection->index,
                             'reason' => $rejection->reason

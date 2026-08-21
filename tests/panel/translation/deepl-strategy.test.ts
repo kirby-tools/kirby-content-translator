@@ -74,7 +74,7 @@ describe("DeepLStrategy", () => {
     it("carries the reason the route names for a rejected index", async () => {
       mockApiPost.mockResolvedValueOnce({
         texts: ["Hello", "Welt"],
-        rejected: [{ index: 0, reason: "some reason the route named" }],
+        rejections: [{ index: 0, reason: "some reason the route named" }],
       });
 
       const strategy = new DeepLStrategy();

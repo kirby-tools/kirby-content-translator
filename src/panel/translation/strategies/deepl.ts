@@ -22,7 +22,7 @@ export class DeepLStrategy implements TranslationStrategy {
     if (units.length > 0) {
       const response = await api.post<{
         texts: string[];
-        rejected?: { index: number; reason: string }[];
+        rejections?: { index: number; reason: string }[];
       }>(TRANSLATE_BATCH_API_ROUTE, {
         sourceLanguage: options.sourceLanguage?.code,
         targetLanguage: options.targetLanguage.code,
@@ -32,7 +32,7 @@ export class DeepLStrategy implements TranslationStrategy {
       // The route answers for every unit, handing back the source text for one
       // it dropped, so a rejection is invisible in `texts` alone.
       const reasons = new Map(
-        response.rejected?.map(({ index, reason }) => [index, reason]) ?? [],
+        response.rejections?.map(({ index, reason }) => [index, reason]) ?? [],
       );
 
       response.texts.forEach((text, index) => {

@@ -318,7 +318,7 @@ describe("useContentTranslator", () => {
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+          rejections: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
 
@@ -341,7 +341,7 @@ describe("useContentTranslator", () => {
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+          rejections: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
       panel.api.patch.mockRejectedValue(new Error("permission denied"));
@@ -373,7 +373,7 @@ describe("useContentTranslator", () => {
           if (payload.targetLanguage === "fr") throw new Error("provider down");
           return {
             texts: payload.texts,
-            rejected: [{ index: 0, reason: "empty translation" }],
+            rejections: [{ index: 0, reason: "empty translation" }],
           };
         },
       );
@@ -421,7 +421,7 @@ describe("useContentTranslator", () => {
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+          rejections: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
 
@@ -448,7 +448,7 @@ describe("useContentTranslator", () => {
       panel.api.post.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => ({
           texts: payload.texts,
-          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+          rejections: [{ index: 0, reason: "placeholder mismatch" }],
         }),
       );
 

@@ -46,7 +46,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
         );
 
         $this->assertSame(['Hello (de)', 'World (de)'], $response['texts']);
-        $this->assertSame([], $response['rejected']);
+        $this->assertSame([], $response['rejections']);
     }
 
     #[Test]
@@ -59,7 +59,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
 
         $this->assertSame(
             [['index' => 0, 'reason' => 'placeholder mismatch']],
-            $response['rejected']
+            $response['rejections']
         );
     }
 
@@ -75,13 +75,13 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function sends_no_key_beyond_texts_and_rejected(): void
+    public function sends_no_key_beyond_texts_and_rejections(): void
     {
         $response = $this->callTranslateBatchRoute(
             ['Hello'],
             fn (string $text): string => $text . ' (de)'
         );
 
-        $this->assertSame(['texts', 'rejected'], array_keys($response));
+        $this->assertSame(['texts', 'rejections'], array_keys($response));
     }
 }
