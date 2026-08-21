@@ -55,17 +55,20 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.9.3",
+            "version": "0.9.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "86cefcfab27ba721bb5ff0d8a5f47ca2168fa7b7"
+                "reference": "f54a1fe34b72b5c1843eac41e5c7ba93a640f03b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/86cefcfab27ba721bb5ff0d8a5f47ca2168fa7b7",
-                "reference": "86cefcfab27ba721bb5ff0d8a5f47ca2168fa7b7",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/f54a1fe34b72b5c1843eac41e5c7ba93a640f03b",
+                "reference": "f54a1fe34b72b5c1843eac41e5c7ba93a640f03b",
                 "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
             },
             "require-dev": {
                 "getkirby/cms": "^5",
@@ -95,9 +98,9 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.9.3"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.9.4"
             },
-            "time": "2026-08-03T09:54:18+00:00"
+            "time": "2026-08-21T19:25:48+00:00"
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
