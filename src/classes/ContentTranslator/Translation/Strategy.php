@@ -17,8 +17,7 @@ interface Strategy
      * @param list<TranslationUnit> $units
      * @return list<string>
      *
-     * @throws TranslationException When zero units could be translated.
-     *                              Per-unit failures keep the source text and only log a warning.
+     * @throws TranslationException When zero units could be translated. A single unusable unit keeps its source text and travels back as a rejection, which also fires the `content-translator.translate:warning` hook
      */
     public function execute(array $units, ExecutionOptions $options): array;
 }

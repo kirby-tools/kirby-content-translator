@@ -335,6 +335,33 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
+    it("names a rejection when a later step of the same run throws", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => ({
+          texts: payload.texts,
+          rejected: [{ index: 0, reason: "placeholder mismatch" }],
+        }),
+      );
+      panel.api.patch.mockRejectedValue(new Error("permission denied"));
+
+      const translator = await createContentTranslator({
+        title: true,
+        slug: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.error).toHaveBeenCalledWith("permission denied");
+      expect(warn).toHaveBeenCalledWith(
+        'Rejected "text" (fr): placeholder mismatch. Keeping source text.',
+      );
+      warn.mockRestore();
+      error.mockRestore();
+    });
+
     it("warns for a surviving language when another language fails", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const error = vi.spyOn(console, "error").mockImplementation(() => {});

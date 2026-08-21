@@ -206,7 +206,6 @@ export function useContentTranslator() {
       // throwing when nothing came back usable – a route error or a rejected
       // DeepL key does too. The content is already saved, so the run reports
       // the title as untranslated rather than erroring out.
-      console.error("Failed to translate the title:", error);
       translatedTitle = {
         text: title,
         result: {
@@ -222,6 +221,8 @@ export function useContentTranslator() {
         },
       };
     }
+
+    reportRejections(translatedTitle.result, targetLanguage);
 
     if (plan.shouldPatchTitle) {
       await patch("title", { title: translatedTitle.text });
@@ -354,6 +355,10 @@ export function useContentTranslator() {
         fields: fields.value!,
       });
 
+      // Reported before the content is written, because everything from here
+      // to the notification can throw and would take the rejections with it.
+      reportRejections(contentResult, targetLanguage);
+
       await updateContent(contentCopy);
       const plan = planSingleTranslation({
         isHomePage: await isHomePage(),
@@ -390,7 +395,6 @@ export function useContentTranslator() {
       }
 
       const mergedResult = mergeTranslationResults(languageResults);
-      reportRejections(mergedResult, targetLanguage);
       notifyTranslationResult(
         mergedResult,
         "johannschopplich.content-translator.notification.translated",
@@ -542,6 +546,8 @@ export function useContentTranslator() {
         fields: fields.value!,
       });
 
+      reportRejections(contentResult, targetLanguage);
+
       await panel.api.patch(modelApiPath, contentCopy, {
         headers: { "x-language": targetLanguage.code! },
         silent: true,
@@ -578,9 +584,7 @@ export function useContentTranslator() {
       completed++;
       onProgress?.(completed, selectedLanguages.length);
 
-      const mergedResult = mergeTranslationResults(languageResults);
-      reportRejections(mergedResult, targetLanguage);
-      return mergedResult;
+      return mergeTranslationResults(languageResults);
     }
   }
 
