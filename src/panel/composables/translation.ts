@@ -188,13 +188,27 @@ export function useContentTranslator() {
       data: Record<string, unknown>,
     ) => Promise<unknown>;
   }): Promise<ContentTranslationResult> {
-    const translatedTitle = await translateText(title, {
-      provider: provider.value,
-      targetLanguage,
-      sourceLanguage,
-      systemPrompt: systemPrompt.value,
-      fieldKey: "title",
-    });
+    let translatedTitle: { text: string; result: ContentTranslationResult };
+
+    try {
+      translatedTitle = await translateText(title, {
+        provider: provider.value,
+        targetLanguage,
+        sourceLanguage,
+        systemPrompt: systemPrompt.value,
+        fieldKey: "title",
+      });
+    } catch (error) {
+      // `AIStrategy` throws once nothing in a run came back usable, which for a
+      // lone title is any failure at all. The content is already saved by now,
+      // so the run reports the title as untranslated instead of ending in the
+      // error dialog and leaving the user to guess what was written.
+      console.error("Failed to translate the title:", error);
+      translatedTitle = {
+        text: title,
+        result: { translatableCount: 1, translatedCount: 0 },
+      };
+    }
 
     if (plan.shouldPatchTitle) {
       await patch("title", { title: translatedTitle.text });

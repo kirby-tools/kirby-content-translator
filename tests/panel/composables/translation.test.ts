@@ -302,6 +302,34 @@ describe("useContentTranslator", () => {
       expect(staysOnScreen(shown)).toBe(true);
     });
 
+    it("reports the title as untranslated when its translation throws", async () => {
+      currentContent = { value: { text: "Hello" } };
+      let call = 0;
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => {
+          if (++call > 1) throw new Error("provider unavailable");
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+
+      const translator = await createContentTranslator({
+        title: true,
+        slug: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/title", {
+        title: "Example",
+      });
+      const shown = panel.notification.open.mock.calls.at(-1)![0];
+      expect(shown.message).toBe(
+        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
+      );
+    });
+
     it("reports nothing to import when no content field is syncable", async () => {
       panel.api.get.mockResolvedValue({
         id: "example",
