@@ -475,9 +475,7 @@ export function useContentTranslator() {
           panel.t(
             "johannschopplich.content-translator.notification.batchLanguagesFailed",
             {
-              languages: failedLanguages
-                .map(({ code }) => `"${code}"`)
-                .join(", "),
+              languages: failedLanguages.map(({ name }) => name).join(", "),
             },
           ),
         );

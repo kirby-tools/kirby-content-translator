@@ -262,7 +262,7 @@ describe("useContentTranslator", () => {
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.t).toHaveBeenCalledWith(
         "johannschopplich.content-translator.notification.batchLanguagesFailed",
-        { languages: '"fr"' },
+        { languages: "Français" },
       );
       expect(panel.notification.error).toHaveBeenCalled();
       error.mockRestore();
