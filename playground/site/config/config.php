@@ -41,14 +41,20 @@ return [
     ],
 
     'johannschopplich.content-translator' => [
-        // Drives the notifications without spending a DeepL call. `blank`
-        // makes every unit come back unusable, `partial` only the fields
-        // holding a KirbyTag. The AI provider goes straight to Copilot from
-        // the Panel, so this never reaches it.
+        // Drives the notifications without spending a DeepL call. The AI
+        // provider goes straight to Copilot from the Panel, so none of this
+        // reaches it.
         'strategy' => match (env('TRANSLATOR_STRATEGY')) {
+            // A blank comes back as a failed unit, so no segment survives.
             'blank' => fn (string $text): string => '',
+            // Drops the placeholders the check compares, so only the units
+            // holding a KirbyTag fail.
             'partial' => fn (string $text): string => str_contains($text, '<c')
                 ? (preg_replace('!<c\d+\s*/>!', '', '[xx] ' . $text) ?? $text)
+                : '[xx] ' . $text,
+            // Kills one language of a batch run while the rest still land.
+            'failing' => fn (string $text, string $targetLanguage): string => $targetLanguage === env('TRANSLATOR_FAILING_LANGUAGE', 'fr')
+                ? throw new RuntimeException('The provider refused the request')
                 : '[xx] ' . $text,
             default => null
         },
