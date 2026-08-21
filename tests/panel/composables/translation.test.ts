@@ -260,9 +260,11 @@ describe("useContentTranslator", () => {
         expect.any(Error),
       );
       expect(panel.notification.success).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        expect.stringContaining('"fr"'),
+      expect(panel.t).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.notification.batchLanguagesFailed",
+        { languages: '"fr"' },
       );
+      expect(panel.notification.error).toHaveBeenCalled();
       error.mockRestore();
     });
 

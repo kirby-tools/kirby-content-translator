@@ -447,9 +447,14 @@ export function useContentTranslator() {
         // screen before the dialog covers them. Folding a dead language into
         // the segment counts would report it as a handful of skipped segments.
         panel.notification.error(
-          `Failed to translate into ${failedLanguages
-            .map(({ code }) => `"${code}"`)
-            .join(", ")}. See the browser console for the reason.`,
+          panel.t(
+            "johannschopplich.content-translator.notification.batchLanguagesFailed",
+            {
+              languages: failedLanguages
+                .map(({ code }) => `"${code}"`)
+                .join(", "),
+            },
+          ),
         );
       }
     } catch (error) {
