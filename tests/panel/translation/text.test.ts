@@ -21,6 +21,7 @@ describe("translateText", () => {
     const result = await translateText("Hello", {
       provider: "deepl",
       targetLanguage: GERMAN,
+      fieldKey: "title",
     });
 
     expect(mockApiPost).toHaveBeenCalledWith(
@@ -35,11 +36,26 @@ describe("translateText", () => {
     const result = await translateText("2024", {
       provider: "deepl",
       targetLanguage: GERMAN,
+      fieldKey: "title",
     });
 
     expect(mockApiPost).not.toHaveBeenCalled();
     expect(result.text).toBe("2024");
     expect(result.result.translatableCount).toBe(0);
+  });
+
+  it("names the fieldKey in the warning when the strategy returns no result", async () => {
+    mockApiPost.mockResolvedValueOnce({ texts: [] });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await translateText("Hello", {
+      provider: "deepl",
+      targetLanguage: GERMAN,
+      fieldKey: "title",
+    });
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"title"'));
+    warn.mockRestore();
   });
 
   it("falls back to the source text when the strategy returns no result", async () => {
@@ -48,6 +64,7 @@ describe("translateText", () => {
     const result = await translateText("Hello", {
       provider: "deepl",
       targetLanguage: GERMAN,
+      fieldKey: "title",
     });
 
     expect(result.text).toBe("Hello");

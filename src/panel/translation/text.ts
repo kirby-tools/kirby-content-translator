@@ -18,17 +18,20 @@ export async function translateText(
     targetLanguage,
     sourceLanguage,
     systemPrompt,
+    fieldKey,
   }: {
     provider: TranslationProvider;
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
     systemPrompt?: string;
+    /** Names the text in a console warning, since there is no field to name it. */
+    fieldKey: string;
   },
 ): Promise<{ text: string; result: ContentTranslationResult }> {
   const strategy =
     provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
   const { texts, translatableCount, translatedCount } = await translateUnits(
-    [{ text }],
+    [{ text, fieldKey }],
     strategy,
     { sourceLanguage, targetLanguage },
   );

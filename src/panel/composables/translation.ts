@@ -193,6 +193,7 @@ export function useContentTranslator() {
       targetLanguage,
       sourceLanguage,
       systemPrompt: systemPrompt.value,
+      fieldKey: "title",
     });
 
     if (plan.shouldPatchTitle) {
