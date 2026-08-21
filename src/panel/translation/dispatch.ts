@@ -16,6 +16,9 @@ import { isUntranslatable } from "./untranslatable";
  *
  * The counts travel with the texts because a translation may legitimately equal
  * its source text, so no caller can recover them by diffing the result.
+ *
+ * Warnings name the target language because a batch run repeats every field
+ * once per language.
  */
 export async function translateUnits(
   units: TranslationUnit[],
@@ -50,7 +53,7 @@ export async function translateUnits(
     // strategy can legitimately come back blank.
     if (typeof translation !== "string" || !translation.trim()) {
       console.warn(
-        `No usable translation for "${unit.fieldKey}". Keeping source text.`,
+        `No usable translation for "${unit.fieldKey}" (${options.targetLanguage.code}). Keeping source text.`,
       );
       continue;
     }
@@ -60,7 +63,7 @@ export async function translateUnits(
 
     if (expectedCount !== actualCount) {
       console.warn(
-        `Placeholder count mismatch in "${unit.fieldKey}": expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
+        `Placeholder count mismatch in "${unit.fieldKey}" (${options.targetLanguage.code}): expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
       );
       continue;
     }

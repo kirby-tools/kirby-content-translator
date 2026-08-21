@@ -24,6 +24,19 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["Hello", "Welt"]);
   });
 
+  it("names the target language in the warning", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    await translateUnits(
+      [{ text: "Hello", fieldKey: "intro" }],
+      { execute: async () => [null] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('"intro" (de)'));
+    warn.mockRestore();
+  });
+
   it("keeps source text when a strategy returns only whitespace", async () => {
     const { texts } = await translateUnits(
       [{ text: "Hello" }, { text: "World" }],
