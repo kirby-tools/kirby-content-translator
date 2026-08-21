@@ -103,9 +103,7 @@ export class AIStrategy implements TranslationStrategy {
       }
     }
 
-    // Mirrors `CopilotAIStrategy`: a run where the provider produced nothing
-    // usable is an error, not a silent no-op that reports success. A provider
-    // that answered gets its own reason, because `lastReason` then holds a
+    // A provider that answered gets its own reason: `lastReason` then holds a
     // message this file wrote rather than anything the provider said.
     if (translatedCount === 0) {
       const reason = hasProviderAnswer

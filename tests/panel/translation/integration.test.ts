@@ -133,7 +133,7 @@ describe("translateContent", () => {
   it("restores the KirbyTag when a strategy pads a placeholder with a space", async () => {
     const paddingStrategy: TranslationStrategy = {
       async execute(units) {
-        // A stricter AI reformats the placeholder it was handed.
+        // The space before the slash is the point of the fixture.
         return units.map(() => "Klick <c0 /> jetzt");
       },
     };

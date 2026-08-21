@@ -90,10 +90,9 @@ async function createContentTranslator(options: TranslatorOptions = {}) {
 }
 
 /**
- * Kirby auto-closes a notification after four seconds unless it is an `error`
- * or carries a positive timeout; every falsy timeout is coerced back to the
- * default. Encoding the rule here rather than a literal keeps a regression to
- * `timeout: false` failing.
+ * Kirby's own rule, so a test asserts against it rather than against a literal:
+ * every falsy timeout is coerced back to four seconds unless the type is
+ * `error`.
  */
 function staysOnScreen(options: { type?: string; timeout?: number }) {
   return options.type === "error" || (options.timeout ?? 0) > 0;

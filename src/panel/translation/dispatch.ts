@@ -46,10 +46,8 @@ export async function translateUnits(
     const unit = translatableUnits[position]!;
     const translation = translations[position];
 
-    // `null`, a missing slot, a non-string, or a blank string leaves the source
-    // text in place rather than blanking the field. `isUntranslatable` already
-    // dropped the blank sources, so nothing that reaches a strategy can
-    // legitimately come back blank.
+    // `isUntranslatable` dropped the blank sources, so nothing that reaches a
+    // strategy can legitimately come back blank.
     if (typeof translation !== "string" || !translation.trim()) {
       console.warn(
         `No usable translation for "${unit.fieldKey}". Keeping source text.`,

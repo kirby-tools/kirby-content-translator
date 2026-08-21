@@ -36,10 +36,8 @@ export class DeepLStrategy implements TranslationStrategy {
 
       response.texts.forEach((text, index) => {
         if (rejectedIndexes.has(index)) return;
-        // Mirrors `AIStrategy`: a blank response is a failed unit, not a
-        // translation that happens to hold nothing. Reachable past the route's
-        // own blank check, since `content-translator.translate:after` runs
-        // after it.
+        // A `content-translator.translate:after` hook runs after the route's
+        // own blank check, so a blank can still arrive here.
         results[index] = text.trim() ? text : null;
       });
     }

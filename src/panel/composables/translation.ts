@@ -38,7 +38,7 @@ import { createGlobalState } from "./state";
 
 /**
  * Long enough that a notification stays until something replaces it. Kirby
- * coerces any falsy timeout back to four seconds for every theme but `error`.
+ * coerces any falsy timeout back to four seconds unless the type is `error`.
  */
 const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 
@@ -137,11 +137,9 @@ export function useContentTranslator() {
     }
 
     if (result.translatedCount === 0) {
-      // A toast, not `notification.error`: that also opens Kirby's blocking
-      // error dialog, and a provider that answered with nothing usable is
-      // nothing the user can act on beyond running the translation again.
-      // `type: "error"` is what keeps it on screen, since Kirby coerces any
-      // falsy timeout back to four seconds for every other type.
+      // The bar `notification.error` would open, without the blocking error
+      // dialog it opens alongside: a provider that answered with nothing
+      // usable is nothing the user can act on beyond translating again.
       panel.notification.open({
         message: panel.t(
           "johannschopplich.content-translator.notification.nothingTranslated",

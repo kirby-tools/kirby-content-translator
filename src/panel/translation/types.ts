@@ -32,11 +32,10 @@ export interface TranslationExecutionOptions {
 
 export interface TranslationStrategy {
   /**
-   * Translates `units` and returns results in the same order as the input.
+   * Translates `units` and returns results in the input order.
    *
-   * `null` marks a unit the strategy could not translate – the caller splices
-   * the source text back in and counts the unit as untranslated. Returning the
-   * source text instead would be indistinguishable from a translation that
+   * `null` marks a unit the strategy could not translate. Returning its source
+   * text instead would be indistinguishable from a translation that
    * legitimately equals its source.
    */
   execute: (
