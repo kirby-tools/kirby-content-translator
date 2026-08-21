@@ -1,8 +1,8 @@
 import type {
+  BatchTranslationResult,
   TranslationExecutionOptions,
   TranslationStrategy,
   TranslationUnit,
-  UnitTranslationResult,
 } from "./types";
 import { PLACEHOLDER_PATTERN } from "./kirby-text";
 import { isUntranslatable } from "./untranslatable";
@@ -24,7 +24,7 @@ export async function translateUnits(
   units: TranslationUnit[],
   strategy: TranslationStrategy,
   options: TranslationExecutionOptions,
-): Promise<UnitTranslationResult> {
+): Promise<BatchTranslationResult> {
   const texts = units.map((unit) => unit.text);
 
   const translatableIndexes: number[] = [];
@@ -47,14 +47,14 @@ export async function translateUnits(
 
   for (const [position, index] of translatableIndexes.entries()) {
     const unit = translatableUnits[position]!;
-    const translation = translations[position];
+    const outcome = translations[position];
 
     // `isUntranslatable` dropped the blank sources, so nothing that reaches a
     // strategy can legitimately come back blank.
-    if (typeof translation !== "string" || !translation.trim()) {
+    if (typeof outcome !== "string" || !outcome.trim()) {
       const reason =
-        typeof translation === "object" && translation !== null
-          ? translation.reason
+        typeof outcome === "object" && outcome !== null
+          ? outcome.reason
           : "no usable translation";
       console.warn(
         `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): ${reason}. Keeping source text.`,
@@ -62,17 +62,17 @@ export async function translateUnits(
       continue;
     }
 
-    const expectedCount = countPlaceholders(unit.text);
-    const actualCount = countPlaceholders(translation);
+    const expected = placeholderIndexes(unit.text);
+    const actual = placeholderIndexes(outcome);
 
-    if (expectedCount !== actualCount) {
+    if (expected !== actual) {
       console.warn(
-        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): placeholder count mismatch, expected ${expectedCount}, got ${actualCount}. Keeping source text.`,
+        `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): placeholder mismatch, expected ${expected || "none"}, got ${actual || "none"}. Keeping source text.`,
       );
       continue;
     }
 
-    texts[index] = translation;
+    texts[index] = outcome;
     translatedCount++;
   }
 
@@ -83,6 +83,14 @@ export async function translateUnits(
   };
 }
 
-function countPlaceholders(text: string): number {
-  return (text.match(PLACEHOLDER_PATTERN) ?? []).length;
+/**
+ * Sorted `<cN/>` indexes as one comparable string. Counting alone would accept
+ * `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, and `restore()` would then
+ * rebuild tag 0 twice and drop tag 1.
+ */
+function placeholderIndexes(text: string): string {
+  return [...text.matchAll(PLACEHOLDER_PATTERN)]
+    .map((match) => Number(match[1]))
+    .sort((a, b) => a - b)
+    .join(",");
 }

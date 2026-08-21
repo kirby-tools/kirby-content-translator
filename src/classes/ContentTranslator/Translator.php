@@ -331,8 +331,8 @@ final class Translator
                 continue;
             }
 
-            if (self::countPlaceholders($unit->text) !== self::countPlaceholders($translation)) {
-                $rejections[] = self::reject($unit, $index, 'placeholder count mismatch');
+            if (self::placeholderIndexes($unit->text) !== self::placeholderIndexes($translation)) {
+                $rejections[] = self::reject($unit, $index, 'placeholder mismatch');
                 continue;
             }
 
@@ -343,12 +343,21 @@ final class Translator
     }
 
     /**
-     * A lost or invented `<cN/>` means `KirbyText::split()` can no longer
-     * rebuild the tag, so the source text has to stand.
+     * The `<cN/>` indexes a text carries, sorted so two texts compare directly.
+     * A lost or invented placeholder means `KirbyText::restore()` can no longer
+     * rebuild the tag, and counting alone would accept `<c0/> <c0/>` for a
+     * source holding `<c0/> <c1/>`, which rebuilds tag 0 twice and drops tag 1.
+     *
+     * @return list<int>
      */
-    private static function countPlaceholders(string $text): int
+    private static function placeholderIndexes(string $text): array
     {
-        return preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text);
+        preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $text, $matches);
+
+        $indexes = array_map(intval(...), $matches[1]);
+        sort($indexes);
+
+        return $indexes;
     }
 
     private static function reject(TranslationUnit $unit, int $index, string $reason): TranslationRejection

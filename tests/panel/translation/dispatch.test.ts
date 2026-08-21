@@ -42,12 +42,12 @@ describe("translateUnits", () => {
 
     await translateUnits(
       [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => [{ reason: "placeholder count mismatch" }] },
+      { execute: async () => [null] },
       { targetLanguage: GERMAN },
     );
 
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('"intro" (de): placeholder count mismatch'),
+      expect.stringContaining('"intro" (de)'),
     );
     warn.mockRestore();
   });
@@ -63,7 +63,7 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["Hello", "Welt"]);
   });
 
-  it("returns translatableCount 0 without reaching the strategy", async () => {
+  it("counts nothing as translatable when every unit is untranslatable", async () => {
     const execute = vi.fn();
 
     const result = await translateUnits([{ text: "2024" }], { execute }, {
@@ -76,6 +76,37 @@ describe("translateUnits", () => {
       translatableCount: 0,
       translatedCount: 0,
     });
+  });
+
+  it("keeps source text when a translation repeats one placeholder for another", async () => {
+    const { texts, translatedCount } = await translateUnits(
+      [{ text: "Read <c0/> and <c1/>", fieldKey: "intro" }],
+      { execute: async () => ["Lies <c0/> und <c0/>"] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(texts).toEqual(["Read <c0/> and <c1/>"]);
+    expect(translatedCount).toBe(0);
+  });
+
+  it("keeps source text when a translation invents a placeholder", async () => {
+    const { texts } = await translateUnits(
+      [{ text: "Read <c0/>", fieldKey: "intro" }],
+      { execute: async () => ["Lies <c9/>"] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(texts).toEqual(["Read <c0/>"]);
+  });
+
+  it("translates when a strategy reorders the placeholders", async () => {
+    const { texts } = await translateUnits(
+      [{ text: "<c0/> then <c1/>", fieldKey: "intro" }],
+      { execute: async () => ["<c1/> zuerst, dann <c0/>"] },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(texts).toEqual(["<c1/> zuerst, dann <c0/>"]);
   });
 
   it("counts only the units a strategy translated", async () => {

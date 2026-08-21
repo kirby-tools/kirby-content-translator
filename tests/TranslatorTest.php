@@ -819,7 +819,7 @@ final class TranslatorTest extends TestCase
 
         Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
 
-        $this->assertSame([['Click <c0/> now', 'placeholder count mismatch', null]], $warnings);
+        $this->assertSame([['Click <c0/> now', 'placeholder mismatch', null]], $warnings);
     }
 
     #[Test]
@@ -837,7 +837,7 @@ final class TranslatorTest extends TestCase
         $this->assertSame(['Click <c0/> now', '[de]Hello'], $result->texts);
         $this->assertCount(1, $result->rejections);
         $this->assertSame(0, $result->rejections[0]->index);
-        $this->assertSame('placeholder count mismatch', $result->rejections[0]->reason);
+        $this->assertSame('placeholder mismatch', $result->rejections[0]->reason);
     }
 
     #[Test]
@@ -872,7 +872,7 @@ final class TranslatorTest extends TestCase
     #[Test]
     public function restores_the_kirby_tag_when_a_translation_pads_a_placeholder_with_a_space(): void
     {
-        // A stricter provider reformats the placeholder it was handed.
+        // The strategy pads the placeholder it was handed.
         $app = $this->appWithKirbyTagsPage(
             static fn (string $text): string => str_replace('<c0/>', '<c0 />', "[de]$text"),
         );

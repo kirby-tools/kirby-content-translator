@@ -14,10 +14,8 @@ final class KirbyText
 {
     /**
      * Must match `PLACEHOLDER_PATTERN` in `src/panel/translation/kirby-text.ts`
-     * for ASCII whitespace. Widening `\s` to the Unicode whitespace JavaScript
-     * accepts needs the `u` modifier, under which PCRE returns `false` on
-     * invalid UTF-8; `countPlaceholders()` declares an `int` return and cannot
-     * pass that on.
+     * for ASCII whitespace. Matching the wider `\s` JavaScript accepts needs the
+     * `u` modifier, under which PCRE returns `false` on invalid UTF-8.
      */
     public const PLACEHOLDER_PATTERN = '!<c(\d+)\s*/>!';
     /** @see https://github.com/getkirby/kirby/blob/main/src/Text/KirbyTags.php */
