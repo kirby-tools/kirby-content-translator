@@ -29,7 +29,7 @@ describe("translateUnits", () => {
 
     await translateUnits(
       [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => [null] },
+      { execute: async () => [{ reason: "provider timed out" }] },
       { targetLanguage: GERMAN },
     );
 
@@ -42,12 +42,12 @@ describe("translateUnits", () => {
 
     await translateUnits(
       [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => [null] },
+      { execute: async () => [{ reason: "provider timed out" }] },
       { targetLanguage: GERMAN },
     );
 
     expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('"intro" (de)'),
+      expect.stringContaining('"intro" (de): provider timed out'),
     );
     warn.mockRestore();
   });
@@ -112,7 +112,7 @@ describe("translateUnits", () => {
   it("counts only the units a strategy translated", async () => {
     const result = await translateUnits(
       [{ text: "Hello" }, { text: "World" }],
-      { execute: async () => [null, "Welt"] },
+      { execute: async () => [{ reason: "provider timed out" }, "Welt"] },
       { targetLanguage: GERMAN },
     );
 

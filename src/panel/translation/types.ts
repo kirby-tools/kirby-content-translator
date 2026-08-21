@@ -35,15 +35,10 @@ export interface TranslationExecutionOptions {
  * none. Returning the source text instead of a rejection would be
  * indistinguishable from a translation that legitimately equals its source.
  */
-export type TranslationOutcome = string | null | { reason: string };
+export type TranslationOutcome = string | { reason: string };
 
 export interface TranslationStrategy {
-  /**
-   * Translates `units` and returns outcomes in the input order.
-   *
-   * A strategy that knows why a unit failed says so, and the caller writes the
-   * one warning for it; bare `null` leaves the caller to report it generically.
-   */
+  /** Translates `units` and returns one outcome per unit, in input order. */
   execute: (
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
@@ -59,7 +54,7 @@ export interface CollectorOptions {
   kirbyTags?: Record<string, string[]>;
 }
 
-export interface UnitTranslationResult {
+export interface BatchTranslationResult {
   /** Final text per unit, in input order – source text wherever no translation was applied. */
   texts: string[];
   /** Units handed to the strategy, i.e. everything `isUntranslatable` did not filter out. */
@@ -68,4 +63,4 @@ export interface UnitTranslationResult {
   translatedCount: number;
 }
 
-export type ContentTranslationResult = Omit<UnitTranslationResult, "texts">;
+export type ContentTranslationResult = Omit<BatchTranslationResult, "texts">;

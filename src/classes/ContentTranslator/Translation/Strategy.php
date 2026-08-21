@@ -18,7 +18,9 @@ interface Strategy
      * @return list<string>
      *
      * @throws TranslationException When zero units could be translated.
-     *                              Per-unit failures keep the source text and only log a warning.
+     *                              A per-unit failure keeps the source text and
+     *                              is reported as a `TranslationRejection`, so
+     *                              a caller can name it rather than guess.
      */
     public function execute(array $units, ExecutionOptions $options): array;
 }

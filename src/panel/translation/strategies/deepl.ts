@@ -17,13 +17,16 @@ export class DeepLStrategy implements TranslationStrategy {
   ) {
     const api = useApi();
 
-    const results: TranslationOutcome[] = units.map(() => null);
+    // Pre-filled so a response that answers for fewer units than it was given
+    // still names a reason for the rest.
+    const results: TranslationOutcome[] = units.map(() => ({
+      reason: "missing translation",
+    }));
 
     if (units.length > 0) {
       const response = await api.post<{
         texts: string[];
         rejected?: { index: number; reason: string }[];
-        rejectedIndexes?: number[];
       }>(TRANSLATE_BATCH_API_ROUTE, {
         sourceLanguage: options.sourceLanguage?.code,
         targetLanguage: options.targetLanguage.code,
@@ -31,16 +34,9 @@ export class DeepLStrategy implements TranslationStrategy {
       });
 
       // The route answers for every unit, handing back the source text for one
-      // it dropped, so a rejection is invisible in `texts` alone. A server
-      // predating `rejected` names no reason, and one predating both reports as
-      // it did before: silently.
+      // it dropped, so a rejection is invisible in `texts` alone.
       const reasons = new Map(
-        response.rejected?.map(({ index, reason }) => [index, reason]) ??
-          response.rejectedIndexes?.map((index) => [
-            index,
-            "no usable translation",
-          ]) ??
-          [],
+        response.rejected?.map(({ index, reason }) => [index, reason]) ?? [],
       );
 
       response.texts.forEach((text, index) => {

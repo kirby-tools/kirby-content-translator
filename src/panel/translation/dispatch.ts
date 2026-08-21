@@ -53,9 +53,7 @@ export async function translateUnits(
     // strategy can legitimately come back blank.
     if (typeof outcome !== "string" || !outcome.trim()) {
       const reason =
-        typeof outcome === "object" && outcome !== null
-          ? outcome.reason
-          : "no usable translation";
+        typeof outcome === "object" ? outcome.reason : "missing translation";
       console.warn(
         `Rejected "${unit.fieldKey}" (${options.targetLanguage.code}): ${reason}. Keeping source text.`,
       );

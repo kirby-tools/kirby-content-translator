@@ -57,7 +57,7 @@ describe("DeepLStrategy", () => {
       expect(results).toEqual(["B1", "B2", "B3"]);
     });
 
-    it("reports a whitespace-only translation as an empty translation", async () => {
+    it("reports a whitespace-only translation as rejected", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["\u00A0 ", "Welt"] });
 
       const strategy = new DeepLStrategy();
@@ -91,24 +91,7 @@ describe("DeepLStrategy", () => {
       ]);
     });
 
-    it("falls back to a bare reason when the route sends only rejectedIndexes", async () => {
-      mockApiPost.mockResolvedValueOnce({
-        texts: ["Hello", "Welt"],
-        rejectedIndexes: [0],
-      });
-
-      const strategy = new DeepLStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Hello", fieldKey: "title" },
-        { text: "World", fieldKey: "subtitle" },
-      ];
-
-      const results = await strategy.execute(units, defaultOptions);
-
-      expect(results).toEqual([{ reason: "no usable translation" }, "Welt"]);
-    });
-
-    it("returns null for units the response leaves unanswered", async () => {
+    it("reports units the response leaves unanswered as rejected", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
 
       const strategy = new DeepLStrategy();
@@ -119,7 +102,7 @@ describe("DeepLStrategy", () => {
 
       const results = await strategy.execute(units, defaultOptions);
 
-      expect(results).toEqual(["Hallo", null]);
+      expect(results).toEqual(["Hallo", { reason: "missing translation" }]);
     });
   });
 

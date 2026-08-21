@@ -310,7 +310,7 @@ final class CopilotAIStrategyTest extends TestCase
         $strategy = new CopilotAIStrategy(client: $client);
 
         $this->expectException(TranslationException::class);
-        $this->expectExceptionMessageMatches('/empty or non-string translation/');
+        $this->expectExceptionMessageMatches('/empty translation/');
 
         $strategy->execute(
             units: [new TranslationUnit('A', 'a'), new TranslationUnit('B', 'b')],

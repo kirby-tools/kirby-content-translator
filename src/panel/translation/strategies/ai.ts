@@ -52,7 +52,11 @@ export class AIStrategy implements TranslationStrategy {
 
     const { streamText } = copilot;
 
-    const results: TranslationOutcome[] = units.map(() => null);
+    // Pre-filled so a chunk that never reaches the provider still names a
+    // reason for its units.
+    const results: TranslationOutcome[] = units.map(() => ({
+      reason: "missing translation",
+    }));
     let translatedCount = 0;
     let hasProviderAnswer = false;
     let lastReason: string | undefined;
@@ -84,8 +88,13 @@ export class AIStrategy implements TranslationStrategy {
 
         for (const [i, { originalIndex }] of chunk.entries()) {
           const translation = result?.translations?.[i];
-          if (!translation?.trim()) {
-            lastReason = "empty or non-string translation";
+          if (typeof translation !== "string") {
+            lastReason = "non-string translation";
+            results[originalIndex] = { reason: lastReason };
+            continue;
+          }
+          if (!translation.trim()) {
+            lastReason = "empty translation";
             results[originalIndex] = { reason: lastReason };
             continue;
           }
@@ -98,9 +107,12 @@ export class AIStrategy implements TranslationStrategy {
         for (const { originalIndex } of chunk) {
           results[originalIndex] = { reason: lastReason };
         }
-        // The reason reaches the console through `translateUnits`; only the
-        // stack has to be logged here, and only once per chunk.
-        console.error(error);
+        // `translateUnits` never sees this chunk when `execute` goes on to
+        // throw, so the fields it covers are named here rather than there.
+        console.error(
+          `Failed to translate ${chunk.map(({ unit }) => `"${unit.fieldKey}"`).join(", ")}:`,
+          error,
+        );
       }
     }
 
