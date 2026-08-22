@@ -17,8 +17,6 @@ namespace JohannSchopplich\Licensing;
 final class PluginLicenseExtensions
 {
     /**
-     * Maps exception messages from license activation to translation keys.
-     *
      * @deprecated Use `LicensePanel::ACTIVATION_ERROR_KEYS` instead.
      */
     public const ACTIVATION_ERROR_KEYS = LicensePanel::ACTIVATION_ERROR_KEYS;

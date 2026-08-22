@@ -34,7 +34,7 @@ final class LicenseActivator
      * Thrown messages are matched verbatim by `LicensePanel::ACTIVATION_ERROR_KEYS`
      * to resolve a translation, so they cannot be reworded on their own.
      *
-     * @throws LogicException When the license is already activated, belongs to another plugin, does not cover the installed version, or when the licensing API rejects the request (message taken verbatim from the response).
+     * @throws LogicException When the license is already activated, belongs to another plugin, does not cover the installed version, or when the licensing API rejects the request (message taken verbatim from the response)
      */
     public function activate(string $email, string $licenseKey): void
     {
@@ -72,13 +72,13 @@ final class LicenseActivator
     }
 
     /**
-     * @throws LogicException When `email` or `licenseKey` is missing, or when activation fails.
+     * @throws LogicException When `email` or `licenseKey` is missing, or when activation fails
      */
     public function activateFromRequest(Request|null $request = null): array
     {
         $request ??= App::instance()->request();
         $email = $request->get('email');
-        // TODO: Remove `orderId` fallback once all plugins ship with licensing-backend >=0.9
+        // TODO: Remove the `orderId` fallback once all plugins ship with licensing-backend >=0.9.
         $licenseKey = $request->get('licenseKey') ?? $request->get('orderId');
 
         if (!$email || !$licenseKey) {

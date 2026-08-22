@@ -44,7 +44,7 @@ final class LicenseValidator
             return Semver::satisfies($version, $versionConstraint);
         } catch (UnexpectedValueException) {
             // A hand-edited or truncated license file can hold a constraint
-            // Composer cannot parse, which must not escape as a fatal error
+            // Composer cannot parse, which must not escape as a fatal error.
             return false;
         }
     }
@@ -64,7 +64,7 @@ final class LicenseValidator
         }
 
         // The licensing API validates compatibility as `||`-separated caret, tilde
-        // or exact versions, so each alternative opens with the major it licenses
+        // or exact versions, so each alternative opens with the major it licenses.
         $maxLicensedMajor = null;
 
         foreach (explode('||', $versionConstraint) as $constraint) {
@@ -73,7 +73,7 @@ final class LicenseValidator
             }
         }
 
-        // A constraint naming no major at all cannot have been outgrown
+        // A constraint naming no major at all cannot have been outgrown.
         if ($maxLicensedMajor === null) {
             return false;
         }

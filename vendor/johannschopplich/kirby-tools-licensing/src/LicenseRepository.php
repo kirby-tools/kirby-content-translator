@@ -22,6 +22,7 @@ final class LicenseRepository
 
     private readonly string $licenseFile;
     private array|null $cache = null;
+    private string|null $readError = null;
 
     public function __construct()
     {
@@ -34,13 +35,25 @@ final class LicenseRepository
             return $this->cache;
         }
 
+        if (file_exists($this->licenseFile) === false) {
+            return $this->cache = [];
+        }
+
         try {
             $this->cache = Json::read($this->licenseFile);
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            $this->readError = $e->getMessage();
             $this->cache = [];
         }
 
         return $this->cache;
+    }
+
+    public function getReadError(): string|null
+    {
+        $this->readAll();
+
+        return $this->readError;
     }
 
     public function get(string $packageName): array|null
@@ -78,5 +91,6 @@ final class LicenseRepository
         Json::write($this->licenseFile, $licenses);
 
         $this->cache = $licenses;
+        $this->readError = null;
     }
 }

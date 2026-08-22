@@ -15,7 +15,7 @@ final class LicenseUtils
 {
     public static function getPluginVersion(string $packageName): string|null
     {
-        // Kirby registers plugins without the `kirby-` prefix the Composer package name carries
+        // Kirby registers plugins without the `kirby-` prefix the Composer package name carries.
         $kirbyPluginName = str_replace('/kirby-', '/', $packageName);
 
         return App::instance()->plugin($kirbyPluginName)?->version();
@@ -51,7 +51,7 @@ final class LicenseUtils
     public static function formatCompatibility(string $compatibility): string
     {
         // Only the leading major of each alternative counts, so tilde and exact
-        // constraints like `~1.2` must not collapse into their digits
+        // constraints like `~1.2` must not collapse into their digits.
         $versions = array_map(
             fn ($part) => preg_match('/^[\^~]?(\d+)/', trim($part), $matches) ? (int)$matches[1] : 0,
             explode('||', $compatibility)

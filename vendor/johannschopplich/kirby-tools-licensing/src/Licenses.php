@@ -100,6 +100,11 @@ final class Licenses
         ];
     }
 
+    public function getReadError(): string|null
+    {
+        return $this->repository->getReadError();
+    }
+
     public function isActivated(): bool
     {
         return $this->activator->isActivated();

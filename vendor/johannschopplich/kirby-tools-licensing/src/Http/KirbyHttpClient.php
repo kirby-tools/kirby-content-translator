@@ -21,7 +21,15 @@ final class KirbyHttpClient implements HttpClientInterface
 
         if ($response->code() < 200 || $response->code() >= 300) {
             $message = $response->json()['message'] ?? 'Request failed';
-            throw new LogicException($message, (string)$response->code());
+
+            // The status code becomes the exception key, which is what
+            // `LicensePanel::activationFailure()` reports as `details.cause`.
+            // TODO: Drop K4 compat in v1 – use named arguments once Kirby 5 is the floor.
+            throw new LogicException([
+                'fallback' => $message,
+                'key' => (string)$response->code(),
+                'translate' => false
+            ]);
         }
 
         return $response->json();
