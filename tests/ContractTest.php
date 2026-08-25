@@ -14,13 +14,7 @@ use PHPUnit\Framework\TestCase;
  */
 final class ContractTest extends TestCase
 {
-    /**
-     * @return array<string, mixed>
-     */
-    private static function contract(): array
-    {
-        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
-    }
+    use ContractFixture;
 
     /**
      * @return iterable<string, array{string, bool}>

@@ -19,6 +19,8 @@ use PHPUnit\Framework\TestCase;
 #[PreserveGlobalState(false)]
 final class TranslatorTest extends TestCase
 {
+    use ContractFixture;
+
     protected function tearDown(): void
     {
         App::destroy();
@@ -857,9 +859,7 @@ final class TranslatorTest extends TestCase
      */
     public static function rejectionReasons(): iterable
     {
-        $contract = json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
-
-        foreach ($contract['rejectionReasons'] as $case) {
+        foreach (self::contract()['rejectionReasons'] as $case) {
             yield $case['reason'] => [$case['reason'], $case['sourceText'], $case['answer']];
         }
     }
