@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier \"src/panel/**\" --write",
+    "playground:reset": "git checkout -- playground/storage/content && git clean -fdq playground/storage/content",
     "test": "vitest",
     "test:types": "tsc --noEmit",
     "release": "pnpm run build && bumpp --all --execute \"npx zx scripts/pre-release.mjs\" && zx scripts/post-release.mjs"
