@@ -33,6 +33,10 @@
     { "reason": "empty translation", "sourceText": "Hello", "answer": "  " },
     { "reason": "placeholder mismatch", "sourceText": "Read <c0/>", "answer": "Lies" }
   ],
+  "batchRouteResponse": {
+    "keys": ["texts", "rejections"],
+    "rejectionKeys": ["index", "reason"]
+  },
   "placeholder": {
     "format": "<c{n}/>",
     "indexBase": 0

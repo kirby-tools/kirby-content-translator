@@ -9,12 +9,21 @@ use PHPUnit\Framework\Attributes\Test;
 
 /**
  * Pins the wire shape the Panel's `DeepLStrategy` reads. Both tiers otherwise
- * mock this payload, so a renamed key would leave every suite green.
+ * mock this payload, so a renamed key would leave every suite green. The key
+ * names come from `contract.json`, shared with `contract.test.ts`.
  */
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
 final class TranslateBatchRouteTest extends ApiRouteTestCase
 {
+    /**
+     * @return array<string, mixed>
+     */
+    private static function contract(): array
+    {
+        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
+    }
+
     /**
      * @param list<string> $texts
      */
@@ -75,13 +84,16 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function sends_no_key_beyond_texts_and_rejections(): void
+    public function sends_only_the_keys_the_contract_names(): void
     {
+        $shape = self::contract()['batchRouteResponse'];
+
         $response = $this->callTranslateBatchRoute(
-            ['Hello'],
-            fn (string $text): string => $text . ' (de)'
+            ['Read <c0/> now'],
+            fn (string $text): string => 'Lies jetzt'
         );
 
-        $this->assertSame(['texts', 'rejections'], array_keys($response));
+        $this->assertSame($shape['keys'], array_keys($response));
+        $this->assertSame($shape['rejectionKeys'], array_keys($response['rejections'][0]));
     }
 }

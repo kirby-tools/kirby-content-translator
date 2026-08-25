@@ -6,6 +6,7 @@ import {
   PLACEHOLDER_PATTERN,
   splitKirbyText,
 } from "../../../src/panel/translation/kirby-text";
+import { DeepLStrategy } from "../../../src/panel/translation/strategies";
 import {
   MAX_BATCH_SIZE,
   MAX_CHARS_PER_BATCH,
@@ -17,6 +18,12 @@ vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(),
 }));
 
+const mockApiPost = vi.fn();
+
+vi.mock("kirbyuse", () => ({
+  useApi: () => ({ post: mockApiPost }),
+}));
+
 interface TranslationContract {
   skipCases: { text: string; skip: boolean }[];
   rejectionReasons: {
@@ -24,6 +31,7 @@ interface TranslationContract {
     sourceText: string;
     answer: string | number | null;
   }[];
+  batchRouteResponse: { keys: string[]; rejectionKeys: string[] };
   placeholder: { format: string; indexBase: number };
   batching: { maxBatchSize: number; maxSizePerBatch: number };
 }
@@ -57,6 +65,28 @@ describe("translation contract", () => {
       expect(rejections[0]!.reason).toBe(reason);
     },
   );
+
+  it("reads the batch route response by its contract keys", async () => {
+    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+
+    mockApiPost.mockResolvedValueOnce({
+      [textsKey!]: ["Hello", "Welt"],
+      [rejectionsKey!]: [
+        { [indexKey!]: 0, [reasonKey!]: "placeholder mismatch" },
+      ],
+    });
+
+    const outcomes = await new DeepLStrategy().execute(
+      [
+        { text: "Hello", fieldKey: "title" },
+        { text: "World", fieldKey: "subtitle" },
+      ],
+      { targetLanguage: { code: "de", name: "Deutsch" } },
+    );
+
+    expect(outcomes).toEqual([{ reason: "placeholder mismatch" }, "Welt"]);
+  });
 
   it("emits placeholders in the contract format", () => {
     const { placeholder } = contract;
