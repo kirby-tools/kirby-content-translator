@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { translateUnits } from "../../../src/panel/translation/dispatch";
 import {
   PLACEHOLDER_PATTERN,
@@ -23,6 +23,10 @@ const mockApiPost = vi.fn();
 vi.mock("kirbyuse", () => ({
   useApi: () => ({ post: mockApiPost }),
 }));
+
+beforeEach(() => {
+  mockApiPost.mockReset();
+});
 
 interface TranslationContract {
   skipCases: { text: string; skip: boolean }[];
@@ -66,7 +70,7 @@ describe("translation contract", () => {
     },
   );
 
-  it("reads the batch route response by its contract keys", async () => {
+  it("reads texts and rejections from the batch route", async () => {
     const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
     const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
 

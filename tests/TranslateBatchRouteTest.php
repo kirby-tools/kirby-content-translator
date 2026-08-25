@@ -10,19 +10,14 @@ use PHPUnit\Framework\Attributes\Test;
 /**
  * Pins the wire shape the Panel's `DeepLStrategy` reads. Both tiers otherwise
  * mock this payload, so a renamed key would leave every suite green. The key
- * names come from `contract.json`, shared with `contract.test.ts`.
+ * names are shared with `contract.test.ts`; the assertion lives here because it
+ * needs the route booted.
  */
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
 final class TranslateBatchRouteTest extends ApiRouteTestCase
 {
-    /**
-     * @return array<string, mixed>
-     */
-    private static function contract(): array
-    {
-        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
-    }
+    use ContractFixture;
 
     /**
      * @param list<string> $texts
@@ -84,7 +79,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function sends_only_the_keys_the_contract_names(): void
+    public function sends_only_texts_and_rejections(): void
     {
         $shape = self::contract()['batchRouteResponse'];
 
