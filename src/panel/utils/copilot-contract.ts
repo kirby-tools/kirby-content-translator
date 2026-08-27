@@ -67,7 +67,10 @@ export interface StreamTextOptions {
 
 /** The subset of Copilot's `StreamTextResult` this plugin consumes. */
 export interface StreamTextSeamResult {
-  /** Resolves with the structured output parsed from `outputSchema`. */
+  /**
+   * Resolves with the structured output parsed from `outputSchema`, and
+   * rejects with the provider's own error when the run failed.
+   */
   output: Promise<any>;
 }
 
