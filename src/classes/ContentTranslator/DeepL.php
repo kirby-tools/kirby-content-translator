@@ -26,8 +26,11 @@ final class DeepL
     private const MAX_RETRY_DELAY_MS = 8000;
 
     /**
-     * Markup that must survive translation: an HTML tag or comment. `<cN/>`
-     * KirbyTag placeholders are tag-shaped, so the same pattern catches them.
+     * Markup that must survive translation: an HTML tag or comment.
+     * `partitionByMarkup` strips `<cN/>` KirbyTag placeholders before
+     * matching – tag handling entity-escapes the text around them and shifts
+     * their surrounding whitespace, while on the plain path they survive
+     * verbatim, and a mangled one is softly rejected by the placeholder check.
      */
     private const MARKUP_PATTERN = '!</?[a-z][^>]*>|<\!--!i';
 
@@ -144,7 +147,9 @@ final class DeepL
         $plainTexts = [];
 
         foreach ($texts as $index => $text) {
-            if (preg_match(self::MARKUP_PATTERN, $text) === 1) {
+            $withoutPlaceholders = preg_replace(KirbyText::PLACEHOLDER_PATTERN, '', $text);
+
+            if (preg_match(self::MARKUP_PATTERN, $withoutPlaceholders) === 1) {
                 $markupTexts[$index] = $text;
             } else {
                 $plainTexts[$index] = $text;
