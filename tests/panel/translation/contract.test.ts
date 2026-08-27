@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Ajv } from "ajv";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { translateUnits } from "../../../src/panel/translation/dispatch";
 import {
@@ -49,6 +50,22 @@ const contract = JSON.parse(
 
 // Shared with `ContractTest.php` – a one-sided edit fails here first.
 describe("translation contract", () => {
+  it("validates against contract.schema.json", () => {
+    const schema = JSON.parse(
+      readFileSync(
+        join(import.meta.dirname, "../../fixtures/contract.schema.json"),
+        "utf8",
+      ),
+    );
+
+    // The `$schema` key alone is editor hinting; this assertion is what
+    // enforces the schema's `required` and `additionalProperties`.
+    const ajv = new Ajv({ allowUnionTypes: true });
+    ajv.validate(schema, contract);
+    expect(ajv.errors).toBeNull();
+  });
+
+
   it.each(contract.skipCases)(
     "evaluates skip('$text') as $skip",
     ({ text, skip }) => {
