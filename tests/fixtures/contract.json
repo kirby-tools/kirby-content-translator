@@ -36,7 +36,7 @@
   "batchRouteResponse": {
     "keys": ["texts", "rejections"],
     "rejectionKeys": ["index", "reason"],
-    "optionalRejectionKeys": ["expected", "actual"]
+    "optionalRejectionKeys": ["expectedIndexes", "actualIndexes"]
   },
   "placeholder": {
     "format": "<c{n}/>",

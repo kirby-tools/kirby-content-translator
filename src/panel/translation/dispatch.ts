@@ -64,10 +64,10 @@ export async function translateUnits(
 
     if (typeof outcome === "object") {
       const detail =
-        outcome.expected && outcome.actual
+        outcome.expectedIndexes && outcome.actualIndexes
           ? placeholderMismatchDetail(
-              outcome.expected.join(","),
-              outcome.actual.join(","),
+              outcome.expectedIndexes.join(","),
+              outcome.actualIndexes.join(","),
             )
           : undefined;
       reject(unit, outcome.reason, detail);

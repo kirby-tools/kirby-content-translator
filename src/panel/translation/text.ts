@@ -30,11 +30,11 @@ export async function translateText(
 ): Promise<{ text: string; result: ContentTranslationResult }> {
   const strategy =
     provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
-  const { texts, translatableCount, translatedCount, rejections } = await translateUnits(
-    [{ text, fieldKey }],
-    strategy,
-    { sourceLanguage, targetLanguage },
-  );
+  const { texts, translatableCount, translatedCount, rejections } =
+    await translateUnits([{ text, fieldKey }], strategy, {
+      sourceLanguage,
+      targetLanguage,
+    });
 
   return {
     text: texts[0] ?? text,

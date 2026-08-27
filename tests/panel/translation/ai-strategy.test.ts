@@ -47,9 +47,7 @@ describe("AIStrategy", () => {
       });
 
       const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", fieldKey: "title" },
-      ];
+      const units: TranslationUnit[] = [{ text: "Test", fieldKey: "title" }];
 
       await strategy.execute(units, {
         ...defaultOptions,
@@ -69,9 +67,7 @@ describe("AIStrategy", () => {
       });
 
       const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", fieldKey: "title" },
-      ];
+      const units: TranslationUnit[] = [{ text: "Test", fieldKey: "title" }];
 
       await strategy.execute(units, {
         ...defaultOptions,
@@ -159,9 +155,7 @@ describe("AIStrategy", () => {
 
   describe("unusable responses", () => {
     it("names the provider answer in the error when every translation is blank", async () => {
-      const consoleSpy = vi
-        .spyOn(console, "warn")
-        .mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["", " "] }),
       });
@@ -201,9 +195,7 @@ describe("AIStrategy", () => {
       vi.mocked(resolveCopilot).mockReturnValueOnce(undefined);
 
       const strategy = new AIStrategy();
-      const units: TranslationUnit[] = [
-        { text: "Test", fieldKey: "title" },
-      ];
+      const units: TranslationUnit[] = [{ text: "Test", fieldKey: "title" }];
 
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
         "Kirby Copilot plugin is required",

@@ -412,7 +412,9 @@ describe("useContentTranslator", () => {
 
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
-      expect(panel.notification.error).toHaveBeenCalledWith("permission denied");
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "permission denied",
+      );
       expect(warn).toHaveBeenCalledWith(
         'Rejected "text" (fr): placeholder mismatch. Keeping source text.',
       );

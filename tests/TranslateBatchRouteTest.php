@@ -78,7 +78,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
         );
 
         $this->assertSame(
-            [['index' => 0, 'reason' => 'placeholder mismatch', 'expected' => [0], 'actual' => []]],
+            [['index' => 0, 'reason' => 'placeholder mismatch', 'expectedIndexes' => [0], 'actualIndexes' => []]],
             $response['rejections']
         );
     }

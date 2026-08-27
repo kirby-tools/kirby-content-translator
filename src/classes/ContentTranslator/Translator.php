@@ -334,12 +334,20 @@ final class Translator
         foreach ($translatableIndexes as $position => $index) {
             $unit = $translatableUnits[$position];
 
-            if (!isset($translations[$position])) {
+            if (!array_key_exists($position, $translations)) {
                 $rejections[] = self::reject($unit, $index, 'missing translation');
                 continue;
             }
 
             $translation = $translations[$position];
+
+            // A strategy that hands back `null` knows why and has already fired
+            // the hook, so warning again would report one drop twice, the second
+            // time under a reason this layer had to guess.
+            if ($translation === null) {
+                $rejections[] = new TranslationRejection($index, 'missing translation', $unit->fieldKey);
+                continue;
+            }
 
             if (!is_string($translation)) {
                 $rejections[] = self::reject($unit, $index, 'non-string translation');
@@ -388,13 +396,13 @@ final class Translator
     }
 
     /**
-     * @param list<int>|null $expected
-     * @param list<int>|null $actual
+     * @param list<int>|null $expectedIndexes
+     * @param list<int>|null $actualIndexes
      */
-    private static function reject(TranslationUnit $unit, int $index, string $reason, array|null $expected = null, array|null $actual = null): TranslationRejection
+    private static function reject(TranslationUnit $unit, int $index, string $reason, array|null $expectedIndexes = null, array|null $actualIndexes = null): TranslationRejection
     {
         self::warn($unit, $reason);
-        return new TranslationRejection($index, $reason, $unit->fieldKey, $expected, $actual);
+        return new TranslationRejection($index, $reason, $unit->fieldKey, $expectedIndexes, $actualIndexes);
     }
 
     private static function warn(TranslationUnit $unit, string $reason): void

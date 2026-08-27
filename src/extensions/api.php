@@ -68,9 +68,9 @@ return [
 
                             // The Panel formats the rejection detail from these,
                             // so they ship as facts rather than a prose string.
-                            if ($rejection->expected !== null) {
-                                $payload['expected'] = $rejection->expected;
-                                $payload['actual'] = $rejection->actual;
+                            if ($rejection->expectedIndexes !== null) {
+                                $payload['expectedIndexes'] = $rejection->expectedIndexes;
+                                $payload['actualIndexes'] = $rejection->actualIndexes;
                             }
 
                             return $payload;

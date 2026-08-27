@@ -135,7 +135,11 @@ describe("translation contract", () => {
     );
 
     expect(outcomes).toEqual([
-      { reason: "placeholder mismatch", expected: [0], actual: [] },
+      {
+        reason: "placeholder mismatch",
+        expectedIndexes: [0],
+        actualIndexes: [],
+      },
     ]);
   });
 

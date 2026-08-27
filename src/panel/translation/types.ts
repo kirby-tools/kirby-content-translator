@@ -40,9 +40,9 @@ export type TranslationOutcome =
   | {
       reason: string;
       /** Placeholder indexes the source text carries, set for a `placeholder mismatch`. */
-      expected?: number[];
+      expectedIndexes?: number[];
       /** Placeholder indexes the answer carried instead. */
-      actual?: number[];
+      actualIndexes?: number[];
     };
 
 export interface TranslationStrategy {

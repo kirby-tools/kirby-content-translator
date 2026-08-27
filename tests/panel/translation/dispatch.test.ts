@@ -86,9 +86,13 @@ describe("translateUnits", () => {
   it("counts nothing as translatable when every unit is untranslatable", async () => {
     const execute = vi.fn();
 
-    const result = await translateUnits([{ text: "2024" }], { execute }, {
-      targetLanguage: GERMAN,
-    });
+    const result = await translateUnits(
+      [{ text: "2024" }],
+      { execute },
+      {
+        targetLanguage: GERMAN,
+      },
+    );
 
     expect(execute).not.toHaveBeenCalled();
     expect(result).toEqual({
@@ -151,7 +155,11 @@ describe("translateUnits", () => {
       [{ text: "Read <c0/>", fieldKey: "intro" }],
       {
         execute: async () => [
-          { reason: "placeholder mismatch", expected: [0], actual: [] },
+          {
+            reason: "placeholder mismatch",
+            expectedIndexes: [0],
+            actualIndexes: [],
+          },
         ],
       },
       { targetLanguage: GERMAN },

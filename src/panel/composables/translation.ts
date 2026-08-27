@@ -183,7 +183,9 @@ export function useContentTranslator() {
   ) {
     const languagesWithDrops = languages.filter((_, index) => {
       const result = results[index];
-      return result != null && result.translatedCount < result.translatableCount;
+      return (
+        result != null && result.translatedCount < result.translatableCount
+      );
     });
 
     if (languagesWithDrops.length === 0) {

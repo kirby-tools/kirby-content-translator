@@ -11,9 +11,8 @@ beforeEach(() => {
 describe("usePluginContext", () => {
   it("requests the context once and serves the cached response afterwards", async () => {
     get.mockResolvedValue({ config: {} });
-    const { usePluginContext } = await import(
-      "../../../src/panel/composables/plugin"
-    );
+    const { usePluginContext } =
+      await import("../../../src/panel/composables/plugin");
 
     const [first, second] = await Promise.all([
       usePluginContext(),
@@ -28,9 +27,8 @@ describe("usePluginContext", () => {
   it("retries after a failed request instead of caching the rejection", async () => {
     get.mockRejectedValueOnce(new Error('Unknown strategy "banana"'));
     get.mockResolvedValueOnce({ config: {} });
-    const { usePluginContext } = await import(
-      "../../../src/panel/composables/plugin"
-    );
+    const { usePluginContext } =
+      await import("../../../src/panel/composables/plugin");
 
     await expect(usePluginContext()).rejects.toThrow("banana");
 

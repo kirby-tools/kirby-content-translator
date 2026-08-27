@@ -137,7 +137,7 @@ describe("translateContent", () => {
   it("restores the KirbyTag when a strategy pads a placeholder with a space", async () => {
     const paddingStrategy: TranslationStrategy = {
       async execute(units) {
-            return units.map(() => "Klick <c0 /> jetzt");
+        return units.map(() => "Klick <c0 /> jetzt");
       },
     };
 

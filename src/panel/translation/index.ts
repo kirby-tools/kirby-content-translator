@@ -49,14 +49,15 @@ export async function translateContent(
     return { translatableCount: 0, translatedCount: 0, rejections: [] };
   }
 
-  const { texts, translatableCount, translatedCount, rejections } = await translateUnits(
-    translations.map((item) => item.unit),
-    strategy,
-    {
-      sourceLanguage,
-      targetLanguage,
-    },
-  );
+  const { texts, translatableCount, translatedCount, rejections } =
+    await translateUnits(
+      translations.map((item) => item.unit),
+      strategy,
+      {
+        sourceLanguage,
+        targetLanguage,
+      },
+    );
 
   for (const [index, { apply }] of translations.entries()) {
     apply(texts[index]!);

@@ -919,6 +919,52 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function fires_no_translate_warning_hook_for_a_unit_the_strategy_dropped(): void
+    {
+        $warnings = [];
+        new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = [$unit->text, $reason, $previous];
+                },
+            ],
+        ]);
+
+        Translator::translateTexts(['Hello'], 'de', null, new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return [null];
+            }
+        });
+
+        $this->assertSame([], $warnings);
+    }
+
+    #[Test]
+    public function fires_the_translate_warning_hook_for_a_unit_the_strategy_answered_short(): void
+    {
+        $warnings = [];
+        new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
+                    $warnings[] = [$unit->text, $reason, $previous];
+                },
+            ],
+        ]);
+
+        Translator::translateTexts(['Hello', 'World'], 'de', null, new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return ['Hallo'];
+            }
+        });
+
+        $this->assertSame([['World', 'missing translation', null]], $warnings);
+    }
+
+    #[Test]
     public function translate_batch_reports_the_index_and_reason_of_a_unit_it_could_not_translate(): void
     {
         $this->appWithTranslateFn();
@@ -948,8 +994,8 @@ final class TranslatorTest extends TestCase
             }
         });
 
-        $this->assertSame([0, 1], $result->rejections[0]->expected);
-        $this->assertSame([0], $result->rejections[0]->actual);
+        $this->assertSame([0, 1], $result->rejections[0]->expectedIndexes);
+        $this->assertSame([0], $result->rejections[0]->actualIndexes);
     }
 
     #[Test]
