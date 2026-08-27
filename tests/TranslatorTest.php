@@ -843,6 +843,22 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function translate_batch_records_the_placeholder_indexes_of_a_placeholder_mismatch(): void
+    {
+        $this->appWithTranslateFn();
+
+        $result = Translator::translateBatch(['Read <c0/> and <c1/>'], 'de', null, new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return ['Lies <c0/>'];
+            }
+        });
+
+        $this->assertSame([0, 1], $result->rejections[0]->expected);
+        $this->assertSame([0], $result->rejections[0]->actual);
+    }
+
+    #[Test]
     public function translate_batch_omits_an_untranslatable_text_from_rejections(): void
     {
         $this->appWithTranslateFn();

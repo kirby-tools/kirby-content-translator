@@ -36,7 +36,11 @@ interface TranslationContract {
     sourceText: string;
     answer: string | number | null;
   }[];
-  batchRouteResponse: { keys: string[]; rejectionKeys: string[] };
+  batchRouteResponse: {
+    keys: string[];
+    rejectionKeys: string[];
+    optionalRejectionKeys: string[];
+  };
   placeholder: { format: string; indexBase: number };
   batching: { maxBatchSize: number; maxSizePerBatch: number };
 }
@@ -107,6 +111,34 @@ describe("translation contract", () => {
     );
 
     expect(outcomes).toEqual([{ reason: "placeholder mismatch" }, "Welt"]);
+  });
+
+  it("reads the placeholder indexes from the batch route", async () => {
+    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+    const [expectedKey, actualKey] =
+      contract.batchRouteResponse.optionalRejectionKeys;
+
+    mockApiPost.mockResolvedValueOnce({
+      [textsKey!]: ["Read <c0/>"],
+      [rejectionsKey!]: [
+        {
+          [indexKey!]: 0,
+          [reasonKey!]: "placeholder mismatch",
+          [expectedKey!]: [0],
+          [actualKey!]: [],
+        },
+      ],
+    });
+
+    const outcomes = await new DeepLStrategy().execute(
+      [{ text: "Read <c0/>", fieldKey: "body" }],
+      { targetLanguage: { code: "de", name: "Deutsch" } },
+    );
+
+    expect(outcomes).toEqual([
+      { reason: "placeholder mismatch", expected: [0], actual: [] },
+    ]);
   });
 
   it("emits placeholders in the contract format", () => {

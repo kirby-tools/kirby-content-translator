@@ -57,12 +57,28 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     public function names_the_index_and_reason_of_a_rejected_text(): void
     {
         $response = $this->callTranslateBatchRoute(
-            ['Read <c0/> now', 'World'],
-            fn (string $text): string => str_contains($text, '<c0/>') ? 'Lies jetzt' : $text . ' (de)'
+            ['Hello', 'World'],
+            fn (string $text): string => $text === 'Hello' ? ' ' : $text . ' (de)'
+        );
+
+        // The exact payload also pins that the placeholder keys stay out of a
+        // rejection that has no indexes to report.
+        $this->assertSame(
+            [['index' => 0, 'reason' => 'empty translation']],
+            $response['rejections']
+        );
+    }
+
+    #[Test]
+    public function sends_the_placeholder_indexes_of_a_placeholder_mismatch(): void
+    {
+        $response = $this->callTranslateBatchRoute(
+            ['Read <c0/> now'],
+            fn (string $text): string => 'Lies jetzt'
         );
 
         $this->assertSame(
-            [['index' => 0, 'reason' => 'placeholder mismatch']],
+            [['index' => 0, 'reason' => 'placeholder mismatch', 'expected' => [0], 'actual' => []]],
             $response['rejections']
         );
     }
@@ -89,6 +105,9 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
         );
 
         $this->assertSame($shape['keys'], array_keys($response));
-        $this->assertSame($shape['rejectionKeys'], array_keys($response['rejections'][0]));
+        $this->assertSame(
+            [...$shape['rejectionKeys'], ...$shape['optionalRejectionKeys']],
+            array_keys($response['rejections'][0])
+        );
     }
 }

@@ -22,7 +22,12 @@ export class DeepLStrategy implements TranslationStrategy {
     if (units.length > 0) {
       const response = await api.post<{
         texts: string[];
-        rejections?: { index: number; reason: string }[];
+        rejections?: {
+          index: number;
+          reason: string;
+          expected?: number[];
+          actual?: number[];
+        }[];
       }>(TRANSLATE_BATCH_API_ROUTE, {
         sourceLanguage: options.sourceLanguage?.code,
         targetLanguage: options.targetLanguage.code,
@@ -31,14 +36,16 @@ export class DeepLStrategy implements TranslationStrategy {
 
       // The route answers for every unit, handing back the source text for one
       // it dropped, so a rejection is invisible in `texts` alone.
-      const reasons = new Map(
-        response.rejections?.map(({ index, reason }) => [index, reason]) ?? [],
+      const rejections = new Map(
+        response.rejections?.map((rejection) => [rejection.index, rejection]) ??
+          [],
       );
 
       response.texts.forEach((text, index) => {
-        const reason = reasons.get(index);
-        if (reason !== undefined) {
-          outcomes[index] = { reason };
+        const rejection = rejections.get(index);
+        if (rejection) {
+          const { reason, expected, actual } = rejection;
+          outcomes[index] = { reason, expected, actual };
           return;
         }
         // A `content-translator.translate:after` hook runs after the route's

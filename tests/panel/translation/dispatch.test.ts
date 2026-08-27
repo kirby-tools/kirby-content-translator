@@ -146,6 +146,26 @@ describe("translateUnits", () => {
     ]);
   });
 
+  it("names the placeholder indexes a wire rejection carries in the detail", async () => {
+    const { rejections } = await translateUnits(
+      [{ text: "Read <c0/>", fieldKey: "intro" }],
+      {
+        execute: async () => [
+          { reason: "placeholder mismatch", expected: [0], actual: [] },
+        ],
+      },
+      { targetLanguage: GERMAN },
+    );
+
+    expect(rejections).toEqual([
+      {
+        fieldKey: "intro",
+        reason: "placeholder mismatch",
+        detail: "placeholder mismatch, expected 0, got none",
+      },
+    ]);
+  });
+
   it("counts only the units a strategy translated", async () => {
     const result = await translateUnits(
       [{ text: "Hello" }, { text: "World" }],

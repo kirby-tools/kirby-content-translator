@@ -50,7 +50,7 @@
     "batchRouteResponse": {
       "description": "The keys the translate-batch route answers with. PHP writes them, the Panel's DeepLStrategy reads them, and nothing else ties the two literals together.",
       "type": "object",
-      "required": ["keys", "rejectionKeys"],
+      "required": ["keys", "rejectionKeys", "optionalRejectionKeys"],
       "additionalProperties": false,
       "properties": {
         "keys": {
@@ -59,6 +59,12 @@
           "items": { "type": "string" }
         },
         "rejectionKeys": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "optionalRejectionKeys": {
+          "description": "Keys a rejection carries only when the raising check produced them, currently the placeholder index lists.",
           "type": "array",
           "minItems": 1,
           "items": { "type": "string" }

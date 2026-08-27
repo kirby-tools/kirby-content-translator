@@ -331,8 +331,11 @@ final class Translator
                 continue;
             }
 
-            if (self::placeholderIndexes($unit->text) !== self::placeholderIndexes($translation)) {
-                $rejections[] = self::reject($unit, $index, 'placeholder mismatch');
+            $expectedIndexes = self::placeholderIndexes($unit->text);
+            $actualIndexes = self::placeholderIndexes($translation);
+
+            if ($expectedIndexes !== $actualIndexes) {
+                $rejections[] = self::reject($unit, $index, 'placeholder mismatch', $expectedIndexes, $actualIndexes);
                 continue;
             }
 
@@ -361,10 +364,14 @@ final class Translator
         return $indexes;
     }
 
-    private static function reject(TranslationUnit $unit, int $index, string $reason): TranslationRejection
+    /**
+     * @param list<int>|null $expected
+     * @param list<int>|null $actual
+     */
+    private static function reject(TranslationUnit $unit, int $index, string $reason, array|null $expected = null, array|null $actual = null): TranslationRejection
     {
         self::warn($unit, $reason);
-        return new TranslationRejection($index, $reason);
+        return new TranslationRejection($index, $reason, $expected, $actual);
     }
 
     private static function warn(TranslationUnit $unit, string $reason): void

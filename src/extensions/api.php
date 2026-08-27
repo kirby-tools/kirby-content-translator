@@ -60,10 +60,21 @@ return [
                 return [
                     'texts' => $result->texts,
                     'rejections' => array_map(
-                        static fn (TranslationRejection $rejection): array => [
-                            'index' => $rejection->index,
-                            'reason' => $rejection->reason
-                        ],
+                        static function (TranslationRejection $rejection): array {
+                            $payload = [
+                                'index' => $rejection->index,
+                                'reason' => $rejection->reason
+                            ];
+
+                            // The Panel formats the rejection detail from these,
+                            // so they ship as facts rather than a prose string.
+                            if ($rejection->expected !== null) {
+                                $payload['expected'] = $rejection->expected;
+                                $payload['actual'] = $rejection->actual;
+                            }
+
+                            return $payload;
+                        },
                         $result->rejections
                     )
                 ];

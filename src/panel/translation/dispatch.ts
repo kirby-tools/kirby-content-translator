@@ -15,7 +15,8 @@ import { isUntranslatable } from "./untranslatable";
  * Also enforces the KirbyTag placeholder invariant here rather than inside a
  * strategy, so a new strategy cannot forget it. `DeepLStrategy` is the
  * exception: the PHP tier has already adjudicated its units, so its rejections
- * arrive as outcomes and never reach the check.
+ * arrive as outcomes and never reach the check – they carry the check's facts
+ * instead, and the detail is formatted here for both tiers.
  *
  * The counts travel with the texts because a translation may legitimately equal
  * its source text, so no caller can recover them by diffing the result.
@@ -62,7 +63,14 @@ export async function translateUnits(
     }
 
     if (typeof outcome === "object") {
-      reject(unit, outcome.reason);
+      const detail =
+        outcome.expected && outcome.actual
+          ? placeholderMismatchDetail(
+              outcome.expected.join(","),
+              outcome.actual.join(","),
+            )
+          : undefined;
+      reject(unit, outcome.reason, detail);
       continue;
     }
 
@@ -85,7 +93,7 @@ export async function translateUnits(
       reject(
         unit,
         "placeholder mismatch",
-        `placeholder mismatch, expected ${expectedIndexes || "none"}, got ${actualIndexes || "none"}`,
+        placeholderMismatchDetail(expectedIndexes, actualIndexes),
       );
       continue;
     }
@@ -100,6 +108,10 @@ export async function translateUnits(
     translatedCount,
     rejections,
   };
+}
+
+function placeholderMismatchDetail(expected: string, actual: string): string {
+  return `placeholder mismatch, expected ${expected || "none"}, got ${actual || "none"}`;
 }
 
 /**

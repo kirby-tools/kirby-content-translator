@@ -35,7 +35,15 @@ export interface TranslationExecutionOptions {
  * none. Returning the source text instead of a rejection would be
  * indistinguishable from a translation that legitimately equals its source.
  */
-export type TranslationOutcome = string | { reason: string };
+export type TranslationOutcome =
+  | string
+  | {
+      reason: string;
+      /** Placeholder indexes the source text carries, set for a `placeholder mismatch`. */
+      expected?: number[];
+      /** Placeholder indexes the answer carried instead. */
+      actual?: number[];
+    };
 
 export interface TranslationStrategy {
   /** Translates `units` and returns one outcome per unit, in input order. */
