@@ -7,6 +7,7 @@ namespace JohannSchopplich\ContentTranslator;
 use Closure;
 use JohannSchopplich\ContentTranslator\Translation\BatchTranslationResult;
 use JohannSchopplich\ContentTranslator\Translation\Collector;
+use JohannSchopplich\ContentTranslator\Translation\ContentTranslationResult;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CallableStrategy;
@@ -94,7 +95,7 @@ final class Translator
     public static function translateBatch(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): BatchTranslationResult
     {
         if ($texts === []) {
-            return new BatchTranslationResult([], []);
+            return new BatchTranslationResult([], [], 0, 0);
         }
 
         $kirby = App::instance();
@@ -130,7 +131,12 @@ final class Translator
             ], 'text');
         }
 
-        return new BatchTranslationResult($translatedTexts, $translatedResult->rejections);
+        return new BatchTranslationResult(
+            $translatedTexts,
+            $translatedResult->rejections,
+            $translatedResult->translatableCount,
+            $translatedResult->translatedCount,
+        );
     }
 
     /**
@@ -183,11 +189,12 @@ final class Translator
      * @throws AuthException When the DeepL API key is missing
      * @throws InvalidArgumentException When a language code is not registered in the site's languages
      */
-    public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): void
+    public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): ContentTranslationResult
     {
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
+        return $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
             $content = $this->model->content($contentLanguageCode)->toArray();
             $result = (new Collector($this->fields, $this->config))->collect($content);
+            $contentResult = new ContentTranslationResult(0, 0, []);
 
             if ($result->translations !== []) {
                 $strategy ??= self::resolveStrategy();
@@ -208,7 +215,13 @@ final class Translator
                     $result->translations,
                 );
 
-                $translations = self::translateUnits($processedUnits, $strategy, $options)->texts;
+                $unitResult = self::translateUnits($processedUnits, $strategy, $options);
+                $translations = $unitResult->texts;
+                $contentResult = new ContentTranslationResult(
+                    $unitResult->translatableCount,
+                    $unitResult->translatedCount,
+                    $unitResult->rejections,
+                );
 
                 foreach ($result->translations as $index => $collectedTranslation) {
                     $translatedText = $this->kirby->apply('content-translator.translate:after', [
@@ -229,6 +242,8 @@ final class Translator
             }
 
             $this->model = $this->model->update($content, $contentLanguageCode);
+
+            return $contentResult;
         });
     }
 
@@ -302,10 +317,11 @@ final class Translator
         }
 
         if ($translatableUnits === []) {
-            return new BatchTranslationResult($results, []);
+            return new BatchTranslationResult($results, [], 0, 0);
         }
 
         $translations = $strategy->execute($translatableUnits, $options);
+        $translatedCount = 0;
 
         // Iterate our own indexes: a `Strategy` that ignores the `list<string>`
         // contract must not be able to write outside the result list.
@@ -340,9 +356,10 @@ final class Translator
             }
 
             $results[$index] = $translation;
+            $translatedCount++;
         }
 
-        return new BatchTranslationResult($results, $rejections);
+        return new BatchTranslationResult($results, $rejections, count($translatableUnits), $translatedCount);
     }
 
     /**
@@ -371,7 +388,7 @@ final class Translator
     private static function reject(TranslationUnit $unit, int $index, string $reason, array|null $expected = null, array|null $actual = null): TranslationRejection
     {
         self::warn($unit, $reason);
-        return new TranslationRejection($index, $reason, $expected, $actual);
+        return new TranslationRejection($index, $reason, $unit->fieldKey, $expected, $actual);
     }
 
     private static function warn(TranslationUnit $unit, string $reason): void

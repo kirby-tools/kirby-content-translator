@@ -623,6 +623,33 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function translate_content_returns_the_counts_and_rejections_of_a_run(): void
+    {
+        $app = $this->appWithScalarFieldPage();
+        $page = $app->page('home');
+        $translator = new Translator($page);
+
+        $result = $translator->translateContent('en', 'de', null, new class () implements Strategy {
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                return array_map(
+                    static fn (TranslationUnit $unit): string|null => $unit->text === 'Welcome to our website' ? null : "[de]{$unit->text}",
+                    $units,
+                );
+            }
+        });
+
+        // The four collected units are `text`, `tags`, `list` and `writer`:
+        // the title never passes through `translateContent()`, and
+        // `untranslatableText` opts out via its blueprint.
+        $this->assertSame(4, $result->translatableCount);
+        $this->assertSame(3, $result->translatedCount);
+        $this->assertCount(1, $result->rejections);
+        $this->assertSame('missing translation', $result->rejections[0]->reason);
+        $this->assertSame('text', $result->rejections[0]->fieldKey);
+    }
+
+    #[Test]
     public function translates_nested_block_content(): void
     {
         $app = $this->appWithBlocksPage();
