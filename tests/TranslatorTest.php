@@ -625,8 +625,6 @@ final class TranslatorTest extends TestCase
         $slugChanges = [];
         $app = new App([
             'languages' => self::threeLanguages(),
-            // The hook is the observable: `changeSlug()` short-circuits on an
-            // unchanged slug, so reading the slug back answers `about` either way.
             'hooks' => [
                 'page.changeSlug:after' => function () use (&$slugChanges) {
                     $slugChanges[] = true;
