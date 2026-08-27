@@ -289,17 +289,6 @@ final class DeepLClientTest extends TestCase
         $this->assertSame('1', $requests[0]['requestOptions']['split_sentences']);
     }
 
-    /** @return array<string, array{0: string}> */
-    public static function markupTexts(): array
-    {
-        return [
-            'html tag' => ['<p>Hello <strong>world</strong></p>'],
-            'self-closing tag' => ['Line one<br />Line two'],
-            'html comment' => ['Teaser<!-- more -->Body'],
-            'kirbytag placeholder inside html' => ['<p>Read the <c0/> for details</p>'],
-        ];
-    }
-
     #[Test]
     public function translate_many_omits_tag_handling_for_text_whose_only_markup_is_a_placeholder(): void
     {
@@ -311,6 +300,17 @@ final class DeepLClientTest extends TestCase
         $deepL->translateMany(['Read the <c0/> for details'], 'de');
 
         $this->assertArrayNotHasKey('tag_handling', $requests[0]['requestOptions']);
+    }
+
+    /** @return array<string, array{0: string}> */
+    public static function markupTexts(): array
+    {
+        return [
+            'html tag' => ['<p>Hello <strong>world</strong></p>'],
+            'self-closing tag' => ['Line one<br />Line two'],
+            'html comment' => ['Teaser<!-- more -->Body'],
+            'kirbytag placeholder inside html' => ['<p>Read the <c0/> for details</p>'],
+        ];
     }
 
     #[Test]
