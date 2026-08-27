@@ -15,9 +15,9 @@ interface Strategy
      * Translates units and returns results in the same order as the input.
      *
      * @param list<TranslationUnit> $units
-     * @return list<string>
+     * @return list<string|null> `null` marks a unit the strategy could not translate; the caller keeps its source text and records a `missing translation` rejection
      *
-     * @throws TranslationException When zero units could be translated. A single unusable unit keeps its source text and travels back as a rejection, which also fires the `content-translator.translate:warning` hook
+     * @throws TranslationException When zero units could be translated
      */
     public function execute(array $units, ExecutionOptions $options): array;
 }

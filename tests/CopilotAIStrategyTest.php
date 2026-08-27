@@ -212,7 +212,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function keeps_source_text_when_translation_is_empty(): void
+    public function returns_null_when_translation_is_empty(): void
     {
         new App();
         $captured = [];
@@ -227,7 +227,7 @@ final class CopilotAIStrategyTest extends TestCase
             options: self::options(),
         );
 
-        $this->assertSame(['Hello', 'Hallo'], $result);
+        $this->assertSame([null, 'Hallo'], $result);
     }
 
     #[Test]
@@ -319,7 +319,7 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function keeps_source_for_failed_units_when_others_succeed(): void
+    public function returns_null_for_failed_units_when_others_succeed(): void
     {
         new App();
         $captured = [];
@@ -337,6 +337,6 @@ final class CopilotAIStrategyTest extends TestCase
         $secondChunk = array_slice($result, 50);
 
         $this->assertSame(array_fill(0, 50, 'X'), $firstChunk);
-        $this->assertSame(['t50'], $secondChunk);
+        $this->assertSame([null], $secondChunk);
     }
 }
