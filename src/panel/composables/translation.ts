@@ -175,6 +175,41 @@ export function useContentTranslator() {
     });
   }
 
+  // A batch outcome is judged per language: summing the counts across
+  // languages would fold a language at 0 of 10 into "10 of 20 kept their
+  // source text" and hide which language went wrong.
+  function notifyBatchTranslationResult(
+    languages: (PanelLanguageInfo | PanelLanguage)[],
+    results: (ContentTranslationResult | null)[],
+  ) {
+    const languagesWithDrops = languages.filter((_, index) => {
+      // `!=` also covers the `undefined` an indexed access can produce.
+      const result = results[index];
+      return result != null && result.translatedCount < result.translatableCount;
+    });
+
+    // Without drops the merged counts hide nothing, so the single-run
+    // reporting covers success and the nothing-to-translate case.
+    if (languagesWithDrops.length === 0) {
+      notifyTranslationResult(
+        mergeTranslationResults(results.filter((result) => result !== null)),
+        "johannschopplich.content-translator.notification.batchTranslated",
+      );
+      return;
+    }
+
+    panel.notification.open({
+      message: panel.t(
+        "johannschopplich.content-translator.notification.batchPartiallyTranslated",
+        { languages: languagesWithDrops.map(({ name }) => name).join(", ") },
+      ),
+      icon: "alert",
+      // The Panel styles `notice`, but `kirby-types` omits it from the union.
+      theme: "notice" as NotificationTheme,
+      timeout: PERSISTENT_TIMEOUT,
+    });
+  }
+
   async function translateAndPatchTitle({
     title,
     plan,
@@ -455,12 +490,7 @@ export function useContentTranslator() {
       );
 
       if (failedLanguages.length === 0) {
-        notifyTranslationResult(
-          mergeTranslationResults(
-            batchResults.filter((result) => result !== null),
-          ),
-          "johannschopplich.content-translator.notification.batchTranslated",
-        );
+        notifyBatchTranslationResult(selectedLanguages, batchResults);
       }
 
       isTranslating.value = false;

@@ -292,6 +292,60 @@ describe("useContentTranslator", () => {
       error.mockRestore();
     });
 
+    it("names the languages whose segments kept their source text", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      panel.api.post.mockImplementation(
+        async (
+          _route: string,
+          payload: { texts: string[]; targetLanguage: string },
+        ) =>
+          payload.targetLanguage === "fr"
+            ? {
+                texts: payload.texts,
+                rejections: [{ index: 0, reason: "placeholder mismatch" }],
+              }
+            : { texts: payload.texts.map((text) => `${text} (translated)`) },
+      );
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      const notification = lastNotification();
+      expect(notification.message).toBe(
+        'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Français"}',
+      );
+      expect(staysOnScreen(notification)).toBe(true);
+      warn.mockRestore();
+    });
+
+    it("reports nothing to translate when no language has translatable content", async () => {
+      panel.api.get.mockResolvedValue({
+        id: "example",
+        title: "Example",
+        content: { text: "2024" },
+      });
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(lastNotification().message).toBe(
+        "johannschopplich.content-translator.notification.nothingToTranslate",
+      );
+    });
+
     it("notifies success before reloading the view", async () => {
       // Inverse of the single-translation teardown ordering.
       const callOrder: string[] = [];
