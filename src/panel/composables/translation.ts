@@ -240,7 +240,9 @@ export function useContentTranslator() {
       // Every failure of the lone title unit lands here, not just `AIStrategy`
       // throwing when nothing came back usable – a route error or a rejected
       // DeepL key does too. The content is already saved, so the run reports
-      // the title as untranslated rather than erroring out.
+      // the title as untranslated rather than erroring out. `request failed`
+      // owns up to that breadth, where a check-vocabulary reason would claim
+      // a diagnosis this catch cannot make.
       translatedTitle = {
         text: title,
         result: {
@@ -249,7 +251,7 @@ export function useContentTranslator() {
           rejections: [
             {
               fieldKey: "title",
-              reason: "missing translation",
+              reason: "request failed",
               detail: error instanceof Error ? error.message : String(error),
             },
           ],
