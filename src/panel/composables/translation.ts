@@ -259,12 +259,17 @@ export function useContentTranslator() {
 
     reportRejections(translatedTitle.result, targetLanguage);
 
-    if (plan.shouldPatchTitle) {
-      await patch("title", { title: translatedTitle.text });
-    }
+    // A rejected title hands back the source text, and patching that would
+    // overwrite a manually translated target title and re-derive its slug.
+    // An untranslatable title carries no rejection and still lands.
+    if (translatedTitle.result.rejections.length === 0) {
+      if (plan.shouldPatchTitle) {
+        await patch("title", { title: translatedTitle.text });
+      }
 
-    if (plan.shouldPatchSlug) {
-      await patch("slug", { slug: slugify(translatedTitle.text) });
+      if (plan.shouldPatchSlug) {
+        await patch("slug", { slug: slugify(translatedTitle.text) });
+      }
     }
 
     return translatedTitle.result;

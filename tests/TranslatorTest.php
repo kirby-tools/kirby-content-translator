@@ -585,6 +585,73 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
+    public function translate_title_keeps_the_target_title_when_the_translation_is_rejected(): void
+    {
+        $titleChanges = [];
+        $app = new App([
+            'languages' => self::threeLanguages(),
+            // The hook is the observable: reading the translation back merges
+            // in the default language and would answer `Home` either way.
+            'hooks' => [
+                'page.changeTitle:after' => function () use (&$titleChanges) {
+                    $titleChanges[] = true;
+                },
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['title' => 'Home']],
+                            ['code' => 'de', 'content' => []],
+                        ],
+                    ],
+                ],
+            ],
+            // A blank answer is rejected as an `empty translation`.
+            'options' => self::pluginOptions(static fn (string $text): string => ' '),
+        ]);
+
+        $translator = new Translator($app->page('home'));
+        $translator->translateTitle('de', 'de', 'en');
+
+        $this->assertSame([], $titleChanges);
+    }
+
+    #[Test]
+    public function translate_slug_keeps_the_target_slug_when_the_translation_is_rejected(): void
+    {
+        $slugChanges = [];
+        $app = new App([
+            'languages' => self::threeLanguages(),
+            'hooks' => [
+                'page.changeSlug:after' => function () use (&$slugChanges) {
+                    $slugChanges[] = true;
+                },
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['title' => 'About']],
+                            ['code' => 'de', 'content' => []],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(static fn (string $text): string => ' '),
+        ]);
+
+        $translator = new Translator($app->page('about'));
+        $translator->translateSlug('de', 'de', 'en');
+
+        $this->assertSame([], $slugChanges);
+    }
+
+    #[Test]
     public function does_not_translate_home_page_slug(): void
     {
         $app = $this->appWithScalarFieldPage();

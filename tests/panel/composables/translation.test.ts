@@ -392,11 +392,17 @@ describe("useContentTranslator", () => {
     it("names a rejection when a later step of the same run throws", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      // The content call is rejected, the title call succeeds – so the run
+      // reaches the title patch, which is the later step that throws.
+      let call = 0;
       panel.api.post.mockImplementation(
-        async (_route: string, payload: { texts: string[] }) => ({
-          texts: payload.texts,
-          rejections: [{ index: 0, reason: "placeholder mismatch" }],
-        }),
+        async (_route: string, payload: { texts: string[] }) =>
+          ++call === 1
+            ? {
+                texts: payload.texts,
+                rejections: [{ index: 0, reason: "placeholder mismatch" }],
+              }
+            : { texts: payload.texts.map((text) => `${text} (translated)`) },
       );
       panel.api.patch.mockRejectedValue(new Error("permission denied"));
 
@@ -543,13 +549,40 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.notification.error).not.toHaveBeenCalled();
-      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/title", {
-        title: "Example",
-      });
+      expect(panel.api.patch).not.toHaveBeenCalledWith(
+        "pages/example/title",
+        expect.anything(),
+      );
       expect(panel.t).toHaveBeenCalledWith(
         "johannschopplich.content-translator.notification.partiallyTranslated",
         { untranslated: 1, total: 2 },
       );
+    });
+
+    it("keeps the target slug when the title translation fails", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      currentContent = { value: { text: "Hello" } };
+      let call = 0;
+      panel.api.post.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => {
+          if (++call > 1) throw new Error("provider unavailable");
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+
+      const translator = await createContentTranslator({
+        title: true,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.api.patch).not.toHaveBeenCalledWith(
+        "pages/example/slug",
+        expect.anything(),
+      );
+      warn.mockRestore();
     });
 
     it("reports nothing to import when no content field is syncable", async () => {

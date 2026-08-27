@@ -262,13 +262,17 @@ final class Translator
             }
 
             if ($originalTitle !== null && $originalTitle !== '') {
-                $translatedTitle = self::translateText(
-                    text: $originalTitle,
-                    targetLanguage: $toLanguageCode,
-                    sourceLanguage: $fromLanguageCode,
+                $result = self::translateBatch(
+                    [$originalTitle],
+                    $toLanguageCode,
+                    $fromLanguageCode,
                 );
 
-                $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
+                // A rejected answer hands back the source title, and writing
+                // that would overwrite the target title with the wrong language.
+                if ($result->rejections === []) {
+                    $this->model = $this->model->changeTitle($result->texts[0], $contentLanguageCode);
+                }
             }
         });
     }
@@ -282,13 +286,17 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $originalSlug = $this->model->slug($contentLanguageCode);
 
-            $translatedSlug = self::translateText(
-                text: $originalSlug,
-                targetLanguage: $toLanguageCode,
-                sourceLanguage: $fromLanguageCode,
+            $result = self::translateBatch(
+                [$originalSlug],
+                $toLanguageCode,
+                $fromLanguageCode,
             );
 
-            $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
+            // Same gate as `translateTitle()`: a rejection hands back the
+            // source slug, which must not overwrite the target slug.
+            if ($result->rejections === []) {
+                $this->model = $this->model->changeSlug($result->texts[0], $contentLanguageCode);
+            }
         });
     }
 
