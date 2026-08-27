@@ -436,11 +436,13 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.notification.success).not.toHaveBeenCalled();
-      expect(panel.t).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.notification.partiallyTranslated",
-        { untranslated: 1, total: 2 },
+      // Asserted on one notification, because the loader notification would
+      // satisfy `staysOnScreen` on its own.
+      const notification = lastNotification();
+      expect(notification.message).toBe(
+        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
       );
-      expect(staysOnScreen(lastNotification())).toBe(true);
+      expect(staysOnScreen(notification)).toBe(true);
     });
 
     it("reports every text segment as untranslated", async () => {
@@ -461,11 +463,11 @@ describe("useContentTranslator", () => {
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.notification.error).not.toHaveBeenCalled();
-      expect(panel.t).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.notification.noSegmentTranslated",
-        { total: 1 },
+      const notification = lastNotification();
+      expect(notification.message).toBe(
+        'johannschopplich.content-translator.notification.noSegmentTranslated {"total":1}',
       );
-      expect(staysOnScreen(lastNotification())).toBe(true);
+      expect(staysOnScreen(notification)).toBe(true);
     });
 
     it("reports the title as untranslated when its translation throws", async () => {
