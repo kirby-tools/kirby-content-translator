@@ -70,7 +70,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function sends_the_placeholder_indexes_of_a_placeholder_mismatch(): void
+    public function sends_the_placeholder_indexes_of_a_mismatch(): void
     {
         $response = $this->callTranslateBatchRoute(
             ['Read <c0/> now'],

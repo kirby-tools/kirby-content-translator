@@ -301,7 +301,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function translate_many_omits_tag_handling_for_a_text_whose_only_markup_is_a_placeholder(): void
+    public function translate_many_omits_tag_handling_for_text_whose_only_markup_is_a_placeholder(): void
     {
         $this->appWithDeepLConfig();
 

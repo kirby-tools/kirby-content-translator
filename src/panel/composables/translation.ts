@@ -169,7 +169,6 @@ export function useContentTranslator() {
         { untranslated: untranslatedCount, total: result.translatableCount },
       ),
       icon: "alert",
-      // The Panel styles `notice`, but `kirby-types` omits it from the union.
       theme: "notice" as NotificationTheme,
       timeout: PERSISTENT_TIMEOUT,
     });
@@ -183,13 +182,10 @@ export function useContentTranslator() {
     results: (ContentTranslationResult | null)[],
   ) {
     const languagesWithDrops = languages.filter((_, index) => {
-      // `!=` also covers the `undefined` an indexed access can produce.
       const result = results[index];
       return result != null && result.translatedCount < result.translatableCount;
     });
 
-    // Without drops the merged counts hide nothing, so the single-run
-    // reporting covers success and the nothing-to-translate case.
     if (languagesWithDrops.length === 0) {
       notifyTranslationResult(
         mergeTranslationResults(results.filter((result) => result !== null)),
@@ -204,7 +200,6 @@ export function useContentTranslator() {
         { languages: languagesWithDrops.map(({ name }) => name).join(", ") },
       ),
       icon: "alert",
-      // The Panel styles `notice`, but `kirby-types` omits it from the union.
       theme: "notice" as NotificationTheme,
       timeout: PERSISTENT_TIMEOUT,
     });
@@ -240,9 +235,7 @@ export function useContentTranslator() {
       // Every failure of the lone title unit lands here, not just `AIStrategy`
       // throwing when nothing came back usable – a route error or a rejected
       // DeepL key does too. The content is already saved, so the run reports
-      // the title as untranslated rather than erroring out. `request failed`
-      // owns up to that breadth, where a check-vocabulary reason would claim
-      // a diagnosis this catch cannot make.
+      // the title as untranslated rather than erroring out.
       translatedTitle = {
         text: title,
         result: {

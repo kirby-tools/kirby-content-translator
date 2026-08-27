@@ -260,11 +260,9 @@ describe("useContentTranslator", () => {
         expect.any(Error),
       );
       expect(panel.notification.success).not.toHaveBeenCalled();
-      expect(panel.t).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.notification.batchLanguagesFailed",
-        { languages: "Français" },
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        'johannschopplich.content-translator.notification.batchLanguagesFailed {"languages":"Français"}',
       );
-      expect(panel.notification.error).toHaveBeenCalled();
       error.mockRestore();
     });
 
@@ -553,9 +551,8 @@ describe("useContentTranslator", () => {
         "pages/example/title",
         expect.anything(),
       );
-      expect(panel.t).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.notification.partiallyTranslated",
-        { untranslated: 1, total: 2 },
+      expect(lastNotification().message).toBe(
+        'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',
       );
     });
 

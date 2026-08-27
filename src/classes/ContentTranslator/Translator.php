@@ -292,8 +292,6 @@ final class Translator
                 $fromLanguageCode,
             );
 
-            // Same gate as `translateTitle()`: a rejection hands back the
-            // source slug, which must not overwrite the target slug.
             if ($result->rejections === []) {
                 $this->model = $this->model->changeSlug($result->texts[0], $contentLanguageCode);
             }

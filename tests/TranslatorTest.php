@@ -690,7 +690,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_content_returns_the_counts_and_rejections_of_a_run(): void
+    public function translate_content_returns_the_counts_and_rejections(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -937,7 +937,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_batch_records_the_placeholder_indexes_of_a_placeholder_mismatch(): void
+    public function translate_batch_records_the_placeholder_indexes_of_a_mismatch(): void
     {
         $this->appWithTranslateFn();
 

@@ -16,7 +16,6 @@ final readonly class BatchTranslationResult
     /**
      * @param list<string> $texts
      * @param list<TranslationRejection> $rejections
-     * @param int $translatableCount Units handed to the strategy, i.e. everything `UntranslatableText` did not skip
      */
     public function __construct(
         public array $texts,

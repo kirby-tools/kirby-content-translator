@@ -62,13 +62,11 @@ describe("translation contract", () => {
       ),
     );
 
-    // The `$schema` key alone is editor hinting; this assertion is what
-    // enforces the schema's `required` and `additionalProperties`.
+    // The fixture's `$schema` key is editor hinting; this assertion enforces it.
     const ajv = new Ajv({ allowUnionTypes: true });
     ajv.validate(schema, contract);
     expect(ajv.errors).toBeNull();
   });
-
 
   it.each(contract.skipCases)(
     "evaluates skip('$text') as $skip",

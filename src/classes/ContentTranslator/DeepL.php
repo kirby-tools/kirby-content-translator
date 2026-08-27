@@ -27,10 +27,9 @@ final class DeepL
 
     /**
      * Markup that must survive translation: an HTML tag or comment.
-     * `partitionByMarkup` strips `<cN/>` KirbyTag placeholders before
-     * matching – tag handling entity-escapes the text around them and shifts
-     * their surrounding whitespace, while on the plain path they survive
-     * verbatim, and a mangled one is softly rejected by the placeholder check.
+     * `partitionByMarkup` strips `<cN/>` KirbyTag placeholders before matching,
+     * because tag handling entity-escapes the text around them and shifts their
+     * whitespace, while the plain path hands them back verbatim.
      */
     private const MARKUP_PATTERN = '!</?[a-z][^>]*>|<\!--!i';
 
