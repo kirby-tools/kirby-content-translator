@@ -263,9 +263,9 @@ final class Translator
 
             if ($originalTitle !== null && $originalTitle !== '') {
                 $result = self::translateBatch(
-                    [$originalTitle],
-                    $toLanguageCode,
-                    $fromLanguageCode,
+                    texts: [$originalTitle],
+                    targetLanguage: $toLanguageCode,
+                    sourceLanguage: $fromLanguageCode,
                 );
 
                 // A rejected answer hands back the source title, and writing
@@ -287,9 +287,9 @@ final class Translator
             $originalSlug = $this->model->slug($contentLanguageCode);
 
             $result = self::translateBatch(
-                [$originalSlug],
-                $toLanguageCode,
-                $fromLanguageCode,
+                texts: [$originalSlug],
+                targetLanguage: $toLanguageCode,
+                sourceLanguage: $fromLanguageCode,
             );
 
             if ($result->rejections === []) {

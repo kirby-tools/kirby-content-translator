@@ -125,6 +125,15 @@ export function useContentTranslator() {
     }
   }
 
+  function notifyPartialTranslation(message: string) {
+    panel.notification.open({
+      message,
+      icon: "alert",
+      theme: "notice" as NotificationTheme,
+      timeout: PERSISTENT_TIMEOUT,
+    });
+  }
+
   // Only one notification is visible at a time, so the most specific outcome wins.
   function notifyTranslationResult(
     result: ContentTranslationResult,
@@ -163,15 +172,12 @@ export function useContentTranslator() {
       return;
     }
 
-    panel.notification.open({
-      message: panel.t(
+    notifyPartialTranslation(
+      panel.t(
         "johannschopplich.content-translator.notification.partiallyTranslated",
         { untranslated: untranslatedCount, total: result.translatableCount },
       ),
-      icon: "alert",
-      theme: "notice" as NotificationTheme,
-      timeout: PERSISTENT_TIMEOUT,
-    });
+    );
   }
 
   // A batch outcome is judged per language: summing the counts across
@@ -196,15 +202,12 @@ export function useContentTranslator() {
       return;
     }
 
-    panel.notification.open({
-      message: panel.t(
+    notifyPartialTranslation(
+      panel.t(
         "johannschopplich.content-translator.notification.batchPartiallyTranslated",
         { languages: languagesWithDrops.map(({ name }) => name).join(", ") },
       ),
-      icon: "alert",
-      theme: "notice" as NotificationTheme,
-      timeout: PERSISTENT_TIMEOUT,
-    });
+    );
   }
 
   async function translateAndPatchTitle({

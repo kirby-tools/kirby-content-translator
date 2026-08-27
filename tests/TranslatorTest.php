@@ -942,7 +942,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function fires_the_translate_warning_hook_for_a_unit_the_strategy_answered_short(): void
+    public function fires_translate_warning_hook_for_a_unit_the_strategy_answered_short(): void
     {
         $warnings = [];
         new App([
