@@ -237,10 +237,8 @@ export function useContentTranslator() {
         fieldKey: "title",
       });
     } catch (error) {
-      // Every failure of the lone title unit lands here, not just `AIStrategy`
-      // throwing when nothing came back usable – a route error or a rejected
-      // DeepL key does too. The content is already saved, so the run reports
-      // the title as untranslated rather than erroring out.
+      // The content is already saved, so any failure of the lone title unit is
+      // reported as an untranslated title rather than erroring out the run.
       translatedTitle = {
         text: title,
         result: {

@@ -496,8 +496,6 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.notification.success).not.toHaveBeenCalled();
-      // Asserted on one notification, because the loader notification would
-      // satisfy `staysOnScreen` on its own.
       const notification = lastNotification();
       expect(notification.message).toBe(
         'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2}',

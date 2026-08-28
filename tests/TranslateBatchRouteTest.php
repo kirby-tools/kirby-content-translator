@@ -61,8 +61,6 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
             fn (string $text): string => $text === 'Hello' ? ' ' : $text . ' (de)'
         );
 
-        // The exact payload also pins that the placeholder keys stay out of a
-        // rejection that has no indexes to report.
         $this->assertSame(
             [['index' => 0, 'reason' => 'empty translation']],
             $response['rejections']

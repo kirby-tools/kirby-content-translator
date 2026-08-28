@@ -62,7 +62,6 @@ describe("translation contract", () => {
       ),
     );
 
-    // The fixture's `$schema` key is editor hinting; this assertion enforces it.
     const ajv = new Ajv({ allowUnionTypes: true });
     ajv.validate(schema, contract);
     expect(ajv.errors).toBeNull();

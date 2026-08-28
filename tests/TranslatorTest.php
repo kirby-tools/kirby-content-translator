@@ -590,8 +590,6 @@ final class TranslatorTest extends TestCase
         $titleChanges = [];
         $app = new App([
             'languages' => self::threeLanguages(),
-            // The hook is the observable: reading the translation back merges
-            // in the default language and would answer `Home` either way.
             'hooks' => [
                 'page.changeTitle:after' => function () use (&$titleChanges) {
                     $titleChanges[] = true;

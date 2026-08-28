@@ -15,8 +15,7 @@ import { isUntranslatable } from "./untranslatable";
  * Also enforces the KirbyTag placeholder invariant here rather than inside a
  * strategy, so a new strategy cannot forget it. `DeepLStrategy` is the
  * exception: the PHP tier has already adjudicated its units, so its rejections
- * arrive as outcomes and never reach the check – they carry the check's facts
- * instead, and the detail is formatted here for both tiers.
+ * arrive as outcomes and never reach the check.
  *
  * The counts travel with the texts because a translation may legitimately equal
  * its source text, so no caller can recover them by diffing the result.

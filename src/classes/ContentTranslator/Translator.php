@@ -341,9 +341,8 @@ final class Translator
 
             $translation = $translations[$position];
 
-            // A strategy that hands back `null` knows why and has already fired
-            // the hook, so warning again would report one drop twice, the second
-            // time under a reason this layer had to guess.
+            // A strategy that hands back `null` has already fired the hook with
+            // the real reason, so warning again would report one drop twice.
             if ($translation === null) {
                 $rejections[] = new TranslationRejection($index, 'missing translation', $unit->fieldKey);
                 continue;

@@ -66,8 +66,8 @@ return [
                                 'reason' => $rejection->reason
                             ];
 
-                            // The Panel formats the rejection detail from these,
-                            // so they ship as facts rather than a prose string.
+                            // The Panel formats the detail from these, so the wire
+                            // carries indexes rather than prose.
                             if ($rejection->expectedIndexes !== null) {
                                 $payload['expectedIndexes'] = $rejection->expectedIndexes;
                                 $payload['actualIndexes'] = $rejection->actualIndexes;
