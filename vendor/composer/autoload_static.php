@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit03319b9341c4e046873dc6a336034173
+class ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -49,6 +49,7 @@ class ComposerStaticInit03319b9341c4e046873dc6a336034173
         'JohannSchopplich\\ContentTranslator\\Translation\\CollectedTranslation' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectedTranslation.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Collector' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Collector.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\CollectorResult' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectorResult.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\ContentTranslationResult' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/ContentTranslationResult.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Exception\\TranslationException' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Exception/TranslationException.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\ExecutionOptions' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/ExecutionOptions.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CallableStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/CallableStrategy.php',
@@ -85,9 +86,9 @@ class ComposerStaticInit03319b9341c4e046873dc6a336034173
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit03319b9341c4e046873dc6a336034173::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit03319b9341c4e046873dc6a336034173::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit03319b9341c4e046873dc6a336034173::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$classMap;
 
         }, null, ClassLoader::class);
     }

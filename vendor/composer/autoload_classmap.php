@@ -16,6 +16,7 @@ return array(
     'JohannSchopplich\\ContentTranslator\\Translation\\CollectedTranslation' => $baseDir . '/src/classes/ContentTranslator/Translation/CollectedTranslation.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Collector' => $baseDir . '/src/classes/ContentTranslator/Translation/Collector.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\CollectorResult' => $baseDir . '/src/classes/ContentTranslator/Translation/CollectorResult.php',
+    'JohannSchopplich\\ContentTranslator\\Translation\\ContentTranslationResult' => $baseDir . '/src/classes/ContentTranslator/Translation/ContentTranslationResult.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Exception\\TranslationException' => $baseDir . '/src/classes/ContentTranslator/Translation/Exception/TranslationException.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\ExecutionOptions' => $baseDir . '/src/classes/ContentTranslator/Translation/ExecutionOptions.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CallableStrategy' => $baseDir . '/src/classes/ContentTranslator/Translation/Strategies/CallableStrategy.php',
