@@ -81,7 +81,7 @@ function navigateToLanguage(code: string) {
 
       <span
         v-if="item.missing && item.missing.length > 0"
-        class="kct-flex kct-shrink-0 kct-items-center kct-gap-[var(--spacing-2px)]"
+        class="kct-flex kct-shrink-0 kct-items-center kct-gap-[2px]"
       >
         <k-tag
           v-for="lang in item.missing"
