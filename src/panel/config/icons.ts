@@ -12,6 +12,6 @@ export const icons: Record<string, string> = {
   "content-translator-anthropic":
     '<path fill="currentColor" d="M16.765 5h-3.308l5.923 15h3.23zM7.226 5L1.38 20h3.308l1.307-3.154h6.154l1.23 3.077h3.309L10.688 5zm-.308 9.077l2-5.308l2.077 5.308z" />',
   // i-ri-mixtral-fill
-  "content-translator-mixtral":
+  "content-translator-mistral":
     '<path fill="currentColor" d="M3 3h3.6v3.6h3.6v3.6h3.6V6.6h3.6V3H21v18h-3.6v-7.2h-3.6v3.6h-3.6v-3.6H6.6V21H3z" />',
 };
