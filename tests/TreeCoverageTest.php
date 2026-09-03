@@ -72,9 +72,8 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
         $this->assertEmpty($result['tree']);
 
         foreach ($result['languages'] as $language) {
-            $this->assertSame(0, $language['totalFields']);
-            $this->assertSame(0, $language['translatedFields']);
             $this->assertSame(100, $language['percentage']);
+            $this->assertSame(0, $language['incompletePageCount']);
         }
     }
 
@@ -85,8 +84,8 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage($app->site()->index());
         $entries = array_column($coverage->treeCoverage()['tree'], null, 'id');
 
-        $this->assertSame(['de', 'fr'], array_column($entries['all-missing']['missing'], 'code'));
-        $this->assertSame(['fr'], array_column($entries['one-missing']['missing'], 'code'));
+        $this->assertSame(['de', 'fr'], array_column($entries['all-missing']['missingLanguages'], 'code'));
+        $this->assertSame(['fr'], array_column($entries['one-missing']['missingLanguages'], 'code'));
     }
 
     #[Test]
@@ -99,7 +98,7 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
         $this->assertCount(1, $tree);
         $this->assertSame('parent', $tree[0]['id']);
         $this->assertTrue($tree[0]['hasChildren']);
-        $this->assertSame(1, $tree[0]['incompleteDescendants']);
-        $this->assertNull($tree[0]['missing']);
+        $this->assertSame(1, $tree[0]['incompleteDescendantCount']);
+        $this->assertSame([], $tree[0]['missingLanguages']);
     }
 }

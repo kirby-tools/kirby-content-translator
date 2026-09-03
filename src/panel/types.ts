@@ -63,8 +63,6 @@ export interface TranslatorOptions {
 export interface TranslationLanguageCoverage {
   code: string;
   name: string;
-  totalFields: number;
-  translatedFields: number;
   percentage: number;
   incompletePageCount: number;
 }
@@ -75,10 +73,10 @@ export interface TranslationTreeEntry {
   icon: string | null;
   link: string;
   hasChildren: boolean;
-  incompleteDescendants: number;
-  missing: { code: string; name: string }[] | null;
-  open: boolean;
-  loading: boolean;
+  incompleteDescendantCount: number;
+  missingLanguages: { code: string; name: string }[];
+  isOpen: boolean;
+  isLoading: boolean;
   children: TranslationTreeEntry[] | null;
 }
 

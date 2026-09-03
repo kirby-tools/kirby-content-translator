@@ -58,7 +58,7 @@ final class TranslationCoverage
      * Only pages that are incomplete themselves, or ancestors of one, survive
      * the pruning.
      *
-     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendants: int, missing: array|null}>
+     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendantCount: int, missingLanguages: array<int, array{code: string, name: string}>}>|null}>
      */
     public function treeChildren(string|null $parentId, array|null $treeIndex = null): array
     {
@@ -87,8 +87,8 @@ final class TranslationCoverage
                 'icon' => $child->blueprint()->icon(),
                 'link' => $child->panel()->url(true),
                 'hasChildren' => $this->hasVisibleChildren($child, $treeIndex),
-                'incompleteDescendants' => $treeIndex['descendantCounts'][$childId] ?? 0,
-                'missing' => $treeIndex['incompleteIds'][$childId]['missing'] ?? null,
+                'incompleteDescendantCount' => $treeIndex['descendantCounts'][$childId] ?? 0,
+                'missingLanguages' => $treeIndex['incompleteIds'][$childId]['missingLanguages'] ?? [],
             ];
         }
 
@@ -143,6 +143,8 @@ final class TranslationCoverage
             function (): array {
                 $defaultLanguage = $this->kirby->defaultLanguage();
                 $languages = [];
+                $translatableFieldCounts = [];
+                $translatedFieldCounts = [];
                 $incompleteIds = [];
 
                 foreach ($this->kirby->languages() as $language) {
@@ -153,8 +155,6 @@ final class TranslationCoverage
                     $languages[$language->code()] = [
                         'code' => $language->code(),
                         'name' => $language->name(),
-                        'totalFields' => 0,
-                        'translatedFields' => 0,
                         'incompletePageCount' => 0,
                     ];
                 }
@@ -173,8 +173,8 @@ final class TranslationCoverage
                             continue;
                         }
 
-                        $languages[$langCode]['totalFields'] += $coverage['totalFields'];
-                        $languages[$langCode]['translatedFields'] += $coverage['translatedFields'];
+                        $translatableFieldCounts[$langCode] = ($translatableFieldCounts[$langCode] ?? 0) + $coverage['totalFields'];
+                        $translatedFieldCounts[$langCode] = ($translatedFieldCounts[$langCode] ?? 0) + $coverage['translatedFields'];
 
                         if ($coverage['translatedFields'] < $coverage['totalFields']) {
                             $languages[$langCode]['incompletePageCount']++;
@@ -187,14 +187,15 @@ final class TranslationCoverage
 
                     if ($missingLanguages !== []) {
                         $incompleteIds[$page->id()] = [
-                            'missing' => $missingLanguages,
+                            'missingLanguages' => $missingLanguages,
                         ];
                     }
                 }
 
-                foreach ($languages as &$lang) {
-                    $lang['percentage'] = $lang['totalFields'] > 0
-                        ? (int)round($lang['translatedFields'] / $lang['totalFields'] * 100)
+                foreach ($languages as $langCode => &$lang) {
+                    $translatableFieldCount = $translatableFieldCounts[$langCode] ?? 0;
+                    $lang['percentage'] = $translatableFieldCount > 0
+                        ? (int)round(($translatedFieldCounts[$langCode] ?? 0) / $translatableFieldCount * 100)
                         : 100;
                 }
 

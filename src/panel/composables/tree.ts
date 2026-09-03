@@ -21,13 +21,13 @@ export function useTranslationTree() {
   async function toggle(item: TranslationTreeEntry) {
     if (!item.hasChildren) return;
 
-    if (item.open) {
-      item.open = false;
+    if (item.isOpen) {
+      item.isOpen = false;
       return;
     }
 
     if (!item.children) {
-      item.loading = true;
+      item.isLoading = true;
 
       try {
         const response = await api.get("__content-translator__/coverage", {
@@ -40,11 +40,11 @@ export function useTranslationTree() {
         );
         return;
       } finally {
-        item.loading = false;
+        item.isLoading = false;
       }
     }
 
-    item.open = true;
+    item.isOpen = true;
   }
 
   return {
@@ -54,8 +54,8 @@ export function useTranslationTree() {
   };
 }
 function initEntry(entry: TranslationTreeEntry): TranslationTreeEntry {
-  entry.open = false;
-  entry.loading = false;
+  entry.isOpen = false;
+  entry.isLoading = false;
   entry.children = entry.children ?? null;
   return entry;
 }

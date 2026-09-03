@@ -20,21 +20,21 @@ const panel = usePanel();
 const toggle = inject(TOGGLE_INJECTION_KEY)!;
 
 const arrowIcon = computed(() => {
-  if (props.item.loading) return "loader";
-  return props.item.open ? "angle-down" : "angle-right";
+  if (props.item.isLoading) return "loader";
+  return props.item.isOpen ? "angle-down" : "angle-right";
 });
 
 const descendantLabel = computed(() =>
   formatPlural(
     panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
-      count: props.item.incompleteDescendants,
+      count: props.item.incompleteDescendantCount,
     }),
-    props.item.incompleteDescendants,
+    props.item.incompleteDescendantCount,
   ),
 );
 
 const hasCounter = computed(
-  () => props.item.incompleteDescendants > 0 && !props.item.open,
+  () => props.item.incompleteDescendantCount > 0 && !props.item.isOpen,
 );
 
 function navigate() {
@@ -47,7 +47,7 @@ function navigateToLanguage(code: string) {
 </script>
 
 <template>
-  <li :aria-expanded="item.open">
+  <li :aria-expanded="item.isOpen">
     <p
       class="k-tree-branch kct-mb-0 kct-bg-transparent kct-pe-[2px] hover:kct-bg-transparent"
       :class="
@@ -75,16 +75,16 @@ function navigateToLanguage(code: string) {
           :title="descendantLabel"
           :aria-label="descendantLabel"
         >
-          {{ item.incompleteDescendants }}
+          {{ item.incompleteDescendantCount }}
         </span>
       </button>
 
       <span
-        v-if="item.missing && item.missing.length > 0"
+        v-if="item.missingLanguages.length > 0"
         class="kct-flex kct-shrink-0 kct-items-center kct-gap-[2px]"
       >
         <k-tag
-          v-for="lang in item.missing"
+          v-for="lang in item.missingLanguages"
           :key="lang.code"
           :text="lang.code.toUpperCase()"
           theme="light"
@@ -93,7 +93,7 @@ function navigateToLanguage(code: string) {
       </span>
     </p>
 
-    <ul v-if="item.hasChildren && item.open && item.children" class="k-tree">
+    <ul v-if="item.hasChildren && item.isOpen && item.children" class="k-tree">
       <TranslationTreeNode
         v-for="child in item.children"
         :key="child.id"
