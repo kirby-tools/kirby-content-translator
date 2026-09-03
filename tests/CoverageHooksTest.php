@@ -96,11 +96,11 @@ final class CoverageHooksTest extends TestCase
         $coverage->pageCoverage($page);
 
         $cache = $app->cache('johannschopplich.content-translator');
-        $this->assertNotNull($cache->get('coverage.home'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
 
         $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
 
-        $this->assertNull($cache->get('coverage.home'));
+        $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
         $this->assertNull($cache->get('treeIndex'));
     }
 
@@ -113,7 +113,7 @@ final class CoverageHooksTest extends TestCase
         $coverage->pageCoverage($page);
 
         $cache = $app->cache('johannschopplich.content-translator');
-        $this->assertNotNull($cache->get('coverage.home'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
 
         $app->trigger('page.render:after', [
             'contentType' => 'html',
@@ -122,7 +122,7 @@ final class CoverageHooksTest extends TestCase
             'html' => '',
         ]);
 
-        $this->assertNotNull($cache->get('coverage.home'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
     }
 
     #[Test]
@@ -134,11 +134,11 @@ final class CoverageHooksTest extends TestCase
         $coverage->pageCoverage($page);
 
         $cache = $app->cache('johannschopplich.content-translator');
-        $this->assertNotNull($cache->get('coverage.abc123'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'abc123'));
 
         $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
 
-        $this->assertNull($cache->get('coverage.abc123'));
+        $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'abc123'));
     }
 
     #[Test]
@@ -147,11 +147,11 @@ final class CoverageHooksTest extends TestCase
         $app = $this->appWithHomePageHavingUuid();
         $page = $app->page('home');
         $cache = $app->cache('johannschopplich.content-translator');
-        $cache->set('coverage.home', ['legacy']);
+        $cache->set(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home', ['legacy']);
 
         $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
 
-        $this->assertNull($cache->get('coverage.home'));
+        $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
     }
 
     #[Test]
@@ -163,10 +163,10 @@ final class CoverageHooksTest extends TestCase
         $coverage->pageCoverage($page);
 
         $cache = $app->cache('johannschopplich.content-translator');
-        $this->assertNotNull($cache->get('coverage.home'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
 
         $app->trigger('language.create:after', ['language' => $app->language('de')]);
 
-        $this->assertNull($cache->get('coverage.home'));
+        $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use Kirby\Cms\App;
 use Kirby\Cms\Event;
 use Kirby\Cms\Page;
@@ -17,9 +18,9 @@ return [
         foreach ($event->arguments() as $argument) {
             if ($argument instanceof Page) {
                 if ($uuid = PageUuid::retrieveId($argument)) {
-                    $cache->remove('coverage.' . $uuid);
+                    $cache->remove(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . $uuid);
                 }
-                $cache->remove('coverage.' . $argument->id());
+                $cache->remove(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . $argument->id());
             }
         }
     },

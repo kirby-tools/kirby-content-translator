@@ -17,6 +17,8 @@ final class TranslationCoverage
 {
     private const TREE_INDEX_TTL_MINUTES = 5;
 
+    public const PAGE_COVERAGE_CACHE_PREFIX = 'coverage.2.';
+
     private readonly App $kirby;
     private readonly TranslatorConfig $config;
 
@@ -58,7 +60,7 @@ final class TranslationCoverage
      * Only pages that are incomplete themselves, or ancestors of one, survive
      * the pruning.
      *
-     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendantCount: int, missingLanguages: array<int, array{code: string, name: string}>}>|null}>
+     * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendantCount: int, missingLanguages: array<int, array{code: string, name: string}>}>
      */
     public function treeChildren(string|null $parentId, array|null $treeIndex = null): array
     {
@@ -96,12 +98,12 @@ final class TranslationCoverage
     }
 
     /**
-     * @return array<string, array{totalFields: int, translatedFields: int}>
+     * @return array<string, array{translatableFieldCount: int, translatedFieldCount: int}>
      */
     public function pageCoverage(Page $page): array
     {
         return $this->kirby->cache('johannschopplich.content-translator')->getOrSet(
-            'coverage.' . self::cacheKey($page),
+            self::PAGE_COVERAGE_CACHE_PREFIX . self::cacheKey($page),
             function () use ($page): array {
                 $defaultLanguage = $this->kirby->defaultLanguage();
                 $translatableFields = $this->translatableFields($page, $defaultLanguage);
@@ -110,7 +112,7 @@ final class TranslationCoverage
                     return [];
                 }
 
-                $totalFields = count($translatableFields);
+                $translatableFieldCount = count($translatableFields);
                 $coverage = [];
 
                 foreach ($this->kirby->languages() as $language) {
@@ -122,7 +124,7 @@ final class TranslationCoverage
                         $page,
                         $language,
                         $translatableFields,
-                        $totalFields
+                        $translatableFieldCount
                     );
                 }
 
@@ -173,10 +175,10 @@ final class TranslationCoverage
                             continue;
                         }
 
-                        $translatableFieldCounts[$langCode] = ($translatableFieldCounts[$langCode] ?? 0) + $coverage['totalFields'];
-                        $translatedFieldCounts[$langCode] = ($translatedFieldCounts[$langCode] ?? 0) + $coverage['translatedFields'];
+                        $translatableFieldCounts[$langCode] = ($translatableFieldCounts[$langCode] ?? 0) + $coverage['translatableFieldCount'];
+                        $translatedFieldCounts[$langCode] = ($translatedFieldCounts[$langCode] ?? 0) + $coverage['translatedFieldCount'];
 
-                        if ($coverage['translatedFields'] < $coverage['totalFields']) {
+                        if ($coverage['translatedFieldCount'] < $coverage['translatableFieldCount']) {
                             $languages[$langCode]['incompletePageCount']++;
                             $missingLanguages[] = [
                                 'code' => $langCode,
@@ -308,35 +310,35 @@ final class TranslationCoverage
     }
 
     /**
-     * @return array{totalFields: int, translatedFields: int}
+     * @return array{translatableFieldCount: int, translatedFieldCount: int}
      */
     private function languageCoverage(
         Page $page,
         Language $language,
         array $translatableFields,
-        int $totalFields
+        int $translatableFieldCount
     ): array {
         // Fast path: no content file means nothing is translated.
         if (!$page->version()->exists($language)) {
-            return ['totalFields' => $totalFields, 'translatedFields' => 0];
+            return ['translatableFieldCount' => $translatableFieldCount, 'translatedFieldCount' => 0];
         }
 
         // Read raw content _without_ default-language fallback.
         $fields = $page->version()->read($language);
 
         if ($fields === null) {
-            return ['totalFields' => $totalFields, 'translatedFields' => 0];
+            return ['translatableFieldCount' => $translatableFieldCount, 'translatedFieldCount' => 0];
         }
 
         $content = new Content(parent: $page, data: $fields, normalize: false);
-        $translatedFields = 0;
+        $translatedFieldCount = 0;
 
         foreach ($translatableFields as $key) {
             if ($content->get($key)->isNotEmpty()) {
-                $translatedFields++;
+                $translatedFieldCount++;
             }
         }
 
-        return ['totalFields' => $totalFields, 'translatedFields' => $translatedFields];
+        return ['translatableFieldCount' => $translatableFieldCount, 'translatedFieldCount' => $translatedFieldCount];
     }
 }

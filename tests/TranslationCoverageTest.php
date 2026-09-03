@@ -21,10 +21,10 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(2, $pageCoverage['de']['totalFields']);
-        $this->assertSame(2, $pageCoverage['de']['translatedFields']);
-        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
-        $this->assertSame(2, $pageCoverage['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(2, $pageCoverage['de']['translatedFieldCount']);
+        $this->assertSame(2, $pageCoverage['fr']['translatableFieldCount']);
+        $this->assertSame(2, $pageCoverage['fr']['translatedFieldCount']);
     }
 
     #[Test]
@@ -35,11 +35,11 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(2, $pageCoverage['de']['totalFields']);
-        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFieldCount']);
 
-        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
-        $this->assertSame(0, $pageCoverage['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['fr']['translatableFieldCount']);
+        $this->assertSame(0, $pageCoverage['fr']['translatedFieldCount']);
     }
 
     #[Test]
@@ -50,10 +50,10 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(2, $pageCoverage['de']['totalFields']);
-        $this->assertSame(0, $pageCoverage['de']['translatedFields']);
-        $this->assertSame(2, $pageCoverage['fr']['totalFields']);
-        $this->assertSame(0, $pageCoverage['fr']['translatedFields']);
+        $this->assertSame(2, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(0, $pageCoverage['de']['translatedFieldCount']);
+        $this->assertSame(2, $pageCoverage['fr']['translatableFieldCount']);
+        $this->assertSame(0, $pageCoverage['fr']['translatedFieldCount']);
     }
 
     #[Test]
@@ -84,8 +84,8 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]), $options);
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(1, $pageCoverage['de']['totalFields']);
-        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFieldCount']);
     }
 
     #[Test]
@@ -109,8 +109,8 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(1, $pageCoverage['de']['totalFields']);
-        $this->assertSame(0, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(0, $pageCoverage['de']['translatedFieldCount']);
     }
 
     #[Test]
@@ -132,8 +132,8 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $pageCoverage = $coverage->pageCoverage($page);
 
-        $this->assertSame(1, $pageCoverage['de']['totalFields']);
-        $this->assertSame(1, $pageCoverage['de']['translatedFields']);
+        $this->assertSame(1, $pageCoverage['de']['translatableFieldCount']);
+        $this->assertSame(1, $pageCoverage['de']['translatedFieldCount']);
     }
 
     #[Test]
@@ -144,8 +144,8 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage = new TranslationCoverage(new Pages([$page]));
         $coverage->pageCoverage($page);
 
-        $this->assertNotNull($app->cache('johannschopplich.content-translator')->get('coverage.fully-translated'));
-        $this->assertNull($app->cache('pages')->get('coverage.fully-translated'));
+        $this->assertNotNull($app->cache('johannschopplich.content-translator')->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'fully-translated'));
+        $this->assertNull($app->cache('pages')->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'fully-translated'));
     }
 
     #[Test]
@@ -157,8 +157,8 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
         $coverage->pageCoverage($page);
 
         $cache = $app->cache('johannschopplich.content-translator');
-        $this->assertNotNull($cache->get('coverage.abc123'));
-        $this->assertNull($cache->get('coverage.home'));
+        $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'abc123'));
+        $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
     }
 
     #[Test]
