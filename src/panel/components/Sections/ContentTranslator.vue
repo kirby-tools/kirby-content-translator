@@ -30,9 +30,9 @@ const isInitialized = ref(false);
 
 const {
   label,
-  allowImport,
+  isImportEnabled,
   importFrom,
-  allowBatchTranslation,
+  isBatchTranslationEnabled,
   shouldConfirm,
   provider,
 
@@ -130,7 +130,7 @@ async function handleBatchTranslate() {
       </k-box>
 
       <k-box
-        v-if="allowImport && importFrom === 'all'"
+        v-if="isImportEnabled && importFrom === 'all'"
         theme="none"
         :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
       >
@@ -167,7 +167,9 @@ async function handleBatchTranslate() {
           </k-button>
           <k-button
             v-if="
-              hasAnyProvider && allowBatchTranslation && panel.language.default
+              hasAnyProvider &&
+              isBatchTranslationEnabled &&
+              panel.language.default
             "
             :disabled="isTranslating"
             :icon="isTranslating ? 'loader' : 'content-translator-global'"
@@ -184,7 +186,7 @@ async function handleBatchTranslate() {
         </k-button-group>
       </k-box>
 
-      <template v-else-if="allowImport || hasAnyProvider">
+      <template v-else-if="isImportEnabled || hasAnyProvider">
         <k-box
           theme="none"
           :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
@@ -192,8 +194,8 @@ async function handleBatchTranslate() {
           <k-button-group layout="collapsed">
             <k-button
               v-if="
-                allowImport &&
-                (!allowBatchTranslation || !panel.language.default)
+                isImportEnabled &&
+                (!isBatchTranslationEnabled || !panel.language.default)
               "
               :disabled="panel.language.default || isTranslating"
               icon="import"
@@ -205,7 +207,7 @@ async function handleBatchTranslate() {
             <k-button
               v-if="
                 hasAnyProvider &&
-                (!allowBatchTranslation || !panel.language.default)
+                (!isBatchTranslationEnabled || !panel.language.default)
               "
               :disabled="panel.language.default || isTranslating"
               :icon="isTranslating ? 'loader' : 'translate'"
@@ -222,7 +224,7 @@ async function handleBatchTranslate() {
             <k-button
               v-if="
                 hasAnyProvider &&
-                allowBatchTranslation &&
+                isBatchTranslationEnabled &&
                 panel.language.default
               "
               :disabled="isTranslating"
@@ -242,7 +244,9 @@ async function handleBatchTranslate() {
 
         <k-box
           v-show="
-            hasAnyProvider && !allowBatchTranslation && panel.language.default
+            hasAnyProvider &&
+            !isBatchTranslationEnabled &&
+            panel.language.default
           "
           theme="none"
           :text="

@@ -8,11 +8,11 @@ import { resolveCopilot } from "./copilot";
  * API – don't reorder it.
  */
 export interface ResolvedTranslatorConfig {
-  allowImport: boolean;
+  isImportEnabled: boolean;
   importFrom: string | undefined;
-  allowBatchTranslation: boolean;
-  translateTitle: boolean;
-  translateSlug: boolean;
+  isBatchTranslationEnabled: boolean;
+  isTitleTranslationEnabled: boolean;
+  isSlugTranslationEnabled: boolean;
   shouldConfirm: boolean;
   fieldTypes: string[];
   includeFields: string[];
@@ -33,11 +33,11 @@ export function resolveTranslatorConfig(
   options: TranslatorOptions = {},
 ): ResolvedTranslatorConfig {
   return {
-    allowImport: toBool(options.import ?? config.import, true),
+    isImportEnabled: toBool(options.import ?? config.import, true),
     importFrom: options.importFrom ?? config.importFrom ?? undefined,
-    allowBatchTranslation: toBool(options.batch ?? config.batch, true),
-    translateTitle: toBool(options.title ?? config.title, false),
-    translateSlug: toBool(options.slug ?? config.slug, false),
+    isBatchTranslationEnabled: toBool(options.batch ?? config.batch, true),
+    isTitleTranslationEnabled: toBool(options.title ?? config.title, false),
+    isSlugTranslationEnabled: toBool(options.slug ?? config.slug, false),
     shouldConfirm: toBool(options.confirm ?? config.confirm, false),
     fieldTypes: toLowercaseNames(
       options.fieldTypes ?? config.fieldTypes ?? [...DEFAULT_FIELD_TYPES],

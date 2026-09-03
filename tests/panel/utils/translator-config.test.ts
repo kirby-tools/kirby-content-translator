@@ -25,7 +25,7 @@ describe("resolveTranslatorConfig", () => {
       { title: false, importFrom: "de" },
     );
 
-    expect(resolvedConfig.translateTitle).toBe(false);
+    expect(resolvedConfig.isTitleTranslationEnabled).toBe(false);
     expect(resolvedConfig.importFrom).toBe("de");
     expect(resolvedConfig.fieldTypes).toEqual(["text"]);
   });
@@ -33,10 +33,10 @@ describe("resolveTranslatorConfig", () => {
   it("falls back to defaults when neither options nor config are set", () => {
     const resolvedConfig = resolveTranslatorConfig({}, {});
 
-    expect(resolvedConfig.allowImport).toBe(true);
-    expect(resolvedConfig.allowBatchTranslation).toBe(true);
-    expect(resolvedConfig.translateTitle).toBe(false);
-    expect(resolvedConfig.translateSlug).toBe(false);
+    expect(resolvedConfig.isImportEnabled).toBe(true);
+    expect(resolvedConfig.isBatchTranslationEnabled).toBe(true);
+    expect(resolvedConfig.isTitleTranslationEnabled).toBe(false);
+    expect(resolvedConfig.isSlugTranslationEnabled).toBe(false);
     expect(resolvedConfig.shouldConfirm).toBe(false);
     expect(resolvedConfig.importFrom).toBeUndefined();
     expect(resolvedConfig.fieldTypes).toEqual([...DEFAULT_FIELD_TYPES]);
@@ -47,19 +47,21 @@ describe("resolveTranslatorConfig", () => {
   });
 
   it("coerces loose boolean values from blueprint YAML", () => {
-    expect(resolveTranslatorConfig({}, { title: "true" }).translateTitle).toBe(
-      true,
-    );
-    expect(resolveTranslatorConfig({}, { title: "1" }).translateTitle).toBe(
-      true,
-    );
-    expect(resolveTranslatorConfig({}, { title: 1 }).translateTitle).toBe(true);
-    expect(resolveTranslatorConfig({}, { title: "false" }).translateTitle).toBe(
-      false,
-    );
-    expect(resolveTranslatorConfig({}, { title: 0 }).translateTitle).toBe(
-      false,
-    );
+    expect(
+      resolveTranslatorConfig({}, { title: "true" }).isTitleTranslationEnabled,
+    ).toBe(true);
+    expect(
+      resolveTranslatorConfig({}, { title: "1" }).isTitleTranslationEnabled,
+    ).toBe(true);
+    expect(
+      resolveTranslatorConfig({}, { title: 1 }).isTitleTranslationEnabled,
+    ).toBe(true);
+    expect(
+      resolveTranslatorConfig({}, { title: "false" }).isTitleTranslationEnabled,
+    ).toBe(false);
+    expect(
+      resolveTranslatorConfig({}, { title: 0 }).isTitleTranslationEnabled,
+    ).toBe(false);
   });
 });
 

@@ -36,9 +36,9 @@ const { isTranslating } = useTranslationState();
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 
 const {
-  allowImport,
+  isImportEnabled,
   importFrom,
-  allowBatchTranslation,
+  isBatchTranslationEnabled,
   shouldConfirm,
   provider,
 
@@ -126,7 +126,7 @@ async function handleBatchTranslate() {
 
 <template>
   <div>
-    <template v-if="allowImport && importFrom === 'all'">
+    <template v-if="isImportEnabled && importFrom === 'all'">
       <k-dropdown-item
         v-for="language in panel.languages.filter(
           (language) => language.code !== panel.language.code,
@@ -156,7 +156,9 @@ async function handleBatchTranslate() {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
+        v-if="
+          hasAnyProvider && isBatchTranslationEnabled && panel.language.default
+        "
         :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
@@ -172,7 +174,8 @@ async function handleBatchTranslate() {
     <template v-else>
       <template
         v-if="
-          allowImport && (!allowBatchTranslation || !panel.language.default)
+          isImportEnabled &&
+          (!isBatchTranslationEnabled || !panel.language.default)
         "
       >
         <k-dropdown-item
@@ -186,7 +189,8 @@ async function handleBatchTranslate() {
       </template>
       <k-dropdown-item
         v-if="
-          hasAnyProvider && (!allowBatchTranslation || !panel.language.default)
+          hasAnyProvider &&
+          (!isBatchTranslationEnabled || !panel.language.default)
         "
         :disabled="panel.language.default || isTranslating"
         icon="translate"
@@ -199,7 +203,9 @@ async function handleBatchTranslate() {
         }}
       </k-dropdown-item>
       <k-dropdown-item
-        v-if="hasAnyProvider && allowBatchTranslation && panel.language.default"
+        v-if="
+          hasAnyProvider && isBatchTranslationEnabled && panel.language.default
+        "
         :disabled="isTranslating"
         icon="content-translator-global"
         @click="handleBatchTranslate()"

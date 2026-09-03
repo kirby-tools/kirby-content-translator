@@ -60,11 +60,11 @@ export function useContentTranslator() {
 
   // #region Configuration state
   const label = ref<string>();
-  const allowImport = ref<boolean>();
+  const isImportEnabled = ref<boolean>();
   const importFrom = ref<string>();
-  const allowBatchTranslation = ref<boolean>();
-  const translateTitle = ref<boolean>();
-  const translateSlug = ref<boolean>();
+  const isBatchTranslationEnabled = ref<boolean>();
+  const isTitleTranslationEnabled = ref<boolean>();
+  const isSlugTranslationEnabled = ref<boolean>();
   const shouldConfirm = ref<boolean>();
   const fieldTypes = ref<string[]>([]);
   const includeFields = ref<string[]>([]);
@@ -91,11 +91,11 @@ export function useContentTranslator() {
       t(options.label) || panel.t("johannschopplich.content-translator.label");
 
     const resolvedConfig = resolveTranslatorConfig(context.config, options);
-    allowImport.value = resolvedConfig.allowImport;
+    isImportEnabled.value = resolvedConfig.isImportEnabled;
     importFrom.value = resolvedConfig.importFrom;
-    allowBatchTranslation.value = resolvedConfig.allowBatchTranslation;
-    translateTitle.value = resolvedConfig.translateTitle;
-    translateSlug.value = resolvedConfig.translateSlug;
+    isBatchTranslationEnabled.value = resolvedConfig.isBatchTranslationEnabled;
+    isTitleTranslationEnabled.value = resolvedConfig.isTitleTranslationEnabled;
+    isSlugTranslationEnabled.value = resolvedConfig.isSlugTranslationEnabled;
     shouldConfirm.value = resolvedConfig.shouldConfirm;
     fieldTypes.value = resolvedConfig.fieldTypes;
     includeFields.value = resolvedConfig.includeFields;
@@ -315,8 +315,8 @@ export function useContentTranslator() {
       isErrorPage: await isErrorPage(),
       isFileModel: isFileModel(),
       isSiteModel: isSiteModel(),
-      isTitleTranslationEnabled: translateTitle.value === true,
-      isSlugTranslationEnabled: translateSlug.value === true,
+      isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+      isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
       isCurrentLanguageDefault: panel.language.default,
     });
 
@@ -403,8 +403,8 @@ export function useContentTranslator() {
         isErrorPage: await isErrorPage(),
         isFileModel: isFileModel(),
         isSiteModel: isSiteModel(),
-        isTitleTranslationEnabled: translateTitle.value === true,
-        isSlugTranslationEnabled: translateSlug.value === true,
+        isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+        isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,
         hasViewTitle: Boolean(panel.view.title),
       });
@@ -589,8 +589,8 @@ export function useContentTranslator() {
         isErrorPage: defaultLanguageData.id === errorPageId.value,
         isFileModel: isFileModel(),
         isSiteModel: isSiteModel(),
-        isTitleTranslationEnabled: translateTitle.value === true,
-        isSlugTranslationEnabled: translateSlug.value === true,
+        isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+        isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,
       });
 
@@ -631,11 +631,11 @@ export function useContentTranslator() {
 
   return {
     label,
-    allowImport,
+    isImportEnabled,
     importFrom,
-    allowBatchTranslation,
-    translateTitle,
-    translateSlug,
+    isBatchTranslationEnabled,
+    isTitleTranslationEnabled,
+    isSlugTranslationEnabled,
     shouldConfirm,
     fieldTypes,
     includeFields,
