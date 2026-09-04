@@ -2,9 +2,7 @@
 
 # Kirby Content Translator
 
-The Kirby Content Translator plugin empowers editors to translate content from one language to another with a single click. Add the **Panel view button** to any page, file, or site blueprint and translate content directly in the Kirby Panel using [DeepL](https://www.deepl.com) or any [Kirby Copilot](https://kirby.tools/copilot) provider for context-aware AI translations.
-
-For developers, the plugin offers a flexible PHP API and hooks for custom translation workflows.
+Kirby Content Translator is a plugin for [Kirby CMS](https://getkirby.com) that adds a translation button to any page, file, or site blueprint. Translate with [DeepL](https://www.deepl.com) or [Kirby Copilot](https://kirby.tools/copilot) for AI – the same pipeline runs from PHP and the CLI for hooks, custom controllers, and batch jobs.
 
 ## Features
 
