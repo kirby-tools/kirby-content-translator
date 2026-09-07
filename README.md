@@ -18,11 +18,27 @@ Kirby Content Translator is a plugin for [Kirby CMS](https://getkirby.com) that 
 
 ## Licensing
 
-Kirby Content Translator is a commercial plugin that requires a license. You can install and test the plugin locally without a license. However, production environments require a valid license. You can purchase a license from the [Kirby Tools Website](https://kirby.tools/content-translator).
+Kirby Content Translator is a commercial plugin that requires a license. You can install and test the plugin locally without a license. However, production environments require a valid license. You can purchase a license from the [Kirby Content Translator Website](https://kirby.tools/content-translator/buy).
 
-## Getting Started
+## Requirements
 
-To get started, please refer to the [documentation](https://kirby.tools/docs/content-translator) for guidance on installation, configuration, and usage.
+- Kirby 4 or Kirby 5
+
+## Installation
+
+### Composer (Recommended)
+
+```bash
+composer require johannschopplich/kirby-content-translator
+```
+
+### Manual Installation
+
+Download and copy this repository to `/site/plugins/kirby-content-translator`.
+
+## Documentation
+
+For installation, configuration, and usage, see the [Kirby Content Translator documentation](https://kirby.tools/docs/content-translator).
 
 ## Support and Questions
 
@@ -42,10 +58,13 @@ For the sake of reproducible bug reports, please include the following informati
 - Steps to reproduce the bug (if no reproduction is provided)
 - Screenshots or screen recordings if applicable
 
+> [!WARNING]
+> Please ensure to **never** include any API keys or other sensitive information in bug reports, feature requests, or any other public communication channel.
+
 ## Feedback
 
 We value your feedback and ideas for improving Kirby Content Translator. If you have any suggestions, please feel free to reach out to us via email or preferably by creating a new discussion on our [GitHub Discussions page](https://github.com/kirby-tools/community/discussions).
 
 ## License
 
-[Kirby Tools License](./LICENSE.md) License © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
+[Kirby Tools License](./LICENSE.md) © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
