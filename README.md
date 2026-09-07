@@ -1,4 +1,4 @@
-[![Kirby Content Translator](./.github/social-card.png)](https://kirby.tools/content-translator)
+[![Kirby Content Translator](https://kirby.tools/social-card/content-translator.png)](https://kirby.tools/content-translator)
 
 # Kirby Content Translator
 
