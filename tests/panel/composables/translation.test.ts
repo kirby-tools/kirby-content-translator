@@ -18,6 +18,8 @@ let modelData: {
   id: string;
   title: string;
   content: Record<string, unknown>;
+  template: string;
+  blueprint: { name: string };
 };
 let batchStatus: BatchStatusResponse;
 // The translate route and the batch write route share `panel.api.post`.
@@ -160,6 +162,8 @@ describe("useContentTranslator", () => {
       id: "example",
       title: "Example",
       content: { text: "Hello" },
+      template: "article",
+      blueprint: { name: "pages/article" },
     };
     batchStatus = {
       isUpdateAllowed: true,
@@ -211,6 +215,21 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
         slug: "Über uns",
       });
+    });
+
+    it("refuses to import when Kirby falls back to pages/default for the article template", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      modelData.blueprint = { name: "pages/default" };
+      const translator = await createContentTranslator({ fields: {} });
+
+      await translator.syncModelContent(DEFAULT_LANGUAGE);
+
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.unresolvedFields",
+      );
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(updateContent).not.toHaveBeenCalled();
+      error.mockRestore();
     });
   });
 
@@ -265,6 +284,22 @@ describe("useContentTranslator", () => {
 
       expect(callOrder).toEqual(["reload", "success"]);
       expect(isTranslatingDuringReload).toBe(false);
+    });
+
+    it("refuses to translate when Kirby falls back to pages/default for the article template", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      modelData.blueprint = { name: "pages/default" };
+      const translator = await createContentTranslator({ fields: {} });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.unresolvedFields",
+      );
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.view.isLoading).toBe(false);
+      error.mockRestore();
     });
   });
 
@@ -763,6 +798,61 @@ describe("useContentTranslator", () => {
       expect(callOrder).toEqual(["success", "reload"]);
       expect(panel.dialog.open).not.toHaveBeenCalled();
     });
+
+    it("refuses to batch-translate when Kirby falls back to pages/default for the article template", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      modelData.blueprint = { name: "pages/default" };
+      const translator = await createContentTranslator({ fields: {} });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.unresolvedFields",
+      );
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      error.mockRestore();
+    });
+
+    it("translates the title of a page whose own blueprint has no fields while its content still holds a text value", async () => {
+      modelData.content = { title: "Example", text: "Hello" };
+
+      const translator = await createContentTranslator({
+        title: true,
+        fields: {},
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          language: "fr",
+          title: "Example (translated)",
+        }),
+      );
+    });
+
+    it("translates the title of a page with the default template and no fields", async () => {
+      modelData.content = { title: "Example" };
+      modelData.template = "default";
+      modelData.blueprint = { name: "pages/default" };
+
+      const translator = await createContentTranslator({
+        title: true,
+        fields: {},
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          language: "fr",
+          title: "Example (translated)",
+        }),
+      );
+    });
   });
 
   describe("rejection reporting", () => {
@@ -874,6 +964,37 @@ describe("useContentTranslator", () => {
           message:
             "johannschopplich.content-translator.notification.nothingToTranslate",
         }),
+      );
+    });
+
+    it("lists fieldTypes in the notice when no field is eligible", async () => {
+      currentContent = { value: { price: "49" } };
+      const translator = await createContentTranslator({
+        title: false,
+        fieldTypes: ["text", "textarea"],
+        fields: { price: field({ type: "number", name: "price" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.api.post).not.toHaveBeenCalled();
+      expect(lastNotification().message).toBe(
+        'johannschopplich.content-translator.notification.noEligibleFields {"fieldTypes":"text, textarea"}',
+      );
+    });
+
+    it("counts a field in excludeFields as not eligible", async () => {
+      const translator = await createContentTranslator({
+        title: false,
+        excludeFields: ["text"],
+        fieldTypes: ["text"],
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(lastNotification().message).toBe(
+        'johannschopplich.content-translator.notification.noEligibleFields {"fieldTypes":"text"}',
       );
     });
 

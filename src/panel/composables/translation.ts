@@ -37,7 +37,7 @@ import {
   planSingleTranslation,
 } from "../translation/plan";
 import { resolveCopilotReadiness } from "../utils/copilot";
-import { filterSyncableContent } from "../utils/filter";
+import { filterSyncableContent, isSyncableField } from "../utils/filter";
 import { formatPlural } from "../utils/i18n";
 import {
   describeMissingStrategy,
@@ -152,6 +152,47 @@ export function useContentTranslator() {
       : describeMissingStrategy(context.config, copilotReadiness);
   }
 
+  async function hasResolvedBlueprint() {
+    if (fields.value && Object.keys(fields.value).length > 0) return true;
+
+    // Kirby falls back to the `default` blueprint when the template's own is
+    // missing. A blueprint of the template's own without fields is a title-only
+    // model, whatever keys an earlier template left in its content.
+    const { template, blueprint } = await panel.api.get<{
+      template?: string | null;
+      blueprint: { name: string };
+    }>(panel.view.path, { select: "template,blueprint" }, undefined, true);
+    const isBlueprintMissing =
+      Boolean(template) &&
+      template !== "default" &&
+      blueprint.name.endsWith("/default");
+    if (!isBlueprintMissing) return true;
+
+    console.error(
+      `No blueprint fields could be resolved for "${panel.view.path}". Check that the model's blueprint exists and that its filename matches the template exactly – blueprint lookups are case-sensitive on Linux, but not on macOS.`,
+    );
+    panel.notification.error(
+      panel.t("johannschopplich.content-translator.error.unresolvedFields"),
+    );
+
+    return false;
+  }
+
+  /**
+   * Tells whether any top-level field is eligible, whatever it holds, which
+   * separates a configuration that rules out every field from content with
+   * nothing to translate.
+   */
+  function hasEligibleFields() {
+    return Object.entries(fields.value ?? {}).some(([name, field]) =>
+      isSyncableField(name, field, {
+        fieldTypes: fieldTypes.value,
+        includeFields: includeFields.value,
+        excludeFields: excludeFields.value,
+      }),
+    );
+  }
+
   function reportRejections(
     result: ContentTranslationResult,
     targetLanguage: PanelLanguageInfo | PanelLanguage,
@@ -179,9 +220,14 @@ export function useContentTranslator() {
   ) {
     if (result.translatableCount === 0) {
       panel.notification.open({
-        message: panel.t(
-          "johannschopplich.content-translator.notification.nothingToTranslate",
-        ),
+        message: hasEligibleFields()
+          ? panel.t(
+              "johannschopplich.content-translator.notification.nothingToTranslate",
+            )
+          : panel.t(
+              "johannschopplich.content-translator.notification.noEligibleFields",
+              { fieldTypes: fieldTypes.value.join(", ") },
+            ),
         icon: "info",
         theme: "info",
       });
@@ -471,6 +517,8 @@ export function useContentTranslator() {
   async function syncModelContent(
     language?: PanelLanguageInfo | PanelLanguage,
   ) {
+    if (!(await hasResolvedBlueprint())) return;
+
     let title: string;
     let content: Record<string, unknown>;
 
@@ -547,6 +595,7 @@ export function useContentTranslator() {
     sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
+    if (!(await hasResolvedBlueprint())) return;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
@@ -646,6 +695,7 @@ export function useContentTranslator() {
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
+    if (!(await hasResolvedBlueprint())) return;
     panel.view.isLoading = true;
     isTranslating.value = true;
 

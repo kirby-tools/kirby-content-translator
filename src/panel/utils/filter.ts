@@ -7,6 +7,28 @@ import type {
 } from "kirby-types";
 import { flattenTabFields } from "./fields";
 
+/** Tells whether the configuration admits a top-level field to import and translation. */
+export function isSyncableField(
+  name: string,
+  field: KirbyFieldProps,
+  {
+    fieldTypes,
+    includeFields = [],
+    excludeFields = [],
+  }: {
+    fieldTypes: readonly string[] | string[];
+    includeFields?: string[];
+    excludeFields?: string[];
+  },
+) {
+  return (
+    field.translate !== false &&
+    fieldTypes.includes(field.type) &&
+    (includeFields.length === 0 || includeFields.includes(name)) &&
+    !excludeFields.includes(name)
+  );
+}
+
 /**
  * Filters content to syncable fields only, honoring `translate: false` on nested blocks and layouts.
  */
@@ -29,10 +51,12 @@ export function filterSyncableContent(
   for (const [key, value] of Object.entries(obj)) {
     const field = fields[key];
 
-    if (!field || !fieldTypes.includes(field.type)) continue;
-    if (field.translate === false) continue;
-    if (includeFields.length && !includeFields.includes(key)) continue;
-    if (excludeFields.length && excludeFields.includes(key)) continue;
+    if (
+      !field ||
+      !isSyncableField(key, field, { fieldTypes, includeFields, excludeFields })
+    ) {
+      continue;
+    }
 
     if (field.type === "blocks" && Array.isArray(value)) {
       syncableContent[key] = filterBlocksContent(
