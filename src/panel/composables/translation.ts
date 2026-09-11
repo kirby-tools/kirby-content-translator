@@ -18,7 +18,6 @@ import type {
   TranslationProvider,
   TranslatorOptions,
 } from "../types";
-import slugify from "@sindresorhus/slugify";
 import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
 import pAll from "p-all";
 import {
@@ -518,8 +517,8 @@ export function useContentTranslator() {
       await panel.api.patch(`${panel.view.path}/title`, { title });
     }
     if (plan.shouldPatchSlug) {
-      const slug = slugify(title);
-      await panel.api.patch(`${panel.view.path}/slug`, { slug });
+      // Kirby sanitizes the slug with the slug rules of the current language.
+      await panel.api.patch(`${panel.view.path}/slug`, { slug: title });
     }
     if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
       await panel.view.reload();

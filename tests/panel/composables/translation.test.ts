@@ -198,7 +198,8 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).not.toHaveBeenCalled();
     });
 
-    it("patches the slug when importing from the default language into a secondary language", async () => {
+    it("hands the source title to Kirby as the slug when importing from the default language into a secondary language", async () => {
+      modelData.title = "Über uns";
       const translator = await createContentTranslator({
         title: false,
         slug: true,
@@ -208,7 +209,7 @@ describe("useContentTranslator", () => {
       await translator.syncModelContent(DEFAULT_LANGUAGE);
 
       expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
-        slug: "example",
+        slug: "Über uns",
       });
     });
   });
@@ -224,6 +225,20 @@ describe("useContentTranslator", () => {
         "__content-translator__/translate-batch",
         expect.objectContaining({ texts: ["Hello"] }),
       );
+    });
+
+    it("hands the translated title to Kirby as the slug", async () => {
+      const translator = await createContentTranslator({
+        title: false,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
+        slug: "Example (translated)",
+      });
     });
 
     it("resets the translating state before reloading and notifies success after the reload", async () => {
