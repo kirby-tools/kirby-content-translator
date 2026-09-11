@@ -437,6 +437,28 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
+    public function skips_code_blocks(): void
+    {
+        $content = [
+            'blocks' => [
+                ['id' => '1', 'type' => 'code', 'isHidden' => false, 'content' => ['code' => 'echo "Hello";', 'language' => 'php']],
+                ['id' => '2', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Visible']],
+            ],
+        ];
+        $fields = [
+            'blocks' => self::blocksField([
+                'code' => ['code' => self::field(['type' => 'textarea'])],
+                'text' => ['text' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Visible', $result->translations[0]->unit->text);
+    }
+
+    #[Test]
     public function skips_blocks_with_unknown_fieldset_type(): void
     {
         $content = [

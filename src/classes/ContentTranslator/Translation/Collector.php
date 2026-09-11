@@ -350,7 +350,9 @@ final class Collector
             is_array($block['content']) &&
             A::isAssociative($block['content']) &&
             isset($block['id']) &&
-            ($block['isHidden'] ?? false) !== true;
+            ($block['isHidden'] ?? false) !== true &&
+            // Kirby's `code` block keeps its code in a `textarea` field.
+            ($block['type'] ?? null) !== 'code';
     }
 
     /**
