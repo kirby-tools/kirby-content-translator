@@ -15,7 +15,7 @@ import type {
   BatchWriteResponse,
   PluginConfig,
   PluginContextResponse,
-  TranslationProvider,
+  StrategyName,
   TranslatorOptions,
 } from "../types";
 import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
@@ -37,11 +37,11 @@ import {
   planSingleTranslation,
 } from "../translation/plan";
 import { resolveCopilotReadiness } from "../utils/copilot";
-import { filterSyncableContent, isSyncableField } from "../utils/filter";
+import { filterEligibleContent, isEligibleField } from "../utils/filter";
 import { formatPlural } from "../utils/i18n";
 import {
   describeMissingStrategy,
-  getProviderAvailability,
+  getStrategyAvailability,
   resolveTranslatorConfig,
 } from "../utils/translator-config";
 import { useModel } from "./model";
@@ -95,7 +95,7 @@ export function useContentTranslator() {
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
   const kirbyTags = ref<Record<string, string[]>>({});
-  const provider = ref<TranslationProvider>("deepl");
+  const strategyName = ref<StrategyName>("deepl");
   const systemPrompt = ref<string>();
   // #endregion
 
@@ -105,7 +105,7 @@ export function useContentTranslator() {
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
   const licenseStatus = ref<LicenseStatus>();
-  const hasAnyProvider = ref(false);
+  const hasAnyStrategy = ref(false);
   const missingStrategyMessage = ref<string>();
   // #endregion
 
@@ -143,11 +143,11 @@ export function useContentTranslator() {
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
     const copilotReadiness = await resolveCopilotReadiness();
-    hasAnyProvider.value = getProviderAvailability(
+    hasAnyStrategy.value = getStrategyAvailability(
       context.config,
       copilotReadiness,
-    ).hasAnyProvider;
-    missingStrategyMessage.value = hasAnyProvider.value
+    ).hasAnyStrategy;
+    missingStrategyMessage.value = hasAnyStrategy.value
       ? undefined
       : describeMissingStrategy(context.config, copilotReadiness);
   }
@@ -185,7 +185,7 @@ export function useContentTranslator() {
    */
   function hasEligibleFields() {
     return Object.entries(fields.value ?? {}).some(([name, field]) =>
-      isSyncableField(name, field, {
+      isEligibleField(name, field, {
         fieldTypes: fieldTypes.value,
         includeFields: includeFields.value,
         excludeFields: excludeFields.value,
@@ -283,7 +283,7 @@ export function useContentTranslator() {
 
     try {
       translatedTitle = await translateText(title, {
-        provider: provider.value,
+        strategyName: strategyName.value,
         targetLanguage,
         sourceLanguage,
         systemPrompt: systemPrompt.value,
@@ -510,11 +510,11 @@ export function useContentTranslator() {
   // `copyContent` API endpoint. When importing from the default language,
   // delete the content file (Kirby inherits automatically) and reload the
   // Panel instead of using `updateContent()`. For non-default `importFrom`
-  // sources, the server-side copy behavior is kept. This also removes the
-  // need for client-side `filterSyncableContent` during import and the
+  // sources, the server-side `copyContent` behavior is kept. This also removes
+  // the need for client-side `filterEligibleContent` during import and the
   // title/slug patching for default-language imports.
   // TODO: Next major version – remove confirm dialog options entirely.
-  async function syncModelContent(
+  async function importModelContent(
     language?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (!(await hasResolvedBlueprint())) return;
@@ -538,7 +538,7 @@ export function useContentTranslator() {
       content = data.content;
     }
 
-    const syncableContent = filterSyncableContent(content, {
+    const eligibleContent = filterEligibleContent(content, {
       fields: fields.value!,
       fieldTypes: fieldTypes.value,
       includeFields: includeFields.value,
@@ -555,10 +555,10 @@ export function useContentTranslator() {
       isCurrentLanguageDefault: panel.language.default,
     });
 
-    const hasSyncableContent = Object.keys(syncableContent).length > 0;
+    const hasEligibleContent = Object.keys(eligibleContent).length > 0;
 
     if (
-      !hasSyncableContent &&
+      !hasEligibleContent &&
       !plan.shouldPatchTitle &&
       !plan.shouldPatchSlug
     ) {
@@ -572,7 +572,7 @@ export function useContentTranslator() {
       return;
     }
 
-    await updateContent(syncableContent);
+    await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(`${panel.view.path}/title`, { title });
@@ -614,7 +614,7 @@ export function useContentTranslator() {
       );
 
       const strategy =
-        provider.value === "ai"
+        strategyName.value === "ai"
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
@@ -747,7 +747,7 @@ export function useContentTranslator() {
       }
 
       const strategy =
-        provider.value === "ai"
+        strategyName.value === "ai"
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
@@ -817,7 +817,7 @@ export function useContentTranslator() {
     let lockedBy: string | undefined;
 
     // A language is isolated so one dead provider call cannot discard the
-    // languages already saved or skip the ones still queued. A lock stops the
+    // languages already saved or stop the ones still queued. A lock stops the
     // queue instead: Kirby refuses every further write while it holds.
     return await pAll(
       languagesToTranslate.map(
@@ -850,7 +850,7 @@ export function useContentTranslator() {
     async function translateIntoLanguage(
       targetLanguage: PanelLanguageInfo | PanelLanguage,
     ): Promise<BatchOutcome> {
-      const syncableContent = filterSyncableContent(
+      const eligibleContent = filterEligibleContent(
         defaultLanguageData.content,
         {
           fields: fields.value!,
@@ -860,7 +860,7 @@ export function useContentTranslator() {
         },
       );
 
-      const contentCopy = JSON.parse(JSON.stringify(syncableContent));
+      const contentCopy = JSON.parse(JSON.stringify(eligibleContent));
 
       const contentResult = await translateContent(contentCopy, {
         strategy,
@@ -940,15 +940,15 @@ export function useContentTranslator() {
     includeFields,
     excludeFields,
     kirbyTags,
-    provider,
+    strategyName,
 
     fields,
     licenseStatus,
-    hasAnyProvider,
+    hasAnyStrategy,
     missingStrategyMessage,
 
     initializeConfig,
-    syncModelContent,
+    importModelContent,
     translateModelContent,
     batchTranslateModelContent,
   };

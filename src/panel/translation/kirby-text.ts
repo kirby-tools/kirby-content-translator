@@ -43,12 +43,12 @@ export function splitKirbyText(text: string, config: Record<string, string[]>) {
   }
   proseParts.push(text.slice(cursor));
 
-  const fragments = [proseParts.join(""), ...attrValues];
+  const unitTexts = [proseParts.join(""), ...attrValues];
 
   function restore(translated: string[]): string {
-    if (translated.length !== fragments.length) {
+    if (translated.length !== unitTexts.length) {
       throw new Error(
-        `Expected ${fragments.length} translated fragments, got ${translated.length}`,
+        `Expected ${unitTexts.length} translations, got ${translated.length}`,
       );
     }
 
@@ -62,7 +62,7 @@ export function splitKirbyText(text: string, config: Record<string, string[]>) {
     });
   }
 
-  return { fragments, restore };
+  return { unitTexts, restore };
 }
 
 function findKirbyTags(text: string): [start: number, end: number][] {

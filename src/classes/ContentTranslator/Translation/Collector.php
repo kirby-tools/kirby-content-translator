@@ -18,7 +18,7 @@ use Throwable;
  *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `Translator::translateUnits` makes that call once, downstream,
- * where it also sees the KirbyTag fragments this class fans out.
+ * where it also sees the units this class fans out of a KirbyText.
  *
  * Closures capture `&$node` – callers must keep the same array reference
  * live between `collect()` and `writeBack` invocations.
@@ -137,23 +137,23 @@ final class Collector
                 return;
             }
 
-            ['fragments' => $fragments, 'restore' => $restore] = KirbyText::split($text, $this->config->kirbyTags);
-            $translatedFragments = array_fill(0, count($fragments), '');
+            ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($text, $this->config->kirbyTags);
+            $translatedUnitTexts = array_fill(0, count($unitTexts), '');
 
-            foreach ($fragments as $fragmentIndex => $fragment) {
+            foreach ($unitTexts as $unitIndex => $unitText) {
                 $this->translations[] = new CollectedTranslation(
                     unit: new TranslationUnit(
-                        text: $fragment,
+                        text: $unitText,
                         fieldKey: $fieldName,
                     ),
-                    writeBack: function (string $translation) use (&$translatedFragments, $fragmentIndex): void {
-                        $translatedFragments[$fragmentIndex] = $translation;
+                    writeBack: function (string $translation) use (&$translatedUnitTexts, $unitIndex): void {
+                        $translatedUnitTexts[$unitIndex] = $translation;
                     },
                 );
             }
 
-            $this->finalizers[] = function () use (&$node, $fieldName, $restore, &$translatedFragments): void {
-                $node[$fieldName] = $restore($translatedFragments);
+            $this->finalizers[] = function () use (&$node, $fieldName, $restore, &$translatedUnitTexts): void {
+                $node[$fieldName] = $restore($translatedUnitTexts);
             };
 
             return;

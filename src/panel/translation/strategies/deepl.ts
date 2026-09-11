@@ -34,8 +34,8 @@ export class DeepLStrategy implements TranslationStrategy {
         texts: units.map((unit) => unit.text),
       });
 
-      // The route answers for every unit, handing back the source text for one
-      // it dropped, so a rejection is invisible in `texts` alone.
+      // The route answers for every unit, handing back the source text for a
+      // rejected one, so a rejection is invisible in `texts` alone.
       const rejections = new Map(
         response.rejections?.map((rejection) => [rejection.index, rejection]) ??
           [],

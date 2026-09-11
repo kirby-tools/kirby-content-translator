@@ -65,8 +65,8 @@ final readonly class CopilotAIStrategy implements Strategy
         $client = $this->client();
         $client->requireApiKey();
 
-        // A dropped unit stays `null`, so the caller records a rejection for it
-        // instead of taking its source text for a translation.
+        // A unit without a translation stays `null`, so the caller records a
+        // rejection for it instead of taking its source text for a translation.
         $results = array_fill(0, count($units), null);
         $translatedCount = 0;
         $lastReason = null;

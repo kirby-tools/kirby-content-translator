@@ -10,7 +10,7 @@ import { isUntranslatable } from "./untranslatable";
 
 /**
  * Sends only the units worth translating to the strategy, splicing source text
- * into the skipped slots so callers keep a 1:1 mapping with `units`.
+ * into the untranslatable slots so callers keep a 1:1 mapping with `units`.
  *
  * Also enforces the KirbyTag placeholder invariant here rather than inside a
  * strategy, so a new strategy cannot forget it. `DeepLStrategy` is the

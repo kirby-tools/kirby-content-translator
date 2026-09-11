@@ -8,7 +8,7 @@ import type {
 import { flattenTabFields } from "./fields";
 
 /** Tells whether the configuration admits a top-level field to import and translation. */
-export function isSyncableField(
+export function isEligibleField(
   name: string,
   field: KirbyFieldProps,
   {
@@ -30,9 +30,9 @@ export function isSyncableField(
 }
 
 /**
- * Filters content to syncable fields only, honoring `translate: false` on nested blocks and layouts.
+ * Filters content to eligible fields only, honoring `translate: false` on nested blocks and layouts.
  */
-export function filterSyncableContent(
+export function filterEligibleContent(
   obj: Record<string, unknown>,
   {
     fields,
@@ -46,20 +46,20 @@ export function filterSyncableContent(
     excludeFields?: string[];
   },
 ) {
-  const syncableContent: Record<string, unknown> = {};
+  const eligibleContent: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
     const field = fields[key];
 
     if (
       !field ||
-      !isSyncableField(key, field, { fieldTypes, includeFields, excludeFields })
+      !isEligibleField(key, field, { fieldTypes, includeFields, excludeFields })
     ) {
       continue;
     }
 
     if (field.type === "blocks" && Array.isArray(value)) {
-      syncableContent[key] = filterBlocksContent(
+      eligibleContent[key] = filterBlocksContent(
         value as KirbyBlock[],
         (field as KirbyBlocksFieldProps).fieldsets,
       );
@@ -68,17 +68,17 @@ export function filterSyncableContent(
 
     // Layouts nest their blocks inside columns, so they need their own walk.
     if (field.type === "layout" && Array.isArray(value)) {
-      syncableContent[key] = filterLayoutContent(
+      eligibleContent[key] = filterLayoutContent(
         value as KirbyLayout[],
         (field as KirbyLayoutFieldProps).fieldsets,
       );
       continue;
     }
 
-    syncableContent[key] = value;
+    eligibleContent[key] = value;
   }
 
-  return syncableContent;
+  return eligibleContent;
 }
 
 function filterBlocksContent(

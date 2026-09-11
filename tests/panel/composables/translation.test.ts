@@ -197,7 +197,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.syncModelContent(SECONDARY_LANGUAGE);
+      await translator.importModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.api.patch).not.toHaveBeenCalled();
     });
@@ -210,7 +210,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.syncModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(DEFAULT_LANGUAGE);
 
       expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
         slug: "Über uns",
@@ -222,7 +222,7 @@ describe("useContentTranslator", () => {
       modelData.blueprint = { name: "pages/default" };
       const translator = await createContentTranslator({ fields: {} });
 
-      await translator.syncModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(DEFAULT_LANGUAGE);
 
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.unresolvedFields",
@@ -1104,7 +1104,7 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
-    it("reports nothing to import when no content field is syncable", async () => {
+    it("reports nothing to import when no content field is eligible", async () => {
       modelData.content = { untracked: "Hello" };
 
       const translator = await createContentTranslator({
@@ -1113,7 +1113,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.syncModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(DEFAULT_LANGUAGE);
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.notification.success).not.toHaveBeenCalled();

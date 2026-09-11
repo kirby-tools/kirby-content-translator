@@ -39,23 +39,23 @@ describe("openTranslationDialog", () => {
       setItem: (key: string, value: string) => storage.set(key, value),
     });
     localStorage.setItem("kirby$content-translator$preferences$provider", "ai");
-    openFieldsDialog = vi.fn(async () => ({ provider: "deepl" }));
+    openFieldsDialog = vi.fn(async () => ({ strategyName: "deepl" }));
   });
 
-  it("returns provider deepl without opening the dialog when Copilot has no API key", async () => {
+  it("returns strategy deepl without opening the dialog when Copilot has no API key", async () => {
     copilot = copilotWith({ hasApiKey: false });
 
-    expect(await openTranslationDialog()).toEqual({ provider: "deepl" });
+    expect(await openTranslationDialog()).toEqual({ strategyName: "deepl" });
     expect(openFieldsDialog).not.toHaveBeenCalled();
   });
 
-  it("preselects provider ai in the dialog when Copilot is ready", async () => {
+  it("preselects strategy ai in the dialog when Copilot is ready", async () => {
     copilot = copilotWith();
 
     await openTranslationDialog();
 
     expect(openFieldsDialog).toHaveBeenCalledWith(
-      expect.objectContaining({ value: { provider: "ai" } }),
+      expect.objectContaining({ value: { strategyName: "ai" } }),
     );
   });
 });

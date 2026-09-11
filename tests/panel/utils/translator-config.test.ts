@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_FIELD_TYPES } from "../../../src/panel/constants";
 import {
   describeMissingStrategy,
-  getProviderAvailability,
+  getStrategyAvailability,
   resolveTranslatorConfig,
 } from "../../../src/panel/utils/translator-config";
 
@@ -53,48 +53,48 @@ describe("resolveTranslatorConfig", () => {
   });
 });
 
-describe("getProviderAvailability", () => {
-  it("treats a custom strategy as a usable backend without a DeepL key", () => {
-    const availability = getProviderAvailability(
+describe("getStrategyAvailability", () => {
+  it("treats a custom strategy as usable without a DeepL key", () => {
+    const availability = getStrategyAvailability(
       { strategy: "custom" },
       "missing",
     );
 
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(true);
-    expect(availability.hasMultipleProviders).toBe(false);
+    expect(availability.hasAnyStrategy).toBe(true);
+    expect(availability.hasDefaultStrategy).toBe(true);
+    expect(availability.hasMultipleStrategies).toBe(false);
   });
 
   it("requires a DeepL API key when the strategy resolves to DeepL", () => {
     expect(
-      getProviderAvailability({ strategy: "deepl" }, "missing").hasAnyProvider,
+      getStrategyAvailability({ strategy: "deepl" }, "missing").hasAnyStrategy,
     ).toBe(false);
     expect(
-      getProviderAvailability(
+      getStrategyAvailability(
         { strategy: "deepl", DeepL: { apiKey: true } },
         "missing",
-      ).hasAnyProvider,
+      ).hasAnyStrategy,
     ).toBe(true);
   });
 
   it("offers Copilot alone when the strategy resolves to AI", () => {
-    const availability = getProviderAvailability(
+    const availability = getStrategyAvailability(
       { strategy: "ai", DeepL: { apiKey: true } },
       "ready",
     );
 
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(false);
-    expect(availability.hasMultipleProviders).toBe(false);
+    expect(availability.hasAnyStrategy).toBe(true);
+    expect(availability.hasDefaultStrategy).toBe(false);
+    expect(availability.hasMultipleStrategies).toBe(false);
   });
 
-  it("offers both providers when a usable backend and Copilot are available", () => {
-    const availability = getProviderAvailability(
+  it("offers both strategies when DeepL has an API key and Copilot is ready", () => {
+    const availability = getStrategyAvailability(
       { strategy: "deepl", DeepL: { apiKey: true } },
       "ready",
     );
 
-    expect(availability.hasMultipleProviders).toBe(true);
+    expect(availability.hasMultipleStrategies).toBe(true);
   });
 });
 

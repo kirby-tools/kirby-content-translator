@@ -29,7 +29,7 @@ interface CollectorContext {
  *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `translateUnits` makes that call once, downstream, where it also
- * sees the KirbyTag fragments this function fans out.
+ * sees the units this function fans out of a KirbyText.
  */
 export function collectTranslations(
   obj: Record<string, unknown>,
@@ -114,19 +114,19 @@ function collectFromField(
   }
 
   // KirbyTags are split out so their structure survives translation intact and
-  // is reassembled in a finalizer once every fragment came back.
+  // is reassembled in a finalizer once every unit came back.
   else if (["textarea", "markdown"].includes(field.type)) {
     if (typeof value !== "string" || !value) return;
 
-    const { fragments, restore } = splitKirbyText(
+    const { unitTexts, restore } = splitKirbyText(
       value,
       context.options.kirbyTags ?? {},
     );
-    const translated: string[] = Array.from({ length: fragments.length });
+    const translated: string[] = Array.from({ length: unitTexts.length });
 
-    for (const [i, fragment] of fragments.entries()) {
+    for (const [i, unitText] of unitTexts.entries()) {
       context.translations.push({
-        unit: { text: fragment, fieldKey },
+        unit: { text: unitText, fieldKey },
         apply(translatedText) {
           translated[i] = translatedText;
         },

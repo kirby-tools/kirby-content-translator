@@ -30,7 +30,7 @@ beforeEach(() => {
 });
 
 interface TranslationContract {
-  skipCases: { text: string; skip: boolean }[];
+  untranslatableCases: { text: string; isUntranslatable: boolean }[];
   rejectionReasons: {
     reason: string;
     sourceText: string;
@@ -67,10 +67,10 @@ describe("translation contract", () => {
     expect(ajv.errors).toBeNull();
   });
 
-  it.each(contract.skipCases)(
-    "evaluates skip('$text') as $skip",
-    ({ text, skip }) => {
-      expect(isUntranslatable(text)).toBe(skip);
+  it.each(contract.untranslatableCases)(
+    "evaluates isUntranslatable('$text') as $isUntranslatable",
+    ({ text, isUntranslatable: expected }) => {
+      expect(isUntranslatable(text)).toBe(expected);
     },
   );
 
@@ -144,12 +144,12 @@ describe("translation contract", () => {
 
   it("emits placeholders in the contract format", () => {
     const { placeholder } = contract;
-    const { fragments } = splitKirbyText("(link: /a)", {});
+    const { unitTexts } = splitKirbyText("(link: /a)", {});
 
-    expect(fragments[0]).toBe(
+    expect(unitTexts[0]).toBe(
       placeholder.format.replace("{n}", String(placeholder.indexBase)),
     );
-    expect(fragments[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
+    expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
   });
 
   it("caps AI batches at the contract limits", () => {

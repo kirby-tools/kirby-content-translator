@@ -21,11 +21,11 @@ export interface ResolvedTranslatorConfig {
   systemPrompt: string | undefined;
 }
 
-export interface ProviderAvailability {
-  isCopilotAvailable: boolean;
-  hasDefaultProvider: boolean;
-  hasMultipleProviders: boolean;
-  hasAnyProvider: boolean;
+export interface StrategyAvailability {
+  isCopilotReady: boolean;
+  hasDefaultStrategy: boolean;
+  hasMultipleStrategies: boolean;
+  hasAnyStrategy: boolean;
 }
 
 export function resolveTranslatorConfig(
@@ -53,22 +53,22 @@ export function resolveTranslatorConfig(
   };
 }
 
-export function getProviderAvailability(
+export function getStrategyAvailability(
   config: PluginConfig,
   copilotReadiness: CopilotReadiness,
-): ProviderAvailability {
-  const isCopilotAvailable = copilotReadiness === "ready";
+): StrategyAvailability {
+  const isCopilotReady = copilotReadiness === "ready";
 
   // A DeepL key stays in config even when the strategy no longer uses it.
-  const hasDefaultProvider =
+  const hasDefaultStrategy =
     config.strategy === "custom" ||
     (config.strategy !== "ai" && !!config.DeepL?.apiKey);
 
   return {
-    isCopilotAvailable,
-    hasDefaultProvider,
-    hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
-    hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
+    isCopilotReady,
+    hasDefaultStrategy,
+    hasMultipleStrategies: isCopilotReady && hasDefaultStrategy,
+    hasAnyStrategy: isCopilotReady || hasDefaultStrategy,
   };
 }
 

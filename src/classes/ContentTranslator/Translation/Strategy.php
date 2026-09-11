@@ -7,7 +7,7 @@ namespace JohannSchopplich\ContentTranslator\Translation;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 
 /**
- * Contract for translation backends.
+ * Contract for translation strategies.
  */
 interface Strategy
 {

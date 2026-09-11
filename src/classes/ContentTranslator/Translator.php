@@ -80,8 +80,8 @@ final class Translator
      * Translates `$texts` and names the positions that kept their source text.
      *
      * The Panel needs them because a strategy running on the server hands back
-     * the source text for a unit it dropped, which no caller can tell apart
-     * from a translation that legitimately equals its source.
+     * the source text for a rejected unit, which no caller can tell apart from
+     * a translation that legitimately equals its source.
      *
      * @internal Serves the batch API route, not the published surface.
      *
@@ -144,7 +144,7 @@ final class Translator
      *
      * @return 'ai'|'custom'|'deepl'
      *
-     * @throws LogicException When the `strategy` option names an unknown backend
+     * @throws LogicException When the `strategy` option names an unknown strategy
      */
     public static function resolveStrategyName(): string
     {
@@ -174,7 +174,7 @@ final class Translator
             $content = [];
 
             foreach ($this->fields as $field => $props) {
-                if ($this->config->isTranslatable($field, $props)) {
+                if ($this->config->isEligibleField($field, $props)) {
                     $content[$field] = $this->model->content($fromLanguageCode)->get($field)->value();
                 }
             }
@@ -300,7 +300,7 @@ final class Translator
 
     /**
      * Sends only the units worth translating to the strategy, splicing source
-     * text into the skipped slots so callers keep a 1:1 mapping with `$units`.
+     * text into the untranslatable slots so callers keep a 1:1 mapping with `$units`.
      *
      * Also enforces the KirbyTag placeholder invariant here rather than inside
      * a strategy, so every strategy is covered – including user-supplied ones.
@@ -342,7 +342,7 @@ final class Translator
             $translation = $translations[$position];
 
             // A strategy that hands back `null` has already fired the hook with
-            // the real reason, so warning again would report one drop twice.
+            // the real reason, so warning again would report one rejection twice.
             if ($translation === null) {
                 $rejections[] = new TranslationRejection($index, 'missing translation', $unit->fieldKey);
                 continue;
@@ -377,7 +377,7 @@ final class Translator
 
     /**
      * The `<cN/>` indexes a text carries, sorted so two texts compare directly.
-     * A lost or invented placeholder means the `restore` closure from
+     * A lost or invented KirbyTag placeholder means the `restore` closure from
      * `KirbyText::split()` can no longer rebuild the tag, and counting alone
      * would accept `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, which
      * rebuilds tag 0 twice and drops tag 1.
@@ -439,7 +439,7 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException When the `strategy` option names an unknown backend
+     * @throws LogicException When the `strategy` option names an unknown strategy
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {

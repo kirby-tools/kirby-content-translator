@@ -19,31 +19,31 @@ final class ContractTest extends TestCase
     /**
      * @return iterable<string, array{string, bool}>
      */
-    public static function skipCases(): iterable
+    public static function untranslatableCases(): iterable
     {
-        foreach (self::contract()['skipCases'] as $case) {
-            yield var_export($case['text'], true) => [$case['text'], $case['skip']];
+        foreach (self::contract()['untranslatableCases'] as $case) {
+            yield var_export($case['text'], true) => [$case['text'], $case['isUntranslatable']];
         }
     }
 
     #[Test]
-    #[DataProvider('skipCases')]
-    public function evaluates_skip_predicate_per_contract(string $text, bool $skip): void
+    #[DataProvider('untranslatableCases')]
+    public function evaluates_untranslatable_text_per_contract(string $text, bool $isUntranslatable): void
     {
-        $this->assertSame($skip, UntranslatableText::matches($text));
+        $this->assertSame($isUntranslatable, UntranslatableText::matches($text));
     }
 
     #[Test]
     public function emits_placeholders_in_the_contract_format(): void
     {
         $placeholder = self::contract()['placeholder'];
-        ['fragments' => $fragments] = KirbyText::split('(link: /a)');
+        ['unitTexts' => $unitTexts] = KirbyText::split('(link: /a)');
 
         $this->assertSame(
             str_replace('{n}', (string)$placeholder['indexBase'], $placeholder['format']),
-            $fragments[0]
+            $unitTexts[0]
         );
-        $this->assertSame(1, preg_match(KirbyText::PLACEHOLDER_PATTERN, $fragments[0]));
+        $this->assertSame(1, preg_match(KirbyText::PLACEHOLDER_PATTERN, $unitTexts[0]));
     }
 
     #[Test]

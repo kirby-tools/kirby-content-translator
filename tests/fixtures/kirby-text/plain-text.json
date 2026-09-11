@@ -4,7 +4,7 @@
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedFragments": ["Just some prose, nothing tagged here."],
+  "expectedUnitTexts": ["Just some prose, nothing tagged here."],
   "expectedPlaceholderCount": 0,
   "restoredWith": ["Nur etwas Prosa, nichts getaggt."],
   "expectedRestore": "Nur etwas Prosa, nichts getaggt."

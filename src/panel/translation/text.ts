@@ -1,5 +1,5 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
-import type { TranslationProvider } from "../types";
+import type { StrategyName } from "../types";
 import type { ContentTranslationResult } from "./types";
 import { translateUnits } from "./dispatch";
 import { AIStrategy, DeepLStrategy } from "./strategies";
@@ -14,13 +14,13 @@ import { AIStrategy, DeepLStrategy } from "./strategies";
 export async function translateText(
   text: string,
   {
-    provider,
+    strategyName,
     targetLanguage,
     sourceLanguage,
     systemPrompt,
     fieldKey,
   }: {
-    provider: TranslationProvider;
+    strategyName: StrategyName;
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
     systemPrompt?: string;
@@ -29,7 +29,9 @@ export async function translateText(
   },
 ): Promise<{ text: string; result: ContentTranslationResult }> {
   const strategy =
-    provider === "ai" ? new AIStrategy({ systemPrompt }) : new DeepLStrategy();
+    strategyName === "ai"
+      ? new AIStrategy({ systemPrompt })
+      : new DeepLStrategy();
   const { texts, translatableCount, translatedCount, rejections } =
     await translateUnits([{ text, fieldKey }], strategy, {
       sourceLanguage,

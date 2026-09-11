@@ -7,7 +7,7 @@ export const BATCH_WRITE_API_ROUTE = "__content-translator__/batch-write";
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
-export const TRANSLATION_PROVIDERS = ["deepl", "ai"] as const;
+export const STRATEGY_NAMES = ["deepl", "ai"] as const;
 
 export const DEFAULT_FIELD_TYPES = [
   "blocks",

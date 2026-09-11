@@ -30,12 +30,12 @@ final class KirbyText
     /**
      * Splits KirbyText prose from KirbyTags structurally.
      *
-     * The first fragment is always the prose; the remaining fragments are
+     * The first unit text is always the prose; the remaining ones are
      * translatable attribute values in source order. Translations must be
      * passed back to `restore` in the same order.
      *
      * @param array<string, list<string>> $kirbyTags
-     * @return array{fragments: list<string>, restore: Closure(list<string>): string}
+     * @return array{unitTexts: list<string>, restore: Closure(list<string>): string}
      */
     public static function split(string $text, array $kirbyTags = []): array
     {
@@ -71,19 +71,19 @@ final class KirbyText
         }
         $proseParts[] = substr($text, $cursor);
 
-        $fragments = [implode('', $proseParts), ...$attrValues];
-        $expectedLength = count($fragments);
+        $unitTexts = [implode('', $proseParts), ...$attrValues];
+        $expectedLength = count($unitTexts);
 
-        $restore = static function (array $translatedFragments) use ($tagSlots, $expectedLength): string {
-            if (count($translatedFragments) !== $expectedLength) {
+        $restore = static function (array $translatedUnitTexts) use ($tagSlots, $expectedLength): string {
+            if (count($translatedUnitTexts) !== $expectedLength) {
                 // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
                 throw new LogicException(
-                    'Expected ' . $expectedLength . ' translated fragments, got ' . count($translatedFragments)
+                    'Expected ' . $expectedLength . ' translations, got ' . count($translatedUnitTexts)
                 );
             }
 
-            $translatedProse = $translatedFragments[0];
-            $translatedAttrs = array_slice($translatedFragments, 1);
+            $translatedProse = $translatedUnitTexts[0];
+            $translatedAttrs = array_slice($translatedUnitTexts, 1);
 
             return preg_replace_callback(
                 self::PLACEHOLDER_PATTERN,
@@ -99,7 +99,7 @@ final class KirbyText
             );
         };
 
-        return ['fragments' => $fragments, 'restore' => $restore];
+        return ['unitTexts' => $unitTexts, 'restore' => $restore];
     }
 
     /**

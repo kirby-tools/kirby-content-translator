@@ -50,7 +50,7 @@ final readonly class TranslatorConfig
         );
     }
 
-    public function isTranslatable(string $key, array $props): bool
+    public function isEligibleField(string $key, array $props): bool
     {
         if (!in_array($props['type'], $this->fieldTypes, true)) {
             return false;

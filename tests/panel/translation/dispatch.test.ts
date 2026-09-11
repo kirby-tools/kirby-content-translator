@@ -103,7 +103,7 @@ describe("translateUnits", () => {
     });
   });
 
-  it("keeps source text when a translation repeats one placeholder for another", async () => {
+  it("keeps source text when a translation repeats one KirbyTag placeholder for another", async () => {
     const { texts, translatedCount } = await translateUnits(
       [{ text: "Read <c0/> and <c1/>", fieldKey: "intro" }],
       { execute: async () => ["Lies <c0/> und <c0/>"] },
@@ -114,7 +114,7 @@ describe("translateUnits", () => {
     expect(translatedCount).toBe(0);
   });
 
-  it("keeps source text when a translation invents a placeholder", async () => {
+  it("keeps source text when a translation invents a KirbyTag placeholder", async () => {
     const { texts } = await translateUnits(
       [{ text: "Read <c0/>", fieldKey: "intro" }],
       { execute: async () => ["Lies <c9/>"] },
@@ -124,7 +124,7 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["Read <c0/>"]);
   });
 
-  it("keeps a translation that reorders the placeholders", async () => {
+  it("keeps a translation that reorders the KirbyTag placeholders", async () => {
     const { texts } = await translateUnits(
       [{ text: "<c0/> then <c1/>", fieldKey: "intro" }],
       { execute: async () => ["<c1/> zuerst, dann <c0/>"] },
@@ -134,7 +134,7 @@ describe("translateUnits", () => {
     expect(texts).toEqual(["<c1/> zuerst, dann <c0/>"]);
   });
 
-  it("names the placeholder indexes in the rejection detail", async () => {
+  it("names the KirbyTag placeholder indexes in the rejection detail", async () => {
     const { rejections } = await translateUnits(
       [{ text: "Read <c0/> and <c1/>", fieldKey: "intro" }],
       { execute: async () => ["Lies <c0/> und <c0/>"] },
@@ -150,7 +150,7 @@ describe("translateUnits", () => {
     ]);
   });
 
-  it("names the placeholder indexes a wire rejection carries in the detail", async () => {
+  it("names the KirbyTag placeholder indexes a wire rejection carries in the detail", async () => {
     const { rejections } = await translateUnits(
       [{ text: "Read <c0/>", fieldKey: "intro" }],
       {
