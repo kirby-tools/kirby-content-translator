@@ -9,7 +9,7 @@ export interface TranslationLanguage {
 
 export interface TranslationUnit {
   text: string;
-  /** Field key for error reporting (e.g. `title`, `blocks[0].text`). */
+  /** Key of the field the unit came from (e.g. `title`, `blocks.text`). */
   fieldKey?: string;
 }
 

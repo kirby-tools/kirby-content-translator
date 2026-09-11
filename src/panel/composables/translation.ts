@@ -6,17 +6,26 @@ import type {
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
-import type { ContentTranslationResult } from "../translation/types";
 import type {
+  ContentTranslationResult,
+  TranslationRejection,
+} from "../translation/types";
+import type {
+  BatchStatusResponse,
+  BatchWriteResponse,
   PluginConfig,
   PluginContextResponse,
   TranslationProvider,
   TranslatorOptions,
 } from "../types";
 import slugify from "@sindresorhus/slugify";
-import { ref, useContent, useI18n, usePanel } from "kirbyuse";
+import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
 import pAll from "p-all";
-import { DEFAULT_BATCH_TRANSLATION_CONCURRENCY } from "../constants";
+import {
+  BATCH_STATUS_API_ROUTE,
+  BATCH_WRITE_API_ROUTE,
+  DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+} from "../constants";
 import {
   AIStrategy,
   DeepLStrategy,
@@ -29,6 +38,7 @@ import {
   planSingleTranslation,
 } from "../translation/plan";
 import { filterSyncableContent } from "../utils/filter";
+import { formatPlural } from "../utils/i18n";
 import {
   getProviderAvailability,
   resolveTranslatorConfig,
@@ -42,6 +52,20 @@ import { createGlobalState } from "./state";
  * other way out of that coercion – keeps the view shell from rendering it.
  */
 const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
+
+/** How many fields of one language a notice names before it counts the rest. */
+const MAX_NAMED_FIELDS = 3;
+
+/** What became of one target language of a batch translation. */
+type BatchOutcome =
+  | { status: "failed"; message: string }
+  | { status: "unsavedChanges" }
+  | { status: "locked"; lockedBy: string }
+  | { status: "notStarted"; lockedBy: string }
+  | ({ status: "saved"; result: ContentTranslationResult } & Pick<
+      Extract<BatchWriteResponse, { status: "saved" }>,
+      "invalidFields" | "titleError" | "slugError"
+    >);
 
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
@@ -93,7 +117,9 @@ export function useContentTranslator() {
     const resolvedConfig = resolveTranslatorConfig(context.config, options);
     isImportEnabled.value = resolvedConfig.isImportEnabled;
     importFrom.value = resolvedConfig.importFrom;
-    isBatchTranslationEnabled.value = resolvedConfig.isBatchTranslationEnabled;
+    // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.
+    isBatchTranslationEnabled.value =
+      isKirby5() && resolvedConfig.isBatchTranslationEnabled;
     isTitleTranslationEnabled.value = resolvedConfig.isTitleTranslationEnabled;
     isSlugTranslationEnabled.value = resolvedConfig.isSlugTranslationEnabled;
     shouldConfirm.value = resolvedConfig.shouldConfirm;
@@ -175,57 +201,26 @@ export function useContentTranslator() {
     notifyPartialTranslation(
       panel.t(
         "johannschopplich.content-translator.notification.partiallyTranslated",
-        { untranslated: untranslatedCount, total: result.translatableCount },
+        {
+          untranslated: untranslatedCount,
+          total: result.translatableCount,
+          fields: listKeptSourceFields(result.rejections),
+        },
       ),
     );
   }
 
-  // A batch outcome is judged per language: summing the counts across
-  // languages would fold a language at 0 of 10 into "10 of 20 kept their
-  // source text" and hide which language went wrong.
-  function notifyBatchTranslationResult(
-    languages: (PanelLanguageInfo | PanelLanguage)[],
-    results: (ContentTranslationResult | null)[],
-  ) {
-    const languagesWithDrops = languages.filter((_, index) => {
-      const result = results[index];
-      return (
-        result != null && result.translatedCount < result.translatableCount
-      );
-    });
-
-    if (languagesWithDrops.length === 0) {
-      notifyTranslationResult(
-        mergeTranslationResults(results.filter((result) => result !== null)),
-        "johannschopplich.content-translator.notification.batchTranslated",
-      );
-      return;
-    }
-
-    notifyPartialTranslation(
-      panel.t(
-        "johannschopplich.content-translator.notification.batchPartiallyTranslated",
-        { languages: languagesWithDrops.map(({ name }) => name).join(", ") },
-      ),
-    );
-  }
-
-  async function translateAndPatchTitle({
-    title,
-    plan,
-    targetLanguage,
-    sourceLanguage,
-    patch,
-  }: {
-    title: string;
-    plan: { shouldPatchTitle: boolean; shouldPatchSlug: boolean };
-    targetLanguage: PanelLanguageInfo | PanelLanguage;
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
-    patch: (
-      endpoint: "title" | "slug",
-      data: Record<string, unknown>,
-    ) => Promise<unknown>;
-  }): Promise<ContentTranslationResult> {
+  /**
+   * Translates the title, returning `undefined` rather than the source text
+   * for a rejected title: writing that would overwrite a manually translated
+   * target title and re-derive its slug. An untranslatable title carries no
+   * rejection and still comes back.
+   */
+  async function translateTitle(
+    title: string,
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
+  ): Promise<{ text?: string; result: ContentTranslationResult }> {
     let translatedTitle: { text: string; result: ContentTranslationResult };
 
     try {
@@ -237,8 +232,8 @@ export function useContentTranslator() {
         fieldKey: "title",
       });
     } catch (error) {
-      // The content is already saved, so any failure of the lone title unit is
-      // reported as an untranslated title rather than erroring out the run.
+      // The content is already translated, so any failure of the lone title
+      // unit is reported as an untranslated title rather than failing the run.
       translatedTitle = {
         text: title,
         result: {
@@ -257,20 +252,200 @@ export function useContentTranslator() {
 
     reportRejections(translatedTitle.result, targetLanguage);
 
-    // A rejected title hands back the source text, and patching that would
-    // overwrite a manually translated target title and re-derive its slug.
-    // An untranslatable title carries no rejection and still lands.
-    if (translatedTitle.result.rejections.length === 0) {
-      if (plan.shouldPatchTitle) {
-        await patch("title", { title: translatedTitle.text });
+    return {
+      text:
+        translatedTitle.result.rejections.length === 0
+          ? translatedTitle.text
+          : undefined,
+      result: translatedTitle.result,
+    };
+  }
+
+  /**
+   * Tells whether a language needs the report dialog. Translation units that
+   * kept their source text leave the language saved, so they alone stay a
+   * notice. A failed title request is reported like a failed content request.
+   */
+  function shouldReportBatchOutcome(outcome: BatchOutcome) {
+    return (
+      outcome.status !== "saved" ||
+      outcome.result.rejections.some(
+        ({ reason }) => reason === "request failed",
+      ) ||
+      Boolean(outcome.titleError) ||
+      Boolean(outcome.slugError) ||
+      Object.keys(outcome.invalidFields ?? {}).length > 0
+    );
+  }
+
+  /**
+   * Judges each language on its own: summing the counts across languages would
+   * fold a language at 0 of 10 into "10 of 20 kept their source text" and hide
+   * which language went wrong.
+   */
+  function notifyBatchTranslationResult(
+    languages: (PanelLanguageInfo | PanelLanguage)[],
+    outcomes: BatchOutcome[],
+  ) {
+    const savedResults = outcomes.flatMap((outcome) =>
+      outcome.status === "saved" ? [outcome.result] : [],
+    );
+    const languagesWithKeptSource = languages.flatMap((language, index) => {
+      const outcome = outcomes[index]!;
+      if (
+        outcome.status !== "saved" ||
+        outcome.result.translatedCount === outcome.result.translatableCount
+      ) {
+        return [];
       }
 
-      if (plan.shouldPatchSlug) {
-        await patch("slug", { slug: slugify(translatedTitle.text) });
+      return [
+        `${language.name} (${listKeptSourceFields(outcome.result.rejections)})`,
+      ];
+    });
+
+    if (languagesWithKeptSource.length === 0) {
+      notifyTranslationResult(
+        mergeTranslationResults(savedResults),
+        "johannschopplich.content-translator.notification.batchTranslated",
+      );
+      return;
+    }
+
+    notifyPartialTranslation(
+      panel.t(
+        "johannschopplich.content-translator.notification.batchPartiallyTranslated",
+        {
+          languages: languagesWithKeptSource.join(", "),
+        },
+      ),
+    );
+  }
+
+  function listKeptSourceFields(rejections: TranslationRejection[]) {
+    const uniqueLabels = [
+      ...new Set(rejections.map(({ fieldKey }) => fieldLabel(fieldKey))),
+    ];
+    const namedLabels = uniqueLabels.slice(0, MAX_NAMED_FIELDS).join(", ");
+    if (uniqueLabels.length <= MAX_NAMED_FIELDS) return namedLabels;
+
+    const remainingCount = uniqueLabels.length - MAX_NAMED_FIELDS;
+
+    return formatPlural(
+      panel.t("johannschopplich.content-translator.notification.andMore", {
+        fields: namedLabels,
+        count: remainingCount,
+      }),
+      remainingCount,
+    );
+  }
+
+  function describeBatchOutcomes(
+    languages: (PanelLanguageInfo | PanelLanguage)[],
+    outcomes: BatchOutcome[],
+  ) {
+    return languages.flatMap((language, index) => {
+      const lines = describeBatchOutcome(outcomes[index]!);
+      return lines.length > 0 ? [{ label: language.name, message: lines }] : [];
+    });
+  }
+
+  function describeBatchOutcome(outcome: BatchOutcome): string[] {
+    const reportLine = (key: string, data?: Record<string, unknown>) =>
+      panel.t(`johannschopplich.content-translator.batchReport.${key}`, data);
+
+    if (outcome.status === "failed") {
+      return [reportLine("failed", { message: outcome.message })];
+    }
+
+    if (outcome.status === "unsavedChanges") {
+      return [reportLine("unsavedChanges")];
+    }
+
+    if (outcome.status === "locked") {
+      return [reportLine("locked", { user: outcome.lockedBy })];
+    }
+
+    if (outcome.status === "notStarted") {
+      return [reportLine("notStarted", { user: outcome.lockedBy })];
+    }
+
+    // A textarea or a structure yields several units per field, which would
+    // otherwise name the same field once per unit.
+    const lines = new Set<string>();
+
+    for (const rejection of outcome.result.rejections) {
+      lines.add(
+        reportLine("keptSource", {
+          field: fieldLabel(rejection.fieldKey),
+          reason: describeRejection(rejection),
+        }),
+      );
+    }
+
+    if (outcome.titleError) {
+      lines.add(
+        reportLine("notChanged", {
+          field: panel.t("title"),
+          message: outcome.titleError,
+        }),
+      );
+    }
+
+    if (outcome.slugError) {
+      lines.add(
+        reportLine("notChanged", {
+          field: panel.t("slug"),
+          message: outcome.slugError,
+        }),
+      );
+    }
+
+    for (const [name, { label, message }] of Object.entries(
+      outcome.invalidFields ?? {},
+    )) {
+      for (const validationMessage of Object.values(message)) {
+        lines.add(
+          reportLine("invalidField", {
+            field: label || name,
+            message: validationMessage,
+          }),
+        );
       }
     }
 
-    return translatedTitle.result;
+    return [...lines];
+  }
+
+  function describeRejection({ reason, detail }: TranslationRejection) {
+    switch (reason) {
+      case "missing translation":
+      case "non-string translation":
+        return panel.t(
+          "johannschopplich.content-translator.rejection.missingTranslation",
+        );
+      case "empty translation":
+        return panel.t(
+          "johannschopplich.content-translator.rejection.emptyTranslation",
+        );
+      case "placeholder mismatch":
+        return panel.t(
+          "johannschopplich.content-translator.rejection.placeholderMismatch",
+        );
+      default:
+        return detail ?? reason;
+    }
+  }
+
+  /**
+   * Names a unit's field by the label of its top-level field, which a nested
+   * unit's key leads with.
+   */
+  function fieldLabel(fieldKey = "") {
+    const name = fieldKey.split(/[.[]/)[0]!;
+    const label = fields.value?.[name]?.label;
+    if (label) return label;
+    return name === "title" ? panel.t("title") : name;
   }
 
   // TODO: Next major version – unify import flow through a server-side
@@ -412,17 +587,27 @@ export function useContentTranslator() {
       const languageResults = [contentResult];
 
       if (plan.shouldRequestTitleTranslation) {
-        languageResults.push(
-          await translateAndPatchTitle({
-            // Non-null: the plan requests a title translation only when the view has one.
-            title: panel.view.title!,
-            plan,
-            targetLanguage,
-            sourceLanguage,
-            patch: (endpoint, data) =>
-              panel.api.patch(`${panel.view.path}/${endpoint}`, data),
-          }),
+        const translatedTitle = await translateTitle(
+          // Non-null: the plan requests a title translation only when the view has one.
+          panel.view.title!,
+          targetLanguage,
+          sourceLanguage,
         );
+        languageResults.push(translatedTitle.result);
+
+        if (translatedTitle.text !== undefined && plan.shouldPatchTitle) {
+          await panel.api.patch(`${panel.view.path}/title`, {
+            title: translatedTitle.text,
+          });
+        }
+
+        if (translatedTitle.text !== undefined && plan.shouldPatchSlug) {
+          // Kirby sanitizes the slug with the slug rules of the current
+          // language, which is the target language.
+          await panel.api.patch(`${panel.view.path}/slug`, {
+            slug: translatedTitle.text,
+          });
+        }
 
         isTranslating.value = false;
         // Reload will also end Panel loading state.
@@ -452,66 +637,100 @@ export function useContentTranslator() {
     panel.view.isLoading = true;
     isTranslating.value = true;
 
-    const total = selectedLanguages.length;
-
-    panel.notification.open({
-      message: panel.t(
-        "johannschopplich.content-translator.notification.batchTranslating",
-        { current: 0, total },
-      ),
-      icon: "loader",
-      theme: "info",
-      timeout: PERSISTENT_TIMEOUT,
-    });
-
-    const defaultLanguageData = await getModelData();
-    const strategy =
-      provider.value === "ai"
-        ? new AIStrategy({ systemPrompt: systemPrompt.value })
-        : new DeepLStrategy();
+    function notifyProgress(current: number, total: number) {
+      panel.notification.open({
+        message: panel.t(
+          "johannschopplich.content-translator.notification.batchTranslating",
+          { current, total },
+        ),
+        icon: "loader",
+        theme: "info",
+        timeout: PERSISTENT_TIMEOUT,
+      });
+    }
 
     try {
-      const batchResults = await batchTranslateLanguages(
-        selectedLanguages,
+      const defaultLanguageData = await getModelData();
+      const batchStatus = await panel.api.get<BatchStatusResponse>(
+        BATCH_STATUS_API_ROUTE,
+        { path: panel.view.path },
+        undefined,
+        true,
+      );
+
+      // Nothing is translated that could not be saved: Kirby refuses the write
+      // without the update permission, and refuses every language while
+      // another user edits one of them.
+      if (!batchStatus.isUpdateAllowed || batchStatus.lockedBy !== null) {
+        isTranslating.value = false;
+        panel.view.isLoading = false;
+        panel.notification.error(
+          batchStatus.isUpdateAllowed
+            ? panel.t("johannschopplich.content-translator.error.batchLocked", {
+                user: batchStatus.lockedBy,
+              })
+            : panel.t(
+                "johannschopplich.content-translator.error.batchForbidden",
+              ),
+        );
+        return;
+      }
+
+      const languagesToTranslate = selectedLanguages.filter(
+        ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code!),
+      );
+
+      if (languagesToTranslate.length > 0) {
+        notifyProgress(0, languagesToTranslate.length);
+      }
+
+      const strategy =
+        provider.value === "ai"
+          ? new AIStrategy({ systemPrompt: systemPrompt.value })
+          : new DeepLStrategy();
+
+      const translatedOutcomes = await batchTranslateLanguages(
+        languagesToTranslate,
         defaultLanguageData,
         strategy,
-        (current, total) => {
-          panel.notification.open({
-            message: panel.t(
-              "johannschopplich.content-translator.notification.batchTranslating",
-              { current, total },
-            ),
-            icon: "loader",
-            theme: "info",
-            timeout: PERSISTENT_TIMEOUT,
-          });
-        },
+        notifyProgress,
       );
 
-      const failedLanguages = selectedLanguages.filter(
-        (_, index) => batchResults[index] === null,
-      );
+      const outcomes = selectedLanguages.map((language): BatchOutcome => {
+        const index = languagesToTranslate.indexOf(language);
+        return index === -1
+          ? { status: "unsavedChanges" }
+          : translatedOutcomes[index]!;
+      });
 
-      if (failedLanguages.length === 0) {
-        notifyBatchTranslationResult(selectedLanguages, batchResults);
+      const hasReport = outcomes.some(shouldReportBatchOutcome);
+
+      if (!hasReport) {
+        notifyBatchTranslationResult(selectedLanguages, outcomes);
       }
 
       isTranslating.value = false;
       // Reload will also end Panel loading state.
       await panel.view.reload();
 
-      if (failedLanguages.length > 0) {
-        // Reported after the reload, so the languages that did land are on
-        // screen before the dialog covers them. Folding a dead language into
-        // the segment counts would report it as a handful of skipped segments.
-        panel.notification.error(
-          panel.t(
-            "johannschopplich.content-translator.notification.batchLanguagesFailed",
-            {
-              languages: failedLanguages.map(({ name }) => name).join(", "),
-            },
-          ),
-        );
+      if (hasReport) {
+        // Opened after the reload, so the saved languages are on screen before
+        // the dialog covers them.
+        panel.notification.close();
+        panel.dialog.open({
+          component: "k-error-dialog",
+          props: {
+            message: panel.t(
+              "johannschopplich.content-translator.batchReport.message",
+              {
+                saved: outcomes.filter(({ status }) => status === "saved")
+                  .length,
+                total: selectedLanguages.length,
+              },
+            ),
+            details: describeBatchOutcomes(selectedLanguages, outcomes),
+          },
+        });
       }
     } catch (error) {
       isTranslating.value = false;
@@ -522,7 +741,7 @@ export function useContentTranslator() {
   }
 
   async function batchTranslateLanguages(
-    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
+    languagesToTranslate: (PanelLanguageInfo | PanelLanguage)[],
     defaultLanguageData: PanelModelData,
     strategy: AIStrategy | DeepLStrategy,
     onProgress?: (completed: number, total: number) => void,
@@ -533,27 +752,42 @@ export function useContentTranslator() {
       config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY;
 
     let completed = 0;
+    let lockedBy: string | undefined;
 
     // A language is isolated so one dead provider call cannot discard the
-    // languages already patched or skip the ones still queued.
+    // languages already saved or skip the ones still queued. A lock stops the
+    // queue instead: Kirby refuses every further write while it holds.
     return await pAll(
-      selectedLanguages.map((targetLanguage) => async () => {
-        try {
-          return await translateIntoLanguage(targetLanguage);
-        } catch (error) {
-          console.error(
-            `Failed to translate into "${targetLanguage.code}":`,
-            error,
-          );
-          return null;
-        }
-      }),
+      languagesToTranslate.map(
+        (targetLanguage) => async (): Promise<BatchOutcome> => {
+          if (lockedBy !== undefined) {
+            return { status: "notStarted", lockedBy };
+          }
+
+          try {
+            const outcome = await translateIntoLanguage(targetLanguage);
+            if (outcome.status === "locked") lockedBy = outcome.lockedBy;
+            return outcome;
+          } catch (error) {
+            console.error(
+              `Failed to translate into "${targetLanguage.code}":`,
+              error,
+            );
+            return {
+              status: "failed",
+              message: error instanceof Error ? error.message : String(error),
+            };
+          } finally {
+            onProgress?.(++completed, languagesToTranslate.length);
+          }
+        },
+      ),
       { concurrency },
     );
 
     async function translateIntoLanguage(
       targetLanguage: PanelLanguageInfo | PanelLanguage,
-    ) {
+    ): Promise<BatchOutcome> {
       const syncableContent = filterSyncableContent(
         defaultLanguageData.content,
         {
@@ -579,11 +813,6 @@ export function useContentTranslator() {
 
       reportRejections(contentResult, targetLanguage);
 
-      await panel.api.patch(modelApiPath, contentCopy, {
-        headers: { "x-language": targetLanguage.code! },
-        silent: true,
-      });
-
       const plan = planBatchLanguageTranslation({
         isHomePage: defaultLanguageData.id === homePageId.value,
         isErrorPage: defaultLanguageData.id === errorPageId.value,
@@ -595,27 +824,35 @@ export function useContentTranslator() {
       });
 
       const languageResults = [contentResult];
+      let title: string | undefined;
 
       if (plan.shouldRequestTitleTranslation) {
-        languageResults.push(
-          await translateAndPatchTitle({
-            title: defaultLanguageData.title,
-            plan,
-            targetLanguage,
-            sourceLanguage: defaultLanguage,
-            patch: (endpoint, data) =>
-              panel.api.patch(`${modelApiPath}/${endpoint}`, data, {
-                headers: { "x-language": targetLanguage.code! },
-                silent: true,
-              }),
-          }),
+        const translatedTitle = await translateTitle(
+          defaultLanguageData.title,
+          targetLanguage,
+          defaultLanguage,
         );
+        languageResults.push(translatedTitle.result);
+        title = translatedTitle.text;
       }
 
-      completed++;
-      onProgress?.(completed, selectedLanguages.length);
+      // The server builds the slug from the translated title, with the slug
+      // rules of the target language.
+      const response = await panel.api.post<BatchWriteResponse>(
+        BATCH_WRITE_API_ROUTE,
+        {
+          path: modelApiPath,
+          language: targetLanguage.code,
+          content: contentCopy,
+          title: plan.shouldPatchTitle ? title : undefined,
+          slug: plan.shouldPatchSlug ? title : undefined,
+        },
+        { silent: true },
+      );
 
-      return mergeTranslationResults(languageResults);
+      if (response.status !== "saved") return response;
+
+      return { ...response, result: mergeTranslationResults(languageResults) };
     }
   }
 

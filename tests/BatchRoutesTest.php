@@ -49,11 +49,13 @@ final class BatchRoutesTest extends ApiRouteTestCase
             'users' => [
                 ['id' => 'editor', 'email' => 'editor@example.com', 'name' => 'Editor', 'role' => 'admin'],
                 ['id' => 'colleague', 'email' => 'colleague@example.com', 'name' => 'Colleague', 'role' => 'admin'],
-                ['id' => 'reader', 'email' => 'reader@example.com', 'role' => 'reader']
+                ['id' => 'reader', 'email' => 'reader@example.com', 'role' => 'reader'],
+                ['id' => 'writer', 'email' => 'writer@example.com', 'role' => 'writer']
             ],
             'roles' => [
                 ['name' => 'admin'],
-                ['name' => 'reader', 'permissions' => ['pages' => ['update' => false]]]
+                ['name' => 'reader', 'permissions' => ['pages' => ['update' => false]]],
+                ['name' => 'writer', 'permissions' => ['pages' => ['changeTitle' => false]]]
             ],
             'blueprints' => [
                 'pages/default' => [
@@ -132,6 +134,31 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $this->assertArrayHasKey('maxlength', $response['invalidFields']['teaser']['message']);
         $this->assertArrayHasKey('required', $response['invalidFields']['author']['message']);
         $this->assertSame('Viel zu lang geraten', $page->content('de')->get('teaser')->value());
+    }
+
+    #[Test]
+    public function batch_write_saves_the_content_and_returns_titleError_without_the_changeTitle_permission(): void
+    {
+        $app = $this->app(
+            [
+                'method' => 'POST',
+                'body' => [
+                    'path' => 'pages/about',
+                    'language' => 'de',
+                    'content' => ['text' => 'Hallo'],
+                    'title' => 'Ueber uns'
+                ]
+            ],
+            userId: 'writer'
+        );
+
+        $response = $this->callRoute($app, '__content-translator__/batch-write');
+        $page = $app->page('about');
+
+        $this->assertSame('saved', $response['status']);
+        $this->assertArrayHasKey('titleError', $response);
+        $this->assertSame('Hallo', $page->content('de')->get('text')->value());
+        $this->assertSame('About', $page->content('de')->get('title')->value());
     }
 
     #[Test]

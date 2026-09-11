@@ -41,6 +41,33 @@ export interface PluginContextResponse {
   licenseStatus?: LicenseStatus;
 }
 
+/** Response from `__content-translator__/batch-status` API endpoint. */
+export interface BatchStatusResponse {
+  isUpdateAllowed: boolean;
+  /** Name of another user who edits the model in any language. */
+  lockedBy: string | null;
+  languagesWithUnsavedChanges: string[];
+}
+
+/** Response from `__content-translator__/batch-write` API endpoint. */
+export type BatchWriteResponse =
+  | { status: "unsavedChanges" }
+  | {
+      status: "locked";
+      /** Name of the user who started editing the model. */
+      lockedBy: string;
+    }
+  | {
+      status: "saved";
+      /** Fields of the saved language that fail validation, keyed by field name. */
+      invalidFields?: Record<
+        string,
+        { label: string | null; message: Record<string, string> }
+      >;
+      titleError?: string;
+      slugError?: string;
+    };
+
 /** Translator options from section/view button props. */
 export interface TranslatorOptions {
   label?: string;
