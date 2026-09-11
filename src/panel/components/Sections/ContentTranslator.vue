@@ -38,6 +38,7 @@ const {
 
   licenseStatus,
   hasAnyProvider,
+  missingStrategyMessage,
 
   initializeConfig,
   syncModelContent,
@@ -63,7 +64,7 @@ const {
     }),
   ]);
 
-  initializeConfig(context, sectionProps);
+  await initializeConfig(context, sectionProps);
 
   isInitialized.value = true;
 })();
@@ -122,11 +123,7 @@ async function handleBatchTranslate() {
     </k-box>
     <template v-else>
       <k-box v-if="!hasAnyProvider" theme="empty">
-        <k-text>
-          Configure a <code>strategy</code> or <code>DeepL.apiKey</code> in the
-          <code>johannschopplich.content-translator</code> plugin configuration,
-          or install Kirby Copilot for AI-powered translations.
-        </k-text>
+        <k-text>{{ missingStrategyMessage }}</k-text>
       </k-box>
 
       <k-box

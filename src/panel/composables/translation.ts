@@ -36,9 +36,11 @@ import {
   planImport,
   planSingleTranslation,
 } from "../translation/plan";
+import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterSyncableContent } from "../utils/filter";
 import { formatPlural } from "../utils/i18n";
 import {
+  describeMissingStrategy,
   getProviderAvailability,
   resolveTranslatorConfig,
 } from "../utils/translator-config";
@@ -104,9 +106,15 @@ export function useContentTranslator() {
   const errorPageId = ref<string>();
   const licenseStatus = ref<LicenseStatus>();
   const hasAnyProvider = ref(false);
+  const missingStrategyMessage = ref<string>();
   // #endregion
 
-  function initializeConfig(
+  /**
+   * Assigns the configuration synchronously. The returned promise settles once
+   * the usable strategies are known – resolving them asks Kirby Copilot for its
+   * configuration.
+   */
+  async function initializeConfig(
     context: PluginContextResponse,
     options: TranslatorOptions = {},
   ) {
@@ -134,9 +142,14 @@ export function useContentTranslator() {
     errorPageId.value = context.errorPageId;
     licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
 
+    const copilotReadiness = await resolveCopilotReadiness();
     hasAnyProvider.value = getProviderAvailability(
       context.config,
+      copilotReadiness,
     ).hasAnyProvider;
+    missingStrategyMessage.value = hasAnyProvider.value
+      ? undefined
+      : describeMissingStrategy(context.config, copilotReadiness);
   }
 
   function reportRejections(
@@ -882,6 +895,7 @@ export function useContentTranslator() {
     fields,
     licenseStatus,
     hasAnyProvider,
+    missingStrategyMessage,
 
     initializeConfig,
     syncModelContent,

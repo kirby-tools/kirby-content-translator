@@ -4,7 +4,7 @@ import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { ProviderAvailability } from "../utils/translator-config";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
-import { resolveCopilot } from "../utils/copilot";
+import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
 import { getProviderAvailability } from "../utils/translator-config";
 import { usePluginContext } from "./plugin";
 
@@ -194,7 +194,10 @@ async function getProviderConfig() {
   const context = await usePluginContext();
   const copilot = resolveCopilot();
 
-  const availability = getProviderAvailability(context.config);
+  const availability = getProviderAvailability(
+    context.config,
+    await resolveCopilotReadiness(),
+  );
   const provider = resolveProvider(availability);
 
   if (!availability.hasMultipleProviders) {

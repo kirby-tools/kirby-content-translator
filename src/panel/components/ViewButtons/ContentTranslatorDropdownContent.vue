@@ -45,6 +45,7 @@ const {
   fields,
   licenseStatus,
   hasAnyProvider,
+  missingStrategyMessage,
 
   initializeConfig,
   syncModelContent,
@@ -59,13 +60,11 @@ const {
   showCopilotLicenseToastOnce,
 } = useTranslationDialogs();
 
-initializeConfig(props.context, props.props);
-
-if (!hasAnyProvider.value) {
-  panel.notification.error(
-    'Configure the "johannschopplich.content-translator.strategy" or "johannschopplich.content-translator.DeepL.apiKey" plugin option, or install Kirby Copilot for AI-powered translations.',
-  );
-}
+initializeConfig(props.context, props.props).then(() => {
+  if (missingStrategyMessage.value) {
+    panel.notification.error(missingStrategyMessage.value);
+  }
+});
 
 // Lazily fetch required view data (same as `computed` section methods).
 const initializationPromise = (async () => {

@@ -1,6 +1,6 @@
 import type { PluginConfig, TranslatorOptions } from "../types";
+import type { CopilotReadiness } from "./copilot";
 import { DEFAULT_FIELD_TYPES } from "../constants";
-import { resolveCopilot } from "./copilot";
 
 /**
  * Translator configuration resolved from section/view button props and the
@@ -55,8 +55,9 @@ export function resolveTranslatorConfig(
 
 export function getProviderAvailability(
   config: PluginConfig,
+  copilotReadiness: CopilotReadiness,
 ): ProviderAvailability {
-  const isCopilotAvailable = !!resolveCopilot();
+  const isCopilotAvailable = copilotReadiness === "ready";
 
   // A DeepL key stays in config even when the strategy no longer uses it.
   const hasDefaultProvider =
@@ -69,6 +70,36 @@ export function getProviderAvailability(
     hasMultipleProviders: isCopilotAvailable && hasDefaultProvider,
     hasAnyProvider: isCopilotAvailable || hasDefaultProvider,
   };
+}
+
+/**
+ * Names what keeps each strategy from being offered. Addressed to whoever
+ * configures the site, so it names the options in English rather than through
+ * `panel.t`.
+ */
+export function describeMissingStrategy(
+  config: PluginConfig,
+  copilotReadiness: CopilotReadiness,
+) {
+  const copilotHint = {
+    ready: undefined,
+    missing: "install Kirby Copilot for AI translations",
+    outdated:
+      "update Kirby Copilot, as the installed version cannot run AI translations",
+    missingApiKey:
+      'add an API key to "johannschopplich.copilot.providers" for the provider Kirby Copilot uses',
+    unavailable:
+      "check the Kirby Copilot configuration, as its Panel context could not be loaded",
+  }[copilotReadiness];
+
+  if (config.strategy === "ai") {
+    return `The "johannschopplich.content-translator.strategy" option is set to "ai", so ${copilotHint}.`;
+  }
+
+  const deeplHint =
+    'Set the "johannschopplich.content-translator.DeepL.apiKey" option or a custom "johannschopplich.content-translator.strategy"';
+
+  return `${deeplHint}, or ${copilotHint}.`;
 }
 
 function toLowercaseNames(names: string[]) {
