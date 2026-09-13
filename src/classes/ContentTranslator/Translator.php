@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
-use JohannSchopplich\ContentTranslator\Translation\BatchTranslationResult;
 use JohannSchopplich\ContentTranslator\Translation\Collector;
 use JohannSchopplich\ContentTranslator\Translation\ContentTranslationResult;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
@@ -14,6 +13,7 @@ use JohannSchopplich\ContentTranslator\Translation\Strategies\CallableStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\DeepLStrategy;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslatedUnits;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
@@ -92,10 +92,10 @@ final class Translator
      * @throws AuthException When the DeepL API key is missing
      * @throws InvalidArgumentException When a language code is not registered in the site's languages
      */
-    public static function translateBatch(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): BatchTranslationResult
+    public static function translateBatch(array $texts, string $targetLanguage, string|null $sourceLanguage = null, Strategy|null $strategy = null): TranslatedUnits
     {
         if ($texts === []) {
-            return new BatchTranslationResult([], [], 0, 0);
+            return new TranslatedUnits([], [], 0, 0);
         }
 
         $kirby = App::instance();
@@ -131,7 +131,7 @@ final class Translator
             ], 'text');
         }
 
-        return new BatchTranslationResult(
+        return new TranslatedUnits(
             $translatedTexts,
             $translatedResult->rejections,
             $translatedResult->translatableCount,
@@ -307,7 +307,7 @@ final class Translator
      *
      * @param list<TranslationUnit> $units
      */
-    private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): BatchTranslationResult
+    private static function translateUnits(array $units, Strategy $strategy, ExecutionOptions $options): TranslatedUnits
     {
         $results = array_map(static fn (TranslationUnit $unit): string => $unit->text, $units);
         $rejections = [];
@@ -323,7 +323,7 @@ final class Translator
         }
 
         if ($translatableUnits === []) {
-            return new BatchTranslationResult($results, [], 0, 0);
+            return new TranslatedUnits($results, [], 0, 0);
         }
 
         $translations = $strategy->execute($translatableUnits, $options);
@@ -372,7 +372,7 @@ final class Translator
             $translatedCount++;
         }
 
-        return new BatchTranslationResult($results, $rejections, count($translatableUnits), $translatedCount);
+        return new TranslatedUnits($results, $rejections, count($translatableUnits), $translatedCount);
     }
 
     /**

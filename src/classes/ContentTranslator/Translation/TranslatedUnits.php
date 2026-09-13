@@ -11,7 +11,7 @@ namespace JohannSchopplich\ContentTranslator\Translation;
  *
  * @internal
  */
-final readonly class BatchTranslationResult
+final readonly class TranslatedUnits
 {
     /**
      * @param list<string> $texts

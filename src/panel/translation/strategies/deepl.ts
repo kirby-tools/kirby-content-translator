@@ -5,7 +5,7 @@ import type {
   TranslationUnit,
 } from "../types";
 import { useApi } from "kirbyuse";
-import { TRANSLATE_BATCH_API_ROUTE } from "../../constants";
+import { TRANSLATE_UNITS_API_ROUTE } from "../../constants";
 
 /**
  * Translates all units in a single batch API call.
@@ -28,7 +28,7 @@ export class DeepLStrategy implements TranslationStrategy {
           expectedIndexes?: number[];
           actualIndexes?: number[];
         }[];
-      }>(TRANSLATE_BATCH_API_ROUTE, {
+      }>(TRANSLATE_UNITS_API_ROUTE, {
         sourceLanguage: options.sourceLanguage?.code,
         targetLanguage: options.targetLanguage.code,
         texts: units.map((unit) => unit.text),

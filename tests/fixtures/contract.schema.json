@@ -6,7 +6,7 @@
   "required": [
     "untranslatableCases",
     "rejectionReasons",
-    "batchRouteResponse",
+    "translateUnitsRouteResponse",
     "placeholder",
     "batching"
   ],
@@ -47,8 +47,8 @@
         }
       }
     },
-    "batchRouteResponse": {
-      "description": "The keys the translate-batch route answers with. PHP writes them, the Panel's DeepLStrategy reads them, and nothing else ties the two literals together.",
+    "translateUnitsRouteResponse": {
+      "description": "The keys the translate-units route answers with. PHP writes them, the Panel's DeepLStrategy reads them, and nothing else ties the two literals together.",
       "type": "object",
       "required": ["keys", "rejectionKeys", "optionalRejectionKeys"],
       "additionalProperties": false,

@@ -241,7 +241,7 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(panel.api.post).toHaveBeenCalledWith(
-        "__content-translator__/translate-batch",
+        "__content-translator__/translate-units",
         expect.objectContaining({ texts: ["Hello"] }),
       );
     });
@@ -375,7 +375,7 @@ describe("useContentTranslator", () => {
 
       expect(translateBatch).toHaveBeenCalledTimes(1);
       expect(translateBatch).toHaveBeenCalledWith(
-        "__content-translator__/translate-batch",
+        "__content-translator__/translate-units",
         expect.objectContaining({ targetLanguage: "it" }),
       );
       expect(batchWrite).toHaveBeenCalledTimes(1);

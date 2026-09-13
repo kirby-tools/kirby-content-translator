@@ -15,15 +15,15 @@ use Kirby\Toolkit\Str;
 use Throwable;
 
 /**
- * Writes one target language of a Panel batch translation, so the lock
- * checks, the content write, and the title and slug changes run in one
- * request.
+ * The Panel side of a batch translation, reduced to one request per target
+ * language: the lock checks, the content write, and the title and slug
+ * changes all happen in that request.
  *
  * Runs as the current user: Kirby's model rules check the permissions.
  *
  * @internal
  */
-final class BatchWriter
+final class BatchTranslation
 {
     /**
      * Runs before anything is translated, so a refused, locked, or unsaved
@@ -57,7 +57,7 @@ final class BatchWriter
      *     slugError?: string
      * }
      */
-    public static function write(
+    public static function writeLanguage(
         ModelWithContent $model,
         string $languageCode,
         array $content,

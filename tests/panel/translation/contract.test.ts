@@ -36,7 +36,7 @@ interface TranslationContract {
     sourceText: string;
     answer: string | number | null;
   }[];
-  batchRouteResponse: {
+  translateUnitsRouteResponse: {
     keys: string[];
     rejectionKeys: string[];
     optionalRejectionKeys: string[];
@@ -89,8 +89,8 @@ describe("translation contract", () => {
   );
 
   it("reads texts and rejections from the batch route", async () => {
-    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
 
     mockApiPost.mockResolvedValueOnce({
       [textsKey!]: ["Hello", "Welt"],
@@ -111,10 +111,10 @@ describe("translation contract", () => {
   });
 
   it("reads the placeholder indexes from the batch route", async () => {
-    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
     const [expectedKey, actualKey] =
-      contract.batchRouteResponse.optionalRejectionKeys;
+      contract.translateUnitsRouteResponse.optionalRejectionKeys;
 
     mockApiPost.mockResolvedValueOnce({
       [textsKey!]: ["Read <c0/>"],

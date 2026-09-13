@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\ContentTranslator\BatchWriter;
+use JohannSchopplich\ContentTranslator\BatchTranslation;
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
@@ -41,7 +41,7 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/translate-batch',
+            'pattern' => '__content-translator__/translate-units',
             'method' => 'POST',
             'action' => function () use ($kirby) {
                 $request = $kirby->request();
@@ -88,7 +88,7 @@ return [
             'action' => function () use ($kirby) {
                 $path = (string)$kirby->request()->query()->get('path');
 
-                return BatchWriter::status(Find::parent($path));
+                return BatchTranslation::status(Find::parent($path));
             }
         ],
         [
@@ -108,7 +108,7 @@ return [
                     throw new BadMethodCallException('Invalid "content" parameter');
                 }
 
-                return BatchWriter::write(
+                return BatchTranslation::writeLanguage(
                     model: Find::parent($path),
                     languageCode: $languageCode,
                     content: $content,

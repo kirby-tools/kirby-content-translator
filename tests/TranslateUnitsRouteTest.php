@@ -15,14 +15,14 @@ use PHPUnit\Framework\Attributes\Test;
  */
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class TranslateBatchRouteTest extends ApiRouteTestCase
+final class TranslateUnitsRouteTest extends ApiRouteTestCase
 {
     use ContractFixture;
 
     /**
      * @param list<string> $texts
      */
-    private function callTranslateBatchRoute(array $texts, Closure $strategy): mixed
+    private function callTranslateUnitsRoute(array $texts, Closure $strategy): mixed
     {
         $app = new App([
             'options' => [
@@ -38,13 +38,13 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
             ]
         ]);
 
-        return $this->callRoute($app, '__content-translator__/translate-batch');
+        return $this->callRoute($app, '__content-translator__/translate-units');
     }
 
     #[Test]
     public function answers_for_every_text_in_input_order(): void
     {
-        $response = $this->callTranslateBatchRoute(
+        $response = $this->callTranslateUnitsRoute(
             ['Hello', 'World'],
             fn (string $text): string => $text . ' (de)'
         );
@@ -56,7 +56,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     #[Test]
     public function names_the_index_and_reason_of_a_rejected_text(): void
     {
-        $response = $this->callTranslateBatchRoute(
+        $response = $this->callTranslateUnitsRoute(
             ['Hello', 'World'],
             fn (string $text): string => $text === 'Hello' ? ' ' : $text . ' (de)'
         );
@@ -70,7 +70,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     #[Test]
     public function sends_the_placeholder_indexes_of_a_mismatch(): void
     {
-        $response = $this->callTranslateBatchRoute(
+        $response = $this->callTranslateUnitsRoute(
             ['Read <c0/> now'],
             fn (string $text): string => 'Lies jetzt'
         );
@@ -84,7 +84,7 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     #[Test]
     public function keeps_the_source_text_of_a_rejected_index(): void
     {
-        $response = $this->callTranslateBatchRoute(
+        $response = $this->callTranslateUnitsRoute(
             ['Read <c0/> now'],
             fn (string $text): string => 'Lies jetzt'
         );
@@ -95,9 +95,9 @@ final class TranslateBatchRouteTest extends ApiRouteTestCase
     #[Test]
     public function sends_only_texts_and_rejections(): void
     {
-        $shape = self::contract()['batchRouteResponse'];
+        $shape = self::contract()['translateUnitsRouteResponse'];
 
-        $response = $this->callTranslateBatchRoute(
+        $response = $this->callTranslateUnitsRoute(
             ['Read <c0/> now'],
             fn (string $text): string => 'Lies jetzt'
         );

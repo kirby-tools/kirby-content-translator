@@ -33,7 +33,7 @@ describe("DeepLStrategy", () => {
 
       expect(mockApiPost).toHaveBeenCalledOnce();
       expect(mockApiPost).toHaveBeenCalledWith(
-        "__content-translator__/translate-batch",
+        "__content-translator__/translate-units",
         expect.objectContaining({
           texts: ["Hello", "World"],
           targetLanguage: "de",
@@ -119,7 +119,7 @@ describe("DeepLStrategy", () => {
       });
 
       expect(mockApiPost).toHaveBeenCalledWith(
-        "__content-translator__/translate-batch",
+        "__content-translator__/translate-units",
         expect.objectContaining({ sourceLanguage: "en" }),
       );
     });
