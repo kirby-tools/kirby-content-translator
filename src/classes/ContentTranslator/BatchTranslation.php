@@ -26,8 +26,9 @@ use Throwable;
 final class BatchTranslation
 {
     /**
-     * Runs before anything is translated, so a refused, locked, or unsaved
-     * language costs no provider call.
+     * Reports the model's lock, permission, and unsaved-changes state before
+     * anything is translated, so a refused, locked, or unsaved language costs
+     * no provider call.
      *
      * @return array{isUpdateAllowed: bool, lockedBy: string|null, languagesWithUnsavedChanges: list<string>}
      */
@@ -44,7 +45,7 @@ final class BatchTranslation
     }
 
     /**
-     * Saves the content without validation, as `update()` does by default, so
+     * Saves the content, skipping validation as `update()` does by default, so
      * a paid translation is never discarded over a field it did not touch. The
      * invalid fields come back instead.
      *

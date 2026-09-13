@@ -337,7 +337,7 @@ export function useContentTranslator() {
   }
 
   /**
-   * Judges each language on its own: summing the counts across languages would
+   * Notifies per language rather than summing across them: one total would
    * fold a language at 0 of 10 into "10 of 20 kept their source text" and hide
    * which language went wrong.
    */

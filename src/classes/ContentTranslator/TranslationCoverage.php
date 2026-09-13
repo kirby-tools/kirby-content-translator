@@ -282,8 +282,8 @@ final class TranslationCoverage
 
     /**
      * Resolves and memoizes the blueprint-level eligible field keys
-     * per blueprint name, so Form construction runs once per blueprint
-     * instead of once per page.
+     * per blueprint name, so `FieldResolver::resolveModelFields()` runs once
+     * per blueprint instead of once per page.
      *
      * @return list<string>
      */
