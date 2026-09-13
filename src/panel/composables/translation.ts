@@ -191,17 +191,6 @@ export function useContentTranslator() {
     );
   }
 
-  function reportRejections(
-    result: ContentTranslationResult,
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
-  ) {
-    for (const { fieldKey, reason, detail } of result.rejections) {
-      console.warn(
-        `Rejected "${fieldKey}" (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
-      );
-    }
-  }
-
   function notifyPartialTranslation(message: string) {
     panel.notification.open({
       message,
@@ -315,23 +304,6 @@ export function useContentTranslator() {
           : undefined,
       result: translatedTitle.result,
     };
-  }
-
-  /**
-   * Keeps a language with nothing but kept source text in a notice, since it
-   * was saved. A title whose translation failed is reported like failed
-   * content.
-   */
-  function shouldReportBatchOutcome(outcome: BatchOutcome) {
-    return (
-      outcome.status !== "saved" ||
-      outcome.result.rejections.some(
-        ({ reason }) => reason === "request failed",
-      ) ||
-      Boolean(outcome.titleError) ||
-      Boolean(outcome.slugError) ||
-      Object.keys(outcome.invalidFields ?? {}).length > 0
-    );
   }
 
   /**
@@ -952,6 +924,17 @@ export function useContentTranslator() {
   };
 }
 
+function reportRejections(
+  result: ContentTranslationResult,
+  targetLanguage: PanelLanguageInfo | PanelLanguage,
+) {
+  for (const { fieldKey, reason, detail } of result.rejections) {
+    console.warn(
+      `Rejected "${fieldKey}" (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
+    );
+  }
+}
+
 function mergeTranslationResults(
   results: ContentTranslationResult[],
 ): ContentTranslationResult {
@@ -966,4 +949,21 @@ function mergeTranslationResults(
     ),
     rejections: results.flatMap((result) => result.rejections),
   };
+}
+
+/**
+ * Keeps a language with nothing but kept source text in a notice, since it
+ * was saved. A title whose translation failed is reported like failed
+ * content.
+ */
+function shouldReportBatchOutcome(outcome: BatchOutcome) {
+  return (
+    outcome.status !== "saved" ||
+    outcome.result.rejections.some(
+      ({ reason }) => reason === "request failed",
+    ) ||
+    Boolean(outcome.titleError) ||
+    Boolean(outcome.slugError) ||
+    Object.keys(outcome.invalidFields ?? {}).length > 0
+  );
 }
