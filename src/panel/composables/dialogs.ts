@@ -187,8 +187,8 @@ export function useTranslationDialogs() {
 }
 
 /**
- * Determines the available strategies and builds the dialog field that picks
- * one when there is more than one.
+ * Builds the field that picks a strategy, which a site with a single usable
+ * strategy does not need.
  */
 async function resolveStrategyField() {
   const panel = usePanel();

@@ -246,11 +246,8 @@ final class TranslationCoverage
     }
 
     /**
-     * Returns top-level eligible field keys that are non-empty in the
-     * default language.
-     *
-     * The denominator is content-driven so that stub pages without source data
-     * don't get flagged as untranslated.
+     * Limits the denominator to fields the default language fills, so stub pages
+     * without source data don't get flagged as untranslated.
      *
      * @return array<string>
      */

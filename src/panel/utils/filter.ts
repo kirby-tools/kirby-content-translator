@@ -30,7 +30,8 @@ export function isEligibleField(
 }
 
 /**
- * Filters content to eligible fields only, honoring `translate: false` on nested blocks and layouts.
+ * Honors `translate: false` on nested blocks and layouts, which a top-level
+ * check cannot see.
  */
 export function filterEligibleContent(
   obj: Record<string, unknown>,

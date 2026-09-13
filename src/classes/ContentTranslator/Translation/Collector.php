@@ -81,10 +81,6 @@ final class Collector
     }
 
     /**
-     * Walks the fields of one content object. `$parentFieldKey` is the
-     * `fieldKey` of the field that holds `$node`, so a nested unit's `fieldKey`
-     * leads with its top-level field.
-     *
      * @param array<string, mixed> $node
      * @param array<string, array<string, mixed>> $fields
      */

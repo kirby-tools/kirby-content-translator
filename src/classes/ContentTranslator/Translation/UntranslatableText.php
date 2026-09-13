@@ -18,9 +18,6 @@ use JohannSchopplich\ContentTranslator\KirbyText;
  */
 final class UntranslatableText
 {
-    /**
-     * Returns `true` for empty, numeric, and bare-URL strings, and for strings holding only KirbyTag placeholders.
-     */
     public static function matches(string $text): bool
     {
         $trimmedText = self::trim($text);

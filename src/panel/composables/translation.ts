@@ -57,7 +57,6 @@ const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 /** How many fields of one language a notice names before it counts the rest. */
 const MAX_NAMED_FIELDS = 3;
 
-/** What became of one target language of a batch translation. */
 type BatchOutcome =
   | { status: "failed"; message: string }
   | { status: "unsavedChanges" }
@@ -179,8 +178,7 @@ export function useContentTranslator() {
   }
 
   /**
-   * Tells whether any top-level field is eligible, whatever it holds, which
-   * separates a configuration that rules out every field from content with
+   * Separates a configuration that rules out every field from content with
    * nothing to translate.
    */
   function hasEligibleFields() {
@@ -320,9 +318,9 @@ export function useContentTranslator() {
   }
 
   /**
-   * Tells whether a language needs the report dialog. Translation units that
-   * kept their source text leave the language saved, so they alone stay a
-   * notice. A failed title request is reported like a failed content request.
+   * Keeps a language with nothing but kept source text in a notice, since it
+   * was saved. A title whose translation failed is reported like failed
+   * content.
    */
   function shouldReportBatchOutcome(outcome: BatchOutcome) {
     return (

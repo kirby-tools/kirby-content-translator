@@ -1,14 +1,12 @@
 import { PLACEHOLDER_PATTERN } from "./kirby-text";
 
 /**
- * Text a translation provider would only corrupt: it either holds no language
- * at all, or holds a value – a price, a URL – that a translator will happily
+ * Matches text a translation provider would only corrupt: it either holds no
+ * language at all, or holds a value – a price, a URL – that a translator will happily
  * localize into something broken.
  *
  * Structural emptiness ("this field has no content") is a separate question,
  * answered by the callers that walk the content.
- *
- * Returns `true` for empty, numeric, and bare-URL strings, and for strings holding only KirbyTag placeholders.
  */
 export function isUntranslatable(text: string): boolean {
   const trimmedText = text.trim();

@@ -12,9 +12,9 @@ export function resolveCopilot() {
 }
 
 /**
- * Checks Copilot's `apiVersion` against `REQUIRED_COPILOT_API_VERSION` and the
- * API key of its configured provider, so the AI strategy is never offered when
- * it would fail every run.
+ * Reports `ready` only when Copilot's API version clears
+ * `REQUIRED_COPILOT_API_VERSION` and its provider holds a key, so the AI
+ * strategy is never offered when it would fail every run.
  */
 export async function resolveCopilotReadiness(): Promise<CopilotReadiness> {
   const copilot = resolveCopilot();

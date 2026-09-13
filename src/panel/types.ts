@@ -33,7 +33,6 @@ export interface PluginConfig {
   viewButton?: boolean;
 }
 
-/** Response from `__content-translator__/context` API endpoint. */
 export interface PluginContextResponse {
   config: PluginConfig;
   homePageId: string;
@@ -41,7 +40,6 @@ export interface PluginContextResponse {
   licenseStatus?: LicenseStatus;
 }
 
-/** Response from `__content-translator__/batch-status` API endpoint. */
 export interface BatchStatusResponse {
   isUpdateAllowed: boolean;
   /** Name of another user who edits the model in any language. */
@@ -49,12 +47,10 @@ export interface BatchStatusResponse {
   languagesWithUnsavedChanges: string[];
 }
 
-/** Response from `__content-translator__/batch-write` API endpoint. */
 export type BatchWriteResponse =
   | { status: "unsavedChanges" }
   | {
       status: "locked";
-      /** Name of the user who started editing the model. */
       lockedBy: string;
     }
   | {
@@ -107,7 +103,6 @@ export interface TranslationTreeEntry {
   children: TranslationTreeEntry[] | null;
 }
 
-/** Response from `__content-translator__/coverage` API endpoint. */
 export interface TranslationCoverageResponse {
   languages: TranslationLanguageCoverage[];
   tree: TranslationTreeEntry[];

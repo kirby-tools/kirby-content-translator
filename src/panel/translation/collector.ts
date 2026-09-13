@@ -63,11 +63,6 @@ export function collectTranslations(
   };
 }
 
-/**
- * Walks the fields of one content object. `parentFieldKey` is the `fieldKey` of
- * the field that holds `obj`, so a nested unit's `fieldKey` leads with its
- * top-level field.
- */
 function collectFromObject(
   obj: Record<string, unknown>,
   fields: Record<string, KirbyFieldProps>,
