@@ -169,7 +169,7 @@ export function useContentTranslator() {
     if (!isBlueprintMissing) return true;
 
     console.error(
-      `No blueprint fields could be resolved for "${panel.view.path}". Check that the model's blueprint exists and that its filename matches the template exactly – blueprint lookups are case-sensitive on Linux, but not on macOS.`,
+      `No blueprint fields could be resolved for "${panel.view.path}". Check that the model's blueprint exists and that its filename matches the template exactly, including case.`,
     );
     panel.notification.error(
       panel.t("johannschopplich.content-translator.error.unresolvedFields"),
