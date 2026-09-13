@@ -222,7 +222,7 @@ async function resolveStrategyField() {
 
   const strategyField = {
     type: "toggles",
-    label: panel.t("johannschopplich.content-translator.dialog.providerLabel"),
+    label: panel.t("johannschopplich.content-translator.dialog.strategyLabel"),
     labels: true,
     grow: true,
     options: [
@@ -230,8 +230,8 @@ async function resolveStrategyField() {
         value: "deepl",
         text: panel.t(
           context.config.strategy === "custom"
-            ? "johannschopplich.content-translator.provider.custom"
-            : "johannschopplich.content-translator.provider.deepl",
+            ? "johannschopplich.content-translator.strategy.custom"
+            : "johannschopplich.content-translator.strategy.deepl",
         ),
         icon: "translate",
       },
@@ -239,7 +239,7 @@ async function resolveStrategyField() {
         value: "ai",
         text: aiProviderConfig
           ? panel.t(aiProviderConfig.labelKey)
-          : panel.t("johannschopplich.content-translator.provider.copilot"),
+          : panel.t("johannschopplich.content-translator.strategy.copilot"),
         // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
         icon: aiProviderConfig?.icon ?? "ai",
       },
