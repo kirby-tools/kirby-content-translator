@@ -81,10 +81,14 @@ final class Collector
     }
 
     /**
+     * Walks the fields of one content object. `$parentFieldKey` is the
+     * `fieldKey` of the field that holds `$node`, so a nested unit's `fieldKey`
+     * leads with its top-level field.
+     *
      * @param array<string, mixed> $node
      * @param array<string, array<string, mixed>> $fields
      */
-    private function collectFromObject(array &$node, array $fields): void
+    private function collectFromObject(array &$node, array $fields, string|null $parentFieldKey = null): void
     {
         foreach ($node as $fieldName => $value) {
             if ($value === null || $value === '' || $value === []) {
@@ -100,7 +104,7 @@ final class Collector
                 continue;
             }
 
-            $this->collectFromField($node, $fieldName, $value, $fields[$fieldName]);
+            $this->collectFromField($node, $fieldName, $value, $fields[$fieldName], $parentFieldKey);
         }
     }
 
@@ -108,9 +112,10 @@ final class Collector
      * @param array<string, mixed> $node
      * @param array<string, mixed> $field
      */
-    private function collectFromField(array &$node, string $fieldName, mixed $value, array $field): void
+    private function collectFromField(array &$node, string $fieldName, mixed $value, array $field, string|null $parentFieldKey = null): void
     {
         $fieldType = $field['type'];
+        $fieldKey = $parentFieldKey !== null ? $parentFieldKey . '.' . $fieldName : $fieldName;
 
         if (in_array($fieldType, ['list', 'text', 'writer'], true)) {
             $text = (string)$value;
@@ -121,7 +126,7 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: $text,
-                    fieldKey: $fieldName,
+                    fieldKey: $fieldKey,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
                     $node[$fieldName] = $translation;
@@ -144,7 +149,7 @@ final class Collector
                 $this->translations[] = new CollectedTranslation(
                     unit: new TranslationUnit(
                         text: $unitText,
-                        fieldKey: $fieldName,
+                        fieldKey: $fieldKey,
                     ),
                     writeBack: function (string $translation) use (&$translatedUnitTexts, $unitIndex): void {
                         $translatedUnitTexts[$unitIndex] = $translation;
@@ -173,7 +178,7 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: implode(' | ', $items),
-                    fieldKey: $fieldName,
+                    fieldKey: $fieldKey,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
                     $node[$fieldName] = implode(', ', array_map('trim', explode('|', $translation)));
@@ -208,7 +213,7 @@ final class Collector
                     $this->translations[] = new CollectedTranslation(
                         unit: new TranslationUnit(
                             text: $cell,
-                            fieldKey: $fieldName . '[' . $rowIndex . '][' . $colIndex . ']',
+                            fieldKey: $fieldKey . '[' . $rowIndex . '][' . $colIndex . ']',
                         ),
                         writeBack: function (string $translation) use (&$node, $fieldName, $rowIndex, $colIndex): void {
                             $node[$fieldName][$rowIndex][$colIndex] = $translation;
@@ -237,7 +242,7 @@ final class Collector
                 if (!is_array($item)) {
                     continue;
                 }
-                $this->collectFromObject($item, $field['fields'] ?? []);
+                $this->collectFromObject($item, $field['fields'] ?? [], $fieldKey);
             }
 
             unset($item);
@@ -258,7 +263,7 @@ final class Collector
                 return;
             }
 
-            $this->collectFromObject($node[$fieldName], $field['fields'] ?? []);
+            $this->collectFromObject($node[$fieldName], $field['fields'] ?? [], $fieldKey);
 
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'yaml');
@@ -286,7 +291,7 @@ final class Collector
                     continue;
                 }
                 $blockFields = self::flattenTabFields($fieldsets, $block);
-                $this->collectFromObject($block['content'], $blockFields);
+                $this->collectFromObject($block['content'], $blockFields, $fieldKey);
             }
 
             unset($block);
@@ -322,6 +327,7 @@ final class Collector
                         $this->collectFromObject(
                             $node[$fieldName][$layoutIndex]['columns'][$columnIndex]['blocks'][$blockIndex]['content'],
                             $blockFields,
+                            $fieldKey,
                         );
                     }
                 }
