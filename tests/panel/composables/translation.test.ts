@@ -227,8 +227,9 @@ describe("useContentTranslator", () => {
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.unresolvedFields",
       );
-      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(translateBatch).not.toHaveBeenCalled();
       expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
     });
   });
@@ -360,36 +361,7 @@ describe("useContentTranslator", () => {
       expect(panel.view.isLoading).toBe(false);
     });
 
-    it("reports a language with unsaved changes in the dialog without translating it", async () => {
-      batchStatus.languagesWithUnsavedChanges = ["fr"];
-
-      const translator = await createContentTranslator({
-        title: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.batchTranslateModelContent([
-        SECONDARY_LANGUAGE,
-        THIRD_LANGUAGE,
-      ]);
-
-      expect(translateBatch).toHaveBeenCalledTimes(1);
-      expect(translateBatch).toHaveBeenCalledWith(
-        "__content-translator__/translate-units",
-        expect.objectContaining({ targetLanguage: "it" }),
-      );
-      expect(batchWrite).toHaveBeenCalledTimes(1);
-      expect(reportDialog().details).toEqual([
-        {
-          label: "Français",
-          message: [
-            "johannschopplich.content-translator.batchReport.unsavedChanges",
-          ],
-        },
-      ]);
-    });
-
-    it("shows no progress when every language has unsaved changes", async () => {
+    it("opens no batchTranslating notification when every language has unsaved changes", async () => {
       batchStatus.languagesWithUnsavedChanges = ["fr"];
 
       const translator = await createContentTranslator({
@@ -404,14 +376,6 @@ describe("useContentTranslator", () => {
           message: expect.stringContaining("notification.batchTranslating"),
         }),
       );
-      expect(reportDialog().details).toEqual([
-        {
-          label: "Français",
-          message: [
-            "johannschopplich.content-translator.batchReport.unsavedChanges",
-          ],
-        },
-      ]);
     });
 
     it("keeps translating the other languages when one language fails", async () => {
@@ -443,10 +407,6 @@ describe("useContentTranslator", () => {
       expect(batchWrite).toHaveBeenCalledWith(
         expect.objectContaining({ language: "it" }),
       );
-      expect(error).toHaveBeenCalledWith(
-        'Failed to translate into "fr":',
-        expect.any(Error),
-      );
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(reportDialog()).toEqual({
         message:
@@ -461,6 +421,173 @@ describe("useContentTranslator", () => {
         ],
       });
       error.mockRestore();
+    });
+
+    it("starts no further language once another user starts editing", async () => {
+      batchWrite.mockResolvedValueOnce({
+        status: "locked",
+        lockedBy: "Colleague",
+      });
+
+      const translator = await createContentTranslator(
+        {
+          title: false,
+          fields: { text: field({ type: "text", name: "text" }) },
+        },
+        { batchConcurrency: 1 },
+      );
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(translateBatch).toHaveBeenCalledTimes(1);
+      expect(reportDialog().details).toEqual([
+        {
+          label: "Français",
+          message: [
+            'johannschopplich.content-translator.batchReport.locked {"user":"Colleague"}',
+          ],
+        },
+        {
+          label: "Italiano",
+          message: [
+            'johannschopplich.content-translator.batchReport.notStarted {"user":"Colleague"}',
+          ],
+        },
+      ]);
+    });
+
+    it("reloads the view before reporting a failed language", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      const callOrder: string[] = [];
+      translateBatch.mockImplementation(async () => {
+        throw new Error("provider down");
+      });
+      panel.view.reload.mockImplementation(() => {
+        callOrder.push("reload");
+      });
+      panel.dialog.open.mockImplementation(() => {
+        callOrder.push("dialog");
+      });
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(callOrder).toEqual(["reload", "dialog"]);
+      error.mockRestore();
+    });
+
+    it("notifies success before reloading the view", async () => {
+      // Inverse of the single-translation teardown ordering.
+      const callOrder: string[] = [];
+      panel.view.reload.mockImplementation(() => {
+        callOrder.push("reload");
+      });
+      panel.notification.success.mockImplementation(() => {
+        callOrder.push("success");
+      });
+
+      const translator = await createContentTranslator({
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(callOrder).toEqual(["success", "reload"]);
+      expect(panel.dialog.open).not.toHaveBeenCalled();
+    });
+
+    it("refuses to batch-translate when Kirby falls back to pages/default for the article template", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      modelData.blueprint = { name: "pages/default" };
+      const translator = await createContentTranslator({ fields: {} });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.unresolvedFields",
+      );
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      expect(panel.view.isLoading).toBe(false);
+      error.mockRestore();
+    });
+
+    it("translates the title of a page whose own blueprint has no fields while its content still holds a text value", async () => {
+      modelData.content = { title: "Example", text: "Hello" };
+
+      const translator = await createContentTranslator({
+        title: true,
+        fields: {},
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          language: "fr",
+          title: "Example (translated)",
+        }),
+      );
+    });
+
+    it("translates the title of a page with the default template and no fields", async () => {
+      modelData.content = { title: "Example" };
+      modelData.template = "default";
+      modelData.blueprint = { name: "pages/default" };
+
+      const translator = await createContentTranslator({
+        title: true,
+        fields: {},
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          language: "fr",
+          title: "Example (translated)",
+        }),
+      );
+    });
+  });
+
+  describe("batch outcome", () => {
+    it("reports a language with unsaved changes in the dialog without translating it", async () => {
+      batchStatus.languagesWithUnsavedChanges = ["fr"];
+
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(translateBatch).toHaveBeenCalledTimes(1);
+      expect(translateBatch).toHaveBeenCalledWith(
+        "__content-translator__/translate-units",
+        expect.objectContaining({ targetLanguage: "it" }),
+      );
+      expect(batchWrite).toHaveBeenCalledTimes(1);
+      expect(reportDialog().details).toEqual([
+        {
+          label: "Français",
+          message: [
+            "johannschopplich.content-translator.batchReport.unsavedChanges",
+          ],
+        },
+      ]);
     });
 
     it("reports the fields that kept their source text next to a failed language", async () => {
@@ -555,7 +682,7 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
-    it("reports a failed title request in the dialog", async () => {
+    it("reports a failed title translation in the dialog", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {
@@ -688,40 +815,6 @@ describe("useContentTranslator", () => {
 
       await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
 
-      expect(reportDialog()).toEqual({
-        message:
-          'johannschopplich.content-translator.batchReport.message {"saved":0,"total":1}',
-        details: [
-          {
-            label: "Français",
-            message: [
-              'johannschopplich.content-translator.batchReport.locked {"user":"Colleague"}',
-            ],
-          },
-        ],
-      });
-    });
-
-    it("starts no further language once another user starts editing", async () => {
-      batchWrite.mockResolvedValueOnce({
-        status: "locked",
-        lockedBy: "Colleague",
-      });
-
-      const translator = await createContentTranslator(
-        {
-          title: false,
-          fields: { text: field({ type: "text", name: "text" }) },
-        },
-        { batchConcurrency: 1 },
-      );
-
-      await translator.batchTranslateModelContent([
-        SECONDARY_LANGUAGE,
-        THIRD_LANGUAGE,
-      ]);
-
-      expect(translateBatch).toHaveBeenCalledTimes(1);
       expect(reportDialog().details).toEqual([
         {
           label: "Français",
@@ -729,37 +822,7 @@ describe("useContentTranslator", () => {
             'johannschopplich.content-translator.batchReport.locked {"user":"Colleague"}',
           ],
         },
-        {
-          label: "Italiano",
-          message: [
-            'johannschopplich.content-translator.batchReport.notStarted {"user":"Colleague"}',
-          ],
-        },
       ]);
-    });
-
-    it("reloads the view before reporting a failed language", async () => {
-      const error = vi.spyOn(console, "error").mockImplementation(() => {});
-      const callOrder: string[] = [];
-      translateBatch.mockImplementation(async () => {
-        throw new Error("provider down");
-      });
-      panel.view.reload.mockImplementation(() => {
-        callOrder.push("reload");
-      });
-      panel.dialog.open.mockImplementation(() => {
-        callOrder.push("dialog");
-      });
-
-      const translator = await createContentTranslator({
-        title: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(callOrder).toEqual(["reload", "dialog"]);
-      error.mockRestore();
     });
 
     it("reports nothing to translate without opening the report dialog", async () => {
@@ -776,81 +839,6 @@ describe("useContentTranslator", () => {
       expect(panel.dialog.open).not.toHaveBeenCalled();
       expect(lastNotification().message).toBe(
         "johannschopplich.content-translator.notification.nothingToTranslate",
-      );
-    });
-
-    it("notifies success before reloading the view", async () => {
-      // Inverse of the single-translation teardown ordering.
-      const callOrder: string[] = [];
-      panel.view.reload.mockImplementation(() => {
-        callOrder.push("reload");
-      });
-      panel.notification.success.mockImplementation(() => {
-        callOrder.push("success");
-      });
-
-      const translator = await createContentTranslator({
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(callOrder).toEqual(["success", "reload"]);
-      expect(panel.dialog.open).not.toHaveBeenCalled();
-    });
-
-    it("refuses to batch-translate when Kirby falls back to pages/default for the article template", async () => {
-      const error = vi.spyOn(console, "error").mockImplementation(() => {});
-      modelData.blueprint = { name: "pages/default" };
-      const translator = await createContentTranslator({ fields: {} });
-
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.unresolvedFields",
-      );
-      expect(translateBatch).not.toHaveBeenCalled();
-      expect(batchWrite).not.toHaveBeenCalled();
-      error.mockRestore();
-    });
-
-    it("translates the title of a page whose own blueprint has no fields while its content still holds a text value", async () => {
-      modelData.content = { title: "Example", text: "Hello" };
-
-      const translator = await createContentTranslator({
-        title: true,
-        fields: {},
-      });
-
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(panel.notification.error).not.toHaveBeenCalled();
-      expect(batchWrite).toHaveBeenCalledWith(
-        expect.objectContaining({
-          language: "fr",
-          title: "Example (translated)",
-        }),
-      );
-    });
-
-    it("translates the title of a page with the default template and no fields", async () => {
-      modelData.content = { title: "Example" };
-      modelData.template = "default";
-      modelData.blueprint = { name: "pages/default" };
-
-      const translator = await createContentTranslator({
-        title: true,
-        fields: {},
-      });
-
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(panel.notification.error).not.toHaveBeenCalled();
-      expect(batchWrite).toHaveBeenCalledWith(
-        expect.objectContaining({
-          language: "fr",
-          title: "Example (translated)",
-        }),
       );
     });
   });

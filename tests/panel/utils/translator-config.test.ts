@@ -99,7 +99,7 @@ describe("getStrategyAvailability", () => {
 });
 
 describe("describeMissingStrategy", () => {
-  it("names the DeepL.apiKey and strategy options and the Copilot install without Copilot", () => {
+  it("names DeepL.apiKey, a custom strategy, and installing Copilot for `missing`", () => {
     expect(describeMissingStrategy({}, "missing")).toBe(
       'Set the "johannschopplich.content-translator.DeepL.apiKey" option or a custom "johannschopplich.content-translator.strategy", or install Kirby Copilot for AI translations.',
     );

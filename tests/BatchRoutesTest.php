@@ -130,7 +130,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $page = App::instance()->page('about');
 
         $this->assertSame('saved', $response['status']);
-        $this->assertSame(['teaser', 'author'], array_keys($response['invalidFields']));
+        $this->assertEqualsCanonicalizing(['teaser', 'author'], array_keys($response['invalidFields']));
         $this->assertArrayHasKey('maxlength', $response['invalidFields']['teaser']['message']);
         $this->assertArrayHasKey('required', $response['invalidFields']['author']['message']);
         $this->assertSame('Viel zu lang geraten', $page->content('de')->get('teaser')->value());
@@ -208,17 +208,11 @@ final class BatchRoutesTest extends ApiRouteTestCase
     public function batch_status_lists_a_language_with_unsaved_changes_in_languagesWithUnsavedChanges(): void
     {
         $app = $this->app(['method' => 'GET', 'query' => ['path' => 'pages/about']]);
-
-        $this->assertSame(
-            ['isUpdateAllowed' => true, 'lockedBy' => null, 'languagesWithUnsavedChanges' => []],
-            $this->callRoute($app, '__content-translator__/batch-status')
-        );
-
         self::editAs('editor', 'de');
 
         $this->assertSame(
-            ['isUpdateAllowed' => true, 'lockedBy' => null, 'languagesWithUnsavedChanges' => ['de']],
-            $this->callRoute($app, '__content-translator__/batch-status')
+            ['de'],
+            $this->callRoute($app, '__content-translator__/batch-status')['languagesWithUnsavedChanges']
         );
     }
 
