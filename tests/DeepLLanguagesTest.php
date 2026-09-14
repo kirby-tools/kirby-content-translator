@@ -143,7 +143,7 @@ final class DeepLLanguagesTest extends TestCase
     }
 
     #[Test]
-    public function override_is_case_normalized(): void
+    public function upper_cases_an_override(): void
     {
         $this->assertSame('ZH-HANS', DeepLLanguages::resolveTarget('cn', null, ['cn' => 'zh-hans']));
     }

@@ -185,7 +185,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function request_options_cannot_override_the_resolved_payload(): void
+    public function request_options_never_override_the_resolved_payload(): void
     {
         $this->appWithDeepLConfig(requestOptions: [
             'target_lang' => 'FR',
@@ -203,7 +203,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function request_options_cannot_stand_in_for_an_unresolved_source_language(): void
+    public function request_options_never_stand_in_for_an_unresolved_source_language(): void
     {
         $this->appWithDeepLConfig(
             languages: [
@@ -244,7 +244,7 @@ final class DeepLClientTest extends TestCase
     }
 
     #[Test]
-    public function request_options_cannot_smuggle_a_text_alongside_the_texts(): void
+    public function request_options_never_smuggle_a_text_alongside_the_texts(): void
     {
         $this->appWithDeepLConfig(requestOptions: ['text' => ['a' => 'INJECTED']]);
 
@@ -527,7 +527,7 @@ final class DeepLClientTest extends TestCase
 
     #[Test]
     #[DataProvider('accountKeyEndpoints')]
-    public function routes_api_key_to_correct_account_endpoint(string $apiKey, string $expectedHost): void
+    public function routes_the_api_key_to_its_account_host(string $apiKey, string $expectedHost): void
     {
         $this->appWithDeepLConfig(apiKey: $apiKey);
 

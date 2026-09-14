@@ -31,7 +31,7 @@ describe("splitKirbyText", () => {
   // Shared with `KirbyTextSplitTest.php` – drift fails here first.
   describe("conformance corpus", () => {
     it.each(conformanceCases)(
-      "$name",
+      "splits and restores $name",
       ({
         input,
         kirbyTags,

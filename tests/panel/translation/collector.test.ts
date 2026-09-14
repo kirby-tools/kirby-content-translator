@@ -586,7 +586,7 @@ describe("collectTranslations", () => {
         fieldType: "table",
         value: [["", "  ", null]],
       },
-    ])("skips structurally empty $kind", ({ fieldType, value }) => {
+    ])("skips $kind", ({ fieldType, value }) => {
       const content = { x: value };
       const fields = { x: field({ type: fieldType, name: fieldType }) };
 
@@ -617,7 +617,7 @@ describe("collectTranslations", () => {
     });
   });
 
-  describe("value transformation hooks", () => {
+  describe("apply", () => {
     it("applies translated text to original object", () => {
       const content = { title: "Hello" };
       const fields = { title: field({ type: "text", name: "text" }) };

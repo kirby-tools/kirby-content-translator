@@ -22,7 +22,7 @@ describe("AIStrategy", () => {
     vi.clearAllMocks();
   });
 
-  describe("single text translation", () => {
+  describe("result order", () => {
     it("returns translated texts in order", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Hallo", "Welt"] }),
@@ -40,7 +40,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("language handling", () => {
+  describe("userPrompt", () => {
     it("includes target language in prompt", async () => {
       mockStreamText.mockResolvedValueOnce({
         output: Promise.resolve({ translations: ["Test"] }),
@@ -107,7 +107,7 @@ describe("AIStrategy", () => {
     });
   });
 
-  describe("chunk failure handling", () => {
+  describe("chunk failures", () => {
     it("throws when every chunk fails", async () => {
       const consoleSpy = vi
         .spyOn(console, "error")

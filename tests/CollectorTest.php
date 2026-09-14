@@ -544,7 +544,7 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function skips_field_types_outside_the_allowlist(): void
+    public function skips_fields_of_a_type_outside_fieldTypes(): void
     {
         $content = ['title' => 'Hello'];
         $fields = ['title' => self::field(['type' => 'text'])];

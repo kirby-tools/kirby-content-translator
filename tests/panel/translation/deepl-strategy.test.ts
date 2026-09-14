@@ -20,7 +20,7 @@ describe("DeepLStrategy", () => {
   });
 
   describe("batch translation", () => {
-    it("calls batch endpoint with all texts", async () => {
+    it("posts all texts to translate-units in one request", async () => {
       mockApiPost.mockResolvedValueOnce({ texts: ["Hallo", "Welt"] });
 
       const strategy = new DeepLStrategy();

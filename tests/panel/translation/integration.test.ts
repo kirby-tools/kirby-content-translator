@@ -111,7 +111,7 @@ describe("translateContent", () => {
     ]);
   });
 
-  it("drives an AIStrategy end-to-end through the orchestration", async () => {
+  it("translates every field through an AIStrategy in one call", async () => {
     mockStreamText.mockResolvedValueOnce({
       output: Promise.resolve({ translations: ["Hallo", "Welt"] }),
     });

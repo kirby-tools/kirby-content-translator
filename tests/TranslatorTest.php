@@ -650,7 +650,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function does_not_translate_home_page_slug(): void
+    public function translate_slug_keeps_the_home_page_slug(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -662,7 +662,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translates_regular_page_slug(): void
+    public function translate_slug_translates_the_slug_of_a_regular_page(): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('about');
@@ -799,7 +799,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function does_not_translate_kirby_tag_attributes_when_config_is_empty(): void
+    public function does_not_translate_kirby_tag_attributes_without_a_kirbyTags_option(): void
     {
         $app = $this->appWithKirbyTagsPage();
         $translator = new Translator($app->page('kirbytags'));

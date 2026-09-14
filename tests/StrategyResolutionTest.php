@@ -114,7 +114,7 @@ final class StrategyResolutionTest extends TestCase
     }
 
     #[Test]
-    public function strategy_config_string_takes_precedence_over_translate_fn(): void
+    public function strategy_config_takes_precedence_over_translate_fn(): void
     {
         new App([
             'options' => [

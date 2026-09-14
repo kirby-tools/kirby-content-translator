@@ -88,7 +88,7 @@ describe("translation contract", () => {
     },
   );
 
-  it("reads texts and rejections from the batch route", async () => {
+  it("reads texts and rejections from the translate-units route", async () => {
     const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
     const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
 
@@ -110,7 +110,7 @@ describe("translation contract", () => {
     expect(outcomes).toEqual([{ reason: "placeholder mismatch" }, "Welt"]);
   });
 
-  it("reads the placeholder indexes from the batch route", async () => {
+  it("reads the placeholder indexes from the translate-units route", async () => {
     const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
     const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
     const [expectedKey, actualKey] =
