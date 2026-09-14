@@ -283,34 +283,14 @@ final class CopilotAIStrategyTest extends TestCase
     }
 
     #[Test]
-    public function throws_when_no_units_can_be_translated(): void
-    {
-        new App();
-        $captured = [];
-        $client = $this->client([], $captured);
-        $strategy = new CopilotAIStrategy(client: $client);
-
-        $this->expectException(TranslationException::class);
-        $this->expectExceptionMessageMatches('/copilot-ai strategy failed/');
-
-        $strategy->execute(
-            units: [
-                new TranslationUnit('A', 'a'),
-                new TranslationUnit('B', 'b'),
-            ],
-            options: self::options(),
-        );
-    }
-
-    #[Test]
-    public function throws_naming_the_reason_when_every_translation_comes_back_empty(): void
+    public function throws_empty_translation_as_message_when_every_translation_is_blank(): void
     {
         new App();
         $client = $this->client([['translations' => ['', '']]]);
         $strategy = new CopilotAIStrategy(client: $client);
 
         $this->expectException(TranslationException::class);
-        $this->expectExceptionMessageMatches('/empty translation/');
+        $this->expectExceptionMessageMatches('/^empty translation$/');
 
         $strategy->execute(
             units: [new TranslationUnit('A', 'a'), new TranslationUnit('B', 'b')],

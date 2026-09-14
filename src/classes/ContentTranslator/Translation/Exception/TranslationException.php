@@ -23,13 +23,7 @@ final class TranslationException extends Exception
     ) {
         // TODO: Drop K4 compat in v4 – use the named arguments `message:` and `details:` once Kirby 5 is the floor.
         parent::__construct([
-            'fallback' => sprintf(
-                '%s strategy failed: %s (%d/%d units translated)',
-                $strategy,
-                $reason,
-                $unitsTranslated,
-                $unitsAttempted,
-            ),
+            'fallback' => $reason,
             'details' => [
                 'strategy' => $strategy,
                 'unitsAttempted' => $unitsAttempted,

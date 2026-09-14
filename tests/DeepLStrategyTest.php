@@ -144,7 +144,7 @@ final class DeepLStrategyTest extends TestCase
     }
 
     #[Test]
-    public function throws_when_no_units_can_be_translated(): void
+    public function throws_the_upstream_error_as_message_when_no_unit_translates(): void
     {
         $this->appWithDeepLConfig();
 
@@ -157,7 +157,7 @@ final class DeepLStrategyTest extends TestCase
         $strategy = new DeepLStrategy(deepL: $deepL);
 
         $this->expectException(TranslationException::class);
-        $this->expectExceptionMessageMatches('/deepl strategy failed/i');
+        $this->expectExceptionMessageMatches('/^upstream is down$/');
 
         $strategy->execute(
             units: [
