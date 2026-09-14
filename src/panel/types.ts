@@ -29,8 +29,6 @@ export interface PluginConfig {
     /** Custom system prompt to replace the default translation instructions. */
     systemPrompt?: string;
   };
-  /** @deprecated Will be removed in Kirby 6 */
-  viewButton?: boolean;
 }
 
 export interface PluginContextResponse {

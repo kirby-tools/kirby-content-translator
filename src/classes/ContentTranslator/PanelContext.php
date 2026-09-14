@@ -15,7 +15,7 @@ final class PanelContext
      * instances with whatever properties their author gave them. Not the whole
      * payload: `config()` adds `strategy` and `ai` below.
      */
-    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'fieldTypes', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title', 'viewButton'];
+    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'fieldTypes', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
 
     /**
      * Builds the plugin configuration the Panel receives.
@@ -44,9 +44,6 @@ final class PanelContext
                 'systemPrompt' => CopilotAIStrategy::resolveDefaultSystemPrompt()
             ];
         }
-
-        // TODO: Drop K4 compat in v4 – remove the `viewButton` default once Kirby 5 is the floor.
-        $panelConfig['viewButton'] ??= true;
 
         return $panelConfig;
     }

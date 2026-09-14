@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { PluginContextResponse } from "../../types";
-import { isKirby5, ref, usePanel } from "kirbyuse";
+import { ref, usePanel } from "kirbyuse";
 import { usePluginContext } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
@@ -51,7 +51,6 @@ const props = defineProps({
   },
 });
 
-const _isKirby5 = isKirby5();
 const panel = usePanel();
 const { isTranslating } = useTranslationState();
 
@@ -82,7 +81,7 @@ function toggle() {
 
 <template>
   <div
-    v-if="(_isKirby5 || context?.config?.viewButton) && !hasInitializationError"
+    v-if="!hasInitializationError"
   >
     <k-button
       :dropdown="true"
