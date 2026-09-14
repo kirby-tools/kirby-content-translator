@@ -35,9 +35,8 @@ final class TranslationCoverage
         $this->kirby = App::instance();
 
         if (!$this->kirby->multilang()) {
-            // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
             throw new LogicException(
-                ['fallback' => 'TranslationCoverage requires a multi-language Kirby installation.'],
+                message: 'TranslationCoverage requires a multi-language Kirby installation.',
             );
         }
 

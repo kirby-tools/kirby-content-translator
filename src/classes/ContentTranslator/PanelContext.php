@@ -45,8 +45,7 @@ final class PanelContext
             ];
         }
 
-        // Keep backwards compatibility with Kirby 4.
-        // TODO: Deprecated, remove in Kirby 6.
+        // TODO: Drop K4 compat in v4 – remove the `viewButton` default once Kirby 5 is the floor.
         $panelConfig['viewButton'] ??= true;
 
         return $panelConfig;

@@ -160,7 +160,7 @@ final class Translator
             // When copying from the default language to a secondary language,
             // delete the target content file so Kirby's built-in inheritance
             // keeps it in sync with the default language automatically.
-            // TODO: Remove `method_exists` check in the next major version.
+            // TODO: Drop K4 compat in v4 – remove the `method_exists` check once Kirby 5 is the floor.
             if (
                 $defaultLanguage !== null &&
                 $defaultLanguage->code() === $fromLanguageCode &&
