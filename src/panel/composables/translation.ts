@@ -752,13 +752,16 @@ export function useContentTranslator() {
         panel.dialog.open({
           component: "k-error-dialog",
           props: {
-            message: panel.t(
-              "johannschopplich.content-translator.batchReport.message",
-              {
-                saved: outcomes.filter(({ status }) => status === "saved")
-                  .length,
-                total: selectedLanguages.length,
-              },
+            message: formatPlural(
+              panel.t(
+                "johannschopplich.content-translator.batchReport.message",
+                {
+                  saved: outcomes.filter(({ status }) => status === "saved")
+                    .length,
+                  total: selectedLanguages.length,
+                },
+              ),
+              selectedLanguages.length,
             ),
             details: describeBatchOutcomes(selectedLanguages, outcomes),
           },
