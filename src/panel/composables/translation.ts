@@ -255,13 +255,16 @@ export function useContentTranslator() {
     }
 
     notifyPartialTranslation(
-      panel.t(
-        "johannschopplich.content-translator.notification.partiallyTranslated",
-        {
-          untranslated: untranslatedCount,
-          total: result.translatableCount,
-          fields: listKeptSourceFields(result.rejections),
-        },
+      formatPlural(
+        panel.t(
+          "johannschopplich.content-translator.notification.partiallyTranslated",
+          {
+            untranslated: untranslatedCount,
+            total: result.translatableCount,
+            fields: listKeptSourceFields(result.rejections),
+          },
+        ),
+        untranslatedCount,
       ),
     );
   }

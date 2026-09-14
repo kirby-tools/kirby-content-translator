@@ -4,5 +4,5 @@
  */
 export function formatPlural(text: string, count: number) {
   const parts = text.split(" | ");
-  return count === 1 ? parts[0] : (parts[1] ?? parts[0]);
+  return (count === 1 ? parts[0] : parts[1]) ?? text;
 }
