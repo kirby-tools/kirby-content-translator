@@ -7,12 +7,12 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'JohannSchopplich\\ContentTranslator\\BatchTranslation' => $baseDir . '/src/classes/ContentTranslator/BatchTranslation.php',
     'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\DeepLLanguages' => $baseDir . '/src/classes/ContentTranslator/DeepLLanguages.php',
     'JohannSchopplich\\ContentTranslator\\KirbyText' => $baseDir . '/src/classes/ContentTranslator/KirbyText.php',
     'JohannSchopplich\\ContentTranslator\\PanelContext' => $baseDir . '/src/classes/ContentTranslator/PanelContext.php',
     'JohannSchopplich\\ContentTranslator\\TranslationCoverage' => $baseDir . '/src/classes/ContentTranslator/TranslationCoverage.php',
-    'JohannSchopplich\\ContentTranslator\\Translation\\BatchTranslationResult' => $baseDir . '/src/classes/ContentTranslator/Translation/BatchTranslationResult.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\CollectedTranslation' => $baseDir . '/src/classes/ContentTranslator/Translation/CollectedTranslation.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Collector' => $baseDir . '/src/classes/ContentTranslator/Translation/Collector.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\CollectorResult' => $baseDir . '/src/classes/ContentTranslator/Translation/CollectorResult.php',
@@ -23,6 +23,7 @@ return array(
     'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CopilotAIStrategy' => $baseDir . '/src/classes/ContentTranslator/Translation/Strategies/CopilotAIStrategy.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\DeepLStrategy' => $baseDir . '/src/classes/ContentTranslator/Translation/Strategies/DeepLStrategy.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\Strategy' => $baseDir . '/src/classes/ContentTranslator/Translation/Strategy.php',
+    'JohannSchopplich\\ContentTranslator\\Translation\\TranslatedUnits' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslatedUnits.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TranslationLanguage' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationLanguage.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TranslationRejection' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationRejection.php',
     'JohannSchopplich\\ContentTranslator\\Translation\\TranslationUnit' => $baseDir . '/src/classes/ContentTranslator/Translation/TranslationUnit.php',

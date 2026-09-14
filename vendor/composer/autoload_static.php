@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68
+class ComposerStaticInitffb89230b2833376a19884beafe063a8
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -40,12 +40,12 @@ class ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'JohannSchopplich\\ContentTranslator\\BatchTranslation' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/BatchTranslation.php',
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\DeepLLanguages' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepLLanguages.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
         'JohannSchopplich\\ContentTranslator\\PanelContext' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/PanelContext.php',
         'JohannSchopplich\\ContentTranslator\\TranslationCoverage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/TranslationCoverage.php',
-        'JohannSchopplich\\ContentTranslator\\Translation\\BatchTranslationResult' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/BatchTranslationResult.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\CollectedTranslation' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectedTranslation.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Collector' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Collector.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\CollectorResult' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/CollectorResult.php',
@@ -56,6 +56,7 @@ class ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68
         'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\CopilotAIStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/CopilotAIStrategy.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Strategies\\DeepLStrategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategies/DeepLStrategy.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\Strategy' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/Strategy.php',
+        'JohannSchopplich\\ContentTranslator\\Translation\\TranslatedUnits' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslatedUnits.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TranslationLanguage' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationLanguage.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TranslationRejection' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationRejection.php',
         'JohannSchopplich\\ContentTranslator\\Translation\\TranslationUnit' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Translation/TranslationUnit.php',
@@ -86,9 +87,9 @@ class ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitf92d959ae0782b0ccf20d08dc12c5b68::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitffb89230b2833376a19884beafe063a8::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitffb89230b2833376a19884beafe063a8::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitffb89230b2833376a19884beafe063a8::$classMap;
 
         }, null, ClassLoader::class);
     }

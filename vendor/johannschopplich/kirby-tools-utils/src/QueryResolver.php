@@ -20,7 +20,13 @@ final class QueryResolver
         if (is_string($value)) {
             $value = preg_replace_callback(
                 '!\{\{(.+?)\}\}!',
-                fn (array $matches) => $model->query(trim($matches[1])) ?? '',
+                function (array $matches) use ($model): string {
+                    $result = $model->query(trim($matches[1]));
+
+                    return is_scalar($result) || $result instanceof \Stringable
+                        ? (string)$result
+                        : '';
+                },
                 $value
             );
         }
