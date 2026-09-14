@@ -76,9 +76,6 @@ export class AIStrategy implements TranslationStrategy {
           outputSchema: schema,
         });
 
-        // Prevent unhandled rejection.
-        finalOutput.catch(() => {});
-
         const result = await finalOutput;
         hasProviderAnswer = true;
 
