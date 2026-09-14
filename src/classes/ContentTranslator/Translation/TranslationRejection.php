@@ -12,9 +12,9 @@ final readonly class TranslationRejection
 {
     /**
      * @param int $index Position of the unit in the run
-     * @param string|null $fieldKey Field the unit came from (e.g. `text`, `blocks[0].text`), where the caller collected one
-     * @param list<int>|null $expectedIndexes Placeholder indexes the source text carries, set for a `placeholder mismatch`
-     * @param list<int>|null $actualIndexes Placeholder indexes the answer carried instead
+     * @param string|null $fieldKey Field the unit came from (e.g. `text`, `blocks.text`), where the caller collected one
+     * @param list<int>|null $expectedIndexes KirbyTag placeholder indexes the source text carries, set for a `placeholder mismatch`
+     * @param list<int>|null $actualIndexes KirbyTag placeholder indexes the answer carried instead
      */
     public function __construct(
         public int $index,

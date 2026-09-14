@@ -1,5 +1,6 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\BatchTranslation;
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
@@ -9,6 +10,7 @@ use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\LicensePanel;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
+use Kirby\Cms\Find;
 use Kirby\Exception\BadMethodCallException;
 
 return [
@@ -39,7 +41,7 @@ return [
             }
         ],
         [
-            'pattern' => '__content-translator__/translate-batch',
+            'pattern' => '__content-translator__/translate-units',
             'method' => 'POST',
             'action' => function () use ($kirby) {
                 $request = $kirby->request();
@@ -78,6 +80,41 @@ return [
                         $result->rejections
                     )
                 ];
+            }
+        ],
+        [
+            'pattern' => '__content-translator__/batch-status',
+            'method' => 'GET',
+            'action' => function () use ($kirby) {
+                $path = (string)$kirby->request()->query()->get('path');
+
+                return BatchTranslation::status(Find::parent($path));
+            }
+        ],
+        [
+            'pattern' => '__content-translator__/batch-write',
+            'method' => 'POST',
+            'action' => function () use ($kirby) {
+                $request = $kirby->request();
+                $path = (string)$request->get('path');
+                $languageCode = $request->get('language');
+                $content = $request->get('content', []);
+
+                if (!is_string($languageCode) || $languageCode === '') {
+                    throw new BadMethodCallException('Missing "language" parameter');
+                }
+
+                if (!is_array($content)) {
+                    throw new BadMethodCallException('Invalid "content" parameter');
+                }
+
+                return BatchTranslation::writeLanguage(
+                    model: Find::parent($path),
+                    languageCode: $languageCode,
+                    content: $content,
+                    title: $request->get('title'),
+                    slug: $request->get('slug'),
+                );
             }
         ],
         [

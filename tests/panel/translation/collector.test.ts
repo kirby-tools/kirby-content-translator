@@ -338,6 +338,39 @@ describe("collectTranslations", () => {
       expect(translations[0]!.unit.text).toBe("Visible");
     });
 
+    it("skips `code` blocks", () => {
+      const content = {
+        blocks: [
+          {
+            id: "1",
+            type: "code",
+            isHidden: false,
+            content: { code: 'echo "Hello";', language: "php" },
+          },
+          {
+            id: "2",
+            type: "text",
+            isHidden: false,
+            content: { text: "Visible" },
+          },
+        ],
+      };
+      const fields = {
+        blocks: blocksField("blocks", {
+          code: { code: field({ type: "textarea", name: "code" }) },
+          text: { text: field({ type: "text", name: "text" }) },
+        }),
+      };
+
+      const { translations } = collectTranslations(content, {
+        ...defaultOptions,
+        fields,
+      });
+
+      expect(translations).toHaveLength(1);
+      expect(translations[0]!.unit.text).toBe("Visible");
+    });
+
     it("skips blocks with unknown fieldset type", () => {
       const content = {
         blocks: [

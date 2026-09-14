@@ -18,9 +18,6 @@ use JohannSchopplich\ContentTranslator\KirbyText;
  */
 final class UntranslatableText
 {
-    /**
-     * Returns `true` for empty, numeric, bare-URL, or placeholder-only strings.
-     */
     public static function matches(string $text): bool
     {
         $trimmedText = self::trim($text);
@@ -38,7 +35,7 @@ final class UntranslatableText
         }
 
         // A textarea holding nothing but KirbyTags splits into prose that is
-        // only placeholders – there is no language in it to translate.
+        // only KirbyTag placeholders – there is no language in it to translate.
         if (self::trim(preg_replace(KirbyText::PLACEHOLDER_PATTERN, '', $trimmedText) ?? $trimmedText) === '') {
             return true;
         }

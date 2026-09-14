@@ -1,22 +1,10 @@
-import type { PluginConfig } from "../../../src/panel/types";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { DEFAULT_FIELD_TYPES } from "../../../src/panel/constants";
 import {
-  getProviderAvailability,
+  describeMissingStrategy,
+  getStrategyAvailability,
   resolveTranslatorConfig,
 } from "../../../src/panel/utils/translator-config";
-
-// Assigned per test and read lazily by the `kirbyuse` mock below.
-let thirdPartyPlugins: Record<string, unknown> = {};
-
-vi.mock("kirbyuse", () => ({
-  usePanel: () => ({ plugins: { thirdParty: thirdPartyPlugins } }),
-}));
-
-function resolveAvailability(config: PluginConfig, hasCopilot = false) {
-  thirdPartyPlugins = hasCopilot ? { copilot: { apiVersion: 2 } } : {};
-  return getProviderAvailability(config);
-}
 
 describe("resolveTranslatorConfig", () => {
   it("prefers options over config over defaults", () => {
@@ -65,42 +53,61 @@ describe("resolveTranslatorConfig", () => {
   });
 });
 
-describe("getProviderAvailability", () => {
-  it("treats a custom strategy as a usable backend without a DeepL key", () => {
-    const availability = resolveAvailability({ strategy: "custom" });
+describe("getStrategyAvailability", () => {
+  it("treats a custom strategy as usable without a DeepL key", () => {
+    const availability = getStrategyAvailability(
+      { strategy: "custom" },
+      "missing",
+    );
 
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(true);
-    expect(availability.hasMultipleProviders).toBe(false);
+    expect(availability.hasAnyStrategy).toBe(true);
+    expect(availability.hasDefaultStrategy).toBe(true);
+    expect(availability.hasMultipleStrategies).toBe(false);
   });
 
   it("requires a DeepL API key when the strategy resolves to DeepL", () => {
-    expect(resolveAvailability({ strategy: "deepl" }).hasAnyProvider).toBe(
-      false,
-    );
     expect(
-      resolveAvailability({ strategy: "deepl", DeepL: { apiKey: true } })
-        .hasAnyProvider,
+      getStrategyAvailability({ strategy: "deepl" }, "missing").hasAnyStrategy,
+    ).toBe(false);
+    expect(
+      getStrategyAvailability(
+        { strategy: "deepl", DeepL: { apiKey: true } },
+        "missing",
+      ).hasAnyStrategy,
     ).toBe(true);
   });
 
   it("offers Copilot alone when the strategy resolves to AI", () => {
-    const availability = resolveAvailability(
+    const availability = getStrategyAvailability(
       { strategy: "ai", DeepL: { apiKey: true } },
-      true,
+      "ready",
     );
 
-    expect(availability.hasAnyProvider).toBe(true);
-    expect(availability.hasDefaultProvider).toBe(false);
-    expect(availability.hasMultipleProviders).toBe(false);
+    expect(availability.hasAnyStrategy).toBe(true);
+    expect(availability.hasDefaultStrategy).toBe(false);
+    expect(availability.hasMultipleStrategies).toBe(false);
   });
 
-  it("offers both providers when a usable backend and Copilot are available", () => {
-    const availability = resolveAvailability(
+  it("offers both strategies when DeepL has an API key and Copilot is ready", () => {
+    const availability = getStrategyAvailability(
       { strategy: "deepl", DeepL: { apiKey: true } },
-      true,
+      "ready",
     );
 
-    expect(availability.hasMultipleProviders).toBe(true);
+    expect(availability.hasMultipleStrategies).toBe(true);
+  });
+});
+
+describe("describeMissingStrategy", () => {
+  it("names DeepL.apiKey, a custom strategy, and installing Copilot for `missing`", () => {
+    expect(describeMissingStrategy({}, "missing")).toBe(
+      'Set the "johannschopplich.content-translator.DeepL.apiKey" option or a custom "johannschopplich.content-translator.strategy", or install Kirby Copilot for AI translations.',
+    );
+  });
+
+  it("names only the Copilot update for strategy ai and `outdated`", () => {
+    expect(describeMissingStrategy({ strategy: "ai" }, "outdated")).toBe(
+      'The "johannschopplich.content-translator.strategy" option is set to "ai", so update Kirby Copilot, as the installed version cannot run AI translations.',
+    );
   });
 });

@@ -1,19 +1,20 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
-import type { TranslationProvider } from "../types";
+import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
-import type { ProviderAvailability } from "../utils/translator-config";
+import type { StrategyAvailability } from "../utils/translator-config";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
-import { resolveCopilot } from "../utils/copilot";
-import { getProviderAvailability } from "../utils/translator-config";
+import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
+import { getStrategyAvailability } from "../utils/translator-config";
 import { usePluginContext } from "./plugin";
 
 const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}licenseToastCount`;
-const PROVIDER_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
+// The key earlier versions stored the preference under, so a stored choice survives.
+const STRATEGY_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
 const BATCH_LANGUAGES_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$batchLanguages`;
 const LICENSE_TOAST_THRESHOLD = 2;
 
-const PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
+const AI_PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
   openai: {
     labelKey: "johannschopplich.content-translator.provider.openai",
     icon: "content-translator-openai",
@@ -33,11 +34,11 @@ const PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
 };
 
 export interface TranslationDialogResult {
-  provider: TranslationProvider;
+  strategyName: StrategyName;
 }
 
 export interface BatchTranslationDialogResult {
-  provider: TranslationProvider;
+  strategyName: StrategyName;
   languages: (PanelLanguageInfo | PanelLanguage)[];
 }
 
@@ -67,10 +68,10 @@ export function useTranslationDialogs() {
   async function openTranslationDialog(): Promise<
     TranslationDialogResult | undefined
   > {
-    const { provider, providerField } = await getProviderConfig();
+    const { strategyName, strategyField } = await resolveStrategyField();
 
-    if (!providerField) {
-      return { provider };
+    if (!strategyField) {
+      return { strategyName };
     }
 
     const result = await openFieldsDialog({
@@ -82,23 +83,23 @@ export function useTranslationDialogs() {
         ),
       },
       fields: {
-        provider: providerField,
+        strategyName: strategyField,
       },
       value: {
-        provider,
+        strategyName,
       },
     });
 
-    if (result?.provider) {
-      storeProviderPreference(result.provider);
-      return { provider: result.provider };
+    if (result?.strategyName) {
+      storeStrategyPreference(result.strategyName);
+      return { strategyName: result.strategyName };
     }
   }
 
   async function openBatchTranslationDialog(): Promise<
     BatchTranslationDialogResult | undefined
   > {
-    const { provider, providerField } = await getProviderConfig();
+    const { strategyName, strategyField } = await resolveStrategyField();
 
     const result = await openFieldsDialog({
       submitButton: {
@@ -121,10 +122,10 @@ export function useTranslationDialogs() {
             { language: defaultLanguage.name },
           ),
         },
-        ...(providerField && { provider: providerField }),
+        ...(strategyField && { strategyName: strategyField }),
       },
       value: {
-        provider,
+        strategyName,
         languages: getValidStoredBatchLanguages(
           translationLanguages.map((language) => language.code),
         ),
@@ -133,11 +134,11 @@ export function useTranslationDialogs() {
 
     if (result?.languages?.length) {
       storeBatchLanguagesPreference(result.languages);
-      if (result.provider) {
-        storeProviderPreference(result.provider);
+      if (result.strategyName) {
+        storeStrategyPreference(result.strategyName);
       }
       return {
-        provider: result.provider ?? provider,
+        strategyName: result.strategyName ?? strategyName,
         languages: translationLanguages.filter((language) =>
           result.languages.includes(language.code),
         ),
@@ -186,19 +187,22 @@ export function useTranslationDialogs() {
 }
 
 /**
- * Determines the available translation provider(s) and builds the
- * provider field definition for dialogs.
+ * Builds the field that picks a strategy, which a site with a single usable
+ * strategy does not need.
  */
-async function getProviderConfig() {
+async function resolveStrategyField() {
   const panel = usePanel();
   const context = await usePluginContext();
   const copilot = resolveCopilot();
 
-  const availability = getProviderAvailability(context.config);
-  const provider = resolveProvider(availability);
+  const availability = getStrategyAvailability(
+    context.config,
+    await resolveCopilotReadiness(),
+  );
+  const strategyName = resolvePreferredStrategy(availability);
 
-  if (!availability.hasMultipleProviders) {
-    return { provider, providerField: undefined };
+  if (!availability.hasMultipleStrategies) {
+    return { strategyName, strategyField: undefined };
   }
 
   // Fetch Copilot context for the provider name.
@@ -213,12 +217,12 @@ async function getProviderConfig() {
 
   const aiProviderKey = copilotContext?.config?.provider;
   const aiProviderConfig = aiProviderKey
-    ? PROVIDER_CONFIG[aiProviderKey]
+    ? AI_PROVIDER_CONFIG[aiProviderKey]
     : undefined;
 
-  const providerField = {
+  const strategyField = {
     type: "toggles",
-    label: panel.t("johannschopplich.content-translator.dialog.providerLabel"),
+    label: panel.t("johannschopplich.content-translator.dialog.strategyLabel"),
     labels: true,
     grow: true,
     options: [
@@ -226,8 +230,8 @@ async function getProviderConfig() {
         value: "deepl",
         text: panel.t(
           context.config.strategy === "custom"
-            ? "johannschopplich.content-translator.provider.custom"
-            : "johannschopplich.content-translator.provider.deepl",
+            ? "johannschopplich.content-translator.strategy.custom"
+            : "johannschopplich.content-translator.strategy.deepl",
         ),
         icon: "translate",
       },
@@ -235,33 +239,33 @@ async function getProviderConfig() {
         value: "ai",
         text: aiProviderConfig
           ? panel.t(aiProviderConfig.labelKey)
-          : panel.t("johannschopplich.content-translator.provider.copilot"),
+          : panel.t("johannschopplich.content-translator.strategy.copilot"),
         // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
         icon: aiProviderConfig?.icon ?? "ai",
       },
     ],
   };
 
-  return { provider, providerField };
+  return { strategyName, strategyField };
 }
 
-function resolveProvider(
-  availability: ProviderAvailability,
-): TranslationProvider {
-  const storedProvider = localStorage.getItem(PROVIDER_PREFERENCE_KEY);
+function resolvePreferredStrategy(
+  availability: StrategyAvailability,
+): StrategyName {
+  const storedStrategyName = localStorage.getItem(STRATEGY_PREFERENCE_KEY);
 
-  if (storedProvider === "ai" && availability.isCopilotAvailable) {
+  if (storedStrategyName === "ai" && availability.isCopilotReady) {
     return "ai";
   }
-  if (storedProvider === "deepl" && availability.hasDefaultProvider) {
+  if (storedStrategyName === "deepl" && availability.hasDefaultStrategy) {
     return "deepl";
   }
 
-  return availability.hasDefaultProvider ? "deepl" : "ai";
+  return availability.hasDefaultStrategy ? "deepl" : "ai";
 }
 
-function storeProviderPreference(provider: TranslationProvider) {
-  localStorage.setItem(PROVIDER_PREFERENCE_KEY, provider);
+function storeStrategyPreference(strategyName: StrategyName) {
+  localStorage.setItem(STRATEGY_PREFERENCE_KEY, strategyName);
 }
 
 function getValidStoredBatchLanguages(availableCodes: string[]): string[] {

@@ -9,7 +9,7 @@ export interface TranslationLanguage {
 
 export interface TranslationUnit {
   text: string;
-  /** Field key for error reporting (e.g. `title`, `blocks[0].text`). */
+  /** Key of the field the unit came from (e.g. `title`, `blocks.text`). */
   fieldKey?: string;
 }
 
@@ -39,9 +39,9 @@ export type TranslationOutcome =
   | string
   | {
       reason: string;
-      /** Placeholder indexes the source text carries, set for a `placeholder mismatch`. */
+      /** KirbyTag placeholder indexes the source text carries, set for a `placeholder mismatch`. */
       expectedIndexes?: number[];
-      /** Placeholder indexes the answer carried instead. */
+      /** KirbyTag placeholder indexes the answer carried instead. */
       actualIndexes?: number[];
     };
 
@@ -77,7 +77,7 @@ export interface UnitTranslationResult {
   /** Units handed to the strategy, i.e. everything `isUntranslatable` did not filter out. */
   translatableCount: number;
   translatedCount: number;
-  /** In input order. A unit `isUntranslatable` filtered out is skipped, not rejected. */
+  /** In input order. A unit that `isUntranslatable` matches is untranslatable text, not a rejection. */
   rejections: TranslationRejection[];
 }
 

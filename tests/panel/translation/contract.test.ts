@@ -30,13 +30,13 @@ beforeEach(() => {
 });
 
 interface TranslationContract {
-  skipCases: { text: string; skip: boolean }[];
+  untranslatableCases: { text: string; isUntranslatable: boolean }[];
   rejectionReasons: {
     reason: string;
     sourceText: string;
     answer: string | number | null;
   }[];
-  batchRouteResponse: {
+  translateUnitsRouteResponse: {
     keys: string[];
     rejectionKeys: string[];
     optionalRejectionKeys: string[];
@@ -67,10 +67,10 @@ describe("translation contract", () => {
     expect(ajv.errors).toBeNull();
   });
 
-  it.each(contract.skipCases)(
-    "evaluates skip('$text') as $skip",
-    ({ text, skip }) => {
-      expect(isUntranslatable(text)).toBe(skip);
+  it.each(contract.untranslatableCases)(
+    "evaluates isUntranslatable('$text') as $isUntranslatable",
+    ({ text, isUntranslatable: expected }) => {
+      expect(isUntranslatable(text)).toBe(expected);
     },
   );
 
@@ -89,8 +89,8 @@ describe("translation contract", () => {
   );
 
   it("reads texts and rejections from the batch route", async () => {
-    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
 
     mockApiPost.mockResolvedValueOnce({
       [textsKey!]: ["Hello", "Welt"],
@@ -111,10 +111,10 @@ describe("translation contract", () => {
   });
 
   it("reads the placeholder indexes from the batch route", async () => {
-    const [textsKey, rejectionsKey] = contract.batchRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.batchRouteResponse.rejectionKeys;
+    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
+    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
     const [expectedKey, actualKey] =
-      contract.batchRouteResponse.optionalRejectionKeys;
+      contract.translateUnitsRouteResponse.optionalRejectionKeys;
 
     mockApiPost.mockResolvedValueOnce({
       [textsKey!]: ["Read <c0/>"],
@@ -144,12 +144,12 @@ describe("translation contract", () => {
 
   it("emits placeholders in the contract format", () => {
     const { placeholder } = contract;
-    const { fragments } = splitKirbyText("(link: /a)", {});
+    const { unitTexts } = splitKirbyText("(link: /a)", {});
 
-    expect(fragments[0]).toBe(
+    expect(unitTexts[0]).toBe(
       placeholder.format.replace("{n}", String(placeholder.indexBase)),
     );
-    expect(fragments[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
+    expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
   });
 
   it("caps AI batches at the contract limits", () => {

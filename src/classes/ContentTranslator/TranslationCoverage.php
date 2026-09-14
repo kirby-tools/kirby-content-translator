@@ -22,8 +22,8 @@ final class TranslationCoverage
     private readonly App $kirby;
     private readonly TranslatorConfig $config;
 
-    /** @var array<string, list<string>> Blueprint name → translatable field keys */
-    private array $translatableKeysByBlueprint = [];
+    /** @var array<string, list<string>> Blueprint name → eligible field keys */
+    private array $eligibleKeysByBlueprint = [];
 
     /**
      * @throws LogicException When called on a single-language Kirby installation
@@ -106,13 +106,13 @@ final class TranslationCoverage
             self::PAGE_COVERAGE_CACHE_PREFIX . self::cacheKey($page),
             function () use ($page): array {
                 $defaultLanguage = $this->kirby->defaultLanguage();
-                $translatableFields = $this->translatableFields($page, $defaultLanguage);
+                $sourceFilledFields = $this->sourceFilledFields($page, $defaultLanguage);
 
-                if ($translatableFields === []) {
+                if ($sourceFilledFields === []) {
                     return [];
                 }
 
-                $translatableFieldCount = count($translatableFields);
+                $translatableFieldCount = count($sourceFilledFields);
                 $coverage = [];
 
                 foreach ($this->kirby->languages() as $language) {
@@ -123,7 +123,7 @@ final class TranslationCoverage
                     $coverage[$language->code()] = $this->languageCoverage(
                         $page,
                         $language,
-                        $translatableFields,
+                        $sourceFilledFields,
                         $translatableFieldCount
                     );
                 }
@@ -246,15 +246,12 @@ final class TranslationCoverage
     }
 
     /**
-     * Returns top-level translatable field keys that are non-empty in the
-     * default language.
-     *
-     * The denominator is content-driven so that stub pages without source data
-     * don't get flagged as untranslated.
+     * Limits the denominator to fields the default language fills, so stub pages
+     * without source data don't get flagged as untranslated.
      *
      * @return array<string>
      */
-    private function translatableFields(Page $page, Language $defaultLanguage): array
+    private function sourceFilledFields(Page $page, Language $defaultLanguage): array
     {
         // Read raw default-language content _without_ fallback so the
         // denominator reflects only fields actually filled at the source.
@@ -269,39 +266,39 @@ final class TranslationCoverage
         }
 
         $defaultContent = new Content(parent: $page, data: $fields, normalize: false);
-        $translatableFields = [];
+        $sourceFilledFields = [];
 
-        foreach ($this->translatableKeys($page) as $key) {
+        foreach ($this->eligibleKeys($page) as $key) {
             if ($defaultContent->get($key)->isNotEmpty()) {
-                $translatableFields[] = $key;
+                $sourceFilledFields[] = $key;
             }
         }
 
-        return $translatableFields;
+        return $sourceFilledFields;
     }
 
     /**
-     * Resolves and memoizes the blueprint-level translatable field keys
-     * per blueprint name, so Form construction runs once per blueprint
-     * instead of once per page.
+     * Resolves and memoizes the blueprint-level eligible field keys
+     * per blueprint name, so `FieldResolver::resolveModelFields()` runs once
+     * per blueprint instead of once per page.
      *
      * @return list<string>
      */
-    private function translatableKeys(Page $page): array
+    private function eligibleKeys(Page $page): array
     {
-        return $this->translatableKeysByBlueprint[$page->blueprint()->name()]
-            ??= $this->resolveTranslatableKeys($page);
+        return $this->eligibleKeysByBlueprint[$page->blueprint()->name()]
+            ??= $this->resolveEligibleKeys($page);
     }
 
     /**
      * @return list<string>
      */
-    private function resolveTranslatableKeys(Page $page): array
+    private function resolveEligibleKeys(Page $page): array
     {
         $keys = [];
 
         foreach (FieldResolver::resolveModelFields($page) as $key => $props) {
-            if ($this->config->isTranslatable($key, $props)) {
+            if ($this->config->isEligibleField($key, $props)) {
                 $keys[] = $key;
             }
         }
@@ -315,7 +312,7 @@ final class TranslationCoverage
     private function languageCoverage(
         Page $page,
         Language $language,
-        array $translatableFields,
+        array $sourceFilledFields,
         int $translatableFieldCount
     ): array {
         // Fast path: no content file means nothing is translated.
@@ -333,7 +330,7 @@ final class TranslationCoverage
         $content = new Content(parent: $page, data: $fields, normalize: false);
         $translatedFieldCount = 0;
 
-        foreach ($translatableFields as $key) {
+        foreach ($sourceFilledFields as $key) {
             if ($content->get($key)->isNotEmpty()) {
                 $translatedFieldCount++;
             }

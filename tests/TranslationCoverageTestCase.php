@@ -59,7 +59,7 @@ abstract class TranslationCoverageTestCase extends TestCase
                         'untranslatable' => ['type' => 'text', 'translate' => false],
                     ],
                 ],
-                'pages/no-translatable' => [
+                'pages/no-eligible-fields' => [
                     'fields' => [
                         'slug' => ['type' => 'slug'],
                         'toggle' => ['type' => 'toggle'],
@@ -124,9 +124,9 @@ abstract class TranslationCoverageTestCase extends TestCase
                     ],
                     [
                         'slug' => 'no-fields',
-                        'template' => 'no-translatable',
+                        'template' => 'no-eligible-fields',
                         'translations' => [
-                            ['code' => 'en', 'content' => ['title' => 'No translatable fields']],
+                            ['code' => 'en', 'content' => ['title' => 'No eligible fields']],
                         ],
                     ],
                 ],

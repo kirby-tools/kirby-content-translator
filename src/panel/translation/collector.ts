@@ -29,7 +29,7 @@ interface CollectorContext {
  *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `translateUnits` makes that call once, downstream, where it also
- * sees the KirbyTag fragments this function fans out.
+ * sees the units this function fans out of a KirbyText.
  */
 export function collectTranslations(
   obj: Record<string, unknown>,
@@ -67,6 +67,7 @@ function collectFromObject(
   obj: Record<string, unknown>,
   fields: Record<string, KirbyFieldProps>,
   context: CollectorContext,
+  parentFieldKey?: string,
 ) {
   const { fieldTypes } = context.options;
 
@@ -79,7 +80,7 @@ function collectFromObject(
     if (fields[key].translate === false) continue;
     if (!fieldTypes.includes(fields[key].type)) continue;
 
-    collectFromField(obj, key, value, fields[key], context);
+    collectFromField(obj, key, value, fields[key], context, parentFieldKey);
   }
 }
 
@@ -89,14 +90,17 @@ function collectFromField(
   value: unknown,
   field: KirbyFieldProps,
   context: CollectorContext,
+  parentFieldKey?: string,
 ) {
+  const fieldKey = parentFieldKey ? `${parentFieldKey}.${key}` : key;
+
   if (["list", "text", "writer"].includes(field.type)) {
     if (typeof value !== "string" || !value) return;
 
     context.translations.push({
       unit: {
         text: value,
-        fieldKey: key,
+        fieldKey,
       },
       apply(translatedText) {
         obj[key] = translatedText;
@@ -105,19 +109,19 @@ function collectFromField(
   }
 
   // KirbyTags are split out so their structure survives translation intact and
-  // is reassembled in a finalizer once every fragment came back.
+  // is reassembled in a finalizer once every unit came back.
   else if (["textarea", "markdown"].includes(field.type)) {
     if (typeof value !== "string" || !value) return;
 
-    const { fragments, restore } = splitKirbyText(
+    const { unitTexts, restore } = splitKirbyText(
       value,
       context.options.kirbyTags ?? {},
     );
-    const translated: string[] = Array.from({ length: fragments.length });
+    const translated: string[] = Array.from({ length: unitTexts.length });
 
-    for (const [i, fragment] of fragments.entries()) {
+    for (const [i, unitText] of unitTexts.entries()) {
       context.translations.push({
-        unit: { text: fragment, fieldKey: key },
+        unit: { text: unitText, fieldKey },
         apply(translatedText) {
           translated[i] = translatedText;
         },
@@ -135,24 +139,24 @@ function collectFromField(
     context.translations.push({
       unit: {
         text,
-        fieldKey: key,
+        fieldKey,
       },
       apply(translatedText) {
         obj[key] = translatedText.split("|").map((tag) => tag.trim());
       },
     });
   } else if (field.type === "table") {
-    collectFromTableField(obj, key, value, context);
+    collectFromTableField(obj, key, fieldKey, value, context);
   } else if (field.type === "structure" && Array.isArray(value)) {
     const structureField = field as KirbyStructureFieldProps;
     for (const item of value) {
       if (isObject(item)) {
-        collectFromObject(item, structureField.fields, context);
+        collectFromObject(item, structureField.fields, context, fieldKey);
       }
     }
   } else if (field.type === "object" && isObject(value)) {
     const objectField = field as KirbyObjectFieldProps;
-    collectFromObject(value, objectField.fields, context);
+    collectFromObject(value, objectField.fields, context, fieldKey);
   } else if (field.type === "layout" && Array.isArray(value)) {
     const layoutField = field as KirbyLayoutFieldProps;
     for (const layout of value as KirbyLayout[]) {
@@ -162,7 +166,7 @@ function collectFromField(
           if (!layoutField.fieldsets[block.type]) continue;
 
           const blockFields = flattenTabFields(layoutField.fieldsets, block);
-          collectFromObject(block.content, blockFields, context);
+          collectFromObject(block.content, blockFields, context, fieldKey);
         }
       }
     }
@@ -173,7 +177,7 @@ function collectFromField(
       if (!blocksField.fieldsets[block.type]) continue;
 
       const blockFields = flattenTabFields(blocksField.fieldsets, block);
-      collectFromObject(block.content, blockFields, context);
+      collectFromObject(block.content, blockFields, context, fieldKey);
     }
   }
 }
@@ -181,6 +185,7 @@ function collectFromField(
 function collectFromTableField(
   obj: Record<string, unknown>,
   key: string,
+  fieldKey: string,
   value: unknown,
   context: CollectorContext,
 ) {
@@ -193,7 +198,10 @@ function collectFromTableField(
     try {
       tableData = yaml.parse(tableData) as string[][];
     } catch (error) {
-      console.error(`Failed to parse table field "${key}" as YAML:`, error);
+      console.error(
+        `Failed to parse table field "${fieldKey}" as YAML:`,
+        error,
+      );
       return;
     }
   }
@@ -212,7 +220,7 @@ function collectFromTableField(
       context.translations.push({
         unit: {
           text: cell,
-          fieldKey: `${key}[${rowIndex}][${colIndex}]`,
+          fieldKey: `${fieldKey}[${rowIndex}][${colIndex}]`,
         },
         apply(translatedText) {
           tableRef[rowIndex]![colIndex] = translatedText;

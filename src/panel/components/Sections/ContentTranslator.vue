@@ -34,13 +34,14 @@ const {
   importFrom,
   isBatchTranslationEnabled,
   shouldConfirm,
-  provider,
+  strategyName,
 
   licenseStatus,
-  hasAnyProvider,
+  hasAnyStrategy,
+  missingStrategyMessage,
 
   initializeConfig,
-  syncModelContent,
+  importModelContent,
   translateModelContent,
   batchTranslateModelContent,
 } = useContentTranslator();
@@ -63,7 +64,7 @@ const {
     }),
   ]);
 
-  initializeConfig(context, sectionProps);
+  await initializeConfig(context, sectionProps);
 
   isInitialized.value = true;
 })();
@@ -77,16 +78,16 @@ async function handleImport(sourceLanguage?: PanelLanguageInfo) {
   );
 
   await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
-    await syncModelContent(sourceLanguage);
+    await importModelContent(sourceLanguage);
   });
 }
 
 async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
   const result = await openTranslationDialog();
   if (result) {
-    provider.value = result.provider;
+    strategyName.value = result.strategyName;
     await translateModelContent(panel.language, sourceLanguage);
-    if (result.provider === "ai") {
+    if (result.strategyName === "ai") {
       showCopilotLicenseToastOnce();
     }
   }
@@ -95,9 +96,9 @@ async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
 async function handleBatchTranslate() {
   const result = await openBatchTranslationDialog();
   if (result) {
-    provider.value = result.provider;
+    strategyName.value = result.strategyName;
     await batchTranslateModelContent(result.languages);
-    if (result.provider === "ai") {
+    if (result.strategyName === "ai") {
       showCopilotLicenseToastOnce();
     }
   }
@@ -121,18 +122,14 @@ async function handleBatchTranslate() {
       </k-text>
     </k-box>
     <template v-else>
-      <k-box v-if="!hasAnyProvider" theme="empty">
-        <k-text>
-          Configure a <code>strategy</code> or <code>DeepL.apiKey</code> in the
-          <code>johannschopplich.content-translator</code> plugin configuration,
-          or install Kirby Copilot for AI-powered translations.
-        </k-text>
+      <k-box v-if="!hasAnyStrategy" theme="empty">
+        <k-text>{{ missingStrategyMessage }}</k-text>
       </k-box>
 
       <k-box
         v-if="isImportEnabled && importFrom === 'all'"
         theme="none"
-        :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
+        :class="!hasAnyStrategy && 'kct-mt-[var(--spacing-1)]'"
       >
         <k-button-group layout="collapsed">
           <k-button
@@ -152,7 +149,7 @@ async function handleBatchTranslate() {
             }}
           </k-button>
           <k-button
-            v-if="hasAnyProvider"
+            v-if="hasAnyStrategy"
             :disabled="isTranslating"
             :icon="isTranslating ? 'loader' : 'translate'"
             variant="filled"
@@ -167,7 +164,7 @@ async function handleBatchTranslate() {
           </k-button>
           <k-button
             v-if="
-              hasAnyProvider &&
+              hasAnyStrategy &&
               isBatchTranslationEnabled &&
               panel.language.default
             "
@@ -186,10 +183,10 @@ async function handleBatchTranslate() {
         </k-button-group>
       </k-box>
 
-      <template v-else-if="isImportEnabled || hasAnyProvider">
+      <template v-else-if="isImportEnabled || hasAnyStrategy">
         <k-box
           theme="none"
-          :class="!hasAnyProvider && 'kct-mt-[var(--spacing-1)]'"
+          :class="!hasAnyStrategy && 'kct-mt-[var(--spacing-1)]'"
         >
           <k-button-group layout="collapsed">
             <k-button
@@ -206,7 +203,7 @@ async function handleBatchTranslate() {
             </k-button>
             <k-button
               v-if="
-                hasAnyProvider &&
+                hasAnyStrategy &&
                 (!isBatchTranslationEnabled || !panel.language.default)
               "
               :disabled="panel.language.default || isTranslating"
@@ -223,7 +220,7 @@ async function handleBatchTranslate() {
             </k-button>
             <k-button
               v-if="
-                hasAnyProvider &&
+                hasAnyStrategy &&
                 isBatchTranslationEnabled &&
                 panel.language.default
               "
@@ -244,7 +241,7 @@ async function handleBatchTranslate() {
 
         <k-box
           v-show="
-            hasAnyProvider &&
+            hasAnyStrategy &&
             !isBatchTranslationEnabled &&
             panel.language.default
           "

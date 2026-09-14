@@ -5,7 +5,7 @@
   "kirbyTags": {
     "image": ["alt"]
   },
-  "expectedFragments": ["<c0/>", "Sunset"],
+  "expectedUnitTexts": ["<c0/>", "Sunset"],
   "expectedPlaceholderCount": 1,
   "restoredWith": ["<c0/>", "Sonnenuntergang"],
   "expectedRestore": "(image: hero.jpg alt: Sonnenuntergang caption: Mountain view)"

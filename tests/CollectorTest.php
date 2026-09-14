@@ -437,6 +437,28 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
+    public function skips_code_blocks(): void
+    {
+        $content = [
+            'blocks' => [
+                ['id' => '1', 'type' => 'code', 'isHidden' => false, 'content' => ['code' => 'echo "Hello";', 'language' => 'php']],
+                ['id' => '2', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Visible']],
+            ],
+        ];
+        $fields = [
+            'blocks' => self::blocksField([
+                'code' => ['code' => self::field(['type' => 'textarea'])],
+                'text' => ['text' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertCount(1, $result->translations);
+        $this->assertSame('Visible', $result->translations[0]->unit->text);
+    }
+
+    #[Test]
     public function skips_blocks_with_unknown_fieldset_type(): void
     {
         $content = [
@@ -583,6 +605,58 @@ final class CollectorTest extends TestCase
         $this->assertSame(
             ['49.99', 'https://example.com'],
             array_map(fn ($t) => $t->unit->text, $result->translations),
+        );
+    }
+    #[Test]
+    public function leads_a_nested_unit_field_key_with_the_container_field_name(): void
+    {
+        $content = [
+            'team' => [['bio' => 'Writer']],
+            'body' => [['id' => '1', 'type' => 'text', 'isHidden' => false, 'content' => ['text' => 'Hello']]],
+            'meta' => ['caption' => 'Caption'],
+            'hero' => [
+                ['columns' => [['blocks' => [['id' => '2', 'type' => 'text', 'isHidden' => false, 'content' => ['body' => 'Column']]]]]],
+            ],
+        ];
+        $fields = [
+            'team' => self::field([
+                'type' => 'structure',
+                'fields' => ['bio' => self::field(['type' => 'text'])],
+            ]),
+            'body' => self::blocksField(['text' => ['text' => self::field(['type' => 'text'])]]),
+            'meta' => self::field([
+                'type' => 'object',
+                'fields' => ['caption' => self::field(['type' => 'text'])],
+            ]),
+            'hero' => self::layoutField(['text' => ['body' => self::field(['type' => 'text'])]]),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertSame(
+            ['team.bio', 'body.text', 'meta.caption', 'hero.body'],
+            array_map(fn ($t) => $t->unit->fieldKey, $result->translations),
+        );
+    }
+
+    #[Test]
+    public function keeps_the_row_and_column_suffix_behind_a_nested_table_field_key(): void
+    {
+        $content = [
+            'meta' => ['prices' => [['A', 'B']]],
+        ];
+        $fields = [
+            'meta' => self::field([
+                'type' => 'object',
+                'fields' => ['prices' => self::field(['type' => 'table'])],
+            ]),
+        ];
+
+        $result = (new Collector($fields, self::defaultConfig()))->collect($content);
+
+        $this->assertSame(
+            ['meta.prices[0][0]', 'meta.prices[0][1]'],
+            array_map(fn ($t) => $t->unit->fieldKey, $result->translations),
         );
     }
 }

@@ -1,6 +1,8 @@
 # Kirby Content Translator
 
-Commercial Kirby CMS plugin for translating content between languages using DeepL or custom AI providers.
+Commercial Kirby CMS plugin for translating content between a site's languages, through DeepL, AI by way of Kirby Copilot, or a custom strategy.
+
+Use the terms from `CONTEXT.md`.
 
 ## Commands
 

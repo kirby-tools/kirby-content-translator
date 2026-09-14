@@ -40,14 +40,15 @@ const {
   importFrom,
   isBatchTranslationEnabled,
   shouldConfirm,
-  provider,
+  strategyName,
 
   fields,
   licenseStatus,
-  hasAnyProvider,
+  hasAnyStrategy,
+  missingStrategyMessage,
 
   initializeConfig,
-  syncModelContent,
+  importModelContent,
   translateModelContent,
   batchTranslateModelContent,
 } = useContentTranslator();
@@ -59,13 +60,11 @@ const {
   showCopilotLicenseToastOnce,
 } = useTranslationDialogs();
 
-initializeConfig(props.context, props.props);
-
-if (!hasAnyProvider.value) {
-  panel.notification.error(
-    'Configure the "johannschopplich.content-translator.strategy" or "johannschopplich.content-translator.DeepL.apiKey" plugin option, or install Kirby Copilot for AI-powered translations.',
-  );
-}
+initializeConfig(props.context, props.props).then(() => {
+  if (missingStrategyMessage.value) {
+    panel.notification.error(missingStrategyMessage.value);
+  }
+});
 
 // Lazily fetch required view data (same as `computed` section methods).
 const initializationPromise = (async () => {
@@ -95,7 +94,7 @@ async function handleImport(sourceLanguage?: PanelLanguageInfo) {
 
   await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
     await initializationPromise;
-    await syncModelContent(sourceLanguage);
+    await importModelContent(sourceLanguage);
   });
 }
 
@@ -103,9 +102,9 @@ async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
   await initializationPromise;
   const result = await openTranslationDialog();
   if (result) {
-    provider.value = result.provider;
+    strategyName.value = result.strategyName;
     await translateModelContent(panel.language, sourceLanguage);
-    if (result.provider === "ai") {
+    if (result.strategyName === "ai") {
       showCopilotLicenseToastOnce();
     }
   }
@@ -115,9 +114,9 @@ async function handleBatchTranslate() {
   await initializationPromise;
   const result = await openBatchTranslationDialog();
   if (result) {
-    provider.value = result.provider;
+    strategyName.value = result.strategyName;
     await batchTranslateModelContent(result.languages);
-    if (result.provider === "ai") {
+    if (result.strategyName === "ai") {
       showCopilotLicenseToastOnce();
     }
   }
@@ -142,9 +141,9 @@ async function handleBatchTranslate() {
           })
         }}
       </k-dropdown-item>
-      <hr v-if="hasAnyProvider" />
+      <hr v-if="hasAnyStrategy" />
       <k-dropdown-item
-        v-if="hasAnyProvider"
+        v-if="hasAnyStrategy"
         :disabled="isTranslating"
         icon="translate"
         @click="handleTranslate()"
@@ -157,7 +156,7 @@ async function handleBatchTranslate() {
       </k-dropdown-item>
       <k-dropdown-item
         v-if="
-          hasAnyProvider && isBatchTranslationEnabled && panel.language.default
+          hasAnyStrategy && isBatchTranslationEnabled && panel.language.default
         "
         :disabled="isTranslating"
         icon="content-translator-global"
@@ -185,11 +184,11 @@ async function handleBatchTranslate() {
         >
           {{ panel.t("johannschopplich.content-translator.import") }}
         </k-dropdown-item>
-        <hr v-if="hasAnyProvider" />
+        <hr v-if="hasAnyStrategy" />
       </template>
       <k-dropdown-item
         v-if="
-          hasAnyProvider &&
+          hasAnyStrategy &&
           (!isBatchTranslationEnabled || !panel.language.default)
         "
         :disabled="panel.language.default || isTranslating"
@@ -204,7 +203,7 @@ async function handleBatchTranslate() {
       </k-dropdown-item>
       <k-dropdown-item
         v-if="
-          hasAnyProvider && isBatchTranslationEnabled && panel.language.default
+          hasAnyStrategy && isBatchTranslationEnabled && panel.language.default
         "
         :disabled="isTranslating"
         icon="content-translator-global"

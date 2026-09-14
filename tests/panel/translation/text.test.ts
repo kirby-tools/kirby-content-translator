@@ -19,7 +19,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
 
     const result = await translateText("Hello", {
-      provider: "deepl",
+      strategyName: "deepl",
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -38,7 +38,7 @@ describe("translateText", () => {
 
   it("returns untranslatable text without reaching the strategy", async () => {
     const result = await translateText("2024", {
-      provider: "deepl",
+      strategyName: "deepl",
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -52,7 +52,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
 
     const result = await translateText("Hello", {
-      provider: "deepl",
+      strategyName: "deepl",
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -66,7 +66,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
 
     const result = await translateText("Hello", {
-      provider: "deepl",
+      strategyName: "deepl",
       targetLanguage: GERMAN,
       fieldKey: "title",
     });

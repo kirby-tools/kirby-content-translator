@@ -5,7 +5,7 @@
   "kirbyTags": {
     "callout": ["value"]
   },
-  "expectedFragments": ["<c0/>", "Important announcement"],
+  "expectedUnitTexts": ["<c0/>", "Important announcement"],
   "expectedPlaceholderCount": 1,
   "restoredWith": ["<c0/>", "Wichtige Mitteilung"],
   "expectedRestore": "(callout: Wichtige Mitteilung)"

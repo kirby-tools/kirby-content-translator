@@ -465,7 +465,7 @@ final class TranslatorTest extends TestCase
 
     #[Test]
     #[DataProvider('pureNumericValues')]
-    public function skips_pure_numeric_values(string $value): void
+    public function keeps_pure_numeric_values_as_untranslatable_text(string $value): void
     {
         $this->appWithTranslateFn();
         $this->assertSame($value, Translator::translateText($value, 'de'));
@@ -489,7 +489,7 @@ final class TranslatorTest extends TestCase
 
     #[Test]
     #[DataProvider('pureUrlValues')]
-    public function skips_pure_url_values(string $value): void
+    public function keeps_pure_url_values_as_untranslatable_text(string $value): void
     {
         $this->appWithTranslateFn();
         $this->assertSame($value, Translator::translateText($value, 'de'));
@@ -829,7 +829,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function skips_untranslatable_kirby_tag_attributes(): void
+    public function keeps_untranslatable_kirby_tag_attributes_as_written(): void
     {
         $app = $this->appWithKirbyTagsPage();
         $translator = new Translator($app->page('tag-attributes'), [
@@ -858,7 +858,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function translate_texts_skips_the_strategy_when_nothing_is_translatable(): void
+    public function translate_texts_calls_no_strategy_when_every_text_is_untranslatable(): void
     {
         $this->appWithTranslateFn();
         $strategy = self::recordingStrategy();
@@ -917,7 +917,7 @@ final class TranslatorTest extends TestCase
     }
 
     #[Test]
-    public function fires_no_translate_warning_hook_for_a_unit_the_strategy_dropped(): void
+    public function fires_no_translate_warning_hook_for_a_null_translation(): void
     {
         $warnings = [];
         new App([
@@ -1001,7 +1001,7 @@ final class TranslatorTest extends TestCase
     {
         $this->appWithTranslateFn();
 
-        // Never handed to the strategy, so it is skipped rather than rejected.
+        // Never handed to the strategy, so it is untranslatable text rather than a rejection.
         $result = Translator::translateBatch(['2024'], 'de', null, self::recordingStrategy());
 
         $this->assertSame(['2024'], $result->texts);

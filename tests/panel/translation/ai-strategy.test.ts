@@ -189,7 +189,7 @@ describe("AIStrategy", () => {
       );
     });
 
-    it("throws when copilot is not available", async () => {
+    it("throws when Copilot is missing", async () => {
       const { resolveCopilot } =
         await import("../../../src/panel/utils/copilot");
       vi.mocked(resolveCopilot).mockReturnValueOnce(undefined);

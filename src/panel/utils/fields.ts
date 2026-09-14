@@ -8,9 +8,15 @@ import { isObject } from "utilful";
 
 /**
  * Checks whether a block carries translatable content and is not hidden.
+ * Kirby's `code` block keeps its code in a `textarea` field, so it is skipped.
  */
 export function isBlockTranslatable(block: KirbyBlock) {
-  return isObject(block.content) && block.id != null && block.isHidden !== true;
+  return (
+    isObject(block.content) &&
+    block.id != null &&
+    block.isHidden !== true &&
+    block.type !== "code"
+  );
 }
 
 /**

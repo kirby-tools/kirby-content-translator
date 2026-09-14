@@ -10,7 +10,7 @@ interface ConformanceCase {
   description?: string;
   input: string;
   kirbyTags: Record<string, string[]>;
-  expectedFragments: string[];
+  expectedUnitTexts: string[];
   expectedPlaceholderCount: number;
   restoredWith: string[];
   expectedRestore: string;
@@ -35,15 +35,15 @@ describe("splitKirbyText", () => {
       ({
         input,
         kirbyTags,
-        expectedFragments,
+        expectedUnitTexts,
         expectedPlaceholderCount,
         restoredWith,
         expectedRestore,
       }) => {
-        const { fragments, restore } = splitKirbyText(input, kirbyTags);
+        const { unitTexts, restore } = splitKirbyText(input, kirbyTags);
 
-        expect(fragments).toEqual(expectedFragments);
-        expect(fragments[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
+        expect(unitTexts).toEqual(expectedUnitTexts);
+        expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
           expectedPlaceholderCount,
         );
         expect(restore(restoredWith)).toBe(expectedRestore);
@@ -55,23 +55,23 @@ describe("splitKirbyText", () => {
     it.each([
       {
         name: "fewer",
-        input: (frags: string[]) => [frags[0]!],
+        input: (texts: string[]) => [texts[0]!],
         expectedGot: 1,
       },
       {
         name: "more",
-        input: (frags: string[]) => [...frags, "extra"],
+        input: (texts: string[]) => [...texts, "extra"],
         expectedGot: 3,
       },
     ])(
-      "throws when restore receives $name fragments than expected",
+      "throws when restore receives $name translations than unit texts",
       ({ input, expectedGot }) => {
         const text = "(link: /a text: site)";
-        const { fragments, restore } = splitKirbyText(text, { link: ["text"] });
+        const { unitTexts, restore } = splitKirbyText(text, { link: ["text"] });
 
-        expect(fragments).toHaveLength(2);
-        expect(() => restore(input(fragments))).toThrow(
-          `Expected 2 translated fragments, got ${expectedGot}`,
+        expect(unitTexts).toHaveLength(2);
+        expect(() => restore(input(unitTexts))).toThrow(
+          `Expected 2 translations, got ${expectedGot}`,
         );
       },
     );

@@ -11,7 +11,7 @@ namespace JohannSchopplich\ContentTranslator\Translation;
 final readonly class ContentTranslationResult
 {
     /**
-     * @param int $translatableCount Units handed to the strategy, i.e. everything `UntranslatableText` did not skip
+     * @param int $translatableCount Units handed to the strategy, i.e. everything that is not untranslatable text
      * @param list<TranslationRejection> $rejections
      */
     public function __construct(

@@ -1,11 +1,11 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { KirbyFieldProps } from "kirby-types";
-import type { TRANSLATION_PROVIDERS } from "./constants";
+import type { STRATEGY_NAMES } from "./constants";
 
 /** Loose boolean type for raw props coming from PHP/YAML. */
 type BooleanInput = boolean | string | number | null;
 
-export type TranslationProvider = (typeof TRANSLATION_PROVIDERS)[number];
+export type StrategyName = (typeof STRATEGY_NAMES)[number];
 
 export interface PluginConfig {
   import?: boolean;
@@ -19,8 +19,8 @@ export interface PluginConfig {
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
   batchConcurrency?: number;
-  /** Backend the translate endpoint resolves to, named server-side. */
-  strategy?: TranslationProvider | "custom";
+  /** Strategy the translate endpoint resolves to, named server-side. */
+  strategy?: StrategyName | "custom";
   /** Sanitized DeepL configuration – only whether an API key is set, never the key. */
   DeepL?: {
     apiKey?: boolean;
@@ -33,13 +33,36 @@ export interface PluginConfig {
   viewButton?: boolean;
 }
 
-/** Response from `__content-translator__/context` API endpoint. */
 export interface PluginContextResponse {
   config: PluginConfig;
   homePageId: string;
   errorPageId: string;
   licenseStatus?: LicenseStatus;
 }
+
+export interface BatchStatusResponse {
+  isUpdateAllowed: boolean;
+  /** Name of another user who edits the model in any language. */
+  lockedBy: string | null;
+  languagesWithUnsavedChanges: string[];
+}
+
+export type BatchWriteResponse =
+  | { status: "unsavedChanges" }
+  | {
+      status: "locked";
+      lockedBy: string;
+    }
+  | {
+      status: "saved";
+      /** Fields of the saved language that fail validation, keyed by field name. */
+      invalidFields?: Record<
+        string,
+        { label: string | null; message: Record<string, string> }
+      >;
+      titleError?: string;
+      slugError?: string;
+    };
 
 /** Translator options from section/view button props. */
 export interface TranslatorOptions {
@@ -80,7 +103,6 @@ export interface TranslationTreeEntry {
   children: TranslationTreeEntry[] | null;
 }
 
-/** Response from `__content-translator__/coverage` API endpoint. */
 export interface TranslationCoverageResponse {
   languages: TranslationLanguageCoverage[];
   tree: TranslationTreeEntry[];

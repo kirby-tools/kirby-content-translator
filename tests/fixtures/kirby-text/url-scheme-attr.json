@@ -5,7 +5,7 @@
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedFragments": ["<c0/>", "visit us"],
+  "expectedUnitTexts": ["<c0/>", "visit us"],
   "expectedPlaceholderCount": 1,
   "restoredWith": ["<c0/>", "besuche uns"],
   "expectedRestore": "(link: https://example.com text: besuche uns)"

@@ -57,7 +57,7 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
-    public function skips_pages_without_translatable_fields(): void
+    public function skips_pages_without_eligible_fields(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $page = $app->page('no-fields');
@@ -162,14 +162,14 @@ final class TranslationCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
-    public function memoizes_translatable_keys_per_blueprint(): void
+    public function memoizes_eligible_keys_per_blueprint(): void
     {
         $app = $this->appWithMixedCoverageFixture();
         $coverage = new TranslationCoverage($app->site()->index());
         $coverage->treeCoverage();
 
-        $memo = (new ReflectionProperty($coverage, 'translatableKeysByBlueprint'))->getValue($coverage);
+        $memo = (new ReflectionProperty($coverage, 'eligibleKeysByBlueprint'))->getValue($coverage);
 
-        $this->assertSame(['pages/default', 'pages/no-translatable'], array_keys($memo));
+        $this->assertSame(['pages/default', 'pages/no-eligible-fields'], array_keys($memo));
     }
 }

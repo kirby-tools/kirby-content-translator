@@ -18,7 +18,7 @@ use Throwable;
  *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `Translator::translateUnits` makes that call once, downstream,
- * where it also sees the KirbyTag fragments this class fans out.
+ * where it also sees the units this class fans out of a KirbyText.
  *
  * Closures capture `&$node` – callers must keep the same array reference
  * live between `collect()` and `writeBack` invocations.
@@ -84,7 +84,7 @@ final class Collector
      * @param array<string, mixed> $node
      * @param array<string, array<string, mixed>> $fields
      */
-    private function collectFromObject(array &$node, array $fields): void
+    private function collectFromObject(array &$node, array $fields, string|null $parentFieldKey = null): void
     {
         foreach ($node as $fieldName => $value) {
             if ($value === null || $value === '' || $value === []) {
@@ -100,7 +100,7 @@ final class Collector
                 continue;
             }
 
-            $this->collectFromField($node, $fieldName, $value, $fields[$fieldName]);
+            $this->collectFromField($node, $fieldName, $value, $fields[$fieldName], $parentFieldKey);
         }
     }
 
@@ -108,9 +108,10 @@ final class Collector
      * @param array<string, mixed> $node
      * @param array<string, mixed> $field
      */
-    private function collectFromField(array &$node, string $fieldName, mixed $value, array $field): void
+    private function collectFromField(array &$node, string $fieldName, mixed $value, array $field, string|null $parentFieldKey = null): void
     {
         $fieldType = $field['type'];
+        $fieldKey = $parentFieldKey !== null ? $parentFieldKey . '.' . $fieldName : $fieldName;
 
         if (in_array($fieldType, ['list', 'text', 'writer'], true)) {
             $text = (string)$value;
@@ -121,7 +122,7 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: $text,
-                    fieldKey: $fieldName,
+                    fieldKey: $fieldKey,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
                     $node[$fieldName] = $translation;
@@ -137,23 +138,23 @@ final class Collector
                 return;
             }
 
-            ['fragments' => $fragments, 'restore' => $restore] = KirbyText::split($text, $this->config->kirbyTags);
-            $translatedFragments = array_fill(0, count($fragments), '');
+            ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($text, $this->config->kirbyTags);
+            $translatedUnitTexts = array_fill(0, count($unitTexts), '');
 
-            foreach ($fragments as $fragmentIndex => $fragment) {
+            foreach ($unitTexts as $unitIndex => $unitText) {
                 $this->translations[] = new CollectedTranslation(
                     unit: new TranslationUnit(
-                        text: $fragment,
-                        fieldKey: $fieldName,
+                        text: $unitText,
+                        fieldKey: $fieldKey,
                     ),
-                    writeBack: function (string $translation) use (&$translatedFragments, $fragmentIndex): void {
-                        $translatedFragments[$fragmentIndex] = $translation;
+                    writeBack: function (string $translation) use (&$translatedUnitTexts, $unitIndex): void {
+                        $translatedUnitTexts[$unitIndex] = $translation;
                     },
                 );
             }
 
-            $this->finalizers[] = function () use (&$node, $fieldName, $restore, &$translatedFragments): void {
-                $node[$fieldName] = $restore($translatedFragments);
+            $this->finalizers[] = function () use (&$node, $fieldName, $restore, &$translatedUnitTexts): void {
+                $node[$fieldName] = $restore($translatedUnitTexts);
             };
 
             return;
@@ -173,7 +174,7 @@ final class Collector
             $this->translations[] = new CollectedTranslation(
                 unit: new TranslationUnit(
                     text: implode(' | ', $items),
-                    fieldKey: $fieldName,
+                    fieldKey: $fieldKey,
                 ),
                 writeBack: function (string $translation) use (&$node, $fieldName): void {
                     $node[$fieldName] = implode(', ', array_map('trim', explode('|', $translation)));
@@ -208,7 +209,7 @@ final class Collector
                     $this->translations[] = new CollectedTranslation(
                         unit: new TranslationUnit(
                             text: $cell,
-                            fieldKey: $fieldName . '[' . $rowIndex . '][' . $colIndex . ']',
+                            fieldKey: $fieldKey . '[' . $rowIndex . '][' . $colIndex . ']',
                         ),
                         writeBack: function (string $translation) use (&$node, $fieldName, $rowIndex, $colIndex): void {
                             $node[$fieldName][$rowIndex][$colIndex] = $translation;
@@ -237,7 +238,7 @@ final class Collector
                 if (!is_array($item)) {
                     continue;
                 }
-                $this->collectFromObject($item, $field['fields'] ?? []);
+                $this->collectFromObject($item, $field['fields'] ?? [], $fieldKey);
             }
 
             unset($item);
@@ -258,7 +259,7 @@ final class Collector
                 return;
             }
 
-            $this->collectFromObject($node[$fieldName], $field['fields'] ?? []);
+            $this->collectFromObject($node[$fieldName], $field['fields'] ?? [], $fieldKey);
 
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'yaml');
@@ -286,7 +287,7 @@ final class Collector
                     continue;
                 }
                 $blockFields = self::flattenTabFields($fieldsets, $block);
-                $this->collectFromObject($block['content'], $blockFields);
+                $this->collectFromObject($block['content'], $blockFields, $fieldKey);
             }
 
             unset($block);
@@ -322,6 +323,7 @@ final class Collector
                         $this->collectFromObject(
                             $node[$fieldName][$layoutIndex]['columns'][$columnIndex]['blocks'][$blockIndex]['content'],
                             $blockFields,
+                            $fieldKey,
                         );
                     }
                 }
@@ -350,7 +352,9 @@ final class Collector
             is_array($block['content']) &&
             A::isAssociative($block['content']) &&
             isset($block['id']) &&
-            ($block['isHidden'] ?? false) !== true;
+            ($block['isHidden'] ?? false) !== true &&
+            // Kirby's `code` block keeps its code in a `textarea` field.
+            ($block['type'] ?? null) !== 'code';
     }
 
     /**
