@@ -46,6 +46,7 @@ const {
   licenseStatus,
   hasAnyStrategy,
   missingStrategyMessage,
+  isContentEditable,
 
   initializeConfig,
   importModelContent,
@@ -131,7 +132,7 @@ async function handleBatchTranslate() {
           (language) => language.code !== panel.language.code,
         )"
         :key="language.code"
-        :disabled="isTranslating"
+        :disabled="isTranslating || !isContentEditable"
         icon="import"
         @click="handleImport(language)"
       >
@@ -144,7 +145,7 @@ async function handleBatchTranslate() {
       <hr v-if="hasAnyStrategy" />
       <k-dropdown-item
         v-if="hasAnyStrategy"
-        :disabled="isTranslating"
+        :disabled="isTranslating || !isContentEditable"
         icon="translate"
         @click="handleTranslate()"
       >
@@ -158,7 +159,7 @@ async function handleBatchTranslate() {
         v-if="
           hasAnyStrategy && isBatchTranslationEnabled && panel.language.default
         "
-        :disabled="isTranslating"
+        :disabled="isTranslating || !isContentEditable"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
       >
@@ -178,7 +179,9 @@ async function handleBatchTranslate() {
         "
       >
         <k-dropdown-item
-          :disabled="panel.language.default || isTranslating"
+          :disabled="
+            panel.language.default || isTranslating || !isContentEditable
+          "
           icon="import"
           @click="handleImport()"
         >
@@ -191,7 +194,9 @@ async function handleBatchTranslate() {
           hasAnyStrategy &&
           (!isBatchTranslationEnabled || !panel.language.default)
         "
-        :disabled="panel.language.default || isTranslating"
+        :disabled="
+          panel.language.default || isTranslating || !isContentEditable
+        "
         icon="translate"
         @click="handleTranslate(defaultLanguage)"
       >
@@ -205,7 +210,7 @@ async function handleBatchTranslate() {
         v-if="
           hasAnyStrategy && isBatchTranslationEnabled && panel.language.default
         "
-        :disabled="isTranslating"
+        :disabled="isTranslating || !isContentEditable"
         icon="content-translator-global"
         @click="handleBatchTranslate()"
       >

@@ -39,6 +39,7 @@ const {
   licenseStatus,
   hasAnyStrategy,
   missingStrategyMessage,
+  isContentEditable,
 
   initializeConfig,
   importModelContent,
@@ -137,7 +138,7 @@ async function handleBatchTranslate() {
               (language) => language.code !== panel.language.code,
             )"
             :key="language.code"
-            :disabled="isTranslating"
+            :disabled="isTranslating || !isContentEditable"
             icon="import"
             variant="filled"
             @click="handleImport(language)"
@@ -150,7 +151,7 @@ async function handleBatchTranslate() {
           </k-button>
           <k-button
             v-if="hasAnyStrategy"
-            :disabled="isTranslating"
+            :disabled="isTranslating || !isContentEditable"
             :icon="isTranslating ? 'loader' : 'translate'"
             variant="filled"
             theme="notice-icon"
@@ -168,7 +169,7 @@ async function handleBatchTranslate() {
               isBatchTranslationEnabled &&
               panel.language.default
             "
-            :disabled="isTranslating"
+            :disabled="isTranslating || !isContentEditable"
             :icon="isTranslating ? 'loader' : 'content-translator-global'"
             variant="filled"
             theme="notice-icon"
@@ -194,7 +195,9 @@ async function handleBatchTranslate() {
                 isImportEnabled &&
                 (!isBatchTranslationEnabled || !panel.language.default)
               "
-              :disabled="panel.language.default || isTranslating"
+              :disabled="
+                panel.language.default || isTranslating || !isContentEditable
+              "
               icon="import"
               variant="filled"
               @click="handleImport()"
@@ -206,7 +209,9 @@ async function handleBatchTranslate() {
                 hasAnyStrategy &&
                 (!isBatchTranslationEnabled || !panel.language.default)
               "
-              :disabled="panel.language.default || isTranslating"
+              :disabled="
+                panel.language.default || isTranslating || !isContentEditable
+              "
               :icon="isTranslating ? 'loader' : 'translate'"
               variant="filled"
               theme="notice-icon"
@@ -224,7 +229,7 @@ async function handleBatchTranslate() {
                 isBatchTranslationEnabled &&
                 panel.language.default
               "
-              :disabled="isTranslating"
+              :disabled="isTranslating || !isContentEditable"
               :icon="isTranslating ? 'loader' : 'content-translator-global'"
               variant="filled"
               theme="notice-icon"

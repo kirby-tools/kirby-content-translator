@@ -29,10 +29,11 @@ let batchWrite: Mock<
 >;
 
 vi.mock("kirbyuse", async () => {
-  const { effectScope, ref } =
+  const { computed, effectScope, ref } =
     await vi.importActual<typeof import("vue")>("vue");
 
   return {
+    computed,
     ref,
     effectScope,
     isKirby5: () => true,

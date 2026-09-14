@@ -18,7 +18,14 @@ import type {
   StrategyName,
   TranslatorOptions,
 } from "../types";
-import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
+import {
+  computed,
+  isKirby5,
+  ref,
+  useContent,
+  useI18n,
+  usePanel,
+} from "kirbyuse";
 import pAll from "p-all";
 import {
   BATCH_STATUS_API_ROUTE,
@@ -77,7 +84,7 @@ export const useTranslationState = createGlobalState(() => {
 
 export function useContentTranslator() {
   const panel = usePanel();
-  const { currentContent, update: updateContent } = useContent();
+  const { content, currentContent, update: updateContent } = useContent();
   const { t } = useI18n();
   const { getModelData, isFileModel, isSiteModel } = useModel();
   const { isTranslating } = useTranslationState();
@@ -106,6 +113,10 @@ export function useContentTranslator() {
   const licenseStatus = ref<LicenseStatus>();
   const hasAnyStrategy = ref(false);
   const missingStrategyMessage = ref<string>();
+
+  const isContentEditable = computed(
+    () => panel.view.props.permissions?.update !== false && !content.isLocked(),
+  );
   // #endregion
 
   /**
@@ -919,6 +930,7 @@ export function useContentTranslator() {
     licenseStatus,
     hasAnyStrategy,
     missingStrategyMessage,
+    isContentEditable,
 
     initializeConfig,
     importModelContent,
