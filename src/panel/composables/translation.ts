@@ -18,13 +18,7 @@ import type {
   StrategyName,
   TranslatorOptions,
 } from "../types";
-import {
-  isKirby5,
-  ref,
-  useContent,
-  useI18n,
-  usePanel,
-} from "kirbyuse";
+import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
 import pAll from "p-all";
 import {
   BATCH_STATUS_API_ROUTE,

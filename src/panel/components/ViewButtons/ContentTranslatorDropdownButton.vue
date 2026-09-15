@@ -80,9 +80,7 @@ function toggle() {
 </script>
 
 <template>
-  <div
-    v-if="!hasInitializationError"
-  >
+  <div v-if="!hasInitializationError">
     <k-button
       :dropdown="true"
       :text="
