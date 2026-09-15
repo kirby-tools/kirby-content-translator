@@ -100,8 +100,3 @@ export interface TranslationTreeEntry {
   isLoading: boolean;
   children: TranslationTreeEntry[] | null;
 }
-
-export interface TranslationCoverageResponse {
-  languages: TranslationLanguageCoverage[];
-  tree: TranslationTreeEntry[];
-}

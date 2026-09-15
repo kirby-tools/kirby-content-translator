@@ -215,7 +215,7 @@ async function resolveStrategyField() {
     }
   }
 
-  const aiProviderKey = copilotContext?.config?.provider;
+  const aiProviderKey = copilotContext?.config.provider;
   const aiProviderConfig = aiProviderKey
     ? AI_PROVIDER_CONFIG[aiProviderKey]
     : undefined;

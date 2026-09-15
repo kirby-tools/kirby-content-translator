@@ -723,7 +723,7 @@ export function useContentTranslator() {
       }
 
       const languagesToTranslate = selectedLanguages.filter(
-        ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code!),
+        ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code),
       );
 
       if (languagesToTranslate.length > 0) {

@@ -16,7 +16,7 @@ export interface ModelFacts {
   isSiteModel: boolean;
 }
 
-export interface TitleSlugConfigFacts {
+interface TitleSlugConfigFacts {
   isTitleTranslationEnabled: boolean;
   isSlugTranslationEnabled: boolean;
 }
