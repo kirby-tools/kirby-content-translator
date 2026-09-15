@@ -19,7 +19,6 @@ import type {
   TranslatorOptions,
 } from "../types";
 import {
-  computed,
   isKirby5,
   ref,
   useContent,
@@ -84,7 +83,11 @@ export const useTranslationState = createGlobalState(() => {
 
 export function useContentTranslator() {
   const panel = usePanel();
-  const { content, currentContent, update: updateContent } = useContent();
+  const {
+    currentContent,
+    isEditable: isContentEditable,
+    update: updateContent,
+  } = useContent();
   const { t } = useI18n();
   const { getModelData, isFileModel, isSiteModel } = useModel();
   const { isTranslating } = useTranslationState();
@@ -114,9 +117,6 @@ export function useContentTranslator() {
   const hasAnyStrategy = ref(false);
   const missingStrategyMessage = ref<string>();
 
-  const isContentEditable = computed(
-    () => panel.view.props.permissions?.update !== false && !content.isLocked(),
-  );
   // #endregion
 
   /**
