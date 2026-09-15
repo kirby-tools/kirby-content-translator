@@ -11,17 +11,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class DeepLClientTest extends TestCase
+final class DeepLClientTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     private function appWithDeepLConfig(
         string|null $apiKey = 'test-key:fx',
         array|null $languages = null,
@@ -39,7 +33,7 @@ final class DeepLClientTest extends TestCase
             $pluginOptions['DeepL.targetLanguageOverrides'] = $targetLanguageOverrides;
         }
 
-        return new App([
+        return self::bootApp([
             'languages' => $languages ?? [
                 ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
                 ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],

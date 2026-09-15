@@ -4,9 +4,13 @@ import { DeepLStrategy } from "../../../src/panel/translation/strategies";
 
 const mockApiPost = vi.fn();
 
-vi.mock("kirbyuse", () => ({
-  useApi: () => ({ post: mockApiPost }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    useApi: () => ({ post: mockApiPost }),
+  };
+});
 
 // eslint-disable-next-line test/prefer-lowercase-title
 describe("DeepLStrategy", () => {

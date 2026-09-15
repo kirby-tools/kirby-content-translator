@@ -7,7 +7,7 @@ import {
   layoutField,
   objectField,
   structureField,
-} from "./utils";
+} from "../utils";
 
 describe("collectTranslations", () => {
   const defaultOptions = {

@@ -21,9 +21,13 @@ vi.mock("../../../src/panel/utils/copilot", () => ({
 
 const mockApiPost = vi.fn();
 
-vi.mock("kirbyuse", () => ({
-  useApi: () => ({ post: mockApiPost }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    useApi: () => ({ post: mockApiPost }),
+  };
+});
 
 beforeEach(() => {
   mockApiPost.mockReset();
@@ -90,7 +94,8 @@ describe("translation contract", () => {
 
   it("reads texts and rejections from the translate-units route", async () => {
     const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
+    const [indexKey, reasonKey] =
+      contract.translateUnitsRouteResponse.rejectionKeys;
 
     mockApiPost.mockResolvedValueOnce({
       [textsKey!]: ["Hello", "Welt"],
@@ -112,7 +117,8 @@ describe("translation contract", () => {
 
   it("reads the placeholder indexes from the translate-units route", async () => {
     const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] = contract.translateUnitsRouteResponse.rejectionKeys;
+    const [indexKey, reasonKey] =
+      contract.translateUnitsRouteResponse.rejectionKeys;
     const [expectedKey, actualKey] =
       contract.translateUnitsRouteResponse.optionalRejectionKeys;
 

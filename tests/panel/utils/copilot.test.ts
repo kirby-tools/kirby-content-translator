@@ -1,13 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import { resolveCopilotReadiness } from "../../../src/panel/utils/copilot";
-import { copilotWith } from "../copilot";
+import { copilotWith } from "../helpers/mock-copilot";
 
 // Assigned per test and read lazily by the `kirbyuse` mock below.
 let thirdPartyPlugins: Record<string, unknown> = {};
 
-vi.mock("kirbyuse", () => ({
-  usePanel: () => ({ plugins: { thirdParty: thirdPartyPlugins } }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    usePanel: () => ({ plugins: { thirdParty: thirdPartyPlugins } }),
+  };
+});
 
 describe("resolveCopilotReadiness", () => {
   it("returns `ready` when Copilot meets REQUIRED_COPILOT_API_VERSION and has a key for its provider", async () => {

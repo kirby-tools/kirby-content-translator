@@ -6,27 +6,20 @@ use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translator;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
-use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\LogicException;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class StrategyResolutionTest extends TestCase
+final class StrategyResolutionTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     #[Test]
     public function method_param_strategy_wins_over_translate_fn_config(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'translateFn' => fn (string $text, string $lang) => "[fromConfig]$text",
@@ -47,7 +40,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function throws_the_missing_deepl_api_key_error_when_the_strategy_string_is_deepl(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => 'deepl'],
             ],
@@ -66,7 +59,7 @@ final class StrategyResolutionTest extends TestCase
             $this->markTestSkipped('kirby-copilot is not installed in this dev tree');
         }
 
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => 'ai'],
                 'johannschopplich.copilot' => ['provider' => 'openai'],
@@ -83,7 +76,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function strategy_config_closure_resolves_to_callable_strategy(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'strategy' => fn (string $text, string $lang): string => "[$lang]$text",
@@ -104,7 +97,7 @@ final class StrategyResolutionTest extends TestCase
             }
         };
 
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => $configuredStrategy],
             ],
@@ -116,7 +109,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function strategy_config_takes_precedence_over_translate_fn(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'strategy' => fn (string $text, string $lang): string => "[fromStrategy]$text",
@@ -131,7 +124,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function unknown_strategy_string_throws_logic_exception(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => 'banana'],
             ],
@@ -146,7 +139,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function resolved_strategy_name_defaults_to_deepl(): void
     {
-        new App();
+        self::bootApp();
 
         $this->assertSame('deepl', Translator::resolveStrategyName());
     }
@@ -154,7 +147,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function resolved_strategy_name_is_ai_for_the_ai_preset(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => 'ai'],
             ],
@@ -166,7 +159,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function resolved_strategy_name_is_custom_for_a_closure_strategy(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'strategy' => fn (string $text, string $lang): string => $text,
@@ -180,7 +173,7 @@ final class StrategyResolutionTest extends TestCase
     #[Test]
     public function resolved_strategy_name_is_custom_for_the_deprecated_translate_fn(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'translateFn' => fn (string $text, string $lang): string => $text,

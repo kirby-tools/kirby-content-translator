@@ -11,29 +11,24 @@ use JohannSchopplich\Copilot\AI\Client;
 use JohannSchopplich\Copilot\AI\ProviderName;
 use JohannSchopplich\Copilot\AI\Providers\Provider;
 use JohannSchopplich\Copilot\AI\Resolver;
-use Kirby\Cms\App;
 use Kirby\Exception\AuthException;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class CopilotAIStrategyTest extends TestCase
+final class CopilotAIStrategyTest extends ApiRouteTestCase
 {
     protected function setUp(): void
     {
+        parent::setUp();
+
         if (!class_exists(Client::class)) {
             $this->markTestSkipped('kirby-copilot is not installed in this dev tree');
         }
 
         Client::reset();
-    }
-
-    protected function tearDown(): void
-    {
-        App::destroy();
     }
 
     /**
@@ -84,7 +79,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function prefers_constructor_system_prompt_over_config(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['ai' => ['systemPrompt' => 'from config']],
             ],
@@ -105,7 +100,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function overrides_default_system_prompt_with_config(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['ai' => ['systemPrompt' => 'from config']],
             ],
@@ -126,7 +121,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function applies_default_system_prompt_when_neither_constructor_nor_config_provides_one(): void
     {
-        new App();
+        self::bootApp();
 
         $captured = [];
         $client = $this->client([['translations' => ['Hallo']]], $captured);
@@ -143,7 +138,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function returns_translations_in_input_order(): void
     {
-        new App();
+        self::bootApp();
         $captured = [];
         $client = $this->client([['translations' => ['Hallo', 'Welt']]], $captured);
         $strategy = new CopilotAIStrategy(client: $client);
@@ -162,7 +157,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function chunks_input_when_unit_count_exceeds_batch_size(): void
     {
-        new App();
+        self::bootApp();
         $captured = [];
         $client = $this->client(
             [
@@ -187,7 +182,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function chunks_input_when_total_byte_size_exceeds_batch_limit(): void
     {
-        new App();
+        self::bootApp();
         $captured = [];
         $client = $this->client(
             [
@@ -214,7 +209,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function returns_null_when_translation_is_empty(): void
     {
-        new App();
+        self::bootApp();
         $captured = [];
         $client = $this->client([['translations' => ['', 'Hallo']]], $captured);
         $strategy = new CopilotAIStrategy(client: $client);
@@ -234,7 +229,7 @@ final class CopilotAIStrategyTest extends TestCase
     public function fires_translate_warning_hook_on_upstream_failure(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
                     $warnings[] = [
@@ -265,7 +260,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function throws_auth_exception_when_provider_lacks_api_key(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.copilot' => ['provider' => 'openai'],
             ],
@@ -285,7 +280,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function throws_empty_translation_as_message_when_every_translation_is_blank(): void
     {
-        new App();
+        self::bootApp();
         $client = $this->client([['translations' => ['', '']]]);
         $strategy = new CopilotAIStrategy(client: $client);
 
@@ -301,7 +296,7 @@ final class CopilotAIStrategyTest extends TestCase
     #[Test]
     public function returns_null_for_failed_units_when_others_succeed(): void
     {
-        new App();
+        self::bootApp();
         $captured = [];
         $client = $this->client([['translations' => array_fill(0, 50, 'X')]], $captured);
         $strategy = new CopilotAIStrategy(client: $client);

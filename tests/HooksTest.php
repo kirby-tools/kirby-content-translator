@@ -9,17 +9,11 @@ use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class HooksTest extends TestCase
+final class HooksTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     private static function pluginOptions(): array
     {
         return [
@@ -31,7 +25,7 @@ final class HooksTest extends TestCase
 
     private function appWithHomePage(array $hooks = [], string $homeText = 'Hello'): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
                 ['code' => 'de', 'name' => 'Deutsch'],
@@ -178,7 +172,7 @@ final class HooksTest extends TestCase
     public function warning_hook_receives_unit_reason_and_previous(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
                     $warnings[] = compact('unit', 'reason', 'previous');
@@ -211,7 +205,7 @@ final class HooksTest extends TestCase
     {
         $hookCalled = false;
 
-        new App([
+        self::bootApp([
             'hooks' => [
                 'content-translator.translate:before' => function ($text) use (&$hookCalled) {
                     $hookCalled = true;

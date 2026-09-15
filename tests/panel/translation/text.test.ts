@@ -4,9 +4,13 @@ import { translateText } from "../../../src/panel/translation/text";
 
 const mockApiPost = vi.fn();
 
-vi.mock("kirbyuse", () => ({
-  useApi: () => ({ post: mockApiPost }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    useApi: () => ({ post: mockApiPost }),
+  };
+});
 
 const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguage;
 

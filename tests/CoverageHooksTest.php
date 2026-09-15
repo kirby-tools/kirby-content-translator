@@ -8,34 +8,18 @@ use Kirby\Cms\Pages;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class CoverageHooksTest extends TestCase
+final class CoverageHooksTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
-    private static function pluginOptions(): array
-    {
-        return [
-            'johannschopplich.content-translator' => [
-                'cache' => ['type' => 'memory'],
-            ],
-        ];
-    }
-
     private function appWithHomePage(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
                 ['code' => 'de', 'name' => 'Deutsch'],
             ],
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -58,12 +42,11 @@ final class CoverageHooksTest extends TestCase
 
     private function appWithHomePageHavingUuid(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => [
                 ['code' => 'en', 'name' => 'English', 'default' => true],
                 ['code' => 'de', 'name' => 'Deutsch'],
             ],
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],

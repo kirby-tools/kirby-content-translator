@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 use Kirby\Cms\App;
 use Kirby\Exception\InvalidArgumentException;
-use Kirby\Filesystem\Dir;
+use Kirby\Filesystem\F;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,24 +13,44 @@ use PHPUnit\Framework\Attributes\Test;
 #[PreserveGlobalState(false)]
 final class BatchRoutesTest extends ApiRouteTestCase
 {
-    private string $root;
+    private const APP_PROPS = [
+        'languages' => [
+            ['code' => 'en', 'name' => 'English', 'default' => true],
+            ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+            ['code' => 'fr', 'name' => 'Français']
+        ],
+        'users' => [
+            ['id' => 'editor', 'email' => 'editor@example.com', 'name' => 'Editor', 'role' => 'admin'],
+            ['id' => 'colleague', 'email' => 'colleague@example.com', 'name' => 'Colleague', 'role' => 'admin'],
+            ['id' => 'reader', 'email' => 'reader@example.com', 'role' => 'reader'],
+            ['id' => 'writer', 'email' => 'writer@example.com', 'role' => 'writer']
+        ],
+        'roles' => [
+            ['name' => 'admin'],
+            ['name' => 'reader', 'permissions' => ['pages' => ['update' => false]]],
+            ['name' => 'writer', 'permissions' => ['pages' => ['changeTitle' => false]]]
+        ],
+        'blueprints' => [
+            'pages/default' => [
+                'fields' => [
+                    'teaser' => ['type' => 'text', 'maxlength' => 10],
+                    'author' => ['type' => 'text', 'required' => true],
+                    'text' => ['type' => 'textarea']
+                ]
+            ]
+        ]
+    ];
 
     protected function setUp(): void
     {
+        parent::setUp();
+
         // Kirby's memory storage drops a language's content when a later
         // title or slug change clones the page, so the page lives on disk.
-        $this->root = __DIR__ . '/tmp';
-        mkdir($this->root . '/content/1_about', recursive: true);
-        file_put_contents(
-            $this->root . '/content/1_about/default.en.txt',
+        F::write(
+            self::indexRoot() . '/content/1_about/default.en.txt',
             "Title: About\n\n----\n\nTeaser: Short\n\n----\n\nAuthor: \n\n----\n\nText: Hello\n"
         );
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        Dir::remove($this->root);
     }
 
     /**
@@ -38,34 +58,9 @@ final class BatchRoutesTest extends ApiRouteTestCase
      */
     private function app(array $request, bool $isLockingEnabled = true, string $userId = 'editor'): App
     {
-        $app = new App([
-            'roots' => ['index' => $this->root],
+        $app = self::bootApp([
+            ...self::APP_PROPS,
             'options' => ['content.locking' => $isLockingEnabled],
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true],
-                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
-                ['code' => 'fr', 'name' => 'Français']
-            ],
-            'users' => [
-                ['id' => 'editor', 'email' => 'editor@example.com', 'name' => 'Editor', 'role' => 'admin'],
-                ['id' => 'colleague', 'email' => 'colleague@example.com', 'name' => 'Colleague', 'role' => 'admin'],
-                ['id' => 'reader', 'email' => 'reader@example.com', 'role' => 'reader'],
-                ['id' => 'writer', 'email' => 'writer@example.com', 'role' => 'writer']
-            ],
-            'roles' => [
-                ['name' => 'admin'],
-                ['name' => 'reader', 'permissions' => ['pages' => ['update' => false]]],
-                ['name' => 'writer', 'permissions' => ['pages' => ['changeTitle' => false]]]
-            ],
-            'blueprints' => [
-                'pages/default' => [
-                    'fields' => [
-                        'teaser' => ['type' => 'text', 'maxlength' => 10],
-                        'author' => ['type' => 'text', 'required' => true],
-                        'text' => ['type' => 'textarea']
-                    ]
-                ]
-            ],
             'request' => $request
         ]);
 
@@ -81,7 +76,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
     {
         $app = $this->app(['method' => 'POST', 'body' => ['path' => 'pages/about', ...$body]]);
 
-        return $this->callRoute($app, '__content-translator__/batch-write');
+        return $this->callRoute($app, '__content-translator__/batch-write', 'POST');
     }
 
     private static function editAs(string $userId, string $language): void
@@ -152,7 +147,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
             userId: 'writer'
         );
 
-        $response = $this->callRoute($app, '__content-translator__/batch-write');
+        $response = $this->callRoute($app, '__content-translator__/batch-write', 'POST');
         $page = $app->page('about');
 
         $this->assertSame('saved', $response['status']);
@@ -167,7 +162,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $app = $this->app(['method' => 'POST', 'body' => ['path' => 'pages/about', 'language' => 'de', 'content' => ['text' => 'Hallo']]]);
         self::editAs('colleague', 'fr');
 
-        $response = $this->callRoute($app, '__content-translator__/batch-write');
+        $response = $this->callRoute($app, '__content-translator__/batch-write', 'POST');
 
         $this->assertSame(['status' => 'locked', 'lockedBy' => 'Colleague'], $response);
         $this->assertFalse($app->page('about')->version()->exists('de'));
@@ -179,7 +174,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $app = $this->app(['method' => 'POST', 'body' => ['path' => 'pages/about', 'language' => 'de', 'content' => ['text' => 'Hallo']]]);
         self::editAs('editor', 'de');
 
-        $response = $this->callRoute($app, '__content-translator__/batch-write');
+        $response = $this->callRoute($app, '__content-translator__/batch-write', 'POST');
 
         $this->assertSame(['status' => 'unsavedChanges'], $response);
         $this->assertFalse($app->page('about')->version()->exists('de'));
@@ -191,7 +186,7 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $app = $this->app(['method' => 'POST', 'body' => ['path' => 'pages/about', 'language' => 'de', 'content' => ['text' => 'Hallo']]], isLockingEnabled: false);
         self::editAs('colleague', 'fr');
 
-        $response = $this->callRoute($app, '__content-translator__/batch-write');
+        $response = $this->callRoute($app, '__content-translator__/batch-write', 'POST');
 
         $this->assertSame('saved', $response['status']);
     }

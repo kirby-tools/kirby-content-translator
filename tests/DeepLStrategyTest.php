@@ -12,30 +12,25 @@ use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class DeepLStrategyTest extends TestCase
+final class DeepLStrategyTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
+    private const APP_PROPS = [
+        'languages' => [
+            ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
+            ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
+        ],
+        'options' => [
+            'debug' => true,
+            'johannschopplich.content-translator' => ['DeepL.apiKey' => 'test-key:fx'],
+        ],
+    ];
 
     private function appWithDeepLConfig(array $hooks = []): App
     {
-        return new App([
-            'languages' => [
-                ['code' => 'en', 'name' => 'English', 'default' => true, 'locale' => 'en_US'],
-                ['code' => 'de', 'name' => 'Deutsch', 'locale' => 'de_DE'],
-            ],
-            'options' => [
-                'debug' => true,
-                'johannschopplich.content-translator' => ['DeepL.apiKey' => 'test-key:fx'],
-            ],
-            'hooks' => $hooks,
-        ]);
+        return self::bootApp([...self::APP_PROPS, 'hooks' => $hooks]);
     }
 
     /**

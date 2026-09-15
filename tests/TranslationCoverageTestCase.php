@@ -3,15 +3,9 @@
 declare(strict_types = 1);
 
 use Kirby\Cms\App;
-use PHPUnit\Framework\TestCase;
 
-abstract class TranslationCoverageTestCase extends TestCase
+abstract class TranslationCoverageTestCase extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     protected static function threeLanguages(): array
     {
         return [
@@ -29,28 +23,17 @@ abstract class TranslationCoverageTestCase extends TestCase
         ];
     }
 
-    protected static function pluginOptions(): array
-    {
-        return [
-            'johannschopplich.content-translator' => [
-                'cache' => ['type' => 'memory'],
-            ],
-        ];
-    }
-
     protected function appWithLanguagesOnly(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
-            'options' => self::pluginOptions(),
         ]);
     }
 
     protected function appWithMixedCoverageFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => [
@@ -136,9 +119,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithMissingTranslationsFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -168,9 +150,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithEmptyBlocksTranslationFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::twoLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['blocks' => ['type' => 'blocks', 'translate' => true]],
@@ -195,9 +176,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithEmptyDefaultContentFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::twoLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -220,9 +200,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithPartiallyFilledSourceFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::twoLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => [
@@ -248,9 +227,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithUuidPageFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::twoLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],
@@ -276,9 +254,8 @@ abstract class TranslationCoverageTestCase extends TestCase
 
     protected function appWithNestedPagesFixture(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::twoLanguages(),
-            'options' => self::pluginOptions(),
             'blueprints' => [
                 'pages/default' => [
                     'fields' => ['text' => ['type' => 'text', 'translate' => true]],

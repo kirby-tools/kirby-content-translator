@@ -1,11 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const get = vi.fn();
 
 beforeEach(() => {
   vi.resetModules();
   get.mockReset();
-  (globalThis as any).window = { panel: { api: { get } } };
+  vi.stubGlobal("window", { panel: { api: { get } } });
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
 });
 
 describe("usePluginContext", () => {

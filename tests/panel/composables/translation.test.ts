@@ -8,7 +8,7 @@ import type {
   TranslatorOptions,
 } from "../../../src/panel/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { blocksField, field } from "../translation/utils";
+import { blocksField, field } from "../utils";
 
 // Assigned in `beforeEach` and read lazily by the `kirbyuse` mock below.
 let panel: ReturnType<typeof createPanelStub>;
@@ -29,13 +29,9 @@ let batchWrite: Mock<
 >;
 
 vi.mock("kirbyuse", async () => {
-  const { computed, effectScope, ref } =
-    await vi.importActual<typeof import("vue")>("vue");
-
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
-    computed,
-    ref,
-    effectScope,
+    ...baseKirbyuseMock(),
     isKirby5: () => true,
     usePanel: () => panel,
     useApi: () => panel.api,

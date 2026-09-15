@@ -13,18 +13,12 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class TranslatorTest extends TestCase
+final class TranslatorTest extends ApiRouteTestCase
 {
     use ContractFixture;
-
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
 
     private static function threeLanguages(): array
     {
@@ -98,7 +92,7 @@ final class TranslatorTest extends TestCase
 
     private function appWithUntranslatableFieldsPage(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -130,7 +124,7 @@ final class TranslatorTest extends TestCase
 
     private function appWithTranslateFn(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'options' => self::pluginOptions(),
         ]);
@@ -138,7 +132,7 @@ final class TranslatorTest extends TestCase
 
     private function appWithScalarFieldPage(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -199,7 +193,7 @@ final class TranslatorTest extends TestCase
             ]],
         ]);
 
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -276,7 +270,7 @@ final class TranslatorTest extends TestCase
             ],
         ]);
 
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -330,7 +324,7 @@ final class TranslatorTest extends TestCase
 
     private function appWithFilterableFieldsPage(): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -373,7 +367,7 @@ final class TranslatorTest extends TestCase
 
     private function appWithKirbyTagsPage(\Closure|null $translateFn = null): App
     {
-        return new App([
+        return self::bootApp([
             'languages' => self::threeLanguages(),
             'blueprints' => [
                 'pages/default' => [
@@ -588,7 +582,7 @@ final class TranslatorTest extends TestCase
     public function translate_title_keeps_the_target_title_when_the_translation_is_rejected(): void
     {
         $titleChanges = [];
-        $app = new App([
+        $app = self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'page.changeTitle:after' => function () use (&$titleChanges) {
@@ -621,7 +615,7 @@ final class TranslatorTest extends TestCase
     public function translate_slug_keeps_the_target_slug_when_the_translation_is_rejected(): void
     {
         $slugChanges = [];
-        $app = new App([
+        $app = self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'page.changeSlug:after' => function () use (&$slugChanges) {
@@ -902,7 +896,7 @@ final class TranslatorTest extends TestCase
     public function fires_translate_warning_hook_on_placeholder_mismatch(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
@@ -920,7 +914,7 @@ final class TranslatorTest extends TestCase
     public function fires_no_translate_warning_hook_for_a_null_translation(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
@@ -943,7 +937,7 @@ final class TranslatorTest extends TestCase
     public function fires_translate_warning_hook_for_a_unit_the_strategy_answered_short(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
@@ -1096,7 +1090,7 @@ final class TranslatorTest extends TestCase
     public function fires_translate_warning_hook_on_an_empty_translation(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
@@ -1114,7 +1108,7 @@ final class TranslatorTest extends TestCase
     public function keeps_source_text_when_a_strategy_returns_a_non_string(): void
     {
         $warnings = [];
-        new App([
+        self::bootApp([
             'languages' => self::threeLanguages(),
             'hooks' => [
                 'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {

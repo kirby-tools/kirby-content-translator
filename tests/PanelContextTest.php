@@ -6,25 +6,18 @@ use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
-use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class PanelContextTest extends TestCase
+final class PanelContextTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     #[Test]
     public function omits_options_the_panel_never_reads(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'coverage' => ['pages' => fn () => []],
@@ -53,7 +46,7 @@ final class PanelContextTest extends TestCase
             }
         };
 
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => $strategy],
             ],
@@ -68,7 +61,7 @@ final class PanelContextTest extends TestCase
     #[Test]
     public function reduces_the_deepl_options_to_an_api_key_flag(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'DeepL' => [
@@ -91,7 +84,7 @@ final class PanelContextTest extends TestCase
             $this->markTestSkipped('kirby-copilot is not installed in this dev tree');
         }
 
-        new App([
+        self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
                     'ai' => ['systemPrompt' => 'Translate like a lawyer.'],

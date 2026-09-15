@@ -3,28 +3,21 @@
 declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\KirbyText;
-use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
-use PHPUnit\Framework\TestCase;
 
 /**
  * Covers the deprecated v3 `KirbyText::translateText()` path only.
  */
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
-final class KirbyTextLegacyTest extends TestCase
+final class KirbyTextLegacyTest extends ApiRouteTestCase
 {
-    protected function tearDown(): void
-    {
-        App::destroy();
-    }
-
     #[Test]
     public function deprecated_translate_text_still_translates_a_configured_tag_attribute(): void
     {
-        new App([
+        self::bootApp([
             'options' => [
                 'debug' => true,
                 'johannschopplich.content-translator' => [

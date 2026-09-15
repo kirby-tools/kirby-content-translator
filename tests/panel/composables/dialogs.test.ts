@@ -1,7 +1,7 @@
 import type { PanelLanguage } from "kirby-types";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTranslationDialogs } from "../../../src/panel/composables/dialogs";
-import { copilotWith } from "../copilot";
+import { copilotWith } from "../helpers/mock-copilot";
 
 // Assigned per test and read lazily by the mocks below.
 let copilot: Record<string, unknown> | undefined;
@@ -12,14 +12,18 @@ const LANGUAGES = [
   { code: "fr", name: "Français", default: false },
 ] as PanelLanguage[];
 
-vi.mock("kirbyuse", () => ({
-  usePanel: () => ({
-    t: (key: string) => key,
-    languages: LANGUAGES,
-    plugins: { thirdParty: copilot ? { copilot } : {} },
-  }),
-  useDialog: () => ({ openFieldsDialog }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    usePanel: () => ({
+      t: (key: string) => key,
+      languages: LANGUAGES,
+      plugins: { thirdParty: copilot ? { copilot } : {} },
+    }),
+    useDialog: () => ({ openFieldsDialog }),
+  };
+});
 
 function openTranslationDialog() {
   return useTranslationDialogs().openTranslationDialog();
@@ -40,6 +44,10 @@ describe("openTranslationDialog", () => {
     });
     localStorage.setItem("kirby$content-translator$preferences$provider", "ai");
     openFieldsDialog = vi.fn(async () => ({ strategyName: "deepl" }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it("returns strategy deepl without opening the dialog when Copilot has no API key", async () => {

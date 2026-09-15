@@ -1,13 +1,17 @@
 import type { TranslationStrategy } from "../../../src/panel/translation/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AIStrategy, translateContent } from "../../../src/panel/translation";
-import { field } from "./utils";
+import { field } from "../utils";
 
 const mockStreamText = vi.fn();
 
-vi.mock("kirbyuse", () => ({
-  useApi: () => ({ post: vi.fn() }),
-}));
+vi.mock("kirbyuse", async () => {
+  const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  return {
+    ...baseKirbyuseMock(),
+    useApi: () => ({ post: vi.fn() }),
+  };
+});
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(() => ({

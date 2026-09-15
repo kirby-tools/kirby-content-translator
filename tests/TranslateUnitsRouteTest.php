@@ -2,7 +2,6 @@
 
 declare(strict_types = 1);
 
-use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,18 +18,22 @@ final class TranslateUnitsRouteTest extends ApiRouteTestCase
 {
     use ContractFixture;
 
+    private const APP_PROPS = [
+        'languages' => [
+            ['code' => 'en', 'default' => true, 'name' => 'English'],
+            ['code' => 'de', 'name' => 'Deutsch']
+        ]
+    ];
+
     /**
      * @param list<string> $texts
      */
     private function callTranslateUnitsRoute(array $texts, Closure $strategy): mixed
     {
-        $app = new App([
+        $app = self::bootApp([
+            ...self::APP_PROPS,
             'options' => [
                 'johannschopplich.content-translator' => ['strategy' => $strategy]
-            ],
-            'languages' => [
-                ['code' => 'en', 'default' => true, 'name' => 'English'],
-                ['code' => 'de', 'name' => 'Deutsch']
             ],
             'request' => [
                 'method' => 'POST',
@@ -38,7 +41,7 @@ final class TranslateUnitsRouteTest extends ApiRouteTestCase
             ]
         ]);
 
-        return $this->callRoute($app, '__content-translator__/translate-units');
+        return $this->callRoute($app, '__content-translator__/translate-units', 'POST');
     }
 
     #[Test]
