@@ -26,6 +26,16 @@ _Avoid_: skipped, status
 A field that fails its blueprint validation in a language a batch translation saved.
 _Avoid_: violation, form error
 
+### Models
+
+**Host**:
+The model whose view starts a run.
+_Avoid_: parent, owner
+
+**Cascade**:
+The models a run translates along with its host, named by the host's blueprint and always saved directly.
+_Avoid_: related models, children, linked models
+
 ### Fields
 
 **Eligible field**:
