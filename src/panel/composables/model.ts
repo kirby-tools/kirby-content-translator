@@ -39,8 +39,10 @@ export function useModel() {
     return response;
   }
 
+  // `model.update` fires without naming its model, so the open view's entry
+  // is not always the stale one.
   function clearModelData() {
-    modelDataCache.delete(panel.view.path);
+    modelDataCache.clear();
   }
 
   function isFileModel() {
@@ -53,7 +55,6 @@ export function useModel() {
 
   return {
     getModelData,
-    clearModelData,
     isFileModel,
     isSiteModel,
   };
