@@ -351,6 +351,23 @@ describe("useContentTranslator", () => {
       );
     });
 
+    it("refetches the site after site.changeTitle", async () => {
+      panel.view.path = "site";
+      const translator = await createContentTranslator({
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      panel.events.emit("site.changeTitle");
+      modelData = { ...modelData, title: "Renamed" };
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(batchWrite).toHaveBeenLastCalledWith(
+        expect.objectContaining({ title: "Renamed (translated)" }),
+      );
+    });
+
     it("aborts before translating while another user edits the content", async () => {
       batchStatus.lockedBy = "Colleague";
 

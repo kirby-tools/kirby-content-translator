@@ -14,6 +14,7 @@ export function useModel() {
     panel.events.on("model.update", clearModelDataCache);
     panel.events.on("page.changeSlug", clearModelDataCache);
     panel.events.on("page.changeTitle", clearModelDataCache);
+    panel.events.on("site.changeTitle", clearModelDataCache);
     isListenerRegistered = true;
   }
 
