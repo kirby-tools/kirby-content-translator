@@ -19,6 +19,7 @@ export interface ResolvedTranslatorConfig {
   excludeFields: string[];
   kirbyTags: Record<string, string[]>;
   systemPrompt: string | undefined;
+  hasCascade: boolean;
 }
 
 export interface StrategyAvailability {
@@ -50,6 +51,7 @@ export function resolveTranslatorConfig(
     ),
     kirbyTags: options.kirbyTags ?? config.kirbyTags ?? {},
     systemPrompt: options.systemPrompt ?? config.ai?.systemPrompt ?? undefined,
+    hasCascade: [options.cascade ?? []].flat().length > 0,
   };
 }
 

@@ -3,6 +3,7 @@ import type { Mock } from "vitest";
 import type {
   BatchStatusResponse,
   BatchWriteResponse,
+  CascadeModelResponse,
   PluginConfig,
   PluginContextResponse,
   TranslatorOptions,
@@ -22,6 +23,12 @@ let modelData: {
   blueprint: { name: string };
 };
 let batchStatus: BatchStatusResponse;
+let cascade: CascadeModelResponse[];
+// Default-language data of the cascaded models, keyed by their path.
+let cascadeModelData: Record<
+  string,
+  { id: string; title: string; content: Record<string, unknown> }
+>;
 // The translate route and the batch write route share `panel.api.post`.
 let translateBatch: Mock<(route: string, payload: any) => Promise<unknown>>;
 let batchWrite: Mock<
@@ -175,9 +182,14 @@ describe("useContentTranslator", () => {
     );
     batchWrite = vi.fn(async () => ({ status: "saved" }));
 
-    panel.api.get.mockImplementation(async (path: string) =>
-      path === "__content-translator__/batch-status" ? batchStatus : modelData,
-    );
+    cascade = [];
+    cascadeModelData = {};
+
+    panel.api.get.mockImplementation(async (path: string) => {
+      if (path === "__content-translator__/batch-status") return batchStatus;
+      if (path === "__content-translator__/cascade") return cascade;
+      return cascadeModelData[path] ?? modelData;
+    });
     panel.api.post.mockImplementation(
       async (route: string, payload: Record<string, unknown>) =>
         route === "__content-translator__/batch-write"
@@ -555,6 +567,63 @@ describe("useContentTranslator", () => {
           title: "Example (translated)",
         }),
       );
+    });
+  });
+
+  describe("cascade", () => {
+    function cascadeIntroPage(status: Partial<BatchStatusResponse> = {}) {
+      cascade = [
+        {
+          path: "pages/example+intro",
+          title: "Intro",
+          fields: { text: field({ type: "text", name: "text" }) },
+          status: {
+            isUpdateAllowed: true,
+            isTitleChangeAllowed: true,
+            lockedBy: null,
+            languagesWithUnsavedChanges: [],
+            ...status,
+          },
+        },
+      ];
+      cascadeModelData["pages/example+intro"] = {
+        id: "example/intro",
+        title: "Intro",
+        content: { text: "Welcome" },
+      };
+    }
+
+    it("writes a cascaded model into the selected language under its own path", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(batchWrite.mock.calls.map(([request]) => request)).toEqual([
+        expect.objectContaining({
+          path: "pages/example",
+          content: { text: "Hello (translated)" },
+        }),
+        expect.objectContaining({
+          path: "pages/example+intro",
+          language: "fr",
+          content: { text: "Welcome (translated)" },
+        }),
+      ]);
+    });
+
+    it("never requests the cascade without the cascade option", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(batchWrite).toHaveBeenCalledTimes(1);
     });
   });
 

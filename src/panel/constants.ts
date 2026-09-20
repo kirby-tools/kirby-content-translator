@@ -4,6 +4,7 @@ export const TRANSLATE_UNITS_API_ROUTE =
   "__content-translator__/translate-units";
 export const BATCH_STATUS_API_ROUTE = "__content-translator__/batch-status";
 export const BATCH_WRITE_API_ROUTE = "__content-translator__/batch-write";
+export const CASCADE_API_ROUTE = "__content-translator__/cascade";
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 

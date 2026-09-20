@@ -7,6 +7,7 @@ import type {
   PanelModelData,
 } from "kirby-types";
 import type { BatchOutcome } from "../translation/batch";
+import type { BatchCandidate } from "../translation/batch-plan";
 import type {
   ContentTranslationResult,
   TranslationRejection,
@@ -14,6 +15,7 @@ import type {
 import type {
   BatchStatusResponse,
   BatchWriteResponse,
+  CascadeModelResponse,
   PluginConfig,
   PluginContextResponse,
   StrategyName,
@@ -23,6 +25,7 @@ import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
 import {
   BATCH_STATUS_API_ROUTE,
   BATCH_WRITE_API_ROUTE,
+  CASCADE_API_ROUTE,
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
 } from "../constants";
 import {
@@ -93,6 +96,7 @@ export function useContentTranslator() {
   const kirbyTags = ref<Record<string, string[]>>({});
   const strategyName = ref<StrategyName>("deepl");
   const systemPrompt = ref<string>();
+  const hasCascade = ref(false);
   // #endregion
 
   // #region Runtime state
@@ -132,6 +136,8 @@ export function useContentTranslator() {
     excludeFields.value = resolvedConfig.excludeFields;
     kirbyTags.value = resolvedConfig.kirbyTags;
     systemPrompt.value = resolvedConfig.systemPrompt;
+    // The cascade is saved through `batch-write`, which needs Kirby 5.
+    hasCascade.value = isKirby5() && resolvedConfig.hasCascade;
 
     fields.value = options.fields ?? {};
     config.value = context.config;
@@ -665,7 +671,9 @@ export function useContentTranslator() {
           fields: fields.value!,
           status: batchStatus,
         },
-        [],
+        hasCascade.value
+          ? await getCascadeCandidates(path, sourceLanguage.code)
+          : [],
         {
           selectedLanguages,
           defaultLanguageCode: sourceLanguage.code,
@@ -757,6 +765,42 @@ export function useContentTranslator() {
       console.error("Failed to batch translate content:", error);
       panel.notification.error((error as Error).message);
     }
+  }
+
+  /**
+   * Loads the default-language content of every cascaded model afresh: a
+   * cascaded model has no open view whose events could clear a cache.
+   */
+  async function getCascadeCandidates(
+    hostPath: string,
+    defaultLanguageCode: string,
+  ): Promise<BatchCandidate[]> {
+    const cascade = await panel.api.get<CascadeModelResponse[]>(
+      CASCADE_API_ROUTE,
+      { path: hostPath },
+      undefined,
+      true,
+    );
+
+    return await Promise.all(
+      cascade.map(async ({ path, fields, status }) => {
+        const defaultLanguageData = await panel.api.get<PanelModelData>(
+          path,
+          { language: defaultLanguageCode },
+          undefined,
+          true,
+        );
+
+        return {
+          path,
+          isHomePage: defaultLanguageData.id === homePageId.value,
+          isErrorPage: defaultLanguageData.id === errorPageId.value,
+          defaultLanguageData,
+          fields,
+          status,
+        };
+      }),
+    );
   }
 
   async function isHomePage() {

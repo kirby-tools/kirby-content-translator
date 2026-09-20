@@ -29,6 +29,7 @@ return [
 
                 return $kirbyTags;
             },
+            'cascade' => fn ($cascade = null) => is_string($cascade) || is_array($cascade) ? $cascade : null,
             'systemPrompt' => fn ($systemPrompt = null) => is_string($systemPrompt) ? trim($systemPrompt) : null
         ],
         'computed' => [

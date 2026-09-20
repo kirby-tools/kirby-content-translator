@@ -46,6 +46,15 @@ export interface BatchStatusResponse {
   languagesWithUnsavedChanges: string[];
 }
 
+export interface CascadeModelResponse {
+  /** Panel API path, such as `pages/notes+exploring`. */
+  path: string;
+  /** Title of a page or filename of a file. */
+  title: string;
+  fields: Record<string, KirbyFieldProps>;
+  status: BatchStatusResponse;
+}
+
 export interface BatchWriteRequest {
   path: string;
   language: string;
@@ -84,6 +93,8 @@ export interface TranslatorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
+  /** Queries for the models a run translates along with its host. */
+  cascade?: string | string[];
   /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`). */
   systemPrompt?: string;
   /** Only available when passed from section computed props. */

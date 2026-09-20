@@ -45,6 +45,9 @@ const props = defineProps({
   kirbyTags: {
     type: Object as PropType<Record<string, string[]>>,
   },
+  cascade: {
+    type: [String, Array] as PropType<string | string[]>,
+  },
   theme: {
     type: String,
     default: "notice-icon",
