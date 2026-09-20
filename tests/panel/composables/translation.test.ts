@@ -676,7 +676,7 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
-    it("never requests the cascade without the cascade option", async () => {
+    it("translates only the host without the cascade option", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({
         fields: { text: field({ type: "text", name: "text" }) },
@@ -684,7 +684,9 @@ describe("useContentTranslator", () => {
 
       await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
 
-      expect(batchWrite).toHaveBeenCalledTimes(1);
+      expect(batchWrite.mock.calls.map(([{ path }]) => path)).toEqual([
+        "pages/example",
+      ]);
     });
   });
 
