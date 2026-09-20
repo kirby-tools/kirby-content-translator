@@ -6,7 +6,7 @@ import type {
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
-import type { BatchModel, BatchOutcome } from "../translation/batch";
+import type { BatchOutcome } from "../translation/batch";
 import type {
   ContentTranslationResult,
   TranslationRejection,
@@ -32,6 +32,7 @@ import {
   translateTitle,
 } from "../translation";
 import { runBatchTranslation } from "../translation/batch";
+import { planBatchRun } from "../translation/batch-plan";
 import { planImport, planSingleTranslation } from "../translation/plan";
 import {
   mergeTranslationResults,
@@ -652,27 +653,39 @@ export function useContentTranslator() {
         return;
       }
 
-      const model: BatchModel = {
-        path,
-        isHomePage: defaultLanguageData.id === homePageId.value,
-        isErrorPage: defaultLanguageData.id === errorPageId.value,
-        defaultLanguageData,
-        fields: fields.value!,
-        targetLanguages: selectedLanguages.filter(
-          ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code),
-        ),
-        settings: {
-          fieldTypes: fieldTypes.value,
-          includeFields: includeFields.value,
-          excludeFields: excludeFields.value,
-          kirbyTags: kirbyTags.value,
-          isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
-          isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+      const sourceLanguage = panel.languages.find(
+        (language) => language.default,
+      )!;
+      const { models, heldBack } = planBatchRun(
+        {
+          path,
+          isHomePage: defaultLanguageData.id === homePageId.value,
+          isErrorPage: defaultLanguageData.id === errorPageId.value,
+          defaultLanguageData,
+          fields: fields.value!,
+          status: batchStatus,
         },
-      };
+        [],
+        {
+          selectedLanguages,
+          defaultLanguageCode: sourceLanguage.code,
+          settings: {
+            fieldTypes: fieldTypes.value,
+            includeFields: includeFields.value,
+            excludeFields: excludeFields.value,
+            kirbyTags: kirbyTags.value,
+            isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+            isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+          },
+        },
+      );
+      const pairCount = models.reduce(
+        (count, model) => count + model.targetLanguages.length,
+        0,
+      );
 
-      if (model.targetLanguages.length > 0) {
-        notifyProgress(0, model.targetLanguages.length);
+      if (pairCount > 0) {
+        notifyProgress(0, pairCount);
       }
 
       const strategy =
@@ -680,8 +693,8 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      const translatedOutcomes = await runBatchTranslation([model], {
-        sourceLanguage: panel.languages.find((language) => language.default)!,
+      const translatedOutcomes = await runBatchTranslation(models, {
+        sourceLanguage,
         strategy,
         concurrency:
           config.value?.batchConcurrency ??
@@ -694,11 +707,16 @@ export function useContentTranslator() {
         onProgress: notifyProgress,
       });
 
-      const outcomes = selectedLanguages.map(
-        (language): BatchOutcome =>
-          translatedOutcomes.find(
-            (outcome) => outcome.language.code === language.code,
-          ) ?? { model, language, status: "unsavedChanges" },
+      // One outcome per model and selected language, the host first.
+      const outcomes = models.flatMap((model) =>
+        selectedLanguages.flatMap(
+          (language) =>
+            [...heldBack, ...translatedOutcomes].find(
+              (outcome) =>
+                outcome.model === model &&
+                outcome.language.code === language.code,
+            ) ?? [],
+        ),
       );
 
       const hasReport = outcomes.some(shouldReportBatchOutcome);
