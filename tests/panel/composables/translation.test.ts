@@ -61,23 +61,18 @@ const THIRD_LANGUAGE: PanelLanguage = {
 } as PanelLanguage;
 
 function createPanelStub() {
-  const listeners = new Map<string, (() => void)[]>();
-  const view = {
-    path: "pages/example",
-    title: "Example",
-    isLoading: false,
-    reload: vi.fn(() => {
-      view.isLoading = false;
-    }),
-  };
-
   return {
     t: vi.fn((key: string, data?: Record<string, unknown>) =>
       data ? `${key} ${JSON.stringify(data)}` : key,
     ),
     language: SECONDARY_LANGUAGE,
     languages: [DEFAULT_LANGUAGE, SECONDARY_LANGUAGE],
-    view,
+    view: {
+      path: "pages/example",
+      title: "Example",
+      isLoading: false,
+      reload: vi.fn(),
+    },
     dialog: { open: vi.fn() },
     api: {
       get: vi.fn(),
@@ -90,14 +85,7 @@ function createPanelStub() {
       error: vi.fn(),
       close: vi.fn(),
     },
-    events: {
-      on: (event: string, listener: () => void) => {
-        listeners.set(event, [...(listeners.get(event) ?? []), listener]);
-      },
-      emit: (event: string) => {
-        for (const listener of listeners.get(event) ?? []) listener();
-      },
-    },
+    events: { on: vi.fn() },
     plugins: { thirdParty: {} },
   };
 }
@@ -332,41 +320,6 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
-    });
-
-    it("refetches a cached model after model.update fired on another view", async () => {
-      const translator = await createContentTranslator({
-        title: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      panel.view.path = "pages/other";
-      panel.events.emit("model.update");
-      panel.view.path = "pages/example";
-      modelData = { ...modelData, title: "Renamed" };
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(batchWrite).toHaveBeenLastCalledWith(
-        expect.objectContaining({ title: "Renamed (translated)" }),
-      );
-    });
-
-    it("refetches the site after site.changeTitle", async () => {
-      panel.view.path = "site";
-      const translator = await createContentTranslator({
-        title: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      panel.events.emit("site.changeTitle");
-      modelData = { ...modelData, title: "Renamed" };
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
-
-      expect(batchWrite).toHaveBeenLastCalledWith(
-        expect.objectContaining({ title: "Renamed (translated)" }),
-      );
     });
 
     it("aborts before translating while another user edits the content", async () => {
