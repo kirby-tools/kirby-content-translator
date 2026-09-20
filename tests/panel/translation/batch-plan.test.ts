@@ -23,6 +23,7 @@ function createCandidate(
 ): BatchCandidate {
   return {
     path,
+    title: path,
     isHomePage: false,
     isErrorPage: false,
     defaultLanguageData: { id: path, title: path, content: {} },

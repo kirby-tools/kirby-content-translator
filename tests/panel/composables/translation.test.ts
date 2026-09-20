@@ -615,6 +615,67 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("labels a report entry of a run with a cascade by model and language", async () => {
+      batchStatus.languagesWithUnsavedChanges = ["fr"];
+      cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(reportDialog().details.map(({ label }) => label)).toEqual([
+        "Example – Français",
+        "Intro – Français",
+      ]);
+    });
+
+    it("counts the translations of every model in the report message of a run with a cascade", async () => {
+      cascadeIntroPage({ lockedBy: "Colleague" });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([
+        SECONDARY_LANGUAGE,
+        THIRD_LANGUAGE,
+      ]);
+
+      expect(reportDialog().message).toBe(
+        'johannschopplich.content-translator.batchReport.cascadeMessage {"saved":2,"total":4}',
+      );
+    });
+
+    it("names a kept field of a cascaded model by the label in its own blueprint", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      cascadeIntroPage();
+      cascade[0]!.fields = {
+        text: field({ type: "text", name: "text", label: "Welcome text" }),
+      };
+      translateBatch.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) =>
+          payload.texts[0] === "Welcome"
+            ? {
+                texts: payload.texts,
+                rejections: [{ index: 0, reason: "placeholder mismatch" }],
+              }
+            : { texts: payload.texts.map((text) => `${text} (translated)`) },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text", label: "Body" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(lastNotification().message).toBe(
+        'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Intro – Français (Welcome text)"}',
+      );
+      warn.mockRestore();
+    });
+
     it("never requests the cascade without the cascade option", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({

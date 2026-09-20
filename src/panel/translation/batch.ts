@@ -17,6 +17,8 @@ import { translateTitle } from "./text";
 export interface BatchModel {
   /** Panel API path, such as `pages/notes+exploring` or `site`. */
   path: string;
+  /** Name in the report: the title of a page or the filename of a file. */
+  title: string;
   isHomePage: boolean;
   isErrorPage: boolean;
   defaultLanguageData: PanelModelData;
@@ -95,7 +97,7 @@ export async function runBatchTranslation(
         return outcome;
       } catch (error) {
         console.error(
-          `Failed to translate into "${pair.language.code}":`,
+          `Failed to translate "${pair.model.path}" into "${pair.language.code}":`,
           error,
         );
         return {

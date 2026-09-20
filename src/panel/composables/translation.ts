@@ -280,7 +280,7 @@ export function useContentTranslator() {
       }
 
       return [
-        `${outcome.language.name} (${listKeptSourceFields(outcome.result.rejections)})`,
+        `${batchOutcomeLabel(outcome, outcomes)} (${listKeptSourceFields(outcome.result.rejections, outcome.model.fields)})`,
       ];
     });
 
@@ -302,9 +302,14 @@ export function useContentTranslator() {
     );
   }
 
-  function listKeptSourceFields(rejections: TranslationRejection[]) {
+  function listKeptSourceFields(
+    rejections: TranslationRejection[],
+    modelFields = fields.value,
+  ) {
     const uniqueLabels = [
-      ...new Set(rejections.map(({ fieldKey }) => fieldLabel(fieldKey))),
+      ...new Set(
+        rejections.map(({ fieldKey }) => fieldLabel(fieldKey, modelFields)),
+      ),
     ];
     const namedLabels = uniqueLabels.slice(0, MAX_NAMED_FIELDS).join(", ");
     if (uniqueLabels.length <= MAX_NAMED_FIELDS) return namedLabels;
@@ -324,9 +329,18 @@ export function useContentTranslator() {
     return outcomes.flatMap((outcome) => {
       const lines = describeBatchOutcome(outcome);
       return lines.length > 0
-        ? [{ label: outcome.language.name, message: lines }]
+        ? [{ label: batchOutcomeLabel(outcome, outcomes), message: lines }]
         : [];
     });
+  }
+
+  /** Names the model next to the language once a run has a cascade. */
+  function batchOutcomeLabel(outcome: BatchOutcome, outcomes: BatchOutcome[]) {
+    const hasCascade = outcomes.some(({ model }) => model !== outcome.model);
+
+    return hasCascade
+      ? `${outcome.model.title} – ${outcome.language.name}`
+      : outcome.language.name;
   }
 
   function describeBatchOutcome(outcome: BatchOutcome): string[] {
@@ -356,7 +370,7 @@ export function useContentTranslator() {
     for (const rejection of outcome.result.rejections) {
       lines.add(
         reportLine("keptSource", {
-          field: fieldLabel(rejection.fieldKey),
+          field: fieldLabel(rejection.fieldKey, outcome.model.fields),
           reason: describeRejection(rejection),
         }),
       );
@@ -420,9 +434,9 @@ export function useContentTranslator() {
    * Names a unit's field by the label of its top-level field, which a nested
    * unit's key leads with.
    */
-  function fieldLabel(fieldKey = "") {
+  function fieldLabel(fieldKey = "", modelFields = fields.value) {
     const name = fieldKey.split(/[.[]/)[0]!;
-    const label = fields.value?.[name]?.label;
+    const label = modelFields?.[name]?.label;
     if (label) return label;
     return name === "title" ? panel.t("title") : name;
   }
@@ -665,6 +679,7 @@ export function useContentTranslator() {
       const { models, heldBack } = planBatchRun(
         {
           path,
+          title: panel.view.title ?? path,
           isHomePage: defaultLanguageData.id === homePageId.value,
           isErrorPage: defaultLanguageData.id === errorPageId.value,
           defaultLanguageData,
@@ -746,7 +761,9 @@ export function useContentTranslator() {
           props: {
             message: formatPlural(
               panel.t(
-                "johannschopplich.content-translator.batchReport.message",
+                models.length > 1
+                  ? "johannschopplich.content-translator.batchReport.cascadeMessage"
+                  : "johannschopplich.content-translator.batchReport.message",
                 {
                   saved: outcomes.filter(({ status }) => status === "saved")
                     .length,
@@ -783,7 +800,7 @@ export function useContentTranslator() {
     );
 
     return await Promise.all(
-      cascade.map(async ({ path, fields, status }) => {
+      cascade.map(async ({ path, title, fields, status }) => {
         const defaultLanguageData = await panel.api.get<PanelModelData>(
           path,
           { language: defaultLanguageCode },
@@ -793,6 +810,7 @@ export function useContentTranslator() {
 
         return {
           path,
+          title,
           isHomePage: defaultLanguageData.id === homePageId.value,
           isErrorPage: defaultLanguageData.id === errorPageId.value,
           defaultLanguageData,

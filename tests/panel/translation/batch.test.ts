@@ -35,6 +35,7 @@ function createBatchModel(
 ): BatchModel {
   return {
     path,
+    title,
     isHomePage: false,
     isErrorPage: false,
     defaultLanguageData: { id: path, title, content: { text: "Hello" } },
