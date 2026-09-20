@@ -25,11 +25,29 @@ const suffixStrategy: TranslationStrategy = {
     units.map((unit) => `${unit.text} (${targetLanguage.code})`),
 };
 
-function createBatchModel(path: string, title: string): BatchModel {
+function createBatchModel(
+  path: string,
+  title: string,
+  {
+    targetLanguages = [GERMAN, FRENCH],
+    isTitleTranslationEnabled = false,
+  } = {},
+): BatchModel {
   return {
     path,
+    isHomePage: false,
+    isErrorPage: false,
     defaultLanguageData: { id: path, title, content: { text: "Hello" } },
     fields: { text: field({ type: "text", name: "text" }) },
+    targetLanguages,
+    settings: {
+      fieldTypes: ["text"],
+      includeFields: [],
+      excludeFields: [],
+      kirbyTags: {},
+      isTitleTranslationEnabled,
+      isSlugTranslationEnabled: false,
+    },
   };
 }
 
@@ -46,22 +64,9 @@ function createWrite(
 
 function createBatchOptions(
   write: (request: BatchWriteRequest) => Promise<BatchWriteResponse>,
-  { isTitleTranslationEnabled = false, strategy = suffixStrategy } = {},
+  strategy = suffixStrategy,
 ) {
-  return {
-    sourceLanguage: ENGLISH,
-    settings: {
-      fieldTypes: ["text"],
-      includeFields: [],
-      excludeFields: [],
-      kirbyTags: {},
-      isTitleTranslationEnabled,
-      isSlugTranslationEnabled: false,
-      concurrency: 1,
-    },
-    strategy,
-    write,
-  };
+  return { sourceLanguage: ENGLISH, strategy, concurrency: 1, write };
 }
 
 describe("runBatchTranslation", () => {
@@ -70,7 +75,6 @@ describe("runBatchTranslation", () => {
 
     await runBatchTranslation(
       [NOTES_PAGE, COVER_FILE],
-      [GERMAN, FRENCH],
       createBatchOptions(write),
     );
 
@@ -101,7 +105,6 @@ describe("runBatchTranslation", () => {
   it("names the model and the target language in every outcome", async () => {
     const outcomes = await runBatchTranslation(
       [NOTES_PAGE, COVER_FILE],
-      [GERMAN, FRENCH],
       createBatchOptions(createWrite()),
     );
 
@@ -124,7 +127,6 @@ describe("runBatchTranslation", () => {
 
     const outcomes = await runBatchTranslation(
       [NOTES_PAGE, COVER_FILE],
-      [GERMAN, FRENCH],
       createBatchOptions(write),
     );
 
@@ -140,7 +142,7 @@ describe("runBatchTranslation", () => {
   it("counts every model-language pair in the onProgress total", async () => {
     const onProgress = vi.fn();
 
-    await runBatchTranslation([NOTES_PAGE, COVER_FILE], [GERMAN, FRENCH], {
+    await runBatchTranslation([NOTES_PAGE, COVER_FILE], {
       ...createBatchOptions(createWrite()),
       onProgress,
     });
@@ -153,17 +155,45 @@ describe("runBatchTranslation", () => {
     ]);
   });
 
-  it("writes the translated title of a page but never the title of a file", async () => {
+  it("writes each model into its own target languages", async () => {
     const write = createWrite();
 
     await runBatchTranslation(
-      [NOTES_PAGE, COVER_FILE],
-      [GERMAN],
-      createBatchOptions(write, { isTitleTranslationEnabled: true }),
+      [
+        createBatchModel("pages/notes", "Notes", { targetLanguages: [FRENCH] }),
+        COVER_FILE,
+      ],
+      createBatchOptions(write),
     );
+
+    expect(
+      write.mock.calls.map(([{ path, language }]) => [path, language]),
+    ).toEqual([
+      ["pages/notes", "fr"],
+      ["pages/notes/files/cover.jpg", "de"],
+      ["pages/notes/files/cover.jpg", "fr"],
+    ]);
+  });
+
+  it("writes a translated title only for a page with isTitleTranslationEnabled", async () => {
+    const write = createWrite();
+    const models = [
+      createBatchModel("pages/notes", "Notes", {
+        targetLanguages: [GERMAN],
+        isTitleTranslationEnabled: true,
+      }),
+      createBatchModel("pages/about", "About", { targetLanguages: [GERMAN] }),
+      createBatchModel("pages/notes/files/cover.jpg", "cover.jpg", {
+        targetLanguages: [GERMAN],
+        isTitleTranslationEnabled: true,
+      }),
+    ];
+
+    await runBatchTranslation(models, createBatchOptions(write));
 
     expect(write.mock.calls.map(([{ path, title }]) => [path, title])).toEqual([
       ["pages/notes", "Notes (de)"],
+      ["pages/about", undefined],
       ["pages/notes/files/cover.jpg", undefined],
     ]);
   });
@@ -180,9 +210,13 @@ describe("runBatchTranslation", () => {
     };
 
     const [outcome] = await runBatchTranslation(
-      [NOTES_PAGE],
-      [GERMAN],
-      createBatchOptions(write, { isTitleTranslationEnabled: true, strategy }),
+      [
+        createBatchModel("pages/notes", "Notes", {
+          targetLanguages: [GERMAN],
+          isTitleTranslationEnabled: true,
+        }),
+      ],
+      createBatchOptions(write, strategy),
     );
 
     expect(write).toHaveBeenCalledWith(

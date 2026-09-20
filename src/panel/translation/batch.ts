@@ -17,20 +17,21 @@ import { translateTitle } from "./text";
 export interface BatchModel {
   /** Panel API path, such as `pages/notes+exploring` or `site`. */
   path: string;
+  isHomePage: boolean;
+  isErrorPage: boolean;
   defaultLanguageData: PanelModelData;
   fields: Record<string, KirbyFieldProps>;
+  targetLanguages: (PanelLanguageInfo | PanelLanguage)[];
+  settings: BatchModelSettings;
 }
 
-export interface BatchSettings {
+export interface BatchModelSettings {
   fieldTypes: string[];
   includeFields: string[];
   excludeFields: string[];
   kirbyTags: Record<string, string[]>;
-  homePageId?: string;
-  errorPageId?: string;
   isTitleTranslationEnabled: boolean;
   isSlugTranslationEnabled: boolean;
-  concurrency: number;
 }
 
 export type BatchOutcome = {
@@ -48,29 +49,28 @@ export type BatchOutcome = {
 );
 
 /**
- * Translates every model into each target language and saves each through
- * `write`, returning one outcome per model and target language: model by
- * model in input order, and within a model language by language.
+ * Translates every model into each of its target languages and saves each
+ * through `write`, returning one outcome per model and target language: model
+ * by model in input order, and within a model language by language.
  */
 export async function runBatchTranslation(
   models: BatchModel[],
-  targetLanguages: (PanelLanguageInfo | PanelLanguage)[],
   {
     sourceLanguage,
-    settings,
     strategy,
+    concurrency,
     write,
     onProgress,
   }: {
     sourceLanguage: PanelLanguageInfo | PanelLanguage;
-    settings: BatchSettings;
     strategy: TranslationStrategy;
+    concurrency: number;
     write: (request: BatchWriteRequest) => Promise<BatchWriteResponse>;
     onProgress?: (completed: number, total: number) => void;
   },
 ): Promise<BatchOutcome[]> {
   const pairs = models.flatMap((model) =>
-    targetLanguages.map((language) => ({ model, language })),
+    model.targetLanguages.map((language) => ({ model, language })),
   );
   const lockedByPath = new Map<string, string>();
   let completed = 0;
@@ -107,13 +107,14 @@ export async function runBatchTranslation(
         onProgress?.(++completed, pairs.length);
       }
     }),
-    { concurrency: settings.concurrency },
+    { concurrency },
   );
 
   async function translatePair(
     pair: Pick<BatchOutcome, "model" | "language">,
   ): Promise<BatchOutcome> {
     const { model, language: targetLanguage } = pair;
+    const { settings } = model;
 
     const eligibleContent = filterEligibleContent(
       model.defaultLanguageData.content,
@@ -141,8 +142,8 @@ export async function runBatchTranslation(
     reportRejections(contentResult, targetLanguage);
 
     const plan = planBatchLanguageTranslation({
-      isHomePage: model.defaultLanguageData.id === settings.homePageId,
-      isErrorPage: model.defaultLanguageData.id === settings.errorPageId,
+      isHomePage: model.isHomePage,
+      isErrorPage: model.isErrorPage,
       isFileModel: isFileModelPath(model.path),
       isSiteModel: isSiteModelPath(model.path),
       isTitleTranslationEnabled: settings.isTitleTranslationEnabled,

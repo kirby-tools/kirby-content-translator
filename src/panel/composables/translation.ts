@@ -625,14 +625,11 @@ export function useContentTranslator() {
     }
 
     try {
-      const model: BatchModel = {
-        path: panel.view.path,
-        defaultLanguageData: await getModelData(),
-        fields: fields.value!,
-      };
+      const { path } = panel.view;
+      const defaultLanguageData = await getModelData();
       const batchStatus = await panel.api.get<BatchStatusResponse>(
         BATCH_STATUS_API_ROUTE,
-        { path: model.path },
+        { path },
         undefined,
         true,
       );
@@ -655,12 +652,27 @@ export function useContentTranslator() {
         return;
       }
 
-      const languagesToTranslate = selectedLanguages.filter(
-        ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code),
-      );
+      const model: BatchModel = {
+        path,
+        isHomePage: defaultLanguageData.id === homePageId.value,
+        isErrorPage: defaultLanguageData.id === errorPageId.value,
+        defaultLanguageData,
+        fields: fields.value!,
+        targetLanguages: selectedLanguages.filter(
+          ({ code }) => !batchStatus.languagesWithUnsavedChanges.includes(code),
+        ),
+        settings: {
+          fieldTypes: fieldTypes.value,
+          includeFields: includeFields.value,
+          excludeFields: excludeFields.value,
+          kirbyTags: kirbyTags.value,
+          isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+          isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+        },
+      };
 
-      if (languagesToTranslate.length > 0) {
-        notifyProgress(0, languagesToTranslate.length);
+      if (model.targetLanguages.length > 0) {
+        notifyProgress(0, model.targetLanguages.length);
       }
 
       const strategy =
@@ -668,33 +680,19 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      const translatedOutcomes = await runBatchTranslation(
-        [model],
-        languagesToTranslate,
-        {
-          sourceLanguage: panel.languages.find((language) => language.default)!,
-          settings: {
-            fieldTypes: fieldTypes.value,
-            includeFields: includeFields.value,
-            excludeFields: excludeFields.value,
-            kirbyTags: kirbyTags.value,
-            homePageId: homePageId.value,
-            errorPageId: errorPageId.value,
-            isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
-            isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
-            concurrency:
-              config.value?.batchConcurrency ??
-              DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
-          },
-          strategy,
-          write: (request) =>
-            panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
-              // Avoid showing Panel loading indicator.
-              silent: true,
-            }),
-          onProgress: notifyProgress,
-        },
-      );
+      const translatedOutcomes = await runBatchTranslation([model], {
+        sourceLanguage: panel.languages.find((language) => language.default)!,
+        strategy,
+        concurrency:
+          config.value?.batchConcurrency ??
+          DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+        write: (request) =>
+          panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
+            // Avoid showing Panel loading indicator.
+            silent: true,
+          }),
+        onProgress: notifyProgress,
+      });
 
       const outcomes = selectedLanguages.map(
         (language): BatchOutcome =>
