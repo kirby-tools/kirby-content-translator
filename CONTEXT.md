@@ -19,7 +19,7 @@ Translating the default language into several secondary languages in one run, ea
 _Avoid_: bulk translation
 
 **Batch outcome**:
-What became of one target language in a batch translation: saved, held back by the user's own unsaved changes, locked by another user, failed, or not started because a lock stopped the run.
+What became of one model in one target language of a batch translation: saved, held back by the user's own unsaved changes, locked by another user, failed, or not started because a lock on its model stopped it.
 _Avoid_: skipped, status
 
 **Invalid field**:

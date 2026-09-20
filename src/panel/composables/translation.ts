@@ -260,15 +260,11 @@ export function useContentTranslator() {
    * fold a language at 0 of 10 into "10 of 20 kept their source text" and hide
    * which language went wrong.
    */
-  function notifyBatchTranslationResult(
-    languages: (PanelLanguageInfo | PanelLanguage)[],
-    outcomes: BatchOutcome[],
-  ) {
+  function notifyBatchTranslationResult(outcomes: BatchOutcome[]) {
     const savedResults = outcomes.flatMap((outcome) =>
       outcome.status === "saved" ? [outcome.result] : [],
     );
-    const languagesWithKeptSource = languages.flatMap((language, index) => {
-      const outcome = outcomes[index]!;
+    const languagesWithKeptSource = outcomes.flatMap((outcome) => {
       if (
         outcome.status !== "saved" ||
         outcome.result.translatedCount === outcome.result.translatableCount
@@ -277,7 +273,7 @@ export function useContentTranslator() {
       }
 
       return [
-        `${language.name} (${listKeptSourceFields(outcome.result.rejections)})`,
+        `${outcome.language.name} (${listKeptSourceFields(outcome.result.rejections)})`,
       ];
     });
 
@@ -317,13 +313,12 @@ export function useContentTranslator() {
     );
   }
 
-  function describeBatchOutcomes(
-    languages: (PanelLanguageInfo | PanelLanguage)[],
-    outcomes: BatchOutcome[],
-  ) {
-    return languages.flatMap((language, index) => {
-      const lines = describeBatchOutcome(outcomes[index]!);
-      return lines.length > 0 ? [{ label: language.name, message: lines }] : [];
+  function describeBatchOutcomes(outcomes: BatchOutcome[]) {
+    return outcomes.flatMap((outcome) => {
+      const lines = describeBatchOutcome(outcome);
+      return lines.length > 0
+        ? [{ label: outcome.language.name, message: lines }]
+        : [];
     });
   }
 
@@ -674,7 +669,7 @@ export function useContentTranslator() {
           : new DeepLStrategy();
 
       const translatedOutcomes = await runBatchTranslation(
-        model,
+        [model],
         languagesToTranslate,
         {
           sourceLanguage: panel.languages.find((language) => language.default)!,
@@ -701,17 +696,17 @@ export function useContentTranslator() {
         },
       );
 
-      const outcomes = selectedLanguages.map((language): BatchOutcome => {
-        const index = languagesToTranslate.indexOf(language);
-        return index === -1
-          ? { status: "unsavedChanges" }
-          : translatedOutcomes[index]!;
-      });
+      const outcomes = selectedLanguages.map(
+        (language): BatchOutcome =>
+          translatedOutcomes.find(
+            (outcome) => outcome.language.code === language.code,
+          ) ?? { model, language, status: "unsavedChanges" },
+      );
 
       const hasReport = outcomes.some(shouldReportBatchOutcome);
 
       if (!hasReport) {
-        notifyBatchTranslationResult(selectedLanguages, outcomes);
+        notifyBatchTranslationResult(outcomes);
       }
 
       isTranslating.value = false;
@@ -731,12 +726,12 @@ export function useContentTranslator() {
                 {
                   saved: outcomes.filter(({ status }) => status === "saved")
                     .length,
-                  total: selectedLanguages.length,
+                  total: outcomes.length,
                 },
               ),
-              selectedLanguages.length,
+              outcomes.length,
             ),
-            details: describeBatchOutcomes(selectedLanguages, outcomes),
+            details: describeBatchOutcomes(outcomes),
           },
         });
       }

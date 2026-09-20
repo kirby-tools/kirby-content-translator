@@ -33,7 +33,10 @@ export interface BatchSettings {
   concurrency: number;
 }
 
-export type BatchOutcome =
+export type BatchOutcome = {
+  model: BatchModel;
+  language: PanelLanguageInfo | PanelLanguage;
+} & (
   | { status: "failed"; message: string }
   | { status: "unsavedChanges" }
   | { status: "locked"; lockedBy: string }
@@ -41,14 +44,16 @@ export type BatchOutcome =
   | ({ status: "saved"; result: ContentTranslationResult } & Pick<
       Extract<BatchWriteResponse, { status: "saved" }>,
       "invalidFields" | "titleError" | "slugError"
-    >);
+    >)
+);
 
 /**
- * Translates the model into each target language and saves every language
- * through `write`, returning one outcome per target language, in input order.
+ * Translates every model into each target language and saves each through
+ * `write`, returning one outcome per model and target language: model by
+ * model in input order, and within a model language by language.
  */
 export async function runBatchTranslation(
-  model: BatchModel,
+  models: BatchModel[],
   targetLanguages: (PanelLanguageInfo | PanelLanguage)[],
   {
     sourceLanguage,
@@ -64,41 +69,52 @@ export async function runBatchTranslation(
     onProgress?: (completed: number, total: number) => void;
   },
 ): Promise<BatchOutcome[]> {
+  const pairs = models.flatMap((model) =>
+    targetLanguages.map((language) => ({ model, language })),
+  );
+  const lockedByPath = new Map<string, string>();
   let completed = 0;
-  let lockedBy: string | undefined;
 
-  // A language is isolated so one dead provider call cannot discard the
-  // languages already saved or stop the ones still queued. A lock stops the
-  // queue instead: Kirby refuses every further write while it holds.
+  // A language of a model is isolated so one dead provider call cannot discard
+  // what is already saved or stop what is still queued. A lock stops the
+  // remaining languages of its model instead: Kirby refuses every further
+  // write to that model while the lock holds.
   return await pAll(
-    targetLanguages.map((targetLanguage) => async (): Promise<BatchOutcome> => {
+    pairs.map((pair) => async (): Promise<BatchOutcome> => {
+      const lockedBy = lockedByPath.get(pair.model.path);
+
       if (lockedBy !== undefined) {
-        return { status: "notStarted", lockedBy };
+        return { ...pair, status: "notStarted", lockedBy };
       }
 
       try {
-        const outcome = await translateIntoLanguage(targetLanguage);
-        if (outcome.status === "locked") lockedBy = outcome.lockedBy;
+        const outcome = await translatePair(pair);
+        if (outcome.status === "locked") {
+          lockedByPath.set(pair.model.path, outcome.lockedBy);
+        }
         return outcome;
       } catch (error) {
         console.error(
-          `Failed to translate into "${targetLanguage.code}":`,
+          `Failed to translate into "${pair.language.code}":`,
           error,
         );
         return {
+          ...pair,
           status: "failed",
           message: error instanceof Error ? error.message : String(error),
         };
       } finally {
-        onProgress?.(++completed, targetLanguages.length);
+        onProgress?.(++completed, pairs.length);
       }
     }),
     { concurrency: settings.concurrency },
   );
 
-  async function translateIntoLanguage(
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
+  async function translatePair(
+    pair: Pick<BatchOutcome, "model" | "language">,
   ): Promise<BatchOutcome> {
+    const { model, language: targetLanguage } = pair;
+
     const eligibleContent = filterEligibleContent(
       model.defaultLanguageData.content,
       {
@@ -156,8 +172,12 @@ export async function runBatchTranslation(
       slug: plan.shouldPatchSlug ? title : undefined,
     });
 
-    if (response.status !== "saved") return response;
+    if (response.status !== "saved") return { ...pair, ...response };
 
-    return { ...response, result: mergeTranslationResults(languageResults) };
+    return {
+      ...pair,
+      ...response,
+      result: mergeTranslationResults(languageResults),
+    };
   }
 }
