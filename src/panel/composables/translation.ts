@@ -6,6 +6,7 @@ import type {
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
+import type { BatchModel, BatchOutcome } from "../translation/batch";
 import type {
   ContentTranslationResult,
   TranslationRejection,
@@ -19,7 +20,6 @@ import type {
   TranslatorOptions,
 } from "../types";
 import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
-import pAll from "p-all";
 import {
   BATCH_STATUS_API_ROUTE,
   BATCH_WRITE_API_ROUTE,
@@ -29,16 +29,18 @@ import {
   AIStrategy,
   DeepLStrategy,
   translateContent,
-  translateText,
+  translateTitle,
 } from "../translation";
+import { runBatchTranslation } from "../translation/batch";
+import { planImport, planSingleTranslation } from "../translation/plan";
 import {
-  planBatchLanguageTranslation,
-  planImport,
-  planSingleTranslation,
-} from "../translation/plan";
+  mergeTranslationResults,
+  reportRejections,
+} from "../translation/result";
 import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterEligibleContent, isEligibleField } from "../utils/filter";
 import { formatPlural } from "../utils/i18n";
+import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
 import {
   describeMissingStrategy,
   getStrategyAvailability,
@@ -57,16 +59,6 @@ const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 /** How many fields of one language a notice names before it counts the rest. */
 const MAX_NAMED_FIELDS = 3;
 
-type BatchOutcome =
-  | { status: "failed"; message: string }
-  | { status: "unsavedChanges" }
-  | { status: "locked"; lockedBy: string }
-  | { status: "notStarted"; lockedBy: string }
-  | ({ status: "saved"; result: ContentTranslationResult } & Pick<
-      Extract<BatchWriteResponse, { status: "saved" }>,
-      "invalidFields" | "titleError" | "slugError"
-    >);
-
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
 
@@ -83,7 +75,7 @@ export function useContentTranslator() {
     update: updateContent,
   } = useContent();
   const { t } = useI18n();
-  const { getModelData, isFileModel, isSiteModel } = useModel();
+  const { getModelData } = useModel();
   const { isTranslating } = useTranslationState();
 
   // #region Configuration state
@@ -261,57 +253,6 @@ export function useContentTranslator() {
         untranslatedCount,
       ),
     );
-  }
-
-  /**
-   * Translates the title, returning `undefined` rather than the source text
-   * for a rejected title: writing that would overwrite a manually translated
-   * target title and re-derive its slug. An untranslatable title carries no
-   * rejection and still comes back.
-   */
-  async function translateTitle(
-    title: string,
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
-  ): Promise<{ text?: string; result: ContentTranslationResult }> {
-    let translatedTitle: { text: string; result: ContentTranslationResult };
-
-    try {
-      translatedTitle = await translateText(title, {
-        strategyName: strategyName.value,
-        targetLanguage,
-        sourceLanguage,
-        systemPrompt: systemPrompt.value,
-        fieldKey: "title",
-      });
-    } catch (error) {
-      // The content is already translated, so any failure of the lone title
-      // unit is reported as an untranslated title rather than failing the run.
-      translatedTitle = {
-        text: title,
-        result: {
-          translatableCount: 1,
-          translatedCount: 0,
-          rejections: [
-            {
-              fieldKey: "title",
-              reason: "request failed",
-              detail: error instanceof Error ? error.message : String(error),
-            },
-          ],
-        },
-      };
-    }
-
-    reportRejections(translatedTitle.result, targetLanguage);
-
-    return {
-      text:
-        translatedTitle.result.rejections.length === 0
-          ? translatedTitle.text
-          : undefined,
-      result: translatedTitle.result,
-    };
   }
 
   /**
@@ -526,8 +467,8 @@ export function useContentTranslator() {
     const plan = planImport({
       isHomePage: await isHomePage(),
       isErrorPage: await isErrorPage(),
-      isFileModel: isFileModel(),
-      isSiteModel: isSiteModel(),
+      isFileModel: isFileModelPath(panel.view.path),
+      isSiteModel: isSiteModelPath(panel.view.path),
       isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
       isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
       isCurrentLanguageDefault: panel.language.default,
@@ -615,8 +556,8 @@ export function useContentTranslator() {
       const plan = planSingleTranslation({
         isHomePage: await isHomePage(),
         isErrorPage: await isErrorPage(),
-        isFileModel: isFileModel(),
-        isSiteModel: isSiteModel(),
+        isFileModel: isFileModelPath(panel.view.path),
+        isSiteModel: isSiteModelPath(panel.view.path),
         isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
         isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,
@@ -629,8 +570,7 @@ export function useContentTranslator() {
         const translatedTitle = await translateTitle(
           // Non-null: the plan requests a title translation only when the view has one.
           panel.view.title!,
-          targetLanguage,
-          sourceLanguage,
+          { strategy, targetLanguage, sourceLanguage },
         );
         languageResults.push(translatedTitle.result);
 
@@ -690,10 +630,14 @@ export function useContentTranslator() {
     }
 
     try {
-      const defaultLanguageData = await getModelData();
+      const model: BatchModel = {
+        path: panel.view.path,
+        defaultLanguageData: await getModelData(),
+        fields: fields.value!,
+      };
       const batchStatus = await panel.api.get<BatchStatusResponse>(
         BATCH_STATUS_API_ROUTE,
-        { path: panel.view.path },
+        { path: model.path },
         undefined,
         true,
       );
@@ -729,11 +673,32 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      const translatedOutcomes = await batchTranslateLanguages(
+      const translatedOutcomes = await runBatchTranslation(
+        model,
         languagesToTranslate,
-        defaultLanguageData,
-        strategy,
-        notifyProgress,
+        {
+          sourceLanguage: panel.languages.find((language) => language.default)!,
+          settings: {
+            fieldTypes: fieldTypes.value,
+            includeFields: includeFields.value,
+            excludeFields: excludeFields.value,
+            kirbyTags: kirbyTags.value,
+            homePageId: homePageId.value,
+            errorPageId: errorPageId.value,
+            isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+            isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+            concurrency:
+              config.value?.batchConcurrency ??
+              DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+          },
+          strategy,
+          write: (request) =>
+            panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
+              // Avoid showing Panel loading indicator.
+              silent: true,
+            }),
+          onProgress: notifyProgress,
+        },
       );
 
       const outcomes = selectedLanguages.map((language): BatchOutcome => {
@@ -783,122 +748,6 @@ export function useContentTranslator() {
     }
   }
 
-  async function batchTranslateLanguages(
-    languagesToTranslate: (PanelLanguageInfo | PanelLanguage)[],
-    defaultLanguageData: PanelModelData,
-    strategy: AIStrategy | DeepLStrategy,
-    onProgress?: (completed: number, total: number) => void,
-  ) {
-    const defaultLanguage = panel.languages.find((lang) => lang.default)!;
-    const modelApiPath = panel.view.path;
-    const concurrency =
-      config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY;
-
-    let completed = 0;
-    let lockedBy: string | undefined;
-
-    // A language is isolated so one dead provider call cannot discard the
-    // languages already saved or stop the ones still queued. A lock stops the
-    // queue instead: Kirby refuses every further write while it holds.
-    return await pAll(
-      languagesToTranslate.map(
-        (targetLanguage) => async (): Promise<BatchOutcome> => {
-          if (lockedBy !== undefined) {
-            return { status: "notStarted", lockedBy };
-          }
-
-          try {
-            const outcome = await translateIntoLanguage(targetLanguage);
-            if (outcome.status === "locked") lockedBy = outcome.lockedBy;
-            return outcome;
-          } catch (error) {
-            console.error(
-              `Failed to translate into "${targetLanguage.code}":`,
-              error,
-            );
-            return {
-              status: "failed",
-              message: error instanceof Error ? error.message : String(error),
-            };
-          } finally {
-            onProgress?.(++completed, languagesToTranslate.length);
-          }
-        },
-      ),
-      { concurrency },
-    );
-
-    async function translateIntoLanguage(
-      targetLanguage: PanelLanguageInfo | PanelLanguage,
-    ): Promise<BatchOutcome> {
-      const eligibleContent = filterEligibleContent(
-        defaultLanguageData.content,
-        {
-          fields: fields.value!,
-          fieldTypes: fieldTypes.value,
-          includeFields: includeFields.value,
-          excludeFields: excludeFields.value,
-        },
-      );
-
-      const contentCopy = JSON.parse(JSON.stringify(eligibleContent));
-
-      const contentResult = await translateContent(contentCopy, {
-        strategy,
-        sourceLanguage: defaultLanguage,
-        targetLanguage,
-        fieldTypes: fieldTypes.value,
-        includeFields: includeFields.value,
-        excludeFields: excludeFields.value,
-        kirbyTags: kirbyTags.value,
-        fields: fields.value!,
-      });
-
-      reportRejections(contentResult, targetLanguage);
-
-      const plan = planBatchLanguageTranslation({
-        isHomePage: defaultLanguageData.id === homePageId.value,
-        isErrorPage: defaultLanguageData.id === errorPageId.value,
-        isFileModel: isFileModel(),
-        isSiteModel: isSiteModel(),
-        isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
-        isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
-        isTargetLanguageDefault: targetLanguage.default === true,
-      });
-
-      const languageResults = [contentResult];
-      let title: string | undefined;
-
-      if (plan.shouldRequestTitleTranslation) {
-        const translatedTitle = await translateTitle(
-          defaultLanguageData.title,
-          targetLanguage,
-          defaultLanguage,
-        );
-        languageResults.push(translatedTitle.result);
-        title = translatedTitle.text;
-      }
-
-      // The server builds the slug from the translated title, with the slug
-      // rules of the target language.
-      const response = await panel.api.post<BatchWriteResponse>(
-        BATCH_WRITE_API_ROUTE,
-        {
-          path: modelApiPath,
-          language: targetLanguage.code,
-          content: contentCopy,
-          title: plan.shouldPatchTitle ? title : undefined,
-          slug: plan.shouldPatchSlug ? title : undefined,
-        },
-        { silent: true },
-      );
-
-      if (response.status !== "saved") return response;
-
-      return { ...response, result: mergeTranslationResults(languageResults) };
-    }
-  }
-
   async function isHomePage() {
     const defaultLanguageData = await getModelData();
     return defaultLanguageData.id === homePageId.value;
@@ -933,33 +782,6 @@ export function useContentTranslator() {
     importModelContent,
     translateModelContent,
     batchTranslateModelContent,
-  };
-}
-
-function reportRejections(
-  result: ContentTranslationResult,
-  targetLanguage: PanelLanguageInfo | PanelLanguage,
-) {
-  for (const { fieldKey, reason, detail } of result.rejections) {
-    console.warn(
-      `Rejected "${fieldKey}" (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
-    );
-  }
-}
-
-function mergeTranslationResults(
-  results: ContentTranslationResult[],
-): ContentTranslationResult {
-  return {
-    translatableCount: results.reduce(
-      (total, result) => total + result.translatableCount,
-      0,
-    ),
-    translatedCount: results.reduce(
-      (total, result) => total + result.translatedCount,
-      0,
-    ),
-    rejections: results.flatMap((result) => result.rejections),
   };
 }
 

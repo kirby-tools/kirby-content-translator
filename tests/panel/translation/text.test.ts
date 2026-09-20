@@ -1,5 +1,6 @@
 import type { PanelLanguage } from "kirby-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DeepLStrategy } from "../../../src/panel/translation/strategies";
 import { translateText } from "../../../src/panel/translation/text";
 
 const mockApiPost = vi.fn();
@@ -23,7 +24,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: ["Hallo"] });
 
     const result = await translateText("Hello", {
-      strategyName: "deepl",
+      strategy: new DeepLStrategy(),
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -42,7 +43,7 @@ describe("translateText", () => {
 
   it("returns untranslatable text without reaching the strategy", async () => {
     const result = await translateText("2024", {
-      strategyName: "deepl",
+      strategy: new DeepLStrategy(),
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -56,7 +57,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
 
     const result = await translateText("Hello", {
-      strategyName: "deepl",
+      strategy: new DeepLStrategy(),
       targetLanguage: GERMAN,
       fieldKey: "title",
     });
@@ -70,7 +71,7 @@ describe("translateText", () => {
     mockApiPost.mockResolvedValueOnce({ texts: [] });
 
     const result = await translateText("Hello", {
-      strategyName: "deepl",
+      strategy: new DeepLStrategy(),
       targetLanguage: GERMAN,
       fieldKey: "title",
     });

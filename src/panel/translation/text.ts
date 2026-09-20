@@ -1,8 +1,7 @@
 import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
-import type { StrategyName } from "../types";
-import type { ContentTranslationResult } from "./types";
+import type { ContentTranslationResult, TranslationStrategy } from "./types";
 import { translateUnits } from "./dispatch";
-import { AIStrategy, DeepLStrategy } from "./strategies";
+import { reportRejections } from "./result";
 
 /**
  * Translates a single ad-hoc text (e.g. a model title), falling back to the
@@ -14,24 +13,18 @@ import { AIStrategy, DeepLStrategy } from "./strategies";
 export async function translateText(
   text: string,
   {
-    strategyName,
+    strategy,
     targetLanguage,
     sourceLanguage,
-    systemPrompt,
     fieldKey,
   }: {
-    strategyName: StrategyName;
+    strategy: TranslationStrategy;
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
-    systemPrompt?: string;
     /** Names the text in a rejection, since there is no field to name it. */
     fieldKey: string;
   },
 ): Promise<{ text: string; result: ContentTranslationResult }> {
-  const strategy =
-    strategyName === "ai"
-      ? new AIStrategy({ systemPrompt })
-      : new DeepLStrategy();
   const { texts, translatableCount, translatedCount, rejections } =
     await translateUnits([{ text, fieldKey }], strategy, {
       sourceLanguage,
@@ -41,5 +34,62 @@ export async function translateText(
   return {
     text: texts[0] ?? text,
     result: { translatableCount, translatedCount, rejections },
+  };
+}
+
+/**
+ * Translates the title, returning `undefined` rather than the source text
+ * for a rejected title: writing that would overwrite a manually translated
+ * target title and re-derive its slug. An untranslatable title carries no
+ * rejection and still comes back.
+ */
+export async function translateTitle(
+  title: string,
+  {
+    strategy,
+    targetLanguage,
+    sourceLanguage,
+  }: {
+    strategy: TranslationStrategy;
+    targetLanguage: PanelLanguageInfo | PanelLanguage;
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+  },
+): Promise<{ text?: string; result: ContentTranslationResult }> {
+  let translatedTitle: { text: string; result: ContentTranslationResult };
+
+  try {
+    translatedTitle = await translateText(title, {
+      strategy,
+      targetLanguage,
+      sourceLanguage,
+      fieldKey: "title",
+    });
+  } catch (error) {
+    // A failed request is reported as a rejected title rather than thrown, so
+    // it cannot fail a run whose content is already translated.
+    translatedTitle = {
+      text: title,
+      result: {
+        translatableCount: 1,
+        translatedCount: 0,
+        rejections: [
+          {
+            fieldKey: "title",
+            reason: "request failed",
+            detail: error instanceof Error ? error.message : String(error),
+          },
+        ],
+      },
+    };
+  }
+
+  reportRejections(translatedTitle.result, targetLanguage);
+
+  return {
+    text:
+      translatedTitle.result.rejections.length === 0
+        ? translatedTitle.text
+        : undefined,
+    result: translatedTitle.result,
   };
 }

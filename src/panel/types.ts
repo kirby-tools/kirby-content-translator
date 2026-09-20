@@ -45,6 +45,14 @@ export interface BatchStatusResponse {
   languagesWithUnsavedChanges: string[];
 }
 
+export interface BatchWriteRequest {
+  path: string;
+  language: string;
+  content: Record<string, unknown>;
+  title?: string;
+  slug?: string;
+}
+
 export type BatchWriteResponse =
   | { status: "unsavedChanges" }
   | {

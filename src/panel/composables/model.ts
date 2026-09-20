@@ -1,9 +1,6 @@
 import type { PanelModelData } from "kirby-types";
 import { usePanel } from "kirbyuse";
 
-const FILE_MODEL_PATH_PATTERN =
-  /^(?:account|pages\/[^/]+|site|users\/[^/]+)\/files\//;
-
 const modelDataCache = new Map<string, PanelModelData>();
 let isListenerRegistered = false;
 
@@ -14,48 +11,38 @@ export function useModel() {
   // `useModel` runs once per component instance, but the cache and its
   // invalidation listeners are module-global.
   if (!isListenerRegistered) {
-    panel.events.on("model.update", clearModelData);
-    panel.events.on("page.changeSlug", clearModelData);
-    panel.events.on("page.changeTitle", clearModelData);
+    panel.events.on("model.update", clearModelDataCache);
+    panel.events.on("page.changeSlug", clearModelDataCache);
+    panel.events.on("page.changeTitle", clearModelDataCache);
     isListenerRegistered = true;
   }
 
   async function getModelData() {
-    const { path: id } = panel.view;
+    const { path } = panel.view;
 
-    if (modelDataCache.has(id)) {
-      return modelDataCache.get(id)!;
+    if (modelDataCache.has(path)) {
+      return modelDataCache.get(path)!;
     }
 
     const response = await panel.api.get<PanelModelData>(
-      id,
+      path,
       { language: defaultLanguage?.code },
       undefined,
       // Avoid showing Panel loading indicator.
       true,
     );
 
-    modelDataCache.set(id, response);
+    modelDataCache.set(path, response);
     return response;
   }
 
   // `model.update` fires without naming its model, so the open view's entry
   // is not always the stale one.
-  function clearModelData() {
+  function clearModelDataCache() {
     modelDataCache.clear();
-  }
-
-  function isFileModel() {
-    return FILE_MODEL_PATH_PATTERN.test(panel.view.path);
-  }
-
-  function isSiteModel() {
-    return panel.view.path === "site";
   }
 
   return {
     getModelData,
-    isFileModel,
-    isSiteModel,
   };
 }
