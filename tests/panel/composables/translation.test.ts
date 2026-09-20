@@ -176,6 +176,7 @@ describe("useContentTranslator", () => {
     };
     batchStatus = {
       isUpdateAllowed: true,
+      isTitleChangeAllowed: true,
       lockedBy: null,
       languagesWithUnsavedChanges: [],
     };

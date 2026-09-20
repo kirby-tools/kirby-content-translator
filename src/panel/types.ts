@@ -40,6 +40,7 @@ export interface PluginContextResponse {
 
 export interface BatchStatusResponse {
   isUpdateAllowed: boolean;
+  isTitleChangeAllowed: boolean;
   /** Name of another user who edits the model in any language. */
   lockedBy: string | null;
   languagesWithUnsavedChanges: string[];

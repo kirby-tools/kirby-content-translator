@@ -30,12 +30,13 @@ final class BatchTranslation
      * anything is translated, so a refused, locked, or unsaved language costs
      * no provider call.
      *
-     * @return array{isUpdateAllowed: bool, lockedBy: string|null, languagesWithUnsavedChanges: list<string>}
+     * @return array{isUpdateAllowed: bool, isTitleChangeAllowed: bool, lockedBy: string|null, languagesWithUnsavedChanges: list<string>}
      */
     public static function status(ModelWithContent $model): array
     {
         return [
             'isUpdateAllowed' => $model->permissions()->can('update'),
+            'isTitleChangeAllowed' => $model->permissions()->can('changeTitle'),
             'lockedBy' => self::lockingUsername($model),
             'languagesWithUnsavedChanges' => array_values(array_filter(
                 $model->kirby()->languages()->codes(),

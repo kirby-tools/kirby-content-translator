@@ -229,8 +229,23 @@ final class BatchRoutesTest extends ApiRouteTestCase
         $app = $this->app(['method' => 'GET', 'query' => ['path' => 'pages/about']], userId: 'reader');
 
         $this->assertSame(
-            ['isUpdateAllowed' => false, 'lockedBy' => null, 'languagesWithUnsavedChanges' => []],
+            [
+                'isUpdateAllowed' => false,
+                'isTitleChangeAllowed' => true,
+                'lockedBy' => null,
+                'languagesWithUnsavedChanges' => []
+            ],
             $this->callRoute($app, '__content-translator__/batch-status')
+        );
+    }
+
+    #[Test]
+    public function batch_status_returns_isTitleChangeAllowed_false_for_a_user_without_the_changeTitle_permission(): void
+    {
+        $app = $this->app(['method' => 'GET', 'query' => ['path' => 'pages/about']], userId: 'writer');
+
+        $this->assertFalse(
+            $this->callRoute($app, '__content-translator__/batch-status')['isTitleChangeAllowed']
         );
     }
 }

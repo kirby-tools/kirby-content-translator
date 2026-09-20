@@ -1,6 +1,7 @@
 <?php
 
 use JohannSchopplich\ContentTranslator\BatchTranslation;
+use JohannSchopplich\ContentTranslator\Cascade;
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
@@ -10,6 +11,7 @@ use JohannSchopplich\KirbyTools\ModelResolver;
 use JohannSchopplich\Licensing\LicensePanel;
 use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
+use Kirby\Cms\File;
 use Kirby\Cms\Find;
 use Kirby\Exception\BadMethodCallException;
 
@@ -89,6 +91,26 @@ return [
                 $path = (string)$kirby->request()->query()->get('path');
 
                 return BatchTranslation::status(Find::parent($path));
+            }
+        ],
+        [
+            'pattern' => '__content-translator__/cascade',
+            'method' => 'GET',
+            'action' => function () use ($kirby) {
+                $path = (string)$kirby->request()->query()->get('path');
+
+                $models = [];
+
+                foreach (Cascade::models(Find::parent($path)) as $modelPath => $model) {
+                    $models[] = [
+                        'path' => $modelPath,
+                        'title' => $model instanceof File ? $model->filename() : $model->title()->value(),
+                        'fields' => FieldResolver::resolveModelFields($model),
+                        'status' => BatchTranslation::status($model)
+                    ];
+                }
+
+                return $models;
             }
         ],
         [
