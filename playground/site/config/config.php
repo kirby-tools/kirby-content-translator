@@ -1,5 +1,7 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\KirbyText;
+
 return [
     'debug' => env('KIRBY_DEBUG', false),
 
@@ -50,7 +52,7 @@ return [
             // Drops the placeholders the check compares, so only the units
             // holding a KirbyTag fail.
             'partial' => fn (string $text): string => str_contains($text, '<c')
-                ? (preg_replace('!<c\d+\s*/>!', '', '[xx] ' . $text) ?? $text)
+                ? (preg_replace(KirbyText::PLACEHOLDER_PATTERN, '', '[xx] ' . $text) ?? $text)
                 : '[xx] ' . $text,
             // Kills one language of a batch run while the rest still land.
             'failing' => fn (string $text, string $targetLanguage): string => $targetLanguage === env('TRANSLATOR_FAILING_LANGUAGE', 'fr')
