@@ -11,7 +11,7 @@ Filling the current language with another language's eligible content, untransla
 _Avoid_: sync, copy
 
 **Single-language translation**:
-Translating the current view's content into its language. Fields are left in the form as unsaved changes for review, while the title and slug are saved directly.
+Translating the current view's content into its language. Fields are left in the form as unsaved changes for review, while the title, the slug, and the cascade are saved directly.
 _Avoid_: per-language translation
 
 **Batch translation**:
@@ -19,7 +19,7 @@ Translating the default language into several secondary languages in one run, ea
 _Avoid_: bulk translation
 
 **Batch outcome**:
-What became of one model in one target language of a batch translation: saved, locked by another user, failed, not started because a lock on its model stopped it, or held back by the user's own unsaved changes – in that language, or in the default language a cascaded model is translated from.
+What became of one model in one target language of a batch translation, or of the cascade of a single-language translation: saved, locked by another user, failed, not started because a lock on its model stopped it, or held back. A target is held back when it is ruled out before the run starts: by the user's own unsaved changes – in that language, or in the default language a cascaded model is translated from – or by another user who is editing a cascaded model.
 _Avoid_: skipped, status
 
 **Invalid field**:
