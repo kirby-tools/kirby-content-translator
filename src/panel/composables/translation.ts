@@ -1018,13 +1018,7 @@ export function useContentTranslator() {
     isImportEnabled,
     importFrom,
     isBatchTranslationEnabled,
-    isTitleTranslationEnabled,
-    isSlugTranslationEnabled,
     shouldConfirm,
-    fieldTypes,
-    includeFields,
-    excludeFields,
-    kirbyTags,
     strategyName,
 
     fields,
