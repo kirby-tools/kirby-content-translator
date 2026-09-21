@@ -51,6 +51,12 @@ describe("resolveTranslatorConfig", () => {
       resolveTranslatorConfig({}, { title: 0 }).isTitleTranslationEnabled,
     ).toBe(false);
   });
+
+  it("lowercases the tag types of kirbyTags", () => {
+    expect(
+      resolveTranslatorConfig({}, { kirbyTags: { Link: ["text"] } }).kirbyTags,
+    ).toEqual({ link: ["text"] });
+  });
 });
 
 describe("getStrategyAvailability", () => {

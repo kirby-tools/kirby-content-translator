@@ -49,7 +49,11 @@ export function resolveTranslatorConfig(
     excludeFields: toLowercaseNames(
       options.excludeFields ?? config.excludeFields ?? [],
     ),
-    kirbyTags: options.kirbyTags ?? config.kirbyTags ?? {},
+    kirbyTags: Object.fromEntries(
+      Object.entries(options.kirbyTags ?? config.kirbyTags ?? {}).map(
+        ([type, attributes]) => [type.toLowerCase(), attributes],
+      ),
+    ),
     systemPrompt: options.systemPrompt ?? config.ai?.systemPrompt ?? undefined,
     hasCascade: [options.cascade ?? []].flat().length > 0,
   };
