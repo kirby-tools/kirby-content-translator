@@ -28,7 +28,7 @@ importers:
         version: 9.5.1(@typescript-eslint/typescript-estree@8.69.0(typescript@6.0.3))(@typescript-eslint/utils@8.69.0(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3))(@unocss/eslint-plugin@66.10.0(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3))(@vue/compiler-sfc@3.5.42)(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3)(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0)))
       '@kirby-tools/licensing':
         specifier: ^0.8.0
-        version: 0.8.0(kirbyuse@1.4.0)
+        version: 0.8.0(kirbyuse@1.4.1)
       '@types/node':
         specifier: ^26.4.1
         version: 26.4.1
@@ -51,14 +51,14 @@ importers:
         specifier: ^2.7.0
         version: 2.7.0
       kirby-types:
-        specifier: ^1.6.1
-        version: 1.6.1(vue@2.7.16)
+        specifier: ^1.6.2
+        version: 1.6.2(vue@2.7.16)
       kirbyup:
         specifier: ^3.5.0
         version: 3.5.0(@types/node@26.4.1)(jiti@2.7.0)(rollup@4.63.1)(yaml@2.9.0)
       kirbyuse:
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^1.4.1
+        version: 1.4.1
       mprocs:
         specifier: ^0.9.6
         version: 0.9.6
@@ -2198,8 +2198,8 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
-  kirby-types@1.6.1:
-    resolution: {integrity: sha512-8TTGcxdmCIgtOl7ILMJDnQsmjLeVrO0JX43LCecOBRYbDyEVno9dDpsV2LPvEyE865gN94WPBReHMkO9WcxSCg==}
+  kirby-types@1.6.2:
+    resolution: {integrity: sha512-wbZ/dl/be6ucDRPZybo+HJd45HZILL1lbwTAqRR1dv2B+amEqH7QOIsTKhX3Bu88oIxCRhyHhLd1nE2FqYzKBw==}
     peerDependencies:
       dayjs: ^1.11.13
       prosemirror-commands: ^1.7.1
@@ -2232,8 +2232,8 @@ packages:
     engines: {node: '>=22'}
     hasBin: true
 
-  kirbyuse@1.4.0:
-    resolution: {integrity: sha512-vnvxramkUYY1fS53ICUPrSk27PWlbfsIqzRKEe8JZv2ErYL19AISNr0c5pdEKubJVupiHIexWFIhIfYkZsMG+g==}
+  kirbyuse@1.4.1:
+    resolution: {integrity: sha512-ua4u0Svc6gzSmYifg0VlUZX9aoWQecJKcc4W3SU2Wv4zSVkOqCB/H7V3VfTsLn7y9ty++BxOsfe4EkQhEamznA==}
     peerDependencies:
       dayjs: ^1.0.0
       prosemirror-commands: ^1.7.1
@@ -3727,9 +3727,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kirby-tools/licensing@0.8.0(kirbyuse@1.4.0)':
+  '@kirby-tools/licensing@0.8.0(kirbyuse@1.4.1)':
     dependencies:
-      kirbyuse: 1.4.0
+      kirbyuse: 1.4.1
       vue: 2.7.16
 
   '@modelcontextprotocol/core@2.0.0':
@@ -5288,7 +5288,7 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
-  kirby-types@1.6.1(vue@2.7.16):
+  kirby-types@1.6.2(vue@2.7.16):
     optionalDependencies:
       vue: 2.7.16
 
@@ -5328,9 +5328,9 @@ snapshots:
       - tsx
       - yaml
 
-  kirbyuse@1.4.0:
+  kirbyuse@1.4.1:
     dependencies:
-      kirby-types: 1.6.1(vue@2.7.16)
+      kirby-types: 1.6.2(vue@2.7.16)
       vue: 2.7.16
 
   levn@0.4.1:
