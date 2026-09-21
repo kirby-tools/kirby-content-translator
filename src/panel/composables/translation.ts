@@ -198,6 +198,18 @@ export function useContentTranslator() {
     );
   }
 
+  function notifyProgress(current: number, total: number) {
+    panel.notification.open({
+      message: panel.t(
+        "johannschopplich.content-translator.notification.batchTranslating",
+        { current, total },
+      ),
+      icon: "loader",
+      theme: "info",
+      timeout: PERSISTENT_TIMEOUT,
+    });
+  }
+
   function notifyPartialTranslation(message: string) {
     panel.notification.open({
       message,
@@ -698,18 +710,6 @@ export function useContentTranslator() {
     panel.view.isLoading = true;
     isTranslating.value = true;
 
-    function notifyProgress(current: number, total: number) {
-      panel.notification.open({
-        message: panel.t(
-          "johannschopplich.content-translator.notification.batchTranslating",
-          { current, total },
-        ),
-        icon: "loader",
-        theme: "info",
-        timeout: PERSISTENT_TIMEOUT,
-      });
-    }
-
     try {
       const { path } = panel.view;
       const defaultLanguageData = await getModelData();
@@ -896,7 +896,10 @@ export function useContentTranslator() {
 
     if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
 
-    return await translateAndSave(undefined, [targetLanguage], { strategy });
+    return await translateAndSave(undefined, [targetLanguage], {
+      strategy,
+      onProgress: notifyProgress,
+    });
   }
 
   function fetchBatchStatus() {

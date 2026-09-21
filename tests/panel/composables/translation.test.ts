@@ -730,6 +730,23 @@ describe("useContentTranslator", () => {
       expect(panel.view.reload).toHaveBeenCalledTimes(1);
     });
 
+    it("counts the cascaded models in the progress notification of a single-language translation", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'johannschopplich.content-translator.notification.batchTranslating {"current":1,"total":1}',
+        }),
+      );
+    });
+
     it("never translates the cascade into the default language", async () => {
       cascadeIntroPage();
       panel.language = DEFAULT_LANGUAGE;
