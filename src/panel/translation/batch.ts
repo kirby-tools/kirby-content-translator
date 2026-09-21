@@ -141,7 +141,7 @@ export async function runBatchTranslation(
       fields: model.fields,
     });
 
-    reportRejections(contentResult, targetLanguage);
+    reportRejections(contentResult, targetLanguage, model.path);
 
     const plan = planBatchLanguageTranslation({
       isHomePage: model.isHomePage,
@@ -159,7 +159,7 @@ export async function runBatchTranslation(
     if (plan.shouldRequestTitleTranslation) {
       const translatedTitle = await translateTitle(
         model.defaultLanguageData.title,
-        { strategy, targetLanguage, sourceLanguage },
+        { strategy, targetLanguage, sourceLanguage, modelPath: model.path },
       );
       languageResults.push(translatedTitle.result);
       title = translatedTitle.text;

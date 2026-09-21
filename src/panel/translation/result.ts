@@ -4,10 +4,13 @@ import type { ContentTranslationResult } from "./types";
 export function reportRejections(
   result: ContentTranslationResult,
   targetLanguage: PanelLanguageInfo | PanelLanguage,
+  modelPath?: string,
 ) {
+  const modelSuffix = modelPath === undefined ? "" : ` of "${modelPath}"`;
+
   for (const { fieldKey, reason, detail } of result.rejections) {
     console.warn(
-      `Rejected "${fieldKey}" (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
+      `Rejected "${fieldKey}"${modelSuffix} (${targetLanguage.code}): ${detail ?? reason}. Keeping source text.`,
     );
   }
 }

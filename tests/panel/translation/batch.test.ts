@@ -199,6 +199,33 @@ describe("runBatchTranslation", () => {
     ]);
   });
 
+  it("names the model in the warning for a rejected title", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const strategy: TranslationStrategy = {
+      execute: async (units) =>
+        units.map((unit) =>
+          unit.fieldKey === "title"
+            ? { reason: "missing translation" }
+            : `${unit.text} (de)`,
+        ),
+    };
+
+    await runBatchTranslation(
+      [
+        createBatchModel("pages/notes", "Notes", {
+          targetLanguages: [GERMAN],
+          isTitleTranslationEnabled: true,
+        }),
+      ],
+      createBatchOptions(createWrite(), strategy),
+    );
+
+    expect(warn).toHaveBeenCalledWith(
+      'Rejected "title" of "pages/notes" (de): missing translation. Keeping source text.',
+    );
+    warn.mockRestore();
+  });
+
   it("withholds a rejected title from the write and reports the rejection", async () => {
     const write = createWrite();
     const strategy: TranslationStrategy = {

@@ -185,8 +185,8 @@ export function useContentTranslator() {
   }
 
   /**
-   * Separates a configuration that rules out every field from content with
-   * nothing to translate.
+   * Separates a configuration that rules out every field of the host from
+   * content with nothing to translate.
    */
   function hasEligibleFields() {
     return Object.entries(fields.value ?? {}).some(([name, field]) =>

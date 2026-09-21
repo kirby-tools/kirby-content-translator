@@ -1309,7 +1309,7 @@ describe("useContentTranslator", () => {
       ]);
 
       expect(warn).toHaveBeenCalledWith(
-        'Rejected "text" (it): empty translation. Keeping source text.',
+        'Rejected "text" of "pages/example" (it): empty translation. Keeping source text.',
       );
       warn.mockRestore();
       error.mockRestore();

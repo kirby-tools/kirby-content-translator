@@ -49,10 +49,13 @@ export async function translateTitle(
     strategy,
     targetLanguage,
     sourceLanguage,
+    modelPath,
   }: {
     strategy: TranslationStrategy;
     targetLanguage: PanelLanguageInfo | PanelLanguage;
     sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+    /** Path of the model, named in the warning for a rejected title next to the field. */
+    modelPath?: string;
   },
 ): Promise<{ text?: string; result: ContentTranslationResult }> {
   let translatedTitle: { text: string; result: ContentTranslationResult };
@@ -83,7 +86,7 @@ export async function translateTitle(
     };
   }
 
-  reportRejections(translatedTitle.result, targetLanguage);
+  reportRejections(translatedTitle.result, targetLanguage, modelPath);
 
   return {
     text:
