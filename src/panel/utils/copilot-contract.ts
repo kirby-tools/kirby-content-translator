@@ -2,6 +2,8 @@ import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { FlexibleSchema } from "ai";
 import type { LogLevel, PluginAsset } from "kirbyuse";
 
+// Self-standing mirror of Kirby Copilot's seam types, kept whole and in sync.
+
 /**
  * Minimum Copilot seam version this plugin can talk to (plain-schema
  * structured output). Pinned by `tests/fixtures/copilot-seam-contract.json`,
