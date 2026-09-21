@@ -210,7 +210,7 @@ export function useContentTranslator() {
   // Only one notification is visible at a time, so the most specific outcome wins.
   function notifyTranslationResult(
     result: ContentTranslationResult,
-    successMessageKey: string,
+    successMessage: string,
   ) {
     if (result.translatableCount === 0) {
       panel.notification.open({
@@ -231,7 +231,7 @@ export function useContentTranslator() {
     const untranslatedCount = result.translatableCount - result.translatedCount;
 
     if (untranslatedCount === 0) {
-      panel.notification.success(panel.t(successMessageKey));
+      panel.notification.success(successMessage);
       return;
     }
 
@@ -293,7 +293,9 @@ export function useContentTranslator() {
     if (languagesWithKeptSource.length === 0) {
       notifyTranslationResult(
         mergeTranslationResults(savedResults),
-        "johannschopplich.content-translator.notification.batchTranslated",
+        panel.t(
+          "johannschopplich.content-translator.notification.batchTranslated",
+        ),
       );
       return;
     }
@@ -627,10 +629,36 @@ export function useContentTranslator() {
 
       if (cascadeError !== undefined) throw cascadeError;
 
-      notifyTranslationResult(
-        mergeTranslationResults(languageResults),
-        "johannschopplich.content-translator.notification.translated",
+      const hostResult = mergeTranslationResults(languageResults);
+      const savedCascadePaths = cascadeOutcomes.flatMap((outcome) =>
+        outcome.status === "saved" ? [outcome.model.path] : [],
       );
+
+      if (savedCascadePaths.length === 0) {
+        notifyTranslationResult(
+          hostResult,
+          panel.t(
+            "johannschopplich.content-translator.notification.translated",
+          ),
+        );
+      } else if (hostResult.translatableCount === 0) {
+        // A host without text of its own, such as a page that only holds
+        // modules, would otherwise report that there was nothing to translate.
+        panel.notification.success(
+          panel.t(
+            "johannschopplich.content-translator.notification.translatedCascade",
+            { models: describeCascadeModels(savedCascadePaths) },
+          ),
+        );
+      } else {
+        notifyTranslationResult(
+          hostResult,
+          panel.t(
+            "johannschopplich.content-translator.notification.translatedWithCascade",
+            { models: describeCascadeModels(savedCascadePaths) },
+          ),
+        );
+      }
 
       // The notification speaks for the host only, whose fields it can name,
       // so every cascaded model that kept a source text is reported too.
@@ -884,6 +912,63 @@ export function useContentTranslator() {
   }
 
   /**
+   * Describes the cascade of the open view for the batch translation dialog,
+   * or returns nothing without a cascaded model.
+   */
+  async function getCascadeHelp() {
+    if (!hasCascade.value) return;
+
+    let cascade: CascadeModelResponse[];
+
+    // The help is optional, so a failed request must not keep the dialog from
+    // opening. The run requests the cascade again and reports the error.
+    try {
+      cascade = await fetchCascade();
+    } catch (error) {
+      console.error("Failed to load the cascade:", error);
+      return;
+    }
+
+    if (cascade.length === 0) return;
+
+    return formatPlural(
+      panel.t("johannschopplich.content-translator.dialog.cascadeHelp", {
+        models: describeCascadeModels(cascade.map(({ path }) => path)),
+      }),
+      cascade.length,
+    );
+  }
+
+  /**
+   * Names the pages and the files among the paths in the Panel's language, as
+   * in "3 pages and 2 files".
+   */
+  function describeCascadeModels(paths: string[]) {
+    const fileCount = paths.filter(isFileModelPath).length;
+    const pageCount = paths.length - fileCount;
+    const countLabels = [
+      ["pages", pageCount] as const,
+      ["files", fileCount] as const,
+    ]
+      .filter(([, count]) => count > 0)
+      .map(([key, count]) =>
+        formatPlural(
+          panel.t(`johannschopplich.content-translator.cascade.${key}`, {
+            count,
+          }),
+          count,
+        ),
+      );
+
+    return countLabels.length === 2
+      ? panel.t("johannschopplich.content-translator.cascade.and", {
+          first: countLabels[0],
+          second: countLabels[1],
+        })
+      : (countLabels[0] ?? "");
+  }
+
+  /**
    * Loads the default-language content of every cascaded model afresh: a
    * cascaded model has no open view whose events could clear a cache.
    */
@@ -953,6 +1038,7 @@ export function useContentTranslator() {
     importModelContent,
     translateModelContent,
     batchTranslateModelContent,
+    getCascadeHelp,
   };
 }
 

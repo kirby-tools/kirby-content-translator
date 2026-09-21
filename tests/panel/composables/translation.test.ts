@@ -746,6 +746,59 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("getCascadeHelp names 1 page and 2 files", async () => {
+      cascadeIntroPage();
+      cascade.push(
+        { ...cascade[0]!, path: "pages/example/files/cover.jpg" },
+        { ...cascade[0]!, path: "pages/example/files/plan.pdf" },
+      );
+      const translator = await createContentTranslator({
+        cascade: ["page.children", "page.files"],
+      });
+
+      const help = await translator.getCascadeHelp();
+
+      // The stubbed `panel.t` renders a key with its data, nested for `{models}`.
+      expect(help).toMatch(
+        /dialog\.cascadeHelp .*cascade\.and .*cascade\.pages \W+count\W+1\W.*cascade\.files \W+count\W+2\W/,
+      );
+    });
+
+    it("getCascadeHelp returns undefined when the cascade request fails", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+      });
+      panel.api.get.mockRejectedValue(new Error("server error"));
+
+      expect(await translator.getCascadeHelp()).toBeUndefined();
+      error.mockRestore();
+    });
+
+    it("getCascadeHelp returns undefined for an empty cascade", async () => {
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+      });
+
+      expect(await translator.getCascadeHelp()).toBeUndefined();
+    });
+
+    it("names the cascade in the success notification of a single-language translation", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.success).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^johannschopplich\.content-translator\.notification\.translatedWithCascade /,
+        ),
+      );
+    });
+
     it("translates only the host without the cascade option", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({
@@ -799,6 +852,22 @@ describe("useContentTranslator", () => {
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
       expect(batchWrite).not.toHaveBeenCalled();
+    });
+
+    it("names only the cascade in the success notification for a host with nothing to translate", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: {},
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.notification.success).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /^johannschopplich\.content-translator\.notification\.translatedCascade /,
+        ),
+      );
     });
 
     it("reloads the view for the translated title before reporting a cascade that failed to load", async () => {

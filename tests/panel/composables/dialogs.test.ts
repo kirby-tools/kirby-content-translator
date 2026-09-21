@@ -29,7 +29,7 @@ function openTranslationDialog() {
   return useTranslationDialogs().openTranslationDialog();
 }
 
-describe("openTranslationDialog", () => {
+describe("useTranslationDialogs", () => {
   beforeEach(() => {
     // `usePluginContext` requests the plugin context through `window.panel`.
     vi.stubGlobal("window", {
@@ -44,20 +44,39 @@ describe("openTranslationDialog", () => {
     });
     localStorage.setItem("kirby$content-translator$preferences$provider", "ai");
     openFieldsDialog = vi.fn(async () => ({ strategyName: "deepl" }));
+    copilot = undefined;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("returns strategy deepl without opening the dialog when Copilot has no API key", async () => {
+  it("openBatchTranslationDialog appends the cascade help to the languages field help", async () => {
+    await useTranslationDialogs().openBatchTranslationDialog(
+      "1 page is also translated.",
+    );
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
+      "johannschopplich.content-translator.dialog.batchHelp 1 page is also translated.",
+    );
+  });
+
+  it("openBatchTranslationDialog shows only the batchHelp without a cascade help", async () => {
+    await useTranslationDialogs().openBatchTranslationDialog();
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
+      "johannschopplich.content-translator.dialog.batchHelp",
+    );
+  });
+
+  it("openTranslationDialog returns strategy deepl without opening the dialog when Copilot has no API key", async () => {
     copilot = copilotWith({ hasApiKey: false });
 
     expect(await openTranslationDialog()).toEqual({ strategyName: "deepl" });
     expect(openFieldsDialog).not.toHaveBeenCalled();
   });
 
-  it("preselects strategy ai in the dialog when Copilot is ready", async () => {
+  it("openTranslationDialog preselects strategy ai in the dialog when Copilot is ready", async () => {
     copilot = copilotWith();
 
     await openTranslationDialog();

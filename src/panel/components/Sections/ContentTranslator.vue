@@ -45,6 +45,7 @@ const {
   importModelContent,
   translateModelContent,
   batchTranslateModelContent,
+  getCascadeHelp,
 } = useContentTranslator();
 
 const {
@@ -95,7 +96,7 @@ async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
 }
 
 async function handleBatchTranslate() {
-  const result = await openBatchTranslationDialog();
+  const result = await openBatchTranslationDialog(await getCascadeHelp());
   if (result) {
     strategyName.value = result.strategyName;
     await batchTranslateModelContent(result.languages);

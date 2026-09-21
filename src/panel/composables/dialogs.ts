@@ -96,9 +96,9 @@ export function useTranslationDialogs() {
     }
   }
 
-  async function openBatchTranslationDialog(): Promise<
-    BatchTranslationDialogResult | undefined
-  > {
+  async function openBatchTranslationDialog(
+    cascadeHelp?: string,
+  ): Promise<BatchTranslationDialogResult | undefined> {
     const { strategyName, strategyField } = await resolveStrategyField();
 
     const result = await openFieldsDialog({
@@ -117,10 +117,14 @@ export function useTranslationDialogs() {
             value: language.code,
             text: language.name,
           })),
-          help: panel.t(
-            "johannschopplich.content-translator.dialog.batchHelp",
-            { language: defaultLanguage.name },
-          ),
+          help: [
+            panel.t("johannschopplich.content-translator.dialog.batchHelp", {
+              language: defaultLanguage.name,
+            }),
+            cascadeHelp,
+          ]
+            .filter(Boolean)
+            .join(" "),
         },
         ...(strategyField && { strategyName: strategyField }),
       },
