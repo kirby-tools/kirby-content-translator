@@ -98,44 +98,11 @@ final class Translator
             return new TranslatedUnits([], [], 0, 0);
         }
 
-        $kirby = App::instance();
-        $strategy ??= self::resolveStrategy();
-        $options = self::buildOptions($targetLanguage, $sourceLanguage);
-
-        $units = array_map(
-            fn (string $text): TranslationUnit => new TranslationUnit(
-                text: $kirby->apply('content-translator.translate:before', [
-                    'text' => $text,
-                    'targetLanguage' => $targetLanguage,
-                    'sourceLanguage' => $sourceLanguage,
-                    'type' => 'text',
-                    'unit' => new TranslationUnit($text),
-                    'options' => $options,
-                ], 'text'),
-            ),
-            $texts,
-        );
-
-        $translatedResult = self::translateUnits($units, $strategy, $options);
-
-        $translatedTexts = [];
-        foreach ($translatedResult->texts as $index => $translatedText) {
-            $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
-                'text' => $translatedText,
-                'originalText' => $texts[$index],
-                'targetLanguage' => $targetLanguage,
-                'sourceLanguage' => $sourceLanguage,
-                'type' => 'text',
-                'unit' => $units[$index],
-                'options' => $options,
-            ], 'text');
-        }
-
-        return new TranslatedUnits(
-            $translatedTexts,
-            $translatedResult->rejections,
-            $translatedResult->translatableCount,
-            $translatedResult->translatedCount,
+        return self::translateUnitsWithHooks(
+            array_map(fn (string $text): TranslationUnit => new TranslationUnit($text), $texts),
+            $strategy ?? self::resolveStrategy(),
+            $targetLanguage,
+            $sourceLanguage,
         );
     }
 
@@ -197,26 +164,12 @@ final class Translator
             $contentResult = new ContentTranslationResult(0, 0, []);
 
             if ($result->translations !== []) {
-                $strategy ??= self::resolveStrategy();
-                $options = self::buildOptions($toLanguageCode, $fromLanguageCode);
-
-                $processedUnits = array_map(
-                    fn ($collectedTranslation): TranslationUnit => new TranslationUnit(
-                        text: $this->kirby->apply('content-translator.translate:before', [
-                            'text' => $collectedTranslation->unit->text,
-                            'targetLanguage' => $toLanguageCode,
-                            'sourceLanguage' => $fromLanguageCode,
-                            'type' => 'text',
-                            'unit' => $collectedTranslation->unit,
-                            'options' => $options,
-                        ], 'text'),
-                        fieldKey: $collectedTranslation->unit->fieldKey,
-                    ),
-                    $result->translations,
+                $unitResult = self::translateUnitsWithHooks(
+                    array_map(fn ($collectedTranslation): TranslationUnit => $collectedTranslation->unit, $result->translations),
+                    $strategy ?? self::resolveStrategy(),
+                    $toLanguageCode,
+                    $fromLanguageCode,
                 );
-
-                $unitResult = self::translateUnits($processedUnits, $strategy, $options);
-                $translations = $unitResult->texts;
                 $contentResult = new ContentTranslationResult(
                     $unitResult->translatableCount,
                     $unitResult->translatedCount,
@@ -224,16 +177,7 @@ final class Translator
                 );
 
                 foreach ($result->translations as $index => $collectedTranslation) {
-                    $translatedText = $this->kirby->apply('content-translator.translate:after', [
-                        'text' => $translations[$index],
-                        'originalText' => $collectedTranslation->unit->text,
-                        'targetLanguage' => $toLanguageCode,
-                        'sourceLanguage' => $fromLanguageCode,
-                        'type' => 'text',
-                        'unit' => $processedUnits[$index],
-                        'options' => $options,
-                    ], 'text');
-                    ($collectedTranslation->writeBack)($translatedText);
+                    ($collectedTranslation->writeBack)($unitResult->texts[$index]);
                 }
 
                 foreach ($result->finalizers as $finalize) {
@@ -296,6 +240,52 @@ final class Translator
                 $this->model = $this->model->changeSlug($result->texts[0], $contentLanguageCode);
             }
         });
+    }
+
+    /**
+     * @param list<TranslationUnit> $units
+     */
+    private static function translateUnitsWithHooks(array $units, Strategy $strategy, string $targetLanguage, string|null $sourceLanguage): TranslatedUnits
+    {
+        $kirby = App::instance();
+        $options = self::buildOptions($targetLanguage, $sourceLanguage);
+
+        $processedUnits = array_map(
+            fn (TranslationUnit $unit): TranslationUnit => new TranslationUnit(
+                text: $kirby->apply('content-translator.translate:before', [
+                    'text' => $unit->text,
+                    'targetLanguage' => $targetLanguage,
+                    'sourceLanguage' => $sourceLanguage,
+                    'type' => 'text',
+                    'unit' => $unit,
+                    'options' => $options,
+                ], 'text'),
+                fieldKey: $unit->fieldKey,
+            ),
+            $units,
+        );
+
+        $translatedResult = self::translateUnits($processedUnits, $strategy, $options);
+
+        $translatedTexts = [];
+        foreach ($translatedResult->texts as $index => $translatedText) {
+            $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
+                'text' => $translatedText,
+                'originalText' => $units[$index]->text,
+                'targetLanguage' => $targetLanguage,
+                'sourceLanguage' => $sourceLanguage,
+                'type' => 'text',
+                'unit' => $processedUnits[$index],
+                'options' => $options,
+            ], 'text');
+        }
+
+        return new TranslatedUnits(
+            $translatedTexts,
+            $translatedResult->rejections,
+            $translatedResult->translatableCount,
+            $translatedResult->translatedCount,
+        );
     }
 
     /**

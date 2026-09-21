@@ -220,4 +220,25 @@ final class HooksTest extends ApiRouteTestCase
         $this->assertTrue($hookCalled);
         $this->assertSame('[de]Hello modified', $result);
     }
+
+    #[Test]
+    public function after_hook_receives_the_source_text_as_original_text_after_a_before_hook_changed_it(): void
+    {
+        $captured = [];
+
+        self::bootApp([
+            'hooks' => [
+                'content-translator.translate:before' => fn ($text) => $text . '!',
+                'content-translator.translate:after' => function ($text, $originalText, $unit) use (&$captured) {
+                    $captured = ['originalText' => $originalText, 'unitText' => $unit->text];
+                    return $text;
+                },
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+
+        Translator::translateText('Hello', 'de');
+
+        $this->assertSame(['originalText' => 'Hello', 'unitText' => 'Hello!'], $captured);
+    }
 }
