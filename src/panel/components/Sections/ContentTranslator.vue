@@ -1,9 +1,8 @@
 <script lang="ts">
-import type { PanelLanguageInfo } from "kirby-types";
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import { ref, usePanel, useSection } from "kirbyuse";
 import { section } from "kirbyuse/props";
-import { useTranslationDialogs } from "../../composables/dialogs";
+import { useTranslationActions } from "../../composables/actions";
 import { usePluginContext } from "../../composables/plugin";
 import {
   useContentTranslator,
@@ -28,13 +27,12 @@ const { isTranslating } = useTranslationState();
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 const isInitialized = ref(false);
 
+const translator = useContentTranslator();
 const {
   label,
   isImportEnabled,
   importFrom,
   isBatchTranslationEnabled,
-  shouldConfirm,
-  strategyName,
 
   licenseStatus,
   hasAnyStrategy,
@@ -42,18 +40,10 @@ const {
   isContentEditable,
 
   initializeConfig,
-  importModelContent,
-  translateModelContent,
-  batchTranslateModelContent,
-  getCascadeHelp,
-} = useContentTranslator();
+} = translator;
 
-const {
-  openConfirmableTextDialog,
-  openTranslationDialog,
-  openBatchTranslationDialog,
-  showCopilotLicenseToastOnce,
-} = useTranslationDialogs();
+const { handleImport, handleTranslate, handleBatchTranslate } =
+  useTranslationActions(translator);
 
 (async () => {
   const { load } = useSection();
@@ -70,41 +60,6 @@ const {
 
   isInitialized.value = true;
 })();
-
-async function handleImport(sourceLanguage?: PanelLanguageInfo) {
-  const text = panel.t(
-    "johannschopplich.content-translator.dialog.importConfirmation",
-    {
-      language: sourceLanguage?.name ?? defaultLanguage.name,
-    },
-  );
-
-  await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
-    await importModelContent(sourceLanguage);
-  });
-}
-
-async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
-  const result = await openTranslationDialog();
-  if (result) {
-    strategyName.value = result.strategyName;
-    await translateModelContent(panel.language, sourceLanguage);
-    if (result.strategyName === "ai") {
-      showCopilotLicenseToastOnce();
-    }
-  }
-}
-
-async function handleBatchTranslate() {
-  const result = await openBatchTranslationDialog(await getCascadeHelp());
-  if (result) {
-    strategyName.value = result.strategyName;
-    await batchTranslateModelContent(result.languages);
-    if (result.strategyName === "ai") {
-      showCopilotLicenseToastOnce();
-    }
-  }
-}
 </script>
 
 <template>
