@@ -738,7 +738,7 @@ export function useContentTranslator() {
           ? new AIStrategy({ systemPrompt: systemPrompt.value })
           : new DeepLStrategy();
 
-      const outcomes = await planAndRunBatch(
+      const outcomes = await translateAndSave(
         {
           path,
           title: panel.view.title ?? path,
@@ -791,10 +791,10 @@ export function useContentTranslator() {
 
   /**
    * Translates the host, if it takes part, and its cascade into the selected
-   * languages, returning one outcome per model and selected language with the
-   * host first.
+   * languages and saves each translation directly, returning one outcome per
+   * model and selected language with the host first.
    */
-  async function planAndRunBatch(
+  async function translateAndSave(
     host: BatchCandidate | undefined,
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
     {
@@ -890,13 +890,13 @@ export function useContentTranslator() {
     if (!hasCascade.value || targetLanguage.default) return [];
 
     // For a host another user edits, Kirby's `content.save()` opens the lock
-    // dialog and returns `false` instead of throwing, and `useContent().update`
-    // drops that result, so only the status tells that the host was not written.
+    // dialog instead of throwing, and reports the refused write only from
+    // Kirby 5.6 on, so the status has to tell that the host was not written.
     const hostStatus = await fetchBatchStatus();
 
     if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
 
-    return await planAndRunBatch(undefined, [targetLanguage], { strategy });
+    return await translateAndSave(undefined, [targetLanguage], { strategy });
   }
 
   function fetchBatchStatus() {
