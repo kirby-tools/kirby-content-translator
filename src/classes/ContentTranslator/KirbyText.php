@@ -5,10 +5,7 @@ declare(strict_types = 1);
 namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
-use Exception;
-use Kirby\Cms\App;
 use Kirby\Exception\LogicException;
-use Kirby\Text\KirbyTag;
 
 final class KirbyText
 {
@@ -18,14 +15,6 @@ final class KirbyText
      * `u` modifier, under which PCRE returns `false` on invalid UTF-8.
      */
     public const PLACEHOLDER_PATTERN = '!<c(\d+)\s*/>!';
-    /** @see https://github.com/getkirby/kirby/blob/main/src/Text/KirbyTags.php */
-    private const KIRBY_TAGS_REGEX = '!
-        (?=[^\]])               # positive lookahead that matches a group after the main expression without including ] in the result
-        (?=\([a-z0-9_-]+:)      # positive lookahead that requires starts with ( and lowercase ASCII letters, digits, underscores or hyphens followed with : immediately to the right of the current location
-        (\(                     # capturing group 1
-            (?:[^()]+|(?1))*+   # repetitions of any chars other than ( and ) or the whole group 1 pattern (recursed)
-        \))                     # end of capturing group 1
-    !isx';
 
     /**
      * Splits KirbyText prose from KirbyTags structurally.
@@ -100,27 +89,6 @@ final class KirbyText
         };
 
         return ['unitTexts' => $unitTexts, 'restore' => $restore];
-    }
-
-    /**
-     * @deprecated v4 Will be removed. Translate via the Strategy pipeline:
-     * `Translator::translateText()` already routes through it.
-     */
-    public static function translateText(string $text, string $targetLanguage, string|null $sourceLanguage = null, array $kirbyTags = []): string
-    {
-        if (trim($text) === '') {
-            return '';
-        }
-
-        if ($kirbyTags !== []) {
-            $text = preg_replace_callback(
-                self::KIRBY_TAGS_REGEX,
-                fn (array $matches) => self::translateKirbyTag($matches[0], $targetLanguage, $sourceLanguage, $kirbyTags),
-                $text
-            );
-        }
-
-        return self::translateWithProtectedTags($text, $targetLanguage, $sourceLanguage);
     }
 
     /**
@@ -223,95 +191,5 @@ final class KirbyText
         }
 
         return '(' . implode(' ', $parts) . ')';
-    }
-
-    private static function translateKirbyTag(string $tagString, string $targetLanguage, string|null $sourceLanguage, array $kirbyTags): string
-    {
-        $kirby = App::instance();
-
-        try {
-            $tag = KirbyTag::parse($tagString, [
-                'kirby' => $kirby
-            ]);
-
-            $tagType = $tag->type();
-            $translatableAttributes = $kirbyTags[$tagType] ?? null;
-
-            if ($translatableAttributes === null) {
-                return '<span translate="no">' . $tagString . '</span>';
-            }
-
-            $newAttributes = [];
-            $hasTranslations = false;
-
-            $newValue = $tag->value;
-            if (in_array('value', $translatableAttributes, true) && $tag->value !== null && $tag->value !== '') {
-                $newValue = Translator::translateText($tag->value, $targetLanguage, $sourceLanguage);
-                $hasTranslations = true;
-            }
-
-            foreach ($tag->attrs as $attrName => $attrValue) {
-                // `kirbytext.<type>` option defaults land in `attrs` untouched,
-                // so an attribute value is not guaranteed to be a string.
-                if (in_array($attrName, $translatableAttributes, true) && is_string($attrValue) && $attrValue !== '') {
-                    $newAttributes[$attrName] = Translator::translateText($attrValue, $targetLanguage, $sourceLanguage);
-                    $hasTranslations = true;
-                } else {
-                    $newAttributes[$attrName] = $attrValue;
-                }
-            }
-
-            if (!$hasTranslations) {
-                return $tagString;
-            }
-
-            return self::buildKirbyTag($tagType, $newValue, $newAttributes);
-
-        } catch (Exception $e) {
-            if ($kirby->option('debug', false)) {
-                throw $e;
-            }
-
-            return '<span translate="no">' . $tagString . '</span>';
-        }
-    }
-
-    private static function buildKirbyTag(string $type, string|null $value, array $attributes): string
-    {
-        $parts = [];
-
-        if ($value !== null && $value !== '') {
-            $parts[] = $type . ': ' . $value;
-        } else {
-            $parts[] = $type;
-        }
-
-        foreach ($attributes as $name => $attrValue) {
-            // `kirbytext.<type>` option defaults land in `attrs` untouched: an
-            // array default would stringify into `Array`, a `false` default
-            // would render as a bare `name: `.
-            if (is_scalar($attrValue) && $attrValue !== '' && $attrValue !== false) {
-                $parts[] = $name . ': ' . $attrValue;
-            }
-        }
-
-        return '(' . implode(' ', $parts) . ')';
-    }
-
-    private static function translateWithProtectedTags(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
-    {
-        $protectedText = preg_replace_callback(
-            self::KIRBY_TAGS_REGEX,
-            fn (array $matches) => '<span translate="no">' . $matches[0] . '</span>',
-            $text
-        );
-
-        $translatedText = Translator::translateText($protectedText, $targetLanguage, $sourceLanguage);
-
-        return preg_replace(
-            '!<span translate="no">(.*?)</span>!s',
-            '$1',
-            $translatedText
-        );
     }
 }
