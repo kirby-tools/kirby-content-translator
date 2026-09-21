@@ -52,22 +52,22 @@ describe("planBatchRun", () => {
       languagesWithUnsavedChanges: ["de"],
     });
 
-    const { models, heldBack } = planBatchRun(host, [], createPlanOptions());
+    const models = planBatchRun(host, [], createPlanOptions());
 
     expect(models).toMatchObject([
       {
         path: "pages/notes",
-        targetLanguages: [FRENCH],
+        targets: [
+          { language: GERMAN, heldBackOutcome: { status: "unsavedChanges" } },
+          { language: FRENCH },
+        ],
         settings: HOST_SETTINGS,
       },
-    ]);
-    expect(heldBack).toEqual([
-      { model: models[0], language: GERMAN, status: "unsavedChanges" },
     ]);
   });
 
   it("gives a cascaded model the fieldTypes and kirbyTags of the host", () => {
-    const { models } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes"),
       [createCandidate("pages/notes+intro")],
       createPlanOptions(),
@@ -75,13 +75,13 @@ describe("planBatchRun", () => {
 
     expect(models[1]).toMatchObject({
       path: "pages/notes+intro",
-      targetLanguages: [GERMAN, FRENCH],
+      targets: [{ language: GERMAN }, { language: FRENCH }],
       settings: { fieldTypes: ["text"], kirbyTags: { link: ["text"] } },
     });
   });
 
   it("never passes the includeFields, excludeFields or isSlugTranslationEnabled of the host on to a cascaded model", () => {
-    const { models } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes"),
       [createCandidate("pages/notes+intro")],
       createPlanOptions(),
@@ -95,7 +95,7 @@ describe("planBatchRun", () => {
   });
 
   it("never enables the title of a cascaded model with isTitleChangeAllowed false", () => {
-    const { models } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes"),
       [createCandidate("pages/notes+intro", { isTitleChangeAllowed: false })],
       createPlanOptions(),
@@ -105,21 +105,26 @@ describe("planBatchRun", () => {
   });
 
   it("holds back a cascaded model another user edits as locked in every language", () => {
-    const { models, heldBack } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes"),
       [createCandidate("pages/notes+intro", { lockedBy: "Ada" })],
       createPlanOptions(),
     );
 
-    expect(models[1]!.targetLanguages).toEqual([]);
-    expect(heldBack).toEqual([
-      { model: models[1], language: GERMAN, status: "locked", lockedBy: "Ada" },
-      { model: models[1], language: FRENCH, status: "locked", lockedBy: "Ada" },
+    expect(models[1]!.targets).toEqual([
+      {
+        language: GERMAN,
+        heldBackOutcome: { status: "locked", lockedBy: "Ada" },
+      },
+      {
+        language: FRENCH,
+        heldBackOutcome: { status: "locked", lockedBy: "Ada" },
+      },
     ]);
   });
 
   it("holds back every language of a cascaded model with unsaved changes in the default language", () => {
-    const { models, heldBack } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes"),
       [
         createCandidate("pages/notes+intro", {
@@ -129,35 +134,31 @@ describe("planBatchRun", () => {
       createPlanOptions(),
     );
 
-    expect(models[1]!.targetLanguages).toEqual([]);
-    expect(heldBack).toEqual([
-      {
-        model: models[1],
-        language: GERMAN,
-        status: "unsavedChanges",
-        isDefaultLanguageUnsaved: true,
-      },
-      {
-        model: models[1],
-        language: FRENCH,
-        status: "unsavedChanges",
-        isDefaultLanguageUnsaved: true,
-      },
+    const heldBackOutcome = {
+      status: "unsavedChanges",
+      isDefaultLanguageUnsaved: true,
+    };
+    expect(models[1]!.targets).toEqual([
+      { language: GERMAN, heldBackOutcome },
+      { language: FRENCH, heldBackOutcome },
     ]);
   });
 
   it("keeps translating a host with unsaved changes in the default language", () => {
-    const { models } = planBatchRun(
+    const models = planBatchRun(
       createCandidate("pages/notes", { languagesWithUnsavedChanges: ["en"] }),
       [],
       createPlanOptions(),
     );
 
-    expect(models[0]!.targetLanguages).toEqual([GERMAN, FRENCH]);
+    expect(models[0]!.targets).toEqual([
+      { language: GERMAN },
+      { language: FRENCH },
+    ]);
   });
 
   it("plans only the cascade without a host", () => {
-    const { models } = planBatchRun(
+    const models = planBatchRun(
       undefined,
       [createCandidate("pages/notes+intro")],
       createPlanOptions(),

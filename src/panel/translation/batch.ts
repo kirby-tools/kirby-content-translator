@@ -23,9 +23,23 @@ export interface BatchModel {
   isErrorPage: boolean;
   defaultLanguageData: PanelModelData;
   fields: Record<string, KirbyFieldProps>;
-  targetLanguages: (PanelLanguageInfo | PanelLanguage)[];
+  /** One per selected language, in the order of the report. */
+  targets: BatchTarget[];
   settings: BatchModelSettings;
 }
+
+export interface BatchTarget {
+  language: PanelLanguageInfo | PanelLanguage;
+  heldBackOutcome?: HeldBackOutcome;
+}
+
+export type HeldBackOutcome =
+  | {
+      status: "unsavedChanges";
+      /** Unsaved changes in the default language, which a cascaded model is translated from. */
+      isDefaultLanguageUnsaved?: boolean;
+    }
+  | { status: "locked"; lockedBy: string };
 
 export interface BatchModelSettings {
   fieldTypes: string[];
@@ -40,13 +54,8 @@ export type BatchOutcome = {
   model: BatchModel;
   language: PanelLanguageInfo | PanelLanguage;
 } & (
+  | HeldBackOutcome
   | { status: "failed"; message: string }
-  | {
-      status: "unsavedChanges";
-      /** Unsaved changes in the default language, which a cascaded model is translated from. */
-      isDefaultLanguageUnsaved?: boolean;
-    }
-  | { status: "locked"; lockedBy: string }
   | { status: "notStarted"; lockedBy: string }
   | ({ status: "saved"; result: ContentTranslationResult } & Pick<
       Extract<BatchWriteResponse, { status: "saved" }>,
@@ -55,9 +64,10 @@ export type BatchOutcome = {
 );
 
 /**
- * Translates every model into each of its target languages and saves each
- * through `write`, returning one outcome per model and target language: model
- * by model in input order, and within a model language by language.
+ * Translates every model into each of its targets that is not held back and
+ * saves each through `write`, returning one outcome per model and target: model
+ * by model in input order, and within a model target by target. `onProgress`
+ * counts only the targets that are translated, starting at 0.
  */
 export async function runBatchTranslation(
   models: BatchModel[],
@@ -76,43 +86,51 @@ export async function runBatchTranslation(
   },
 ): Promise<BatchOutcome[]> {
   const pairs = models.flatMap((model) =>
-    model.targetLanguages.map((language) => ({ model, language })),
+    model.targets.map((target) => ({ model, ...target })),
   );
+  const total = pairs.filter(({ heldBackOutcome }) => !heldBackOutcome).length;
   const lockedByPath = new Map<string, string>();
   let completed = 0;
+
+  if (total > 0) onProgress?.(0, total);
 
   // A language of a model is isolated so one dead provider call cannot discard
   // what is already saved or stop what is still queued. A lock stops the
   // remaining languages of its model instead: Kirby refuses every further
   // write to that model while the lock holds.
   return await pAll(
-    pairs.map((pair) => async (): Promise<BatchOutcome> => {
-      const lockedBy = lockedByPath.get(pair.model.path);
+    pairs.map(
+      ({ heldBackOutcome, ...pair }) =>
+        async (): Promise<BatchOutcome> => {
+          if (heldBackOutcome) return { ...pair, ...heldBackOutcome };
 
-      if (lockedBy !== undefined) {
-        return { ...pair, status: "notStarted", lockedBy };
-      }
+          const lockedBy = lockedByPath.get(pair.model.path);
 
-      try {
-        const outcome = await translatePair(pair);
-        if (outcome.status === "locked") {
-          lockedByPath.set(pair.model.path, outcome.lockedBy);
-        }
-        return outcome;
-      } catch (error) {
-        console.error(
-          `Failed to translate "${pair.model.path}" into "${pair.language.code}":`,
-          error,
-        );
-        return {
-          ...pair,
-          status: "failed",
-          message: error instanceof Error ? error.message : String(error),
-        };
-      } finally {
-        onProgress?.(++completed, pairs.length);
-      }
-    }),
+          if (lockedBy !== undefined) {
+            return { ...pair, status: "notStarted", lockedBy };
+          }
+
+          try {
+            const outcome = await translatePair(pair);
+            if (outcome.status === "locked") {
+              lockedByPath.set(pair.model.path, outcome.lockedBy);
+            }
+            return outcome;
+          } catch (error) {
+            console.error(
+              `Failed to translate "${pair.model.path}" into "${pair.language.code}":`,
+              error,
+            );
+            return {
+              ...pair,
+              status: "failed",
+              message: error instanceof Error ? error.message : String(error),
+            };
+          } finally {
+            onProgress?.(++completed, total);
+          }
+        },
+    ),
     { concurrency },
   );
 

@@ -815,7 +815,7 @@ export function useContentTranslator() {
     const sourceLanguage = panel.languages.find(
       (language) => language.default,
     )!;
-    const { models, heldBack } = planBatchRun(
+    const models = planBatchRun(
       host,
       hasCascade.value ? await getCascadeCandidates(sourceLanguage.code) : [],
       {
@@ -831,16 +831,8 @@ export function useContentTranslator() {
         },
       },
     );
-    const pairCount = models.reduce(
-      (count, model) => count + model.targetLanguages.length,
-      0,
-    );
 
-    if (pairCount > 0) {
-      onProgress?.(0, pairCount);
-    }
-
-    const translatedOutcomes = await runBatchTranslation(models, {
+    return await runBatchTranslation(models, {
       sourceLanguage,
       strategy,
       concurrency:
@@ -852,17 +844,6 @@ export function useContentTranslator() {
         }),
       onProgress,
     });
-
-    return models.flatMap((model) =>
-      selectedLanguages.flatMap(
-        (language) =>
-          [...heldBack, ...translatedOutcomes].find(
-            (outcome) =>
-              outcome.model === model &&
-              outcome.language.code === language.code,
-          ) ?? [],
-      ),
-    );
   }
 
   function openBatchReport(

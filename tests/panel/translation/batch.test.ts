@@ -1,5 +1,8 @@
 import type { PanelLanguage } from "kirby-types";
-import type { BatchModel } from "../../../src/panel/translation/batch";
+import type {
+  BatchModel,
+  BatchTarget,
+} from "../../../src/panel/translation/batch";
 import type { TranslationStrategy } from "../../../src/panel/translation/types";
 import type {
   BatchWriteRequest,
@@ -38,7 +41,7 @@ function createBatchModel(
   path: string,
   title: string,
   {
-    targetLanguages = [GERMAN, FRENCH],
+    targets = [{ language: GERMAN }, { language: FRENCH }] as BatchTarget[],
     isTitleTranslationEnabled = false,
   } = {},
 ): BatchModel {
@@ -49,7 +52,7 @@ function createBatchModel(
     isErrorPage: false,
     defaultLanguageData: { id: path, title, content: { text: "Hello" } },
     fields: { text: field({ type: "text", name: "text" }) },
-    targetLanguages,
+    targets,
     settings: {
       fieldTypes: ["text"],
       includeFields: [],
@@ -169,7 +172,28 @@ describe("runBatchTranslation", () => {
     error.mockRestore();
   });
 
-  it("counts every model-language pair in the onProgress total", async () => {
+  it("turns a held-back target into its outcome in the order of the targets without calling write", async () => {
+    const write = createWrite();
+    const model = createBatchModel("pages/notes", "Notes", {
+      targets: [
+        { language: GERMAN, heldBackOutcome: { status: "unsavedChanges" } },
+        { language: FRENCH },
+      ],
+    });
+
+    const outcomes = await runBatchTranslation(
+      [model],
+      createBatchOptions(write),
+    );
+
+    expect(outcomes).toMatchObject([
+      { model, language: GERMAN, status: "unsavedChanges" },
+      { model, language: FRENCH, status: "saved" },
+    ]);
+    expect(write.mock.calls.map(([{ language }]) => language)).toEqual(["fr"]);
+  });
+
+  it("opens onProgress at 0 and counts every target of every model in its total", async () => {
     const onProgress = vi.fn();
 
     await runBatchTranslation([NOTES_PAGE, COVER_FILE], {
@@ -178,6 +202,7 @@ describe("runBatchTranslation", () => {
     });
 
     expect(onProgress.mock.calls).toEqual([
+      [0, 4],
       [1, 4],
       [2, 4],
       [3, 4],
@@ -185,12 +210,55 @@ describe("runBatchTranslation", () => {
     ]);
   });
 
+  it("leaves a held-back target out of the onProgress total", async () => {
+    const onProgress = vi.fn();
+
+    await runBatchTranslation(
+      [
+        createBatchModel("pages/notes", "Notes", {
+          targets: [
+            {
+              language: GERMAN,
+              heldBackOutcome: { status: "locked", lockedBy: "Ada" },
+            },
+            { language: FRENCH },
+          ],
+        }),
+      ],
+      { ...createBatchOptions(createWrite()), onProgress },
+    );
+
+    expect(onProgress.mock.calls).toEqual([
+      [0, 1],
+      [1, 1],
+    ]);
+  });
+
+  it("never calls onProgress when every target is held back", async () => {
+    const onProgress = vi.fn();
+
+    await runBatchTranslation(
+      [
+        createBatchModel("pages/notes", "Notes", {
+          targets: [
+            { language: GERMAN, heldBackOutcome: { status: "unsavedChanges" } },
+          ],
+        }),
+      ],
+      { ...createBatchOptions(createWrite()), onProgress },
+    );
+
+    expect(onProgress).not.toHaveBeenCalled();
+  });
+
   it("writes each model into its own target languages", async () => {
     const write = createWrite();
 
     await runBatchTranslation(
       [
-        createBatchModel("pages/notes", "Notes", { targetLanguages: [FRENCH] }),
+        createBatchModel("pages/notes", "Notes", {
+          targets: [{ language: FRENCH }],
+        }),
         COVER_FILE,
       ],
       createBatchOptions(write),
@@ -209,12 +277,14 @@ describe("runBatchTranslation", () => {
     const write = createWrite();
     const models = [
       createBatchModel("pages/notes", "Notes", {
-        targetLanguages: [GERMAN],
+        targets: [{ language: GERMAN }],
         isTitleTranslationEnabled: true,
       }),
-      createBatchModel("pages/about", "About", { targetLanguages: [GERMAN] }),
+      createBatchModel("pages/about", "About", {
+        targets: [{ language: GERMAN }],
+      }),
       createBatchModel("pages/notes/files/cover.jpg", "cover.jpg", {
-        targetLanguages: [GERMAN],
+        targets: [{ language: GERMAN }],
         isTitleTranslationEnabled: true,
       }),
     ];
@@ -234,7 +304,7 @@ describe("runBatchTranslation", () => {
     await runBatchTranslation(
       [
         createBatchModel("pages/notes", "Notes", {
-          targetLanguages: [GERMAN],
+          targets: [{ language: GERMAN }],
           isTitleTranslationEnabled: true,
         }),
       ],
@@ -253,7 +323,7 @@ describe("runBatchTranslation", () => {
     const [outcome] = await runBatchTranslation(
       [
         createBatchModel("pages/notes", "Notes", {
-          targetLanguages: [GERMAN],
+          targets: [{ language: GERMAN }],
           isTitleTranslationEnabled: true,
         }),
       ],
