@@ -4,7 +4,6 @@ icon: 🌆
 buttons:
   - preview
   - settings
-  - content-translator
   - languages
   - status
 
@@ -39,6 +38,11 @@ columns:
             type: writer
   - width: 1/3
     sections:
+      contentTranslator:
+        type: content-translator
+        cascade:
+          - page.children
+          - page.files
       caseStudies:
         type: pages
         template: case-study

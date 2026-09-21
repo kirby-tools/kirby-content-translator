@@ -2,7 +2,7 @@ Title: Launch.
 
 ----
 
-Subheading: Sed do eiusmod tempor
+Subheading: Forty schools in the first term
 
 ----
 
@@ -10,7 +10,7 @@ Phase: Launch
 
 ----
 
-Text: <p>Nullam id dolor id nibh ultricies vehicula ut id elit. Nullam quis risus eget urna mollis ornare vel eu leo. Donec ullamcorper nulla non metus auctor fringilla.</p><p>Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Morbi leo risus, porta ac consectetur ac, vestibulum at eros.</p>
+Text: <p>The microscope launched at a teachers' conference in March. Forty schools ordered class sets before the summer.</p><p>Returns stayed under one percent, and most of them were solved with the repair kit.</p>
 
 ----
 

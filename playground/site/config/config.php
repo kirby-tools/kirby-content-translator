@@ -8,7 +8,7 @@ return [
     'languages' => true,
 
     'content' => [
-        'locking' => false
+        'locking' => env('KIRBY_CONTENT_LOCKING', false)
     ],
 
     'panel' => [

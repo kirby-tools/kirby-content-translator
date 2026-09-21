@@ -2,7 +2,7 @@ Title: Discovery.
 
 ----
 
-Subheading: Lorem ipsum dolor sit amet
+Subheading: What teachers need from a microscope
 
 ----
 
@@ -10,7 +10,7 @@ Phase: Discovery
 
 ----
 
-Text: <p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Nullam quis risus eget urna mollis ornare vel eu leo. Donec ullamcorper nulla non metus auctor fringilla. Integer posuere erat a ante venenatis dapibus posuere velit aliquet.</p><p>Aenean lacinia bibendum nulla sed consectetur. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.</p>
+Text: <p>We spent two weeks in six classrooms. Teachers lose most of a lesson to setup, and half the devices they own are broken.</p><p>The brief changed as a result: fewer features, one cable, and parts a school can replace itself.</p>
 
 ----
 

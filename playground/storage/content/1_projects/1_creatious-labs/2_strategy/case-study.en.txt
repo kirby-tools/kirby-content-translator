@@ -2,7 +2,7 @@ Title: Strategy.
 
 ----
 
-Subheading: Consectetur adipiscing elit
+Subheading: One product instead of a range
 
 ----
 
@@ -10,7 +10,7 @@ Phase: Strategy
 
 ----
 
-Text: <p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Cras mattis consectetur purus sit amet fermentum.</p><p>Donec id elit non mi porta gravida at eget metus. Aenean lacinia bibendum nulla sed consectetur. Maecenas faucibus mollis interdum.</p>
+Text: <p>Creatious Labs had planned three models. We recommended one, sold in class sets of twelve, with a repair kit in every box.</p><p>A single model keeps the price low enough for a public school budget.</p>
 
 ----
 
