@@ -25,8 +25,8 @@ vi.mock("kirbyuse", async () => {
   };
 });
 
-function openTranslationDialog() {
-  return useTranslationDialogs().openTranslationDialog();
+function openTranslationDialog(cascadeHelp?: string) {
+  return useTranslationDialogs().openTranslationDialog(cascadeHelp);
 }
 
 describe("useTranslationDialogs", () => {
@@ -51,7 +51,7 @@ describe("useTranslationDialogs", () => {
     vi.unstubAllGlobals();
   });
 
-  it("openBatchTranslationDialog appends the cascade help to the languages field help", async () => {
+  it("openBatchTranslationDialog appends the cascadeHelp to the languages field help", async () => {
     await useTranslationDialogs().openBatchTranslationDialog(
       "1 page is also translated.",
     );
@@ -61,7 +61,7 @@ describe("useTranslationDialogs", () => {
     );
   });
 
-  it("openBatchTranslationDialog shows only the batchHelp without a cascade help", async () => {
+  it("openBatchTranslationDialog shows only the batchHelp without a cascadeHelp", async () => {
     await useTranslationDialogs().openBatchTranslationDialog();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
@@ -84,5 +84,54 @@ describe("useTranslationDialogs", () => {
     expect(openFieldsDialog).toHaveBeenCalledWith(
       expect.objectContaining({ value: { strategyName: "ai" } }),
     );
+  });
+
+  it("openTranslationDialog opens the dialog with the cascadeHelp as its only field when Copilot has no API key", async () => {
+    copilot = copilotWith({ hasApiKey: false });
+
+    await openTranslationDialog("1 page is also translated.");
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields).toEqual({
+      cascade: { type: "info", text: "1 page is also translated." },
+    });
+  });
+
+  it("openTranslationDialog returns strategy deepl from a dialog without a strategyName field", async () => {
+    copilot = copilotWith({ hasApiKey: false });
+    openFieldsDialog = vi.fn(async () => ({}));
+
+    expect(await openTranslationDialog("1 page is also translated.")).toEqual({
+      strategyName: "deepl",
+    });
+  });
+
+  it("openTranslationDialog shows the cascadeHelp above the strategyName field when Copilot is ready", async () => {
+    copilot = copilotWith();
+
+    await openTranslationDialog("1 page is also translated.");
+
+    expect(Object.keys(openFieldsDialog.mock.calls[0]![0].fields)).toEqual([
+      "cascade",
+      "strategyName",
+    ]);
+  });
+
+  it("openTranslationDialog returns undefined after a cancelled dialog", async () => {
+    copilot = copilotWith({ hasApiKey: false });
+    openFieldsDialog = vi.fn(async () => undefined);
+
+    expect(
+      await openTranslationDialog("1 page is also translated."),
+    ).toBeUndefined();
+  });
+
+  it("openTranslationDialog keeps the stored strategy ai after a dialog without a strategyName field", async () => {
+    copilot = copilotWith({ hasApiKey: false });
+
+    await openTranslationDialog("1 page is also translated.");
+
+    expect(
+      localStorage.getItem("kirby$content-translator$preferences$provider"),
+    ).toBe("ai");
   });
 });

@@ -7,6 +7,7 @@ import { useTranslationActions } from "../../../src/panel/composables/actions";
 // Assigned per test and read lazily by the mocks below.
 let openFieldsDialog: ReturnType<typeof vi.fn>;
 let openTextDialog: ReturnType<typeof vi.fn>;
+let panelLanguage: PanelLanguageInfo;
 
 const ENGLISH = {
   code: "en",
@@ -31,7 +32,9 @@ vi.mock("kirbyuse", async () => {
     usePanel: () => ({
       t: (key: string, data?: Record<string, unknown>) =>
         data ? `${key} ${JSON.stringify(data)}` : key,
-      language: FRENCH,
+      get language() {
+        return panelLanguage;
+      },
       languages: [ENGLISH, FRENCH, GERMAN],
       plugins: { thirdParty: {} },
     }),
@@ -65,6 +68,7 @@ describe("useTranslationActions", () => {
     });
     openFieldsDialog = vi.fn(async () => ({ languages: ["de"] }));
     openTextDialog = vi.fn(async () => true);
+    panelLanguage = FRENCH;
   });
 
   afterEach(() => {
@@ -88,6 +92,22 @@ describe("useTranslationActions", () => {
     await useTranslationActions(translator).handleTranslate();
 
     expect(translator.strategyName.value).toBe("deepl");
+  });
+
+  it("handleTranslate passes the getCascadeHelp text into the cascade field of the dialog", async () => {
+    await useTranslationActions(createTranslator()).handleTranslate();
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields.cascade.text).toBe(
+      "1 page is also translated.",
+    );
+  });
+
+  it("handleTranslate opens no dialog for a cascade while panel.language is the default language", async () => {
+    panelLanguage = ENGLISH;
+
+    await useTranslationActions(createTranslator()).handleTranslate();
+
+    expect(openFieldsDialog).not.toHaveBeenCalled();
   });
 
   it("handleTranslate translates nothing before initialization resolves", async () => {

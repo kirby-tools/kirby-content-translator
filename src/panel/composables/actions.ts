@@ -40,7 +40,10 @@ export function useTranslationActions(
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
     await initialization;
-    const result = await openTranslationDialog();
+    // A translation into the default language has no cascade.
+    const result = await openTranslationDialog(
+      panel.language.default ? undefined : await getCascadeHelp(),
+    );
     if (result) {
       strategyName.value = result.strategyName;
       await translateModelContent(panel.language, sourceLanguage);

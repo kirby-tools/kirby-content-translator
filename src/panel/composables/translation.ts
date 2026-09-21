@@ -776,7 +776,7 @@ export function useContentTranslator() {
   }
 
   /**
-   * Describes the cascade of the open view for the batch translation dialog,
+   * Describes the cascade of the open view for the dialog that starts a run,
    * or returns nothing without a cascaded model.
    */
   async function getCascadeHelp() {

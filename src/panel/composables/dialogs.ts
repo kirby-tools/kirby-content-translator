@@ -65,12 +65,13 @@ export function useTranslationDialogs() {
     if (isOk) callback?.();
   }
 
-  async function openTranslationDialog(): Promise<
-    TranslationDialogResult | undefined
-  > {
+  async function openTranslationDialog(
+    cascadeHelp?: string,
+  ): Promise<TranslationDialogResult | undefined> {
     const { strategyName, strategyField } = await resolveStrategyField();
 
-    if (!strategyField) {
+    // Opens for a cascade alone, since a direct save cannot be taken back.
+    if (!strategyField && !cascadeHelp) {
       return { strategyName };
     }
 
@@ -83,16 +84,19 @@ export function useTranslationDialogs() {
         ),
       },
       fields: {
-        strategyName: strategyField,
+        ...(cascadeHelp && { cascade: { type: "info", text: cascadeHelp } }),
+        ...(strategyField && { strategyName: strategyField }),
       },
       value: {
         strategyName,
       },
     });
 
-    if (result?.strategyName) {
-      storeStrategyPreference(result.strategyName);
-      return { strategyName: result.strategyName };
+    if (result) {
+      if (strategyField && result.strategyName) {
+        storeStrategyPreference(result.strategyName);
+      }
+      return { strategyName: result.strategyName ?? strategyName };
     }
   }
 
