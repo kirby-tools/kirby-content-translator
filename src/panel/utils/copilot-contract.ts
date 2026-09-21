@@ -1,6 +1,6 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { FlexibleSchema } from "ai";
-import type { LogLevel, PluginAsset } from "kirbyuse";
+import type { LogLevel as LoggerLevel, PluginAsset } from "kirbyuse";
 
 // Self-standing mirror of Kirby Copilot's seam types, kept whole and in sync.
 
@@ -10,6 +10,9 @@ import type { LogLevel, PluginAsset } from "kirbyuse";
  * which is mirrored in Kirby Copilot – update both when the contract changes.
  */
 export const REQUIRED_COPILOT_API_VERSION = 2;
+
+export const LOG_LEVELS = ["error", "warn", "info", "debug"] as const;
+export type LogLevel = (typeof LOG_LEVELS)[number];
 
 export const REASONING_EFFORTS = [
   "provider-default",
@@ -30,10 +33,29 @@ export interface ProviderConfig {
   model?: string;
   completionModel?: string;
   options?: Record<string, any>;
+  /** OpenAI only: force Chat Completions API instead of the default Responses API. */
+  api?: "chat" | "responses";
 }
 
 export interface CompletionConfig {
   debounce: number;
+}
+
+export interface PromptTemplate {
+  id: string;
+  label: string;
+  prompt: string;
+  createdAt: number;
+  /** Config-defined templates are read-only for editors. */
+  isReadOnly?: boolean;
+}
+
+export type PromptTemplateInput = Pick<PromptTemplate, "label" | "prompt">;
+
+export interface Skill {
+  id: string;
+  label: string;
+  instructions: string;
 }
 
 export interface PluginConfig {
@@ -41,9 +63,11 @@ export interface PluginConfig {
   providers: Record<string, ProviderConfig>;
   systemPrompt?: string;
   reasoningEffort?: ReasoningEffort;
+  promptTemplates?: PromptTemplateInput[];
+  skills?: Skill[];
   excludedBlocks?: string[];
   completion?: false | CompletionConfig;
-  logLevel?: "error" | "warn" | "info" | "debug";
+  logLevel?: LogLevel;
 }
 
 /** Response from `__copilot__/context` API endpoint. */
@@ -63,7 +87,8 @@ export interface StreamTextOptions {
   outputSchema?: FlexibleSchema;
   responseFormat?: OutputFormat;
   files?: File[];
-  logLevel?: LogLevel;
+  /** Numeric level of the kirbyuse logger, unlike the named `PluginConfig.logLevel`. */
+  logLevel?: LoggerLevel;
   abortSignal?: AbortSignal;
 }
 
