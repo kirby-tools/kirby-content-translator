@@ -210,7 +210,32 @@ final class CascadeTest extends ApiRouteTestCase
 
         $models = Cascade::models($kirby->page('about'));
 
-        $this->assertCount(2, $models);
+        $this->assertSame(
+            ['pages/editor/files/avatar.jpg', 'account/files/avatar.jpg'],
+            array_keys($models)
+        );
+    }
+
+    #[Test]
+    public function models_returns_a_draft_and_a_file_of_a_nested_page(): void
+    {
+        F::write(self::indexRoot() . '/content/1_about/_drafts/sketch/default.en.txt', "Title: Sketch\n");
+        F::write(self::indexRoot() . '/content/1_about/1_team/portrait.jpg', '');
+
+        $kirby = $this->app([
+            'buttons' => [
+                'content-translator' => [
+                    'cascade' => ['page.drafts', 'page.find("team").files']
+                ]
+            ]
+        ]);
+
+        $models = Cascade::models($kirby->page('about'));
+
+        $this->assertSame(
+            ['pages/about+sketch', 'pages/about+team/files/portrait.jpg'],
+            array_keys($models)
+        );
     }
 
     #[Test]

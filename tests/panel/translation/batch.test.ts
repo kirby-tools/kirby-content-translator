@@ -25,6 +25,15 @@ const suffixStrategy: TranslationStrategy = {
     units.map((unit) => `${unit.text} (${targetLanguage.code})`),
 };
 
+const titleRejectingStrategy: TranslationStrategy = {
+  execute: async (units) =>
+    units.map((unit) =>
+      unit.fieldKey === "title"
+        ? { reason: "missing translation" }
+        : `${unit.text} (de)`,
+    ),
+};
+
 function createBatchModel(
   path: string,
   title: string,
@@ -140,6 +149,26 @@ describe("runBatchTranslation", () => {
     expect(write).toHaveBeenCalledTimes(3);
   });
 
+  it("keeps translating the remaining languages of a model after the write for de threw", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const write = createWrite(({ language }) => {
+      if (language === "de")
+        throw new Error("The provider refused the request");
+      return { status: "saved" };
+    });
+
+    const outcomes = await runBatchTranslation(
+      [NOTES_PAGE],
+      createBatchOptions(write),
+    );
+
+    expect(outcomes).toMatchObject([
+      { status: "failed", message: "The provider refused the request" },
+      { status: "saved" },
+    ]);
+    error.mockRestore();
+  });
+
   it("counts every model-language pair in the onProgress total", async () => {
     const onProgress = vi.fn();
 
@@ -201,14 +230,6 @@ describe("runBatchTranslation", () => {
 
   it("names the model in the warning for a rejected title", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const strategy: TranslationStrategy = {
-      execute: async (units) =>
-        units.map((unit) =>
-          unit.fieldKey === "title"
-            ? { reason: "missing translation" }
-            : `${unit.text} (de)`,
-        ),
-    };
 
     await runBatchTranslation(
       [
@@ -217,7 +238,7 @@ describe("runBatchTranslation", () => {
           isTitleTranslationEnabled: true,
         }),
       ],
-      createBatchOptions(createWrite(), strategy),
+      createBatchOptions(createWrite(), titleRejectingStrategy),
     );
 
     expect(warn).toHaveBeenCalledWith(
@@ -228,14 +249,6 @@ describe("runBatchTranslation", () => {
 
   it("withholds a rejected title from the write and reports the rejection", async () => {
     const write = createWrite();
-    const strategy: TranslationStrategy = {
-      execute: async (units) =>
-        units.map((unit) =>
-          unit.fieldKey === "title"
-            ? { reason: "missing translation" }
-            : `${unit.text} (de)`,
-        ),
-    };
 
     const [outcome] = await runBatchTranslation(
       [
@@ -244,7 +257,7 @@ describe("runBatchTranslation", () => {
           isTitleTranslationEnabled: true,
         }),
       ],
-      createBatchOptions(write, strategy),
+      createBatchOptions(write, titleRejectingStrategy),
     );
 
     expect(write).toHaveBeenCalledWith(
