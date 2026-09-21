@@ -10,7 +10,8 @@ export interface BatchCandidate extends Omit<
 }
 
 type HeldBackOutcome =
-  { status: "unsavedChanges" } | { status: "locked"; lockedBy: string };
+  | { status: "unsavedChanges"; isDefaultLanguageUnsaved?: boolean }
+  | { status: "locked"; lockedBy: string };
 
 /**
  * Decides which target languages of the host and of each cascaded model a
@@ -38,6 +39,20 @@ export function planBatchRun(
 
   for (const candidate of cascade) {
     const { status } = candidate;
+    let heldBackOutcome: HeldBackOutcome | undefined;
+
+    if (status.lockedBy !== null) {
+      heldBackOutcome = { status: "locked", lockedBy: status.lockedBy };
+    } else if (
+      status.languagesWithUnsavedChanges.includes(defaultLanguageCode)
+    ) {
+      // A cascaded model is translated from its saved default language, so
+      // unsaved changes there would be missing from every translation.
+      heldBackOutcome = {
+        status: "unsavedChanges",
+        isDefaultLanguageUnsaved: true,
+      };
+    }
 
     planModel(
       candidate,
@@ -49,13 +64,7 @@ export function planBatchRun(
           settings.isTitleTranslationEnabled && status.isTitleChangeAllowed,
         isSlugTranslationEnabled: false,
       },
-      // A cascaded model is translated from its saved default language, so
-      // unsaved changes there would be missing from every translation.
-      status.lockedBy !== null
-        ? { status: "locked", lockedBy: status.lockedBy }
-        : status.languagesWithUnsavedChanges.includes(defaultLanguageCode)
-          ? { status: "unsavedChanges" }
-          : undefined,
+      heldBackOutcome,
     );
   }
 

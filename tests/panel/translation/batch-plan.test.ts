@@ -80,7 +80,7 @@ describe("planBatchRun", () => {
     });
   });
 
-  it("never passes the includeFields, excludeFields or slug translation of the host on to a cascaded model", () => {
+  it("never passes the includeFields, excludeFields or isSlugTranslationEnabled of the host on to a cascaded model", () => {
     const { models } = planBatchRun(
       createCandidate("pages/notes"),
       [createCandidate("pages/notes+intro")],
@@ -131,8 +131,18 @@ describe("planBatchRun", () => {
 
     expect(models[1]!.targetLanguages).toEqual([]);
     expect(heldBack).toEqual([
-      { model: models[1], language: GERMAN, status: "unsavedChanges" },
-      { model: models[1], language: FRENCH, status: "unsavedChanges" },
+      {
+        model: models[1],
+        language: GERMAN,
+        status: "unsavedChanges",
+        isDefaultLanguageUnsaved: true,
+      },
+      {
+        model: models[1],
+        language: FRENCH,
+        status: "unsavedChanges",
+        isDefaultLanguageUnsaved: true,
+      },
     ]);
   });
 

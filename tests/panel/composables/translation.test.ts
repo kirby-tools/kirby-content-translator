@@ -633,6 +633,25 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("reports unsaved changes in the default language of a cascaded model", async () => {
+      cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(reportDialog().details).toEqual([
+        {
+          label: "Intro – Français",
+          message: [
+            "johannschopplich.content-translator.batchReport.unsavedDefaultLanguageChanges",
+          ],
+        },
+      ]);
+    });
+
     it("counts the translations of every model in the report message", async () => {
       cascadeIntroPage({ lockedBy: "Colleague" });
       const translator = await createContentTranslator({

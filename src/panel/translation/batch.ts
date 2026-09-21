@@ -41,7 +41,11 @@ export type BatchOutcome = {
   language: PanelLanguageInfo | PanelLanguage;
 } & (
   | { status: "failed"; message: string }
-  | { status: "unsavedChanges" }
+  | {
+      status: "unsavedChanges";
+      /** Unsaved changes in the default language, which a cascaded model is translated from. */
+      isDefaultLanguageUnsaved?: boolean;
+    }
   | { status: "locked"; lockedBy: string }
   | { status: "notStarted"; lockedBy: string }
   | ({ status: "saved"; result: ContentTranslationResult } & Pick<

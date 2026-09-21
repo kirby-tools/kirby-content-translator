@@ -354,7 +354,13 @@ export function useContentTranslator() {
     }
 
     if (outcome.status === "unsavedChanges") {
-      return [reportLine("unsavedChanges")];
+      return [
+        reportLine(
+          outcome.isDefaultLanguageUnsaved
+            ? "unsavedDefaultLanguageChanges"
+            : "unsavedChanges",
+        ),
+      ];
     }
 
     if (outcome.status === "locked") {
