@@ -960,7 +960,7 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
-    it("keeps the notification for the host next to the report of its cascade", async () => {
+    it("notifies for the host once the report of its cascade is closed", async () => {
       cascadeIntroPage({ lockedBy: "Colleague" });
       const translator = await createContentTranslator({
         cascade: "page.children",
@@ -969,11 +969,15 @@ describe("useContentTranslator", () => {
 
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
+      // Kirby closes every notification when a dialog opens.
       expect(panel.dialog.open).toHaveBeenCalledTimes(1);
+      expect(panel.notification.success).not.toHaveBeenCalled();
+
+      panel.dialog.open.mock.calls[0]![0].on.close();
+
       expect(panel.notification.success).toHaveBeenCalledWith(
         "johannschopplich.content-translator.notification.translated",
       );
-      expect(panel.notification.close).not.toHaveBeenCalled();
     });
   });
 

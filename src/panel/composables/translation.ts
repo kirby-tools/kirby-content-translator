@@ -652,48 +652,55 @@ export function useContentTranslator() {
         outcome.status === "saved" ? [outcome.model.path] : [],
       );
 
-      if (savedCascadePaths.length === 0) {
-        notifyTranslationResult(
-          hostResult,
-          panel.t(
-            "johannschopplich.content-translator.notification.translated",
-          ),
-        );
-      } else if (hostResult.translatableCount === 0) {
-        // A host without text of its own, such as a page that only holds
-        // modules, would otherwise report that there was nothing to translate.
-        panel.notification.success(
-          panel.t(
-            "johannschopplich.content-translator.notification.translatedCascade",
-            { models: describeCascadeModels(savedCascadePaths) },
-          ),
-        );
-      } else {
-        notifyTranslationResult(
-          hostResult,
-          panel.t(
-            "johannschopplich.content-translator.notification.translatedWithCascade",
-            { models: describeCascadeModels(savedCascadePaths) },
-          ),
-        );
-      }
+      const notifyHostResult = () => {
+        if (savedCascadePaths.length === 0) {
+          notifyTranslationResult(
+            hostResult,
+            panel.t(
+              "johannschopplich.content-translator.notification.translated",
+            ),
+          );
+        } else if (hostResult.translatableCount === 0) {
+          // A host without text of its own, such as a page that only holds
+          // modules, would otherwise report that there was nothing to translate.
+          panel.notification.success(
+            panel.t(
+              "johannschopplich.content-translator.notification.translatedCascade",
+              { models: describeCascadeModels(savedCascadePaths) },
+            ),
+          );
+        } else {
+          notifyTranslationResult(
+            hostResult,
+            panel.t(
+              "johannschopplich.content-translator.notification.translatedWithCascade",
+              { models: describeCascadeModels(savedCascadePaths) },
+            ),
+          );
+        }
+      };
 
       // The notification speaks for the host only, whose fields it can name,
       // so every cascaded model that kept a source text is reported too.
-      if (
-        cascadeOutcomes.some(
-          (outcome) =>
-            shouldReportBatchOutcome(outcome) ||
-            (outcome.status === "saved" &&
-              outcome.result.rejections.length > 0),
-        )
-      ) {
-        openBatchReport(
-          cascadeOutcomes,
-          (outcome) => outcome.model.title,
-          "johannschopplich.content-translator.batchReport.cascadeMessage",
-        );
+      const hasCascadeReport = cascadeOutcomes.some(
+        (outcome) =>
+          shouldReportBatchOutcome(outcome) ||
+          (outcome.status === "saved" && outcome.result.rejections.length > 0),
+      );
+
+      if (!hasCascadeReport) {
+        notifyHostResult();
+        return;
       }
+
+      // Kirby closes every notification when a dialog opens, so the host's
+      // result follows once the report is closed.
+      openBatchReport(
+        cascadeOutcomes,
+        (outcome) => outcome.model.title,
+        "johannschopplich.content-translator.batchReport.cascadeMessage",
+        notifyHostResult,
+      );
     } catch (error) {
       isTranslating.value = false;
       panel.view.isLoading = false;
@@ -862,6 +869,7 @@ export function useContentTranslator() {
     outcomes: BatchOutcome[],
     labelOutcome: (outcome: BatchOutcome) => string,
     messageKey: string,
+    onClose?: () => void,
   ) {
     panel.dialog.open({
       component: "k-error-dialog",
@@ -875,6 +883,7 @@ export function useContentTranslator() {
         ),
         details: describeBatchOutcomes(outcomes, labelOutcome),
       },
+      on: { close: onClose },
     });
   }
 
