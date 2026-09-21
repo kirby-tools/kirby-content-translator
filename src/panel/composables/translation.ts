@@ -10,7 +10,6 @@ import type { BatchOutcome } from "../translation/batch";
 import type { BatchCandidate } from "../translation/batch-plan";
 import type {
   ContentTranslationResult,
-  TranslationRejection,
   TranslationStrategy,
 } from "../translation/types";
 import type {
@@ -40,6 +39,11 @@ import { runBatchTranslation } from "../translation/batch";
 import { planBatchRun } from "../translation/batch-plan";
 import { planImport, planSingleTranslation } from "../translation/plan";
 import {
+  describeBatchOutcomes,
+  listKeptSourceFields,
+  shouldReportBatchOutcome,
+} from "../translation/report";
+import {
   mergeTranslationResults,
   reportRejections,
 } from "../translation/result";
@@ -61,9 +65,6 @@ import { createGlobalState } from "./state";
  * other way out of that coercion – keeps the view shell from rendering it.
  */
 const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
-
-/** How many fields of one language a notice names before it counts the rest. */
-const MAX_NAMED_FIELDS = 3;
 
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
@@ -269,7 +270,10 @@ export function useContentTranslator() {
           {
             untranslated: untranslatedCount,
             total: result.translatableCount,
-            fields: listKeptSourceFields(result.rejections),
+            fields: listKeptSourceFields(result.rejections, {
+              fields: fields.value,
+              t: panel.t,
+            }),
           },
         ),
         untranslatedCount,
@@ -298,7 +302,7 @@ export function useContentTranslator() {
       }
 
       return [
-        `${labelOutcome(outcome)} (${listKeptSourceFields(outcome.result.rejections, outcome.model.fields)})`,
+        `${labelOutcome(outcome)} (${listKeptSourceFields(outcome.result.rejections, { fields: outcome.model.fields, t: panel.t })})`,
       ];
     });
 
@@ -320,145 +324,6 @@ export function useContentTranslator() {
         },
       ),
     );
-  }
-
-  function listKeptSourceFields(
-    rejections: TranslationRejection[],
-    modelFields = fields.value,
-  ) {
-    const uniqueLabels = [
-      ...new Set(
-        rejections.map(({ fieldKey }) => fieldLabel(fieldKey, modelFields)),
-      ),
-    ];
-    const namedLabels = uniqueLabels.slice(0, MAX_NAMED_FIELDS).join(", ");
-    if (uniqueLabels.length <= MAX_NAMED_FIELDS) return namedLabels;
-
-    const remainingCount = uniqueLabels.length - MAX_NAMED_FIELDS;
-
-    return formatPlural(
-      panel.t("johannschopplich.content-translator.notification.andMore", {
-        fields: namedLabels,
-        count: remainingCount,
-      }),
-      remainingCount,
-    );
-  }
-
-  function describeBatchOutcomes(
-    outcomes: BatchOutcome[],
-    labelOutcome: (outcome: BatchOutcome) => string,
-  ) {
-    return outcomes.flatMap((outcome) => {
-      const lines = describeBatchOutcome(outcome);
-      return lines.length > 0
-        ? [{ label: labelOutcome(outcome), message: lines }]
-        : [];
-    });
-  }
-
-  function describeBatchOutcome(outcome: BatchOutcome): string[] {
-    const reportLine = (key: string, data?: Record<string, unknown>) =>
-      panel.t(`johannschopplich.content-translator.batchReport.${key}`, data);
-
-    if (outcome.status === "failed") {
-      return [reportLine("failed", { message: outcome.message })];
-    }
-
-    if (outcome.status === "unsavedChanges") {
-      return [
-        reportLine(
-          outcome.isDefaultLanguageUnsaved
-            ? "unsavedDefaultLanguageChanges"
-            : "unsavedChanges",
-        ),
-      ];
-    }
-
-    if (outcome.status === "locked") {
-      return [reportLine("locked", { user: outcome.lockedBy })];
-    }
-
-    if (outcome.status === "notStarted") {
-      return [reportLine("notStarted", { user: outcome.lockedBy })];
-    }
-
-    // A textarea or a structure yields several units per field, which would
-    // otherwise name the same field once per unit.
-    const lines = new Set<string>();
-
-    for (const rejection of outcome.result.rejections) {
-      lines.add(
-        reportLine("keptSource", {
-          field: fieldLabel(rejection.fieldKey, outcome.model.fields),
-          reason: describeRejection(rejection),
-        }),
-      );
-    }
-
-    if (outcome.titleError) {
-      lines.add(
-        reportLine("notChanged", {
-          field: panel.t("title"),
-          message: outcome.titleError,
-        }),
-      );
-    }
-
-    if (outcome.slugError) {
-      lines.add(
-        reportLine("notChanged", {
-          field: panel.t("slug"),
-          message: outcome.slugError,
-        }),
-      );
-    }
-
-    for (const [name, { label, message }] of Object.entries(
-      outcome.invalidFields ?? {},
-    )) {
-      for (const validationMessage of Object.values(message)) {
-        lines.add(
-          reportLine("invalidField", {
-            field: label || name,
-            message: validationMessage,
-          }),
-        );
-      }
-    }
-
-    return [...lines];
-  }
-
-  function describeRejection({ reason, detail }: TranslationRejection) {
-    switch (reason) {
-      case "missing translation":
-      case "non-string translation":
-        return panel.t(
-          "johannschopplich.content-translator.rejection.missingTranslation",
-        );
-      case "empty translation":
-        return panel.t(
-          "johannschopplich.content-translator.rejection.emptyTranslation",
-        );
-      case "placeholder mismatch":
-        return panel.t(
-          "johannschopplich.content-translator.rejection.placeholderMismatch",
-        );
-      default:
-        return detail ?? reason;
-    }
-  }
-
-  /**
-   * Names a unit's field by the label of its top-level field, which a nested
-   * unit's key leads with.
-   */
-  function fieldLabel(fieldKey = "", modelFields = fields.value) {
-    const name = fieldKey.split(/[.[]/)[0]!;
-    const label = modelFields?.[name]?.label;
-    if (label) return label;
-    return name === "title" ? panel.t("title") : name;
   }
 
   // TODO: Next major version – unify import flow through a server-side
@@ -862,7 +727,7 @@ export function useContentTranslator() {
           }),
           outcomes.length,
         ),
-        details: describeBatchOutcomes(outcomes, labelOutcome),
+        details: describeBatchOutcomes(outcomes, { labelOutcome, t: panel.t }),
       },
       on: { close: onClose },
     });
@@ -1033,21 +898,4 @@ export function useContentTranslator() {
     batchTranslateModelContent,
     getCascadeHelp,
   };
-}
-
-/**
- * Keeps a language with nothing but kept source text in a notice, since it
- * was saved. A title whose translation failed is reported like failed
- * content.
- */
-function shouldReportBatchOutcome(outcome: BatchOutcome) {
-  return (
-    outcome.status !== "saved" ||
-    outcome.result.rejections.some(
-      ({ reason }) => reason === "request failed",
-    ) ||
-    Boolean(outcome.titleError) ||
-    Boolean(outcome.slugError) ||
-    Object.keys(outcome.invalidFields ?? {}).length > 0
-  );
 }
