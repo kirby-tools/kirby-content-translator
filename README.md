@@ -8,6 +8,7 @@ Kirby Content Translator is a plugin for [Kirby CMS](https://getkirby.com) that 
 
 - 🖱️ **One-Click Translation**: View button in any page, file, or site blueprint.
 - 📦 **Batch Translation**: All target languages from one dialog, with DeepL or AI.
+- 🔗 **Related Pages and Files**: A `cascade` query translates module pages and a page's files along with the view.
 - 📊 **Translation Coverage**: Rings per language and the pages still missing one, in the Languages view.
 - 🧩 **Nested Fields**: Walks blocks, layouts, structures, and objects – `translate: false` holds at any depth.
 - 🏷️ **KirbyTags**: Tag attributes translated selectively, URLs and UUIDs preserved.
