@@ -131,6 +131,9 @@ final readonly class CopilotAIStrategy implements Strategy
         return $results;
     }
 
+    /**
+     * @internal Serves the Panel context, not the published surface.
+     */
     public static function resolveDefaultSystemPrompt(): string
     {
         $promptOption = App::instance()->option('johannschopplich.content-translator.ai.systemPrompt');

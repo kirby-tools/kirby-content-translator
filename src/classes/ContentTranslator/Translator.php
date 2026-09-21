@@ -109,6 +109,8 @@ final class Translator
     /**
      * Names the strategy the Panel would reach through the translate endpoint.
      *
+     * @internal Serves the Panel context, not the published surface.
+     *
      * @return 'ai'|'custom'|'deepl'
      *
      * @throws LogicException When the `strategy` option names an unknown strategy
