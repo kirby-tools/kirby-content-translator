@@ -95,7 +95,7 @@ export interface TranslatorOptions {
   kirbyTags?: Record<string, string[]>;
   /** Queries for the models a run translates along with its host. */
   cascade?: string | string[];
-  /** Custom system prompt for AI translation (overrides global `ai.systemPrompt`). */
+  /** System prompt for AI translation in place of the global `ai.systemPrompt`. Sections only – the view button does not declare it. */
   systemPrompt?: string;
   /** Only available when passed from section computed props. */
   fields?: Record<string, KirbyFieldProps>;
