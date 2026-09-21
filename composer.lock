@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ffb89230b2833376a19884beafe063a8",
+    "content-hash": "7696e6d4c41d0380d60a086a2a74796e",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -1278,6 +1278,56 @@
                 "source": "https://github.com/thephpleague/color-extractor/tree/0.4.0"
             },
             "time": "2022-09-24T15:57:16+00:00"
+        },
+        {
+            "name": "medienbaecker/kirby-modules",
+            "version": "5.8.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/medienbaecker/kirby-modules.git",
+                "reference": "8146953df4ae3db37447741b617bc20c36430e7a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/medienbaecker/kirby-modules/zipball/8146953df4ae3db37447741b617bc20c36430e7a",
+                "reference": "8146953df4ae3db37447741b617bc20c36430e7a",
+                "shasum": ""
+            },
+            "require": {
+                "getkirby/cms": "~5.0",
+                "getkirby/composer-installer": "^1.1"
+            },
+            "type": "kirby-plugin",
+            "extra": {
+                "installer-name": "modules"
+            },
+            "autoload": {
+                "psr-4": {
+                    "Medienbaecker\\Modules\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "Thomas Günther",
+                    "email": "mail@medienbaecker.com",
+                    "homepage": "https://www.medienbaecker.com"
+                }
+            ],
+            "description": "Easily add modules to your pages",
+            "keywords": [
+                "kirby",
+                "kirby-cms",
+                "kirby-plugin"
+            ],
+            "support": {
+                "issues": "https://github.com/medienbaecker/kirby-modules/issues",
+                "source": "https://github.com/medienbaecker/kirby-modules/tree/5.8.2"
+            },
+            "time": "2026-09-21T10:46:37+00:00"
         },
         {
             "name": "michelf/php-smartypants",

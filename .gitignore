@@ -13,6 +13,7 @@
 .license
 .kirby-tools-licenses
 /playground/site/plugins/kirby-copilot
+/playground/site/plugins/modules
 /playground/public/media/*
 /playground/storage/accounts/*
 !/playground/storage/accounts/admin

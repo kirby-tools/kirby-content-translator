@@ -100,6 +100,11 @@ tabs:
               - "3"
               - "4"
 
+  modules:
+    sections:
+      modules:
+        type: modules
+
   images:
     sections:
       images:
@@ -114,9 +119,12 @@ tabs:
           ratio: 1/1
 
 buttons:
-  - preview
-  - settings
-  - content-translator
-  - languages
-  - status
+  preview: true
+  settings: true
+  content-translator:
+    cascade:
+      - page.find("modules")?.children
+      - page.files
+  languages: true
+  status: true
 

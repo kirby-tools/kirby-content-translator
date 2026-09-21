@@ -31,7 +31,8 @@
     "getkirby/cms": "^5",
     "getkirby/cli": "^1",
     "vlucas/phpdotenv": "^5",
-    "phpunit/phpunit": "^12"
+    "phpunit/phpunit": "^12",
+    "medienbaecker/kirby-modules": "^5.8"
   },
   "scripts": {
     "dev": [
@@ -54,6 +55,7 @@
     }
   },
   "extra": {
-    "kirby-cms-path": false
+    "kirby-cms-path": false,
+    "kirby-plugin-path": "playground/site/plugins"
   }
 }

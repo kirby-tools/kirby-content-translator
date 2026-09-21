@@ -1,0 +1,13 @@
+Title: Hero
+
+----
+
+Heading: A studio that ships
+
+----
+
+Tagline: We design and build digital products for teams who care about the details.
+
+----
+
+Uuid: 48bkleu7zmenmwgo

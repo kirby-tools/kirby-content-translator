@@ -1,0 +1,8 @@
+title: Text
+icon: 📝
+
+fields:
+  heading:
+    type: text
+  text:
+    type: writer

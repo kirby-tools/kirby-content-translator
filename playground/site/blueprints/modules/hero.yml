@@ -1,0 +1,9 @@
+title: Hero
+icon: 🌅
+
+fields:
+  heading:
+    type: text
+  tagline:
+    type: textarea
+    size: small
