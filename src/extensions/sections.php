@@ -8,13 +8,7 @@ return [
         'props' => [
             'label' => fn ($label = null) => I18n::translate($label, $label),
             'import' => fn ($import = null) => is_bool($import) ? $import : null,
-            'importFrom' => function ($importFrom = null) {
-                if ($importFrom === 'all') {
-                    return 'all';
-                }
-
-                return $importFrom;
-            },
+            'importFrom' => fn ($importFrom = null) => $importFrom,
             'batch' => fn ($batch = null) => is_bool($batch) ? $batch : null,
             'title' => fn ($title = null) => is_bool($title) ? $title : null,
             'slug' => fn ($slug = null) => is_bool($slug) ? $slug : null,
@@ -22,13 +16,7 @@ return [
             'fieldTypes' => fn ($fieldTypes = null) => is_array($fieldTypes) ? $fieldTypes : null,
             'includeFields' => fn ($includeFields = null) => is_array($includeFields) ? $includeFields : null,
             'excludeFields' => fn ($excludeFields = null) => is_array($excludeFields) ? $excludeFields : null,
-            'kirbyTags' => function ($kirbyTags = null) {
-                if (!is_array($kirbyTags)) {
-                    return null;
-                }
-
-                return $kirbyTags;
-            },
+            'kirbyTags' => fn ($kirbyTags = null) => is_array($kirbyTags) ? $kirbyTags : null,
             'cascade' => fn ($cascade = null) => is_string($cascade) || is_array($cascade) ? $cascade : null,
             'systemPrompt' => fn ($systemPrompt = null) => is_string($systemPrompt) ? trim($systemPrompt) : null
         ],
