@@ -145,4 +145,14 @@ describe("planBatchRun", () => {
 
     expect(models[0]!.targetLanguages).toEqual([GERMAN, FRENCH]);
   });
+
+  it("plans only the cascade without a host", () => {
+    const { models } = planBatchRun(
+      undefined,
+      [createCandidate("pages/notes+intro")],
+      createPlanOptions(),
+    );
+
+    expect(models.map(({ path }) => path)).toEqual(["pages/notes+intro"]);
+  });
 });

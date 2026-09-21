@@ -17,7 +17,7 @@ type HeldBackOutcome =
  * batch translation runs, and holds back the rest as outcomes.
  */
 export function planBatchRun(
-  host: BatchCandidate,
+  host: BatchCandidate | undefined,
   cascade: BatchCandidate[],
   {
     selectedLanguages,
@@ -32,7 +32,9 @@ export function planBatchRun(
   const models: BatchModel[] = [];
   const heldBack: BatchOutcome[] = [];
 
-  planModel(host, settings);
+  // The host is absent from a single-language translation, which leaves its
+  // fields in the form for review.
+  if (host) planModel(host, settings);
 
   for (const candidate of cascade) {
     const { status } = candidate;

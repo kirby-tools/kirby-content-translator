@@ -11,6 +11,7 @@ import type { BatchCandidate } from "../translation/batch-plan";
 import type {
   ContentTranslationResult,
   TranslationRejection,
+  TranslationStrategy,
 } from "../translation/types";
 import type {
   BatchStatusResponse,
@@ -22,6 +23,7 @@ import type {
   TranslatorOptions,
 } from "../types";
 import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
+import pAll from "p-all";
 import {
   BATCH_STATUS_API_ROUTE,
   BATCH_WRITE_API_ROUTE,
@@ -137,6 +139,7 @@ export function useContentTranslator() {
     kirbyTags.value = resolvedConfig.kirbyTags;
     systemPrompt.value = resolvedConfig.systemPrompt;
     // The cascade is saved through `batch-write`, which needs Kirby 5.
+    // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.
     hasCascade.value = isKirby5() && resolvedConfig.hasCascade;
 
     fields.value = options.fields ?? {};
@@ -267,7 +270,10 @@ export function useContentTranslator() {
    * fold a language at 0 of 10 into "10 of 20 kept their source text" and hide
    * which language went wrong.
    */
-  function notifyBatchTranslationResult(outcomes: BatchOutcome[]) {
+  function notifyBatchTranslationResult(
+    outcomes: BatchOutcome[],
+    labelOutcome: (outcome: BatchOutcome) => string,
+  ) {
     const savedResults = outcomes.flatMap((outcome) =>
       outcome.status === "saved" ? [outcome.result] : [],
     );
@@ -280,7 +286,7 @@ export function useContentTranslator() {
       }
 
       return [
-        `${batchOutcomeLabel(outcome, outcomes)} (${listKeptSourceFields(outcome.result.rejections, outcome.model.fields)})`,
+        `${labelOutcome(outcome)} (${listKeptSourceFields(outcome.result.rejections, outcome.model.fields)})`,
       ];
     });
 
@@ -325,22 +331,16 @@ export function useContentTranslator() {
     );
   }
 
-  function describeBatchOutcomes(outcomes: BatchOutcome[]) {
+  function describeBatchOutcomes(
+    outcomes: BatchOutcome[],
+    labelOutcome: (outcome: BatchOutcome) => string,
+  ) {
     return outcomes.flatMap((outcome) => {
       const lines = describeBatchOutcome(outcome);
       return lines.length > 0
-        ? [{ label: batchOutcomeLabel(outcome, outcomes), message: lines }]
+        ? [{ label: labelOutcome(outcome), message: lines }]
         : [];
     });
-  }
-
-  /** Names the model next to the language once a run has a cascade. */
-  function batchOutcomeLabel(outcome: BatchOutcome, outcomes: BatchOutcome[]) {
-    const hasCascade = outcomes.some(({ model }) => model !== outcome.model);
-
-    return hasCascade
-      ? `${outcome.model.title} – ${outcome.language.name}`
-      : outcome.language.name;
   }
 
   function describeBatchOutcome(outcome: BatchOutcome): string[] {
@@ -603,20 +603,51 @@ export function useContentTranslator() {
             slug: translatedTitle.text,
           });
         }
+      }
 
-        isTranslating.value = false;
+      // A cascade that fails is reported only after the view reloaded: the
+      // host's fields are in the form and its title is saved by now.
+      let cascadeOutcomes: BatchOutcome[] = [];
+      let cascadeError: unknown;
+
+      try {
+        cascadeOutcomes = await translateCascade(targetLanguage, strategy);
+      } catch (error) {
+        cascadeError = error;
+      }
+
+      isTranslating.value = false;
+
+      if (plan.shouldRequestTitleTranslation || cascadeOutcomes.length > 0) {
         // Reload will also end Panel loading state.
         await panel.view.reload();
       } else {
-        isTranslating.value = false;
         panel.view.isLoading = false;
       }
 
-      const mergedResult = mergeTranslationResults(languageResults);
+      if (cascadeError !== undefined) throw cascadeError;
+
       notifyTranslationResult(
-        mergedResult,
+        mergeTranslationResults(languageResults),
         "johannschopplich.content-translator.notification.translated",
       );
+
+      // The notification speaks for the host only, whose fields it can name,
+      // so every cascaded model that kept a source text is reported too.
+      if (
+        cascadeOutcomes.some(
+          (outcome) =>
+            shouldReportBatchOutcome(outcome) ||
+            (outcome.status === "saved" &&
+              outcome.result.rejections.length > 0),
+        )
+      ) {
+        openBatchReport(
+          cascadeOutcomes,
+          (outcome) => outcome.model.title,
+          "johannschopplich.content-translator.batchReport.cascadeMessage",
+        );
+      }
     } catch (error) {
       isTranslating.value = false;
       panel.view.isLoading = false;
@@ -648,12 +679,7 @@ export function useContentTranslator() {
     try {
       const { path } = panel.view;
       const defaultLanguageData = await getModelData();
-      const batchStatus = await panel.api.get<BatchStatusResponse>(
-        BATCH_STATUS_API_ROUTE,
-        { path },
-        undefined,
-        true,
-      );
+      const batchStatus = await fetchBatchStatus();
 
       // Nothing is translated that could not be saved: Kirby refuses the write
       // without the update permission, and refuses every language while
@@ -673,10 +699,12 @@ export function useContentTranslator() {
         return;
       }
 
-      const sourceLanguage = panel.languages.find(
-        (language) => language.default,
-      )!;
-      const { models, heldBack } = planBatchRun(
+      const strategy =
+        strategyName.value === "ai"
+          ? new AIStrategy({ systemPrompt: systemPrompt.value })
+          : new DeepLStrategy();
+
+      const outcomes = await planAndRunBatch(
         {
           path,
           title: panel.view.title ?? path,
@@ -686,66 +714,21 @@ export function useContentTranslator() {
           fields: fields.value!,
           status: batchStatus,
         },
-        hasCascade.value
-          ? await getCascadeCandidates(path, sourceLanguage.code)
-          : [],
-        {
-          selectedLanguages,
-          defaultLanguageCode: sourceLanguage.code,
-          settings: {
-            fieldTypes: fieldTypes.value,
-            includeFields: includeFields.value,
-            excludeFields: excludeFields.value,
-            kirbyTags: kirbyTags.value,
-            isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
-            isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
-          },
-        },
+        selectedLanguages,
+        { strategy, onProgress: notifyProgress },
       );
-      const pairCount = models.reduce(
-        (count, model) => count + model.targetLanguages.length,
-        0,
+      const hasCascadedModel = outcomes.some(
+        ({ model }) => model.path !== path,
       );
-
-      if (pairCount > 0) {
-        notifyProgress(0, pairCount);
-      }
-
-      const strategy =
-        strategyName.value === "ai"
-          ? new AIStrategy({ systemPrompt: systemPrompt.value })
-          : new DeepLStrategy();
-
-      const translatedOutcomes = await runBatchTranslation(models, {
-        sourceLanguage,
-        strategy,
-        concurrency:
-          config.value?.batchConcurrency ??
-          DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
-        write: (request) =>
-          panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
-            // Avoid showing Panel loading indicator.
-            silent: true,
-          }),
-        onProgress: notifyProgress,
-      });
-
-      // One outcome per model and selected language, the host first.
-      const outcomes = models.flatMap((model) =>
-        selectedLanguages.flatMap(
-          (language) =>
-            [...heldBack, ...translatedOutcomes].find(
-              (outcome) =>
-                outcome.model === model &&
-                outcome.language.code === language.code,
-            ) ?? [],
-        ),
-      );
+      const labelOutcome = (outcome: BatchOutcome) =>
+        hasCascadedModel
+          ? `${outcome.model.title} – ${outcome.language.name}`
+          : outcome.language.name;
 
       const hasReport = outcomes.some(shouldReportBatchOutcome);
 
       if (!hasReport) {
-        notifyBatchTranslationResult(outcomes);
+        notifyBatchTranslationResult(outcomes, labelOutcome);
       }
 
       isTranslating.value = false;
@@ -756,25 +739,13 @@ export function useContentTranslator() {
         // Opened after the reload, so the saved languages are on screen before
         // the dialog covers them.
         panel.notification.close();
-        panel.dialog.open({
-          component: "k-error-dialog",
-          props: {
-            message: formatPlural(
-              panel.t(
-                models.length > 1
-                  ? "johannschopplich.content-translator.batchReport.cascadeMessage"
-                  : "johannschopplich.content-translator.batchReport.message",
-                {
-                  saved: outcomes.filter(({ status }) => status === "saved")
-                    .length,
-                  total: outcomes.length,
-                },
-              ),
-              outcomes.length,
-            ),
-            details: describeBatchOutcomes(outcomes),
-          },
-        });
+        openBatchReport(
+          outcomes,
+          labelOutcome,
+          hasCascadedModel
+            ? "johannschopplich.content-translator.batchReport.cascadeMessage"
+            : "johannschopplich.content-translator.batchReport.message",
+        );
       }
     } catch (error) {
       isTranslating.value = false;
@@ -785,22 +756,144 @@ export function useContentTranslator() {
   }
 
   /**
+   * Translates the host, if it takes part, and its cascade into the selected
+   * languages, returning one outcome per model and selected language with the
+   * host first.
+   */
+  async function planAndRunBatch(
+    host: BatchCandidate | undefined,
+    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
+    {
+      strategy,
+      onProgress,
+    }: {
+      strategy: TranslationStrategy;
+      onProgress?: (completed: number, total: number) => void;
+    },
+  ) {
+    const sourceLanguage = panel.languages.find(
+      (language) => language.default,
+    )!;
+    const { models, heldBack } = planBatchRun(
+      host,
+      hasCascade.value ? await getCascadeCandidates(sourceLanguage.code) : [],
+      {
+        selectedLanguages,
+        defaultLanguageCode: sourceLanguage.code,
+        settings: {
+          fieldTypes: fieldTypes.value,
+          includeFields: includeFields.value,
+          excludeFields: excludeFields.value,
+          kirbyTags: kirbyTags.value,
+          isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
+          isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+        },
+      },
+    );
+    const pairCount = models.reduce(
+      (count, model) => count + model.targetLanguages.length,
+      0,
+    );
+
+    if (pairCount > 0) {
+      onProgress?.(0, pairCount);
+    }
+
+    const translatedOutcomes = await runBatchTranslation(models, {
+      sourceLanguage,
+      strategy,
+      concurrency:
+        config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+      write: (request) =>
+        panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
+          // Avoid showing Panel loading indicator.
+          silent: true,
+        }),
+      onProgress,
+    });
+
+    return models.flatMap((model) =>
+      selectedLanguages.flatMap(
+        (language) =>
+          [...heldBack, ...translatedOutcomes].find(
+            (outcome) =>
+              outcome.model === model &&
+              outcome.language.code === language.code,
+          ) ?? [],
+      ),
+    );
+  }
+
+  function openBatchReport(
+    outcomes: BatchOutcome[],
+    labelOutcome: (outcome: BatchOutcome) => string,
+    messageKey: string,
+  ) {
+    panel.dialog.open({
+      component: "k-error-dialog",
+      props: {
+        message: formatPlural(
+          panel.t(messageKey, {
+            saved: outcomes.filter(({ status }) => status === "saved").length,
+            total: outcomes.length,
+          }),
+          outcomes.length,
+        ),
+        details: describeBatchOutcomes(outcomes, labelOutcome),
+      },
+    });
+  }
+
+  /**
+   * Translates the cascade of the open view into the target language and saves
+   * it. The cascade is always translated from the default language, even when
+   * the host's fields came from another language.
+   */
+  async function translateCascade(
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    strategy: TranslationStrategy,
+  ) {
+    if (!hasCascade.value || targetLanguage.default) return [];
+
+    // For a host another user edits, Kirby's `content.save()` opens the lock
+    // dialog and returns `false` instead of throwing, and `useContent().update`
+    // drops that result, so only the status tells that the host was not written.
+    const hostStatus = await fetchBatchStatus();
+
+    if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
+
+    return await planAndRunBatch(undefined, [targetLanguage], { strategy });
+  }
+
+  function fetchBatchStatus() {
+    return panel.api.get<BatchStatusResponse>(
+      BATCH_STATUS_API_ROUTE,
+      { path: panel.view.path },
+      undefined,
+      true,
+    );
+  }
+
+  function fetchCascade() {
+    return panel.api.get<CascadeModelResponse[]>(
+      CASCADE_API_ROUTE,
+      { path: panel.view.path },
+      undefined,
+      true,
+    );
+  }
+
+  /**
    * Loads the default-language content of every cascaded model afresh: a
    * cascaded model has no open view whose events could clear a cache.
    */
   async function getCascadeCandidates(
-    hostPath: string,
     defaultLanguageCode: string,
   ): Promise<BatchCandidate[]> {
-    const cascade = await panel.api.get<CascadeModelResponse[]>(
-      CASCADE_API_ROUTE,
-      { path: hostPath },
-      undefined,
-      true,
-    );
+    const cascade = await fetchCascade();
 
-    return await Promise.all(
-      cascade.map(async ({ path, title, fields, status }) => {
+    return await pAll(
+      cascade.map(({ path, title, fields, status }) => async () => {
         const defaultLanguageData = await panel.api.get<PanelModelData>(
           path,
           { language: defaultLanguageCode },
@@ -818,6 +911,11 @@ export function useContentTranslator() {
           status,
         };
       }),
+      {
+        concurrency:
+          config.value?.batchConcurrency ??
+          DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
+      },
     );
   }
 

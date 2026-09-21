@@ -23,6 +23,7 @@ let modelData: {
   blueprint: { name: string };
 };
 let batchStatus: BatchStatusResponse;
+let isKirby5: boolean;
 let cascade: CascadeModelResponse[];
 // Default-language data of the cascaded models, keyed by their path.
 let cascadeModelData: Record<
@@ -39,7 +40,7 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    isKirby5: () => true,
+    isKirby5: () => isKirby5,
     usePanel: () => panel,
     useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
@@ -184,6 +185,7 @@ describe("useContentTranslator", () => {
 
     cascade = [];
     cascadeModelData = {};
+    isKirby5 = true;
 
     panel.api.get.mockImplementation(async (path: string) => {
       if (path === "__content-translator__/batch-status") return batchStatus;
@@ -615,7 +617,7 @@ describe("useContentTranslator", () => {
       ]);
     });
 
-    it("labels a report entry of a run with a cascade by model and language", async () => {
+    it("labels a report entry by model and language", async () => {
       batchStatus.languagesWithUnsavedChanges = ["fr"];
       cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });
       const translator = await createContentTranslator({
@@ -631,7 +633,7 @@ describe("useContentTranslator", () => {
       ]);
     });
 
-    it("counts the translations of every model in the report message of a run with a cascade", async () => {
+    it("counts the translations of every model in the report message", async () => {
       cascadeIntroPage({ lockedBy: "Colleague" });
       const translator = await createContentTranslator({
         cascade: "page.children",
@@ -676,6 +678,74 @@ describe("useContentTranslator", () => {
       warn.mockRestore();
     });
 
+    it("saves a cascaded model in the current language while the host's fields go to the form", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(updateContent).toHaveBeenCalledWith({
+        text: "Hello (translated)",
+      });
+      expect(batchWrite.mock.calls.map(([request]) => request)).toEqual([
+        expect.objectContaining({
+          path: "pages/example+intro",
+          language: "fr",
+          content: { text: "Welcome (translated)" },
+        }),
+      ]);
+    });
+
+    it("reloads the view after a single-language translation with a cascade", async () => {
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.view.reload).toHaveBeenCalledTimes(1);
+    });
+
+    it("never translates the cascade into the default language", async () => {
+      cascadeIntroPage();
+      panel.language = DEFAULT_LANGUAGE;
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        DEFAULT_LANGUAGE,
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(batchWrite).not.toHaveBeenCalled();
+    });
+
+    it("reports a cascaded model another user edits by its title after a single-language translation", async () => {
+      cascadeIntroPage({ lockedBy: "Colleague" });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(reportDialog().details).toEqual([
+        {
+          label: "Intro",
+          message: [
+            'johannschopplich.content-translator.batchReport.locked {"user":"Colleague"}',
+          ],
+        },
+      ]);
+    });
+
     it("translates only the host without the cascade option", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({
@@ -687,6 +757,118 @@ describe("useContentTranslator", () => {
       expect(batchWrite.mock.calls.map(([{ path }]) => path)).toEqual([
         "pages/example",
       ]);
+      expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
+        "__content-translator__/cascade",
+      );
+    });
+
+    it("translates only the host on Kirby 4", async () => {
+      isKirby5 = false;
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(batchWrite).not.toHaveBeenCalled();
+    });
+
+    it("never translates the cascade of a host another user edits in a single-language translation", async () => {
+      batchStatus.lockedBy = "Colleague";
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(batchWrite).not.toHaveBeenCalled();
+    });
+
+    it("never translates the cascade of a host without the update permission in a single-language translation", async () => {
+      batchStatus.isUpdateAllowed = false;
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(batchWrite).not.toHaveBeenCalled();
+    });
+
+    it("reloads the view for the translated title before reporting a cascade that failed to load", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      cascadeIntroPage();
+      const get = panel.api.get.getMockImplementation()!;
+      panel.api.get.mockImplementation(async (path: string) => {
+        if (path === "pages/example+intro") throw new Error("server error");
+        return get(path);
+      });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.view.reload).toHaveBeenCalledTimes(1);
+      expect(panel.notification.error).toHaveBeenCalledWith("server error");
+      error.mockRestore();
+    });
+
+    it("reports a kept field of a cascaded model in the dialog after a single-language translation", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      cascadeIntroPage();
+      cascade[0]!.fields = {
+        text: field({ type: "text", name: "text", label: "Welcome text" }),
+      };
+      translateBatch.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) =>
+          payload.texts[0] === "Welcome"
+            ? {
+                texts: payload.texts,
+                rejections: [{ index: 0, reason: "placeholder mismatch" }],
+              }
+            : { texts: payload.texts.map((text) => `${text} (translated)`) },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text", label: "Body" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(reportDialog().details).toEqual([
+        {
+          label: "Intro",
+          message: [
+            'johannschopplich.content-translator.batchReport.keptSource {"field":"Welcome text","reason":"johannschopplich.content-translator.rejection.placeholderMismatch"}',
+          ],
+        },
+      ]);
+      warn.mockRestore();
+    });
+
+    it("keeps the notification for the host next to the report of its cascade", async () => {
+      cascadeIntroPage({ lockedBy: "Colleague" });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.dialog.open).toHaveBeenCalledTimes(1);
+      expect(panel.notification.success).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.notification.translated",
+      );
+      expect(panel.notification.close).not.toHaveBeenCalled();
     });
   });
 
