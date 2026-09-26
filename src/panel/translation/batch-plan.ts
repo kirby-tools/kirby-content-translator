@@ -20,10 +20,20 @@ export function planBatchRun(
     selectedLanguages,
     defaultLanguageCode,
     settings,
+    globalFieldLists,
   }: {
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[];
     defaultLanguageCode: string;
     settings: BatchModelSettings;
+    /**
+     * The `includeFields` and `excludeFields` of the plugin config. A cascaded
+     * model gets them in place of the host's, which may name fields of the
+     * host's blueprint.
+     */
+    globalFieldLists: Pick<
+      BatchModelSettings,
+      "includeFields" | "excludeFields"
+    >;
   },
 ): BatchModel[] {
   return [
@@ -51,8 +61,7 @@ export function planBatchRun(
         candidate,
         {
           ...settings,
-          includeFields: [],
-          excludeFields: [],
+          ...globalFieldLists,
           isTitleTranslationEnabled:
             settings.isTitleTranslationEnabled && status.isTitleChangeAllowed,
           isSlugTranslationEnabled: false,

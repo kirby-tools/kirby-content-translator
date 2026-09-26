@@ -617,6 +617,59 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("keeps a field the global excludeFields names out of a cascaded model", async () => {
+      cascadeIntroPage();
+      cascade[0]!.fields.seodescription = field({
+        type: "text",
+        name: "seodescription",
+      });
+      cascadeModelData["pages/example+intro"]!.content.seodescription =
+        "Hand-written";
+      const translator = await createContentTranslator(
+        {
+          cascade: "page.children",
+          fields: { text: field({ type: "text", name: "text" }) },
+        },
+        { excludeFields: ["seoDescription"] },
+      );
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(batchWrite).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          path: "pages/example+intro",
+          content: { text: "Welcome (translated)" },
+        }),
+      );
+    });
+
+    it("translates a field of a cascaded model that only the host blueprint's excludeFields names", async () => {
+      cascadeIntroPage();
+      cascade[0]!.fields.seodescription = field({
+        type: "text",
+        name: "seodescription",
+      });
+      cascadeModelData["pages/example+intro"]!.content.seodescription =
+        "Summary";
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        excludeFields: ["seoDescription"],
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+
+      expect(batchWrite).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          path: "pages/example+intro",
+          content: {
+            text: "Welcome (translated)",
+            seodescription: "Summary (translated)",
+          },
+        }),
+      );
+    });
+
     it("labels a report entry by model and language", async () => {
       batchStatus.languagesWithUnsavedChanges = ["fr"];
       cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });

@@ -680,6 +680,7 @@ export function useContentTranslator() {
     const sourceLanguage = panel.languages.find(
       (language) => language.default,
     )!;
+    const globalConfig = resolveTranslatorConfig(config.value!);
     const models = planBatchRun(
       host,
       hasCascade.value ? await getCascadeCandidates(sourceLanguage.code) : [],
@@ -693,6 +694,10 @@ export function useContentTranslator() {
           kirbyTags: kirbyTags.value,
           isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
           isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
+        },
+        globalFieldLists: {
+          includeFields: globalConfig.includeFields,
+          excludeFields: globalConfig.excludeFields,
         },
       },
     );

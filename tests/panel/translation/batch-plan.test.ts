@@ -43,6 +43,7 @@ function createPlanOptions() {
     selectedLanguages: [GERMAN, FRENCH],
     defaultLanguageCode: "en",
     settings: HOST_SETTINGS,
+    globalFieldLists: { includeFields: [], excludeFields: [] },
   };
 }
 
@@ -91,6 +92,29 @@ describe("planBatchRun", () => {
       includeFields: [],
       excludeFields: [],
       isSlugTranslationEnabled: false,
+    });
+  });
+
+  it("gives a cascaded model the global includeFields and excludeFields", () => {
+    const models = planBatchRun(
+      createCandidate("pages/notes"),
+      [createCandidate("pages/notes+intro")],
+      {
+        ...createPlanOptions(),
+        globalFieldLists: {
+          includeFields: ["text", "seodescription"],
+          excludeFields: ["seodescription"],
+        },
+      },
+    );
+
+    expect(models[0]!.settings).toMatchObject({
+      includeFields: ["text"],
+      excludeFields: ["notes"],
+    });
+    expect(models[1]!.settings).toMatchObject({
+      includeFields: ["text", "seodescription"],
+      excludeFields: ["seodescription"],
     });
   });
 
