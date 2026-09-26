@@ -18,9 +18,7 @@ export function useModel() {
     isListenerRegistered = true;
   }
 
-  async function getModelData() {
-    const { path } = panel.view;
-
+  async function getModelData(path: string) {
     if (modelDataCache.has(path)) {
       return modelDataCache.get(path)!;
     }

@@ -159,7 +159,7 @@ export function useContentTranslator() {
       : describeMissingStrategy(context.config, copilotReadiness);
   }
 
-  async function hasResolvedBlueprint() {
+  async function hasResolvedBlueprint(path: string) {
     if (fields.value && Object.keys(fields.value).length > 0) return true;
 
     // Kirby falls back to the `default` blueprint when the template's own is
@@ -168,7 +168,7 @@ export function useContentTranslator() {
     const { template, blueprint } = await panel.api.get<{
       template?: string | null;
       blueprint: { name: string };
-    }>(panel.view.path, { select: "template,blueprint" }, undefined, true);
+    }>(path, { select: "template,blueprint" }, undefined, true);
     const isBlueprintMissing =
       Boolean(template) &&
       template !== "default" &&
@@ -176,7 +176,7 @@ export function useContentTranslator() {
     if (!isBlueprintMissing) return true;
 
     console.error(
-      `No blueprint fields could be resolved for "${panel.view.path}". Check that the model's blueprint exists and that its filename matches the template exactly, including case.`,
+      `No blueprint fields could be resolved for "${path}". Check that the model's blueprint exists and that its filename matches the template exactly, including case.`,
     );
     panel.notification.error(
       panel.t("johannschopplich.content-translator.error.unresolvedFields"),
@@ -337,14 +337,15 @@ export function useContentTranslator() {
   async function importModelContent(
     language?: PanelLanguageInfo | PanelLanguage,
   ) {
-    if (!(await hasResolvedBlueprint())) return;
+    const { path } = panel.view;
+    if (!(await hasResolvedBlueprint(path))) return;
 
     let title: string;
     let content: Record<string, unknown>;
 
     if (language) {
       const data = await panel.api.get<PanelModelData>(
-        panel.view.path,
+        path,
         { language: language.code },
         undefined,
         // Avoid showing Panel loading indicator.
@@ -353,7 +354,7 @@ export function useContentTranslator() {
       title = data.title;
       content = data.content;
     } else {
-      const data = await getModelData();
+      const data = await getModelData(path);
       title = data.title;
       content = data.content;
     }
@@ -366,10 +367,10 @@ export function useContentTranslator() {
     });
 
     const plan = planImport({
-      isHomePage: await isHomePage(),
-      isErrorPage: await isErrorPage(),
-      isFileModel: isFileModelPath(panel.view.path),
-      isSiteModel: isSiteModelPath(panel.view.path),
+      isHomePage: await isHomePage(path),
+      isErrorPage: await isErrorPage(path),
+      isFileModel: isFileModelPath(path),
+      isSiteModel: isSiteModelPath(path),
       isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
       isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
       isCurrentLanguageDefault: panel.language.default,
@@ -395,11 +396,11 @@ export function useContentTranslator() {
     await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
-      await panel.api.patch(`${panel.view.path}/title`, { title });
+      await panel.api.patch(`${path}/title`, { title });
     }
     if (plan.shouldPatchSlug) {
       // Kirby sanitizes the slug with the slug rules of the current language.
-      await panel.api.patch(`${panel.view.path}/slug`, { slug: title });
+      await panel.api.patch(`${path}/slug`, { slug: title });
     }
     if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
       await panel.view.reload();
@@ -415,7 +416,8 @@ export function useContentTranslator() {
     sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
-    if (!(await hasResolvedBlueprint())) return;
+    const { path, title } = panel.view;
+    if (!(await hasResolvedBlueprint(path))) return;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
@@ -455,14 +457,14 @@ export function useContentTranslator() {
 
       await updateContent(contentCopy);
       const plan = planSingleTranslation({
-        isHomePage: await isHomePage(),
-        isErrorPage: await isErrorPage(),
-        isFileModel: isFileModelPath(panel.view.path),
-        isSiteModel: isSiteModelPath(panel.view.path),
+        isHomePage: await isHomePage(path),
+        isErrorPage: await isErrorPage(path),
+        isFileModel: isFileModelPath(path),
+        isSiteModel: isSiteModelPath(path),
         isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
         isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,
-        hasViewTitle: Boolean(panel.view.title),
+        hasViewTitle: Boolean(title),
       });
 
       const languageResults = [contentResult];
@@ -470,13 +472,13 @@ export function useContentTranslator() {
       if (plan.shouldRequestTitleTranslation) {
         const translatedTitle = await translateTitle(
           // Non-null: the plan requests a title translation only when the view has one.
-          panel.view.title!,
+          title!,
           { strategy, targetLanguage, sourceLanguage },
         );
         languageResults.push(translatedTitle.result);
 
         if (translatedTitle.text !== undefined && plan.shouldPatchTitle) {
-          await panel.api.patch(`${panel.view.path}/title`, {
+          await panel.api.patch(`${path}/title`, {
             title: translatedTitle.text,
           });
         }
@@ -484,7 +486,7 @@ export function useContentTranslator() {
         if (translatedTitle.text !== undefined && plan.shouldPatchSlug) {
           // Kirby sanitizes the slug with the slug rules of the current
           // language, which is the target language.
-          await panel.api.patch(`${panel.view.path}/slug`, {
+          await panel.api.patch(`${path}/slug`, {
             slug: translatedTitle.text,
           });
         }
@@ -496,7 +498,11 @@ export function useContentTranslator() {
       let cascadeError: unknown;
 
       try {
-        cascadeOutcomes = await translateCascade(targetLanguage, strategy);
+        cascadeOutcomes = await translateCascade(
+          path,
+          targetLanguage,
+          strategy,
+        );
       } catch (error) {
         cascadeError = error;
       }
@@ -578,14 +584,14 @@ export function useContentTranslator() {
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
-    if (!(await hasResolvedBlueprint())) return;
+    const { path, title } = panel.view;
+    if (!(await hasResolvedBlueprint(path))) return;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
     try {
-      const { path } = panel.view;
-      const defaultLanguageData = await getModelData();
-      const batchStatus = await fetchBatchStatus();
+      const defaultLanguageData = await getModelData(path);
+      const batchStatus = await fetchBatchStatus(path);
 
       // Nothing is translated that could not be saved: Kirby refuses the write
       // without the update permission, and refuses every language while
@@ -611,9 +617,10 @@ export function useContentTranslator() {
           : new DeepLStrategy();
 
       const outcomes = await translateAndSave(
+        path,
         {
           path,
-          title: panel.view.title ?? path,
+          title: title ?? path,
           isHomePage: defaultLanguageData.id === homePageId.value,
           isErrorPage: defaultLanguageData.id === errorPageId.value,
           defaultLanguageData,
@@ -662,11 +669,12 @@ export function useContentTranslator() {
   }
 
   /**
-   * Translates the host, if it takes part, and its cascade into the selected
-   * languages and saves each translation directly, returning one outcome per
-   * model and selected language with the host first.
+   * Translates the host at `hostPath`, if it takes part, and its cascade into
+   * the selected languages and saves each translation directly, returning one
+   * outcome per model and selected language with the host first.
    */
   async function translateAndSave(
+    hostPath: string,
     host: BatchCandidate | undefined,
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
     {
@@ -683,7 +691,9 @@ export function useContentTranslator() {
     const globalConfig = resolveTranslatorConfig(config.value!);
     const models = planBatchRun(
       host,
-      hasCascade.value ? await getCascadeCandidates(sourceLanguage.code) : [],
+      hasCascade.value
+        ? await getCascadeCandidates(hostPath, sourceLanguage.code)
+        : [],
       {
         selectedLanguages,
         defaultLanguageCode: sourceLanguage.code,
@@ -739,11 +749,12 @@ export function useContentTranslator() {
   }
 
   /**
-   * Translates the cascade of the open view into the target language and saves
-   * it. The cascade is always translated from the default language, even when
-   * the host's fields came from another language.
+   * Translates the cascade of the host at `hostPath` into the target language
+   * and saves it. The cascade is always translated from the default language,
+   * even when the host's fields came from another language.
    */
   async function translateCascade(
+    hostPath: string,
     targetLanguage: PanelLanguageInfo | PanelLanguage,
     strategy: TranslationStrategy,
   ) {
@@ -752,29 +763,29 @@ export function useContentTranslator() {
     // For a host another user edits, Kirby's `content.save()` opens the lock
     // dialog instead of throwing, and reports the refused write only from
     // Kirby 5.6 on, so the status has to tell that the host was not written.
-    const hostStatus = await fetchBatchStatus();
+    const hostStatus = await fetchBatchStatus(hostPath);
 
     if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
 
-    return await translateAndSave(undefined, [targetLanguage], {
+    return await translateAndSave(hostPath, undefined, [targetLanguage], {
       strategy,
       onProgress: notifyProgress,
     });
   }
 
-  function fetchBatchStatus() {
+  function fetchBatchStatus(path: string) {
     return panel.api.get<BatchStatusResponse>(
       BATCH_STATUS_API_ROUTE,
-      { path: panel.view.path },
+      { path },
       undefined,
       true,
     );
   }
 
-  function fetchCascade() {
+  function fetchCascade(path: string) {
     return panel.api.get<CascadeModelResponse[]>(
       CASCADE_API_ROUTE,
-      { path: panel.view.path },
+      { path },
       undefined,
       true,
     );
@@ -792,7 +803,7 @@ export function useContentTranslator() {
     // The help is optional, so a failed request must not keep the dialog from
     // opening. The run requests the cascade again and reports the error.
     try {
-      cascade = await fetchCascade();
+      cascade = await fetchCascade(panel.view.path);
     } catch (error) {
       console.error("Failed to load the cascade:", error);
       return;
@@ -842,9 +853,10 @@ export function useContentTranslator() {
    * cascaded model has no open view whose events could clear a cache.
    */
   async function getCascadeCandidates(
+    hostPath: string,
     defaultLanguageCode: string,
   ): Promise<BatchCandidate[]> {
-    const cascade = await fetchCascade();
+    const cascade = await fetchCascade(hostPath);
 
     return await pAll(
       cascade.map(({ path, title, fields, status }) => async () => {
@@ -873,13 +885,13 @@ export function useContentTranslator() {
     );
   }
 
-  async function isHomePage() {
-    const defaultLanguageData = await getModelData();
+  async function isHomePage(path: string) {
+    const defaultLanguageData = await getModelData(path);
     return defaultLanguageData.id === homePageId.value;
   }
 
-  async function isErrorPage() {
-    const defaultLanguageData = await getModelData();
+  async function isErrorPage(path: string) {
+    const defaultLanguageData = await getModelData(path);
     return defaultLanguageData.id === errorPageId.value;
   }
 

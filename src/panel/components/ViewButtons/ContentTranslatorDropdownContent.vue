@@ -57,7 +57,7 @@ initializeConfig(props.context, props.props).then(() => {
 
 // Lazily fetch required view data (same as `computed` section methods).
 const initializationPromise = (async () => {
-  const defaultLanguageData = await getModelData();
+  const defaultLanguageData = await getModelData(panel.view.path);
 
   fields.value = await panel.api.get(
     MODEL_FIELDS_API_ROUTE,

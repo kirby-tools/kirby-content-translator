@@ -771,6 +771,43 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("sends every request of a single-language translation for the host after the editor opens another view", async () => {
+      cascadeIntroPage();
+      translateBatch.mockImplementationOnce(
+        async (_route: string, payload: { texts: string[] }) => {
+          panel.view.path = "pages/other";
+          panel.view.title = "Other";
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(panel.api.get).toHaveBeenCalledWith(
+        "__content-translator__/batch-status",
+        { path: "pages/example" },
+        undefined,
+        true,
+      );
+      expect(panel.api.get).toHaveBeenCalledWith(
+        "__content-translator__/cascade",
+        { path: "pages/example" },
+        undefined,
+        true,
+      );
+      expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
+        "pages/other",
+      );
+      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/title", {
+        title: "Example (translated)",
+      });
+    });
+
     it("reloads the view after a single-language translation with a cascade", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({

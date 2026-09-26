@@ -50,22 +50,26 @@ describe("useModel", () => {
     panel.api.get.mockResolvedValueOnce(createModelData("Renamed"));
     const { getModelData } = await createModel();
 
-    await getModelData();
+    await getModelData(panel.view.path);
 
-    expect(await getModelData()).toEqual(createModelData("Example"));
+    expect(await getModelData(panel.view.path)).toEqual(
+      createModelData("Example"),
+    );
   });
 
   it("refetches a cached model after model.update fires on another view", async () => {
     panel.api.get.mockResolvedValueOnce(createModelData("Example"));
     panel.api.get.mockResolvedValueOnce(createModelData("Renamed"));
     const { getModelData } = await createModel();
-    await getModelData();
+    await getModelData(panel.view.path);
 
     panel.view.path = "pages/other";
     panel.events.emit("model.update");
     panel.view.path = "pages/example";
 
-    expect(await getModelData()).toEqual(createModelData("Renamed"));
+    expect(await getModelData(panel.view.path)).toEqual(
+      createModelData("Renamed"),
+    );
   });
 
   it("refetches the site after site.changeTitle", async () => {
@@ -73,10 +77,12 @@ describe("useModel", () => {
     panel.api.get.mockResolvedValueOnce(createModelData("Example"));
     panel.api.get.mockResolvedValueOnce(createModelData("Renamed"));
     const { getModelData } = await createModel();
-    await getModelData();
+    await getModelData(panel.view.path);
 
     panel.events.emit("site.changeTitle");
 
-    expect(await getModelData()).toEqual(createModelData("Renamed"));
+    expect(await getModelData(panel.view.path)).toEqual(
+      createModelData("Renamed"),
+    );
   });
 });
