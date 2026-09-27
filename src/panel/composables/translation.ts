@@ -632,12 +632,27 @@ export function useContentTranslator() {
     }
   }
 
+  /**
+   * Translates the model at `path`, taken when the editor starts the
+   * translation, into the selected languages and saves each translation.
+   */
   async function batchTranslateModelContent(
+    path: string,
     selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
-    const { path, title } = panel.view;
     if (!(await hasResolvedBlueprint(path))) return;
+
+    // Checked before the view's title is read. The run names every language it
+    // reads or writes, so the language the view is open in does not matter.
+    if (panel.view.path !== path) {
+      panel.notification.error(
+        panel.t("johannschopplich.content-translator.error.viewChanged"),
+      );
+      return;
+    }
+
+    const { title } = panel.view;
     panel.view.isLoading = true;
     isTranslating.value = true;
 

@@ -60,13 +60,12 @@ export function useTranslationActions(
   }
 
   async function handleBatchTranslate() {
+    const { path } = panel.view;
     await initialization;
-    const result = await openBatchTranslationDialog(
-      await getCascadeHelp(panel.view.path),
-    );
+    const result = await openBatchTranslationDialog(await getCascadeHelp(path));
     if (result) {
       strategyName.value = result.strategyName;
-      await batchTranslateModelContent(result.languages);
+      await batchTranslateModelContent(path, result.languages);
       if (result.strategyName === "ai") {
         showCopilotLicenseToastOnce();
       }

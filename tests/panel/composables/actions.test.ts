@@ -241,9 +241,25 @@ describe("useTranslationActions", () => {
 
     await useTranslationActions(translator).handleBatchTranslate();
 
-    expect(translator.batchTranslateModelContent).toHaveBeenCalledWith([
-      GERMAN,
-    ]);
+    expect(translator.batchTranslateModelContent).toHaveBeenCalledWith(
+      "pages/example",
+      [GERMAN],
+    );
+  });
+
+  it("handleBatchTranslate translates the view of the click after the editor opens another view during the dialog", async () => {
+    const translator = createTranslator();
+    openFieldsDialog = vi.fn(async () => {
+      panelView.path = "pages/other";
+      return { languages: ["de"] };
+    });
+
+    await useTranslationActions(translator).handleBatchTranslate();
+
+    expect(translator.batchTranslateModelContent).toHaveBeenCalledWith(
+      "pages/example",
+      [GERMAN],
+    );
   });
 
   it("handleBatchTranslate passes the getCascadeHelp text into the languages help of the dialog", async () => {

@@ -512,7 +512,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(batchWrite).toHaveBeenCalledWith({
         path: "pages/example",
@@ -524,6 +526,25 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).not.toHaveBeenCalled();
     });
 
+    it("translates and saves nothing when the editor opens another view before the batch translation starts", async () => {
+      panel.view.path = "pages/other";
+      const translator = await createContentTranslator({
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
+
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+      expect(panel.view.isLoading).toBe(false);
+    });
+
     it("aborts before translating while another user edits the content", async () => {
       batchStatus.lockedBy = "Colleague";
 
@@ -531,7 +552,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -551,7 +572,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(translateBatch).not.toHaveBeenCalled();
       expect(batchWrite).not.toHaveBeenCalled();
@@ -569,7 +592,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.open).not.toHaveBeenCalledWith(
         expect.objectContaining({
@@ -599,7 +624,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -637,7 +662,7 @@ describe("useContentTranslator", () => {
         { batchConcurrency: 1 },
       );
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -677,7 +702,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(callOrder).toEqual(["reload", "dialog"]);
       error.mockRestore();
@@ -697,7 +724,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(callOrder).toEqual(["success", "reload"]);
       expect(panel.dialog.open).not.toHaveBeenCalled();
@@ -708,7 +737,9 @@ describe("useContentTranslator", () => {
       modelData.blueprint = { name: "pages/default" };
       const translator = await createContentTranslator({ fields: {} });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.unresolvedFields",
@@ -727,7 +758,9 @@ describe("useContentTranslator", () => {
         fields: {},
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.error).not.toHaveBeenCalled();
       expect(batchWrite).toHaveBeenCalledWith(
@@ -748,7 +781,9 @@ describe("useContentTranslator", () => {
         fields: {},
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.error).not.toHaveBeenCalled();
       expect(batchWrite).toHaveBeenCalledWith(
@@ -790,7 +825,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(batchWrite.mock.calls.map(([request]) => request)).toEqual([
         expect.objectContaining({
@@ -821,7 +858,9 @@ describe("useContentTranslator", () => {
         { excludeFields: ["seoDescription"] },
       );
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(batchWrite).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -845,7 +884,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(batchWrite).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -866,7 +907,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(reportDialog().details.map(({ label }) => label)).toEqual([
         "Example – Français",
@@ -881,7 +924,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(reportDialog().details).toEqual([
         {
@@ -900,7 +945,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -930,7 +975,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text", label: "Body" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(lastNotification().message).toBe(
         'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Intro – Français (Welcome text)"}',
@@ -1234,7 +1281,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(batchWrite.mock.calls.map(([{ path }]) => path)).toEqual([
         "pages/example",
@@ -1406,7 +1455,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -1450,7 +1499,7 @@ describe("useContentTranslator", () => {
         },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -1511,7 +1560,9 @@ describe("useContentTranslator", () => {
         },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(lastNotification().message).toBe(
         'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Français (Body)"}',
@@ -1537,7 +1588,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(reportDialog().details).toEqual([
         {
@@ -1564,7 +1617,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text", label: "Body" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
@@ -1602,7 +1655,9 @@ describe("useContentTranslator", () => {
         ),
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(lastNotification().message).toBe(
         'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Français (johannschopplich.content-translator.notification.andMore {\\"fields\\":\\"A, B, C\\",\\"count\\":2})"}',
@@ -1628,7 +1683,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(reportDialog().details).toEqual([
@@ -1650,7 +1707,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(reportDialog().details).toEqual([
         {
@@ -1670,7 +1729,9 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([SECONDARY_LANGUAGE]);
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.dialog.open).not.toHaveBeenCalled();
@@ -1765,7 +1826,7 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.batchTranslateModelContent([
+      await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
         THIRD_LANGUAGE,
       ]);
