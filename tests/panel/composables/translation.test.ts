@@ -187,11 +187,17 @@ describe("useContentTranslator", () => {
     cascadeModelData = {};
     isKirby5 = true;
 
-    panel.api.get.mockImplementation(async (path: string) => {
-      if (path === "__content-translator__/batch-status") return batchStatus;
-      if (path === "__content-translator__/cascade") return cascade;
-      return cascadeModelData[path] ?? modelData;
-    });
+    panel.api.get.mockImplementation(
+      async (path: string, query?: { path?: string }) => {
+        if (path === "__content-translator__/batch-status")
+          return query?.path === "pages/example"
+            ? batchStatus
+            : { ...batchStatus, lockedBy: "Other" };
+        if (path === "__content-translator__/cascade")
+          return query?.path === "pages/example" ? cascade : [];
+        return cascadeModelData[path] ?? modelData;
+      },
+    );
     panel.api.post.mockImplementation(
       async (route: string, payload: Record<string, unknown>) =>
         route === "__content-translator__/batch-write"
@@ -248,6 +254,47 @@ describe("useContentTranslator", () => {
         "pages/example/slug",
         { slug: "Example" },
         { headers: { "x-language": "fr" } },
+      );
+    });
+
+    it("writes nothing when the editor opens another view before the source content arrives", async () => {
+      const get = panel.api.get.getMockImplementation()!;
+      panel.api.get.mockImplementationOnce(async (path: string) => {
+        panel.view.path = "pages/other";
+        return get(path);
+      });
+      const translator = await createContentTranslator({
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(DEFAULT_LANGUAGE);
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+    });
+
+    it("writes nothing when the editor switches the language before the source content arrives", async () => {
+      panel.language = { ...SECONDARY_LANGUAGE };
+      const get = panel.api.get.getMockImplementation()!;
+      panel.api.get.mockImplementationOnce(async (path: string) => {
+        Object.assign(panel.language, THIRD_LANGUAGE);
+        return get(path);
+      });
+      const translator = await createContentTranslator({
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(DEFAULT_LANGUAGE);
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
       );
     });
 
@@ -795,6 +842,61 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("saves nothing when the editor opens another view before the host's fields are translated", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      cascadeIntroPage();
+      translateBatch.mockImplementationOnce(
+        async (_route: string, payload: { texts: string[] }) => {
+          panel.view.path = "pages/other";
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(SECONDARY_LANGUAGE);
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+      expect(panel.view.isLoading).toBe(false);
+      error.mockRestore();
+    });
+
+    it("saves nothing when the editor switches the language before the host's fields are translated", async () => {
+      const error = vi.spyOn(console, "error").mockImplementation(() => {});
+      cascadeIntroPage();
+      panel.language = { ...SECONDARY_LANGUAGE };
+      translateBatch.mockImplementationOnce(
+        async (_route: string, payload: { texts: string[] }) => {
+          // Kirby switches the language by mutating `panel.language` in place.
+          Object.assign(panel.language, THIRD_LANGUAGE);
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(panel.language);
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+      error.mockRestore();
+    });
+
     it("saves the title and the cascade in the starting language when the editor switches the language during the title translation", async () => {
       cascadeIntroPage();
       panel.language = { ...SECONDARY_LANGUAGE };
@@ -830,12 +932,15 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("sends every request of a single-language translation for the host after the editor opens another view", async () => {
+    it("saves the title and the cascade for the host when the editor opens another view during the title translation", async () => {
       cascadeIntroPage();
-      translateBatch.mockImplementationOnce(
+      let call = 0;
+      translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {
-          panel.view.path = "pages/other";
-          panel.view.title = "Other";
+          if (++call === 2) {
+            panel.view.path = "pages/other";
+            panel.view.title = "Other";
+          }
           return { texts: payload.texts.map((text) => `${text} (translated)`) };
         },
       );
@@ -847,18 +952,6 @@ describe("useContentTranslator", () => {
 
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
-      expect(panel.api.get).toHaveBeenCalledWith(
-        "__content-translator__/batch-status",
-        { path: "pages/example" },
-        undefined,
-        true,
-      );
-      expect(panel.api.get).toHaveBeenCalledWith(
-        "__content-translator__/cascade",
-        { path: "pages/example" },
-        undefined,
-        true,
-      );
       expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
         "pages/other",
       );
@@ -1061,10 +1154,12 @@ describe("useContentTranslator", () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       cascadeIntroPage();
       const get = panel.api.get.getMockImplementation()!;
-      panel.api.get.mockImplementation(async (path: string) => {
-        if (path === "pages/example+intro") throw new Error("server error");
-        return get(path);
-      });
+      panel.api.get.mockImplementation(
+        async (path: string, query?: { path?: string }) => {
+          if (path === "pages/example+intro") throw new Error("server error");
+          return get(path, query);
+        },
+      );
       const translator = await createContentTranslator({
         cascade: "page.children",
         title: true,

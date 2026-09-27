@@ -397,6 +397,14 @@ export function useContentTranslator() {
       return;
     }
 
+    // Checked before the first write, so an import that stops has saved nothing.
+    if (!isViewOpen(path, languageCode)) {
+      panel.notification.error(
+        panel.t("johannschopplich.content-translator.error.viewChanged"),
+      );
+      return;
+    }
+
     await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
@@ -471,6 +479,13 @@ export function useContentTranslator() {
       // Reported before the content is written, because everything from here
       // to the notification can throw and would take the rejections with it.
       reportRejections(contentResult, targetLanguage);
+
+      // Checked before the first write, so a run that stops has saved nothing.
+      if (!isViewOpen(path, targetLanguage.code)) {
+        throw new Error(
+          panel.t("johannschopplich.content-translator.error.viewChanged"),
+        );
+      }
 
       await updateContent(contentCopy);
       const plan = planSingleTranslation({
@@ -914,6 +929,15 @@ export function useContentTranslator() {
   async function isErrorPage(path: string) {
     const defaultLanguageData = await getModelData(path);
     return defaultLanguageData.id === errorPageId.value;
+  }
+
+  /**
+   * Tells whether the view of the model at `path` is open in the language with
+   * `languageCode`. `updateContent` writes into the form of whichever view is
+   * open.
+   */
+  function isViewOpen(path: string, languageCode: string) {
+    return panel.view.path === path && panel.language.code === languageCode;
   }
 
   return {
