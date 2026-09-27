@@ -338,6 +338,10 @@ export function useContentTranslator() {
     language?: PanelLanguageInfo | PanelLanguage,
   ) {
     const { path } = panel.view;
+    // Kirby switches the language by mutating `panel.language` in place, and
+    // its API sends that language unless a request names its own.
+    const { code: languageCode, default: isCurrentLanguageDefault } =
+      panel.language;
     if (!(await hasResolvedBlueprint(path))) return;
 
     let title: string;
@@ -373,7 +377,7 @@ export function useContentTranslator() {
       isSiteModel: isSiteModelPath(path),
       isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
       isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
-      isCurrentLanguageDefault: panel.language.default,
+      isCurrentLanguageDefault,
     });
 
     const hasEligibleContent = Object.keys(eligibleContent).length > 0;
@@ -396,11 +400,20 @@ export function useContentTranslator() {
     await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
-      await panel.api.patch(`${path}/title`, { title });
+      await panel.api.patch(
+        `${path}/title`,
+        { title },
+        { headers: { "x-language": languageCode } },
+      );
     }
     if (plan.shouldPatchSlug) {
-      // Kirby sanitizes the slug with the slug rules of the current language.
-      await panel.api.patch(`${path}/slug`, { slug: title });
+      // Kirby sanitizes the slug with the slug rules of the language the
+      // request names.
+      await panel.api.patch(
+        `${path}/slug`,
+        { slug: title },
+        { headers: { "x-language": languageCode } },
+      );
     }
     if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
       await panel.view.reload();
@@ -412,11 +425,15 @@ export function useContentTranslator() {
   }
 
   async function translateModelContent(
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    language: PanelLanguageInfo | PanelLanguage,
     sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
     const { path, title } = panel.view;
+    // Kirby switches the language by mutating `panel.language` in place, which
+    // callers pass as the target language, and its API sends that language
+    // unless a request names its own.
+    const targetLanguage = { ...language };
     if (!(await hasResolvedBlueprint(path))) return;
     panel.view.isLoading = true;
     isTranslating.value = true;
@@ -478,17 +495,21 @@ export function useContentTranslator() {
         languageResults.push(translatedTitle.result);
 
         if (translatedTitle.text !== undefined && plan.shouldPatchTitle) {
-          await panel.api.patch(`${path}/title`, {
-            title: translatedTitle.text,
-          });
+          await panel.api.patch(
+            `${path}/title`,
+            { title: translatedTitle.text },
+            { headers: { "x-language": targetLanguage.code } },
+          );
         }
 
         if (translatedTitle.text !== undefined && plan.shouldPatchSlug) {
-          // Kirby sanitizes the slug with the slug rules of the current
-          // language, which is the target language.
-          await panel.api.patch(`${path}/slug`, {
-            slug: translatedTitle.text,
-          });
+          // Kirby sanitizes the slug with the slug rules of the language the
+          // request names.
+          await panel.api.patch(
+            `${path}/slug`,
+            { slug: translatedTitle.text },
+            { headers: { "x-language": targetLanguage.code } },
+          );
         }
       }
 

@@ -224,9 +224,31 @@ describe("useContentTranslator", () => {
 
       await translator.importModelContent(DEFAULT_LANGUAGE);
 
-      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
-        slug: "Über uns",
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example/slug",
+        { slug: "Über uns" },
+        { headers: { "x-language": "fr" } },
+      );
+    });
+
+    it("patches the slug in the language the import started in after the editor switches the language", async () => {
+      panel.language = { ...SECONDARY_LANGUAGE };
+      updateContent.mockImplementation(async () => {
+        Object.assign(panel.language, THIRD_LANGUAGE);
       });
+      const translator = await createContentTranslator({
+        title: false,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(DEFAULT_LANGUAGE);
+
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example/slug",
+        { slug: "Example" },
+        { headers: { "x-language": "fr" } },
+      );
     });
 
     it("refuses to import when Kirby falls back to pages/default for the article template", async () => {
@@ -268,9 +290,11 @@ describe("useContentTranslator", () => {
 
       await translator.translateModelContent(SECONDARY_LANGUAGE);
 
-      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/slug", {
-        slug: "Example (translated)",
-      });
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example/slug",
+        { slug: "Example (translated)" },
+        { headers: { "x-language": "fr" } },
+      );
     });
 
     it("resets the translating state before reloading and notifies success after the reload", async () => {
@@ -771,6 +795,41 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("saves the title and the cascade in the starting language when the editor switches the language during the title translation", async () => {
+      cascadeIntroPage();
+      panel.language = { ...SECONDARY_LANGUAGE };
+      let call = 0;
+      translateBatch.mockImplementation(
+        async (_route: string, payload: { texts: string[] }) => {
+          if (++call === 2) Object.assign(panel.language, THIRD_LANGUAGE);
+          return { texts: payload.texts.map((text) => `${text} (translated)`) };
+        },
+      );
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(panel.language);
+
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example/title",
+        { title: "Example (translated)" },
+        { headers: { "x-language": "fr" } },
+      );
+      expect(translateBatch).toHaveBeenLastCalledWith(
+        "__content-translator__/translate-units",
+        expect.objectContaining({ targetLanguage: "fr" }),
+      );
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: "pages/example+intro",
+          language: "fr",
+        }),
+      );
+    });
+
     it("sends every request of a single-language translation for the host after the editor opens another view", async () => {
       cascadeIntroPage();
       translateBatch.mockImplementationOnce(
@@ -803,9 +862,11 @@ describe("useContentTranslator", () => {
       expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
         "pages/other",
       );
-      expect(panel.api.patch).toHaveBeenCalledWith("pages/example/title", {
-        title: "Example (translated)",
-      });
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "pages/example/title",
+        { title: "Example (translated)" },
+        { headers: { "x-language": "fr" } },
+      );
     });
 
     it("reloads the view after a single-language translation with a cascade", async () => {
@@ -1571,6 +1632,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).not.toHaveBeenCalledWith(
         "pages/example/title",
         expect.anything(),
+        expect.anything(),
       );
       expect(lastNotification().message).toBe(
         'johannschopplich.content-translator.notification.partiallyTranslated {"untranslated":1,"total":2,"fields":"title"}',
@@ -1598,6 +1660,7 @@ describe("useContentTranslator", () => {
 
       expect(panel.api.patch).not.toHaveBeenCalledWith(
         "pages/example/slug",
+        expect.anything(),
         expect.anything(),
       );
       warn.mockRestore();
