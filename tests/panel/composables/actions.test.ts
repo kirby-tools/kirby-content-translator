@@ -8,6 +8,7 @@ import { useTranslationActions } from "../../../src/panel/composables/actions";
 let openFieldsDialog: ReturnType<typeof vi.fn>;
 let openTextDialog: ReturnType<typeof vi.fn>;
 let panelLanguage: PanelLanguageInfo;
+let panelView: { path: string };
 
 const ENGLISH = {
   code: "en",
@@ -34,6 +35,9 @@ vi.mock("kirbyuse", async () => {
         data ? `${key} ${JSON.stringify(data)}` : key,
       get language() {
         return panelLanguage;
+      },
+      get view() {
+        return panelView;
       },
       languages: [ENGLISH, FRENCH, GERMAN],
       plugins: { thirdParty: {} },
@@ -69,6 +73,7 @@ describe("useTranslationActions", () => {
     openFieldsDialog = vi.fn(async () => ({ languages: ["de"] }));
     openTextDialog = vi.fn(async () => true);
     panelLanguage = FRENCH;
+    panelView = { path: "pages/example" };
   });
 
   afterEach(() => {
@@ -81,6 +86,26 @@ describe("useTranslationActions", () => {
     await useTranslationActions(translator).handleTranslate(ENGLISH);
 
     expect(translator.translateModelContent).toHaveBeenCalledWith(
+      "pages/example",
+      FRENCH,
+      ENGLISH,
+    );
+  });
+
+  it("handleTranslate translates the view and panel.language of the click after the editor switches both during the dialog", async () => {
+    const translator = createTranslator();
+    panelLanguage = { ...FRENCH };
+    openFieldsDialog = vi.fn(async () => {
+      panelView.path = "pages/other";
+      // Kirby switches the language by mutating `panel.language` in place.
+      Object.assign(panelLanguage, GERMAN);
+      return {};
+    });
+
+    await useTranslationActions(translator).handleTranslate(ENGLISH);
+
+    expect(translator.translateModelContent).toHaveBeenCalledWith(
+      "pages/example",
       FRENCH,
       ENGLISH,
     );
@@ -157,7 +182,29 @@ describe("useTranslationActions", () => {
 
     await useTranslationActions(translator).handleImport(GERMAN);
 
-    expect(translator.importModelContent).toHaveBeenCalledWith(GERMAN);
+    expect(translator.importModelContent).toHaveBeenCalledWith(
+      "pages/example",
+      FRENCH,
+      GERMAN,
+    );
+  });
+
+  it("handleImport imports into the view and panel.language of the click after the editor switches both during the importConfirmation", async () => {
+    const translator = createTranslator({ shouldConfirm: true });
+    panelLanguage = { ...FRENCH };
+    openTextDialog = vi.fn(async () => {
+      panelView.path = "pages/other";
+      Object.assign(panelLanguage, ENGLISH);
+      return true;
+    });
+
+    await useTranslationActions(translator).handleImport(GERMAN);
+
+    expect(translator.importModelContent).toHaveBeenCalledWith(
+      "pages/example",
+      FRENCH,
+      GERMAN,
+    );
   });
 
   it("handleImport names the sourceLanguage Deutsch in the importConfirmation", async () => {

@@ -334,23 +334,26 @@ export function useContentTranslator() {
   // the need for client-side `filterEligibleContent` during import and the
   // title/slug patching for default-language imports.
   // TODO: Next major version – remove confirm dialog options entirely.
+  /**
+   * Imports the content of `sourceLanguage`, or of the default language, into
+   * the form of the view at `path` in `targetLanguage`, both taken when the
+   * editor starts the import. Its title and slug requests name
+   * `targetLanguage`, since Kirby's API otherwise sends the language open then.
+   */
   async function importModelContent(
-    language?: PanelLanguageInfo | PanelLanguage,
+    path: string,
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
-    const { path } = panel.view;
-    // Kirby switches the language by mutating `panel.language` in place, and
-    // its API sends that language unless a request names its own.
-    const { code: languageCode, default: isCurrentLanguageDefault } =
-      panel.language;
     if (!(await hasResolvedBlueprint(path))) return;
 
     let title: string;
     let content: Record<string, unknown>;
 
-    if (language) {
+    if (sourceLanguage) {
       const data = await panel.api.get<PanelModelData>(
         path,
-        { language: language.code },
+        { language: sourceLanguage.code },
         undefined,
         // Avoid showing Panel loading indicator.
         true,
@@ -377,8 +380,17 @@ export function useContentTranslator() {
       isSiteModel: isSiteModelPath(path),
       isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
       isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
-      isCurrentLanguageDefault,
+      isCurrentLanguageDefault: targetLanguage.default === true,
     });
+
+    // Checked before the first write, so an import that stops has written
+    // nothing.
+    if (!isViewOpen(path, targetLanguage.code)) {
+      panel.notification.error(
+        panel.t("johannschopplich.content-translator.error.viewChanged"),
+      );
+      return;
+    }
 
     const hasEligibleContent = Object.keys(eligibleContent).length > 0;
 
@@ -397,21 +409,13 @@ export function useContentTranslator() {
       return;
     }
 
-    // Checked before the first write, so an import that stops has saved nothing.
-    if (!isViewOpen(path, languageCode)) {
-      panel.notification.error(
-        panel.t("johannschopplich.content-translator.error.viewChanged"),
-      );
-      return;
-    }
-
     await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(
         `${path}/title`,
         { title },
-        { headers: { "x-language": languageCode } },
+        { headers: { "x-language": targetLanguage.code } },
       );
     }
     if (plan.shouldPatchSlug) {
@@ -420,7 +424,7 @@ export function useContentTranslator() {
       await panel.api.patch(
         `${path}/slug`,
         { slug: title },
-        { headers: { "x-language": languageCode } },
+        { headers: { "x-language": targetLanguage.code } },
       );
     }
     if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
@@ -432,17 +436,28 @@ export function useContentTranslator() {
     );
   }
 
+  /**
+   * Translates the form of the view at `path` into `targetLanguage`, both taken
+   * when the editor starts the translation. Its title and slug requests name
+   * `targetLanguage`, since Kirby's API otherwise sends the language open then.
+   */
   async function translateModelContent(
-    language: PanelLanguageInfo | PanelLanguage,
+    path: string,
+    targetLanguage: PanelLanguageInfo | PanelLanguage,
     sourceLanguage?: PanelLanguageInfo | PanelLanguage,
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
-    const { path, title } = panel.view;
-    // Kirby switches the language by mutating `panel.language` in place, which
-    // callers pass as the target language, and its API sends that language
-    // unless a request names its own.
-    const targetLanguage = { ...language };
     if (!(await hasResolvedBlueprint(path))) return;
+
+    // Checked before the view's title and form are read.
+    if (!isViewOpen(path, targetLanguage.code)) {
+      panel.notification.error(
+        panel.t("johannschopplich.content-translator.error.viewChanged"),
+      );
+      return;
+    }
+
+    const { title } = panel.view;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
@@ -480,7 +495,8 @@ export function useContentTranslator() {
       // to the notification can throw and would take the rejections with it.
       reportRejections(contentResult, targetLanguage);
 
-      // Checked before the first write, so a run that stops has saved nothing.
+      // Checked before the first write, so a run that stops has written
+      // nothing.
       if (!isViewOpen(path, targetLanguage.code)) {
         throw new Error(
           panel.t("johannschopplich.content-translator.error.viewChanged"),
@@ -828,10 +844,10 @@ export function useContentTranslator() {
   }
 
   /**
-   * Describes the cascade of the open view for the dialog that starts a run,
-   * or returns nothing without a cascaded model.
+   * Describes the cascade of the model at `path` for the dialog that starts a
+   * run, or returns nothing without a cascaded model.
    */
-  async function getCascadeHelp() {
+  async function getCascadeHelp(path: string) {
     if (!hasCascade.value) return;
 
     let cascade: CascadeModelResponse[];
@@ -839,7 +855,7 @@ export function useContentTranslator() {
     // The help is optional, so a failed request must not keep the dialog from
     // opening. The run requests the cascade again and reports the error.
     try {
-      cascade = await fetchCascade(panel.view.path);
+      cascade = await fetchCascade(path);
     } catch (error) {
       console.error("Failed to load the cascade:", error);
       return;
@@ -849,7 +865,7 @@ export function useContentTranslator() {
 
     return formatPlural(
       panel.t("johannschopplich.content-translator.dialog.cascadeHelp", {
-        models: describeCascadeModels(cascade.map(({ path }) => path)),
+        models: describeCascadeModels(cascade.map((model) => model.path)),
       }),
       cascade.length,
     );
@@ -933,8 +949,8 @@ export function useContentTranslator() {
 
   /**
    * Tells whether the view of the model at `path` is open in the language with
-   * `languageCode`. `updateContent` writes into the form of whichever view is
-   * open.
+   * `languageCode`. `currentContent` and `updateContent` read and write the
+   * form of whichever view is open.
    */
   function isViewOpen(path: string, languageCode: string) {
     return panel.view.path === path && panel.language.code === languageCode;

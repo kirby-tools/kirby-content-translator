@@ -73,7 +73,7 @@ function createPanelStub() {
     t: vi.fn((key: string, data?: Record<string, unknown>) =>
       data ? `${key} ${JSON.stringify(data)}` : key,
     ),
-    language: SECONDARY_LANGUAGE,
+    language: { ...SECONDARY_LANGUAGE },
     languages: [DEFAULT_LANGUAGE, SECONDARY_LANGUAGE],
     view: {
       path: "pages/example",
@@ -215,7 +215,11 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(SECONDARY_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        DEFAULT_LANGUAGE,
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.patch).not.toHaveBeenCalled();
     });
@@ -228,7 +232,11 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
@@ -238,7 +246,6 @@ describe("useContentTranslator", () => {
     });
 
     it("patches the slug in the language the import started in after the editor switches the language", async () => {
-      panel.language = { ...SECONDARY_LANGUAGE };
       updateContent.mockImplementation(async () => {
         Object.assign(panel.language, THIRD_LANGUAGE);
       });
@@ -248,7 +255,11 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
@@ -268,7 +279,11 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
@@ -278,7 +293,6 @@ describe("useContentTranslator", () => {
     });
 
     it("writes nothing when the editor switches the language before the source content arrives", async () => {
-      panel.language = { ...SECONDARY_LANGUAGE };
       const get = panel.api.get.getMockImplementation()!;
       panel.api.get.mockImplementationOnce(async (path: string) => {
         Object.assign(panel.language, THIRD_LANGUAGE);
@@ -289,10 +303,55 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+    });
+
+    it("writes nothing when the editor opens another view before the import starts", async () => {
+      panel.view.path = "pages/other";
+      const translator = await createContentTranslator({
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
+
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+    });
+
+    it("reports error.viewChanged rather than nothingToImport when the editor opens another view before the import starts", async () => {
+      modelData.content = { untracked: "Hello" };
+      panel.view.path = "pages/other";
+      const translator = await createContentTranslator({
+        title: false,
+        slug: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
+
+      expect(panel.notification.open).not.toHaveBeenCalled();
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.viewChanged",
       );
@@ -303,7 +362,11 @@ describe("useContentTranslator", () => {
       modelData.blueprint = { name: "pages/default" };
       const translator = await createContentTranslator({ fields: {} });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.unresolvedFields",
@@ -320,12 +383,57 @@ describe("useContentTranslator", () => {
       const translator = await createContentTranslator();
       translator.fields.value = { text: field({ type: "text", name: "text" }) };
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.post).toHaveBeenCalledWith(
         "__content-translator__/translate-units",
         expect.objectContaining({ texts: ["Hello"] }),
       );
+    });
+
+    it("requests no translation and writes nothing when the editor opens another view before the translation starts", async () => {
+      panel.view.path = "pages/other";
+      const translator = await createContentTranslator({
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+      expect(panel.view.isLoading).toBe(false);
+    });
+
+    it("requests no translation and writes nothing when the editor switches to the default language before the translation starts", async () => {
+      Object.assign(panel.language, DEFAULT_LANGUAGE);
+      const translator = await createContentTranslator({
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(translateBatch).not.toHaveBeenCalled();
+      expect(updateContent).not.toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.error).toHaveBeenCalledWith(
+        "johannschopplich.content-translator.error.viewChanged",
+      );
+      expect(panel.view.isLoading).toBe(false);
     });
 
     it("hands the translated title to Kirby as the slug", async () => {
@@ -335,7 +443,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
@@ -364,7 +475,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(callOrder).toEqual(["reload", "success"]);
       expect(isTranslatingDuringReload).toBe(false);
@@ -375,7 +489,10 @@ describe("useContentTranslator", () => {
       modelData.blueprint = { name: "pages/default" };
       const translator = await createContentTranslator({ fields: {} });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.error).toHaveBeenCalledWith(
         "johannschopplich.content-translator.error.unresolvedFields",
@@ -828,7 +945,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(updateContent).toHaveBeenCalledWith({
         text: "Hello (translated)",
@@ -842,7 +962,7 @@ describe("useContentTranslator", () => {
       ]);
     });
 
-    it("saves nothing when the editor opens another view before the host's fields are translated", async () => {
+    it("writes nothing when the editor opens another view while a single-language translation translates the host's fields", async () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       cascadeIntroPage();
       translateBatch.mockImplementationOnce(
@@ -857,7 +977,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
@@ -869,10 +992,9 @@ describe("useContentTranslator", () => {
       error.mockRestore();
     });
 
-    it("saves nothing when the editor switches the language before the host's fields are translated", async () => {
+    it("writes nothing when the editor switches the language while a single-language translation translates the host's fields", async () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       cascadeIntroPage();
-      panel.language = { ...SECONDARY_LANGUAGE };
       translateBatch.mockImplementationOnce(
         async (_route: string, payload: { texts: string[] }) => {
           // Kirby switches the language by mutating `panel.language` in place.
@@ -886,7 +1008,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(panel.language);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
@@ -897,9 +1022,8 @@ describe("useContentTranslator", () => {
       error.mockRestore();
     });
 
-    it("saves the title and the cascade in the starting language when the editor switches the language during the title translation", async () => {
+    it("saves the title and the cascade of a single-language translation in the starting language when the editor switches the language during the title translation", async () => {
       cascadeIntroPage();
-      panel.language = { ...SECONDARY_LANGUAGE };
       let call = 0;
       translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {
@@ -913,7 +1037,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(panel.language);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/title",
@@ -932,7 +1059,7 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("saves the title and the cascade for the host when the editor opens another view during the title translation", async () => {
+    it("saves the title and the cascade of a single-language translation for the host when the editor opens another view during the title translation", async () => {
       cascadeIntroPage();
       let call = 0;
       translateBatch.mockImplementation(
@@ -950,7 +1077,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
         "pages/other",
@@ -959,6 +1089,12 @@ describe("useContentTranslator", () => {
         "pages/example/title",
         { title: "Example (translated)" },
         { headers: { "x-language": "fr" } },
+      );
+      expect(batchWrite).toHaveBeenCalledWith(
+        expect.objectContaining({
+          path: "pages/example+intro",
+          language: "fr",
+        }),
       );
     });
 
@@ -969,7 +1105,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.view.reload).toHaveBeenCalledTimes(1);
     });
@@ -981,7 +1120,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.open).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1000,6 +1142,7 @@ describe("useContentTranslator", () => {
       });
 
       await translator.translateModelContent(
+        "pages/example",
         DEFAULT_LANGUAGE,
         SECONDARY_LANGUAGE,
       );
@@ -1014,7 +1157,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(reportDialog().details).toEqual([
         {
@@ -1036,7 +1182,7 @@ describe("useContentTranslator", () => {
         cascade: ["page.children", "page.files"],
       });
 
-      const help = await translator.getCascadeHelp();
+      const help = await translator.getCascadeHelp("pages/example");
 
       // The stubbed `panel.t` renders a key with its data, nested for `{models}`.
       expect(help).toMatch(
@@ -1051,7 +1197,7 @@ describe("useContentTranslator", () => {
       });
       panel.api.get.mockRejectedValue(new Error("server error"));
 
-      expect(await translator.getCascadeHelp()).toBeUndefined();
+      expect(await translator.getCascadeHelp("pages/example")).toBeUndefined();
       error.mockRestore();
     });
 
@@ -1060,7 +1206,7 @@ describe("useContentTranslator", () => {
         cascade: "page.children",
       });
 
-      expect(await translator.getCascadeHelp()).toBeUndefined();
+      expect(await translator.getCascadeHelp("pages/example")).toBeUndefined();
     });
 
     it("names the cascade in the success notification of a single-language translation", async () => {
@@ -1070,7 +1216,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.success).toHaveBeenCalledWith(
         expect.stringMatching(
@@ -1103,7 +1252,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(batchWrite).not.toHaveBeenCalled();
     });
@@ -1116,7 +1268,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(batchWrite).not.toHaveBeenCalled();
     });
@@ -1129,7 +1284,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(batchWrite).not.toHaveBeenCalled();
     });
@@ -1141,7 +1299,10 @@ describe("useContentTranslator", () => {
         fields: {},
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.success).toHaveBeenCalledWith(
         expect.stringMatching(
@@ -1166,7 +1327,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.view.reload).toHaveBeenCalledTimes(1);
       expect(panel.notification.error).toHaveBeenCalledWith("server error");
@@ -1193,7 +1357,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text", label: "Body" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(reportDialog().details).toEqual([
         {
@@ -1213,7 +1380,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       // Kirby closes every notification when a dialog opens.
       expect(panel.dialog.open).toHaveBeenCalledTimes(1);
@@ -1525,7 +1695,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(warn).toHaveBeenCalledWith(
         'Rejected "text" (fr): placeholder mismatch. Keeping source text.',
@@ -1556,7 +1729,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.error).toHaveBeenCalledWith(
         "permission denied",
@@ -1610,7 +1786,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.post).not.toHaveBeenCalled();
       expect(panel.notification.success).not.toHaveBeenCalled();
@@ -1630,7 +1809,10 @@ describe("useContentTranslator", () => {
         fields: { price: field({ type: "number", name: "price" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.post).not.toHaveBeenCalled();
       expect(lastNotification().message).toBe(
@@ -1646,7 +1828,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(lastNotification().message).toBe(
         'johannschopplich.content-translator.notification.noEligibleFields {"fieldTypes":"text"}',
@@ -1670,7 +1855,10 @@ describe("useContentTranslator", () => {
         },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       const notification = lastNotification();
@@ -1694,7 +1882,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.notification.error).not.toHaveBeenCalled();
@@ -1721,7 +1912,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.notification.error).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalledWith(
@@ -1751,7 +1945,10 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.translateModelContent(SECONDARY_LANGUAGE);
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
 
       expect(panel.api.patch).not.toHaveBeenCalledWith(
         "pages/example/slug",
@@ -1770,7 +1967,11 @@ describe("useContentTranslator", () => {
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
-      await translator.importModelContent(DEFAULT_LANGUAGE);
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.notification.success).not.toHaveBeenCalled();

@@ -25,6 +25,9 @@ export function useTranslationActions(
   const defaultLanguage = panel.languages.find((language) => language.default)!;
 
   async function handleImport(sourceLanguage?: PanelLanguageInfo) {
+    const { path } = panel.view;
+    // Kirby switches the language by mutating `panel.language` in place.
+    const targetLanguage = { ...panel.language };
     const text = panel.t(
       "johannschopplich.content-translator.dialog.importConfirmation",
       {
@@ -34,19 +37,22 @@ export function useTranslationActions(
 
     await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
       await initialization;
-      await importModelContent(sourceLanguage);
+      await importModelContent(path, targetLanguage, sourceLanguage);
     });
   }
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
+    const { path } = panel.view;
+    // Kirby switches the language by mutating `panel.language` in place.
+    const targetLanguage = { ...panel.language };
     await initialization;
     // A translation into the default language has no cascade.
     const result = await openTranslationDialog(
-      panel.language.default ? undefined : await getCascadeHelp(),
+      targetLanguage.default ? undefined : await getCascadeHelp(path),
     );
     if (result) {
       strategyName.value = result.strategyName;
-      await translateModelContent(panel.language, sourceLanguage);
+      await translateModelContent(path, targetLanguage, sourceLanguage);
       if (result.strategyName === "ai") {
         showCopilotLicenseToastOnce();
       }
@@ -55,7 +61,9 @@ export function useTranslationActions(
 
   async function handleBatchTranslate() {
     await initialization;
-    const result = await openBatchTranslationDialog(await getCascadeHelp());
+    const result = await openBatchTranslationDialog(
+      await getCascadeHelp(panel.view.path),
+    );
     if (result) {
       strategyName.value = result.strategyName;
       await batchTranslateModelContent(result.languages);
