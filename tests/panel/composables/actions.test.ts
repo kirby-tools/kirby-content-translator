@@ -146,7 +146,7 @@ describe("useTranslationActions", () => {
       translator,
       initialization,
     ).handleTranslate();
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve));
 
     expect(translator.translateModelContent).not.toHaveBeenCalled();
 
@@ -167,7 +167,7 @@ describe("useTranslationActions", () => {
       translator,
       initialization,
     ).handleImport(GERMAN);
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve));
 
     expect(translator.importModelContent).not.toHaveBeenCalled();
 
