@@ -26,7 +26,13 @@ export function shouldReportBatchOutcome(outcome: BatchOutcome) {
 
 export function listKeptSourceFields(
   rejections: TranslationRejection[],
-  { fields, t }: { fields: BatchModel["fields"] | undefined; t: Translate },
+  {
+    fields,
+    t,
+  }: {
+    fields: BatchModel["fields"] | undefined;
+    t: Translate;
+  },
 ) {
   const uniqueLabels = [
     ...new Set(
@@ -68,7 +74,13 @@ export function describeBatchOutcomes(
  */
 function fieldLabel(
   fieldKey = "",
-  { fields, t }: { fields: BatchModel["fields"] | undefined; t: Translate },
+  {
+    fields,
+    t,
+  }: {
+    fields: BatchModel["fields"] | undefined;
+    t: Translate;
+  },
 ) {
   const name = fieldKey.split(/[.[]/)[0]!;
   const label = fields?.[name]?.label;
