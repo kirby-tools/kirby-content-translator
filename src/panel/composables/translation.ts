@@ -571,12 +571,14 @@ export function useContentTranslator() {
       if (cascadeError !== undefined) throw cascadeError;
 
       const hostResult = mergeTranslationResults(languageResults);
-      const savedCascadePaths = cascadeOutcomes.flatMap((outcome) =>
-        outcome.status === "saved" ? [outcome.model.path] : [],
+      const translatedCascadePaths = cascadeOutcomes.flatMap((outcome) =>
+        outcome.status === "saved" && outcome.result.translatedCount > 0
+          ? [outcome.model.path]
+          : [],
       );
 
       const notifyHostResult = () => {
-        if (savedCascadePaths.length === 0) {
+        if (translatedCascadePaths.length === 0) {
           notifyTranslationResult(
             hostResult,
             panel.t(
@@ -589,7 +591,7 @@ export function useContentTranslator() {
           panel.notification.success(
             panel.t(
               "johannschopplich.content-translator.notification.translatedCascade",
-              { models: describeCascadeModels(savedCascadePaths) },
+              { models: describeCascadeModels(translatedCascadePaths) },
             ),
           );
         } else {
@@ -597,7 +599,7 @@ export function useContentTranslator() {
             hostResult,
             panel.t(
               "johannschopplich.content-translator.notification.translatedWithCascade",
-              { models: describeCascadeModels(savedCascadePaths) },
+              { models: describeCascadeModels(translatedCascadePaths) },
             ),
           );
         }

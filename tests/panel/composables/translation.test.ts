@@ -1342,6 +1342,29 @@ describe("useContentTranslator", () => {
       );
     });
 
+    it("notifies noEligibleFields for a host and a cascade with nothing to translate", async () => {
+      cascadeIntroPage();
+      cascadeModelData["pages/example+intro"]!.content = { text: "" };
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: {},
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringMatching(
+            /^johannschopplich\.content-translator\.notification\.noEligibleFields/,
+          ),
+        }),
+      );
+    });
+
     it("reloads the view for the translated title before reporting a cascade that failed to load", async () => {
       const error = vi.spyOn(console, "error").mockImplementation(() => {});
       cascadeIntroPage();
