@@ -62,6 +62,20 @@ export function describeBatchOutcomes(
   });
 }
 
+/**
+ * Names a unit's field by the label of its top-level field, which a nested
+ * unit's key leads with.
+ */
+function fieldLabel(
+  fieldKey = "",
+  { fields, t }: { fields: BatchModel["fields"] | undefined; t: Translate },
+) {
+  const name = fieldKey.split(/[.[]/)[0]!;
+  const label = fields?.[name]?.label;
+  if (label) return label;
+  return name === "title" ? t("title") : name;
+}
+
 function describeBatchOutcome(outcome: BatchOutcome, t: Translate): string[] {
   const reportLine = (key: string, data?: Record<string, unknown>) =>
     t(`johannschopplich.content-translator.batchReport.${key}`, data);
@@ -159,18 +173,4 @@ function describeRejection(
     default:
       return detail ?? reason;
   }
-}
-
-/**
- * Names a unit's field by the label of its top-level field, which a nested
- * unit's key leads with.
- */
-function fieldLabel(
-  fieldKey = "",
-  { fields, t }: { fields: BatchModel["fields"] | undefined; t: Translate },
-) {
-  const name = fieldKey.split(/[.[]/)[0]!;
-  const label = fields?.[name]?.label;
-  if (label) return label;
-  return name === "title" ? t("title") : name;
 }
