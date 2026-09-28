@@ -81,7 +81,7 @@ final class CoverageHooksTest extends ApiRouteTestCase
         $cache = $app->cache('johannschopplich.content-translator');
         $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
 
-        $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
+        $page->update(['text' => 'Updated'], 'en');
 
         $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
         $this->assertNull($cache->get('treeIndex'));
@@ -119,7 +119,7 @@ final class CoverageHooksTest extends ApiRouteTestCase
         $cache = $app->cache('johannschopplich.content-translator');
         $this->assertNotNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'abc123'));
 
-        $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
+        $page->update(['text' => 'Updated'], 'en');
 
         $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'abc123'));
     }
@@ -132,7 +132,7 @@ final class CoverageHooksTest extends ApiRouteTestCase
         $cache = $app->cache('johannschopplich.content-translator');
         $cache->set(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home', ['legacy']);
 
-        $app->impersonate('kirby', fn () => $page->update(['text' => 'Updated'], 'en'));
+        $page->update(['text' => 'Updated'], 'en');
 
         $this->assertNull($cache->get(TranslationCoverage::PAGE_COVERAGE_CACHE_PREFIX . 'home'));
     }

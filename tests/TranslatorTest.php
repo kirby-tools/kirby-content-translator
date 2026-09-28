@@ -521,9 +521,9 @@ final class TranslatorTest extends ApiRouteTestCase
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
 
-        $page = $app->impersonate('kirby', fn () => $page->update([
+        $page = $page->update([
             'text' => 'Bienvenue sur notre site',
-        ], 'fr'));
+        ], 'fr');
 
         $translator = new Translator($page);
         $translator->copyContent('de', 'fr');
