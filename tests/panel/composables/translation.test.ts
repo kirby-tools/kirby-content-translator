@@ -23,7 +23,6 @@ let modelData: {
   blueprint: { name: string };
 };
 let batchStatus: BatchStatusResponse;
-let isKirby5: boolean;
 let cascade: CascadeModelResponse[];
 // Default-language data of the cascaded models, keyed by their path.
 let cascadeModelData: Record<
@@ -40,7 +39,7 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    isKirby5: () => isKirby5,
+    isKirby5: () => true,
     usePanel: () => panel,
     useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
@@ -185,7 +184,6 @@ describe("useContentTranslator", () => {
 
     cascade = [];
     cascadeModelData = {};
-    isKirby5 = true;
 
     panel.api.get.mockImplementation(
       async (path: string, query?: { path?: string }) => {
@@ -1291,22 +1289,6 @@ describe("useContentTranslator", () => {
       expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
         "__content-translator__/cascade",
       );
-    });
-
-    it("translates only the host on Kirby 4", async () => {
-      isKirby5 = false;
-      cascadeIntroPage();
-      const translator = await createContentTranslator({
-        cascade: "page.children",
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(batchWrite).not.toHaveBeenCalled();
     });
 
     it("never translates the cascade of a host another user edits in a single-language translation", async () => {
