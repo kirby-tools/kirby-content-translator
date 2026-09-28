@@ -179,7 +179,7 @@ final class DeepLClientTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function request_options_never_override_the_resolved_payload(): void
+    public function requestOptions_never_override_the_resolved_payload(): void
     {
         $this->appWithDeepLConfig(requestOptions: [
             'target_lang' => 'FR',
@@ -197,7 +197,7 @@ final class DeepLClientTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function request_options_never_stand_in_for_an_unresolved_source_language(): void
+    public function requestOptions_never_stand_in_for_an_unresolved_source_language(): void
     {
         $this->appWithDeepLConfig(
             languages: [
@@ -238,7 +238,7 @@ final class DeepLClientTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function request_options_never_smuggle_a_text_alongside_the_texts(): void
+    public function requestOptions_never_smuggle_a_text_alongside_the_texts(): void
     {
         $this->appWithDeepLConfig(requestOptions: ['text' => ['a' => 'INJECTED']]);
 

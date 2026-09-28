@@ -111,7 +111,7 @@ final class HooksTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function after_hook_receives_additive_unit_options_and_original_text_payload(): void
+    public function after_hook_receives_additive_unit_options_and_originalText_payload(): void
     {
         $captured = [];
 
@@ -222,7 +222,7 @@ final class HooksTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function after_hook_receives_the_source_text_as_original_text_after_a_before_hook_changed_it(): void
+    public function after_hook_receives_the_source_text_as_originalText_after_a_before_hook_changed_it(): void
     {
         $captured = [];
 
