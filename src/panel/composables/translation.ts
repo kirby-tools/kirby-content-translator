@@ -788,7 +788,6 @@ export function useContentTranslator() {
         config.value?.batchConcurrency ?? DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
       write: (request) =>
         panel.api.post<BatchWriteResponse>(BATCH_WRITE_API_ROUTE, request, {
-          // Avoid showing Panel loading indicator.
           silent: true,
         }),
       onProgress,

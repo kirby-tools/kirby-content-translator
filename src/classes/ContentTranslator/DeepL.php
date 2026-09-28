@@ -289,7 +289,7 @@ final class DeepL
             count($texts)
         );
 
-        // 429, 500, 503, 504 and 529 never arrive here, as `withRetry()` throws for them.
+        // `withRetry()` throws for every status it retries.
         match ($response->code()) {
             400 => throw new LogicException('Bad request to DeepL API. Please check your parameters: ' . $response->content()),
             403 => throw new AuthException('Authorization failed. Have you set the correct DeepL API key? See https://kirby.tools/docs/content-translator/getting-started/installation for more information.'),

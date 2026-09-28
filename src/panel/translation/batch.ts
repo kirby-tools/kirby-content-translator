@@ -67,7 +67,9 @@ export type BatchOutcome = {
  * Translates every model into each of its targets that is not held back and
  * saves each through `write`, returning one outcome per model and target: model
  * by model in input order, and within a model target by target. `onProgress`
- * counts only the targets that are translated, starting at 0.
+ * reports the finished targets out of those not held back, starting at 0. A
+ * target a lock stops before it starts never finishes, so the last call can
+ * fall short of the total.
  */
 export async function runBatchTranslation(
   models: BatchModel[],
