@@ -95,7 +95,7 @@ final class LicensePanel
                         ];
                     }
 
-                    $versions = LicenseUtils::formatCompatibility($license['compatibility']);
+                    $compatibleVersions = LicenseUtils::toCompatibleVersions($license['compatibilityConstraint']);
                     $statusText = match ($status) {
                         LicenseStatus::Upgradeable => I18n::translate('kirby-tools.license.info.status.upgradeable'),
                         LicenseStatus::Incompatible => I18n::translate('kirby-tools.license.info.status.incompatible'),
@@ -145,7 +145,7 @@ final class LicensePanel
                                             'label' => I18n::translate('kirby-tools.license.info.version'),
                                             'value' => 'v' . $pluginVersion,
                                             'icon' => 'tag',
-                                            'info' => I18n::template('kirby-tools.license.info.licenseCompatibility', ['versions' => $versions]),
+                                            'info' => I18n::template('kirby-tools.license.info.licenseCompatibility', ['versions' => $compatibleVersions]),
                                             'link' => 'https://kirby.tools/' . $pluginId . '/changelog',
                                             'target' => '_blank'
                                         ]
@@ -297,7 +297,7 @@ final class LicensePanel
             'kirby-tools.license.status.active' => 'Con licencia',
             'kirby-tools.license.status.inactive' => 'Activar ahora',
             'kirby-tools.license.status.invalid' => 'Licencia inválida',
-            'kirby-tools.license.status.incompatible' => 'Versión de licencia incompatible',
+            'kirby-tools.license.status.incompatible' => 'La licencia no cubre esta versión del plugin',
             'kirby-tools.license.status.upgradeable' => 'Actualización de licencia disponible',
 
             'kirby-tools.license.activate.info' => 'Introduce los datos de tu licencia para activar el plugin.',
@@ -330,7 +330,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Licensed',
                 'kirby-tools.license.status.inactive' => 'Activate now',
                 'kirby-tools.license.status.invalid' => 'Invalid license',
-                'kirby-tools.license.status.incompatible' => 'Incompatible license version',
+                'kirby-tools.license.status.incompatible' => 'License does not cover this plugin version',
                 'kirby-tools.license.status.upgradeable' => 'License upgrade available',
 
                 'kirby-tools.license.activate.info' => 'Enter your license details to activate the plugin.',
@@ -361,7 +361,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Lizenziert',
                 'kirby-tools.license.status.inactive' => 'Jetzt aktivieren',
                 'kirby-tools.license.status.invalid' => 'Ungültige Lizenz',
-                'kirby-tools.license.status.incompatible' => 'Inkompatible Lizenzversion',
+                'kirby-tools.license.status.incompatible' => 'Lizenz deckt diese Plugin-Version nicht ab',
                 'kirby-tools.license.status.upgradeable' => 'Lizenz-Upgrade verfügbar',
 
                 'kirby-tools.license.activate.info' => 'Gib deine Lizenzdaten ein, um das Plugin zu aktivieren.',
@@ -392,7 +392,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Sous licence',
                 'kirby-tools.license.status.inactive' => 'Activer maintenant',
                 'kirby-tools.license.status.invalid' => 'Licence invalide',
-                'kirby-tools.license.status.incompatible' => 'Version de licence incompatible',
+                'kirby-tools.license.status.incompatible' => 'La licence ne couvre pas cette version du plugin',
                 'kirby-tools.license.status.upgradeable' => 'Mise à niveau de licence disponible',
 
                 'kirby-tools.license.activate.info' => 'Entrez vos informations de licence pour activer le plugin.',
@@ -423,7 +423,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Gelicentieerd',
                 'kirby-tools.license.status.inactive' => 'Nu activeren',
                 'kirby-tools.license.status.invalid' => 'Ongeldige licentie',
-                'kirby-tools.license.status.incompatible' => 'Incompatibele licentieversie',
+                'kirby-tools.license.status.incompatible' => 'Licentie dekt deze pluginversie niet',
                 'kirby-tools.license.status.upgradeable' => 'Licentie-upgrade beschikbaar',
 
                 'kirby-tools.license.activate.info' => 'Voer je licentiegegevens in om de plugin te activeren.',
@@ -454,7 +454,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Con licenza',
                 'kirby-tools.license.status.inactive' => 'Attiva ora',
                 'kirby-tools.license.status.invalid' => 'Licenza non valida',
-                'kirby-tools.license.status.incompatible' => 'Versione licenza incompatibile',
+                'kirby-tools.license.status.incompatible' => 'La licenza non copre questa versione del plugin',
                 'kirby-tools.license.status.upgradeable' => 'Aggiornamento licenza disponibile',
 
                 'kirby-tools.license.activate.info' => 'Inserisci i dati della tua licenza per attivare il plugin.',
@@ -485,7 +485,7 @@ final class LicensePanel
                 'kirby-tools.license.status.active' => 'Licenciado',
                 'kirby-tools.license.status.inactive' => 'Ativar agora',
                 'kirby-tools.license.status.invalid' => 'Licença inválida',
-                'kirby-tools.license.status.incompatible' => 'Versão de licença incompatível',
+                'kirby-tools.license.status.incompatible' => 'A licença não cobre esta versão do plugin',
                 'kirby-tools.license.status.upgradeable' => 'Atualização de licença disponível',
 
                 'kirby-tools.license.activate.info' => 'Introduza os dados da sua licença para ativar o plugin.',

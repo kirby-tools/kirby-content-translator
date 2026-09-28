@@ -1,10 +1,10 @@
 # Kirby Tools Licensing Backend
 
-Backend licensing system for all commercial [Kirby Tools plugins](https://kirby.tools). This package provides server-side license validation, activation, and management that enables:
+Backend licensing system for all commercial [Kirby Tools plugins](https://kirby.tools). This package handles license activation, status, and storage on the server side, which enables:
 
-- License validation and enforcement
+- License status and enforcement
 - Seamless license activation from within Kirby
-- Version-based license compatibility checking
+- Checking the installed plugin version against the license's compatibility constraint
 - [Panel integration for license status display](https://getkirby.com/releases/5/plugin-license)
 
 For Panel-side licensing UI components, see [@kirby-tools/licensing](https://github.com/kirby-tools/licensing-panel).
@@ -13,9 +13,9 @@ For Panel-side licensing UI components, see [@kirby-tools/licensing](https://git
 
 The licensing classes handle:
 
-- **License Validation**: Validates Kirby Tools license keys against the remote API
+- **License Activation**: Confirms email and license key with the license server
 - **Plugin Integration**: Seamlessly integrates with Kirby 5's native plugin license system
-- **Version Compatibility**: Checks license compatibility with plugin versions using semantic versioning
+- **Compatibility Constraint**: Checks the installed plugin version against the constraint the license carries, using semantic versioning
 - **License Management**: Handles license activation, storage, and status reporting
 - **Automatic Updates**: Refreshes license data when plugin versions change
 
@@ -25,7 +25,7 @@ The main licensing engine that:
 
 - Reads and writes license data to `.kirby-tools-licenses` file
 - Communicates with the Kirby Tools API at `https://repo.kirby.tools/api`
-- Validates license keys using the pattern `KT{generation}-{hash}-{hash}`
+- Checks license keys against the pattern `KT{generation}-{hash}-{hash}`
 - Manages license status: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
 - Handles license activation via email and license key
 

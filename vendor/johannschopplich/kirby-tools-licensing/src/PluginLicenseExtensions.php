@@ -70,10 +70,10 @@ final class PluginLicenseExtensions
     }
 
     /**
-     * @deprecated Use `LicenseUtils::formatCompatibility()` instead.
+     * @deprecated Use `LicenseUtils::toCompatibleVersions()` instead.
      */
-    public static function formatCompatibility(string $compatibility): string
+    public static function formatCompatibility(string $compatibilityConstraint): string
     {
-        return LicenseUtils::formatCompatibility($compatibility);
+        return LicenseUtils::toCompatibleVersions($compatibilityConstraint);
     }
 }

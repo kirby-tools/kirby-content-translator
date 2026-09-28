@@ -46,15 +46,16 @@ final class LicenseUtils
     }
 
     /**
-     * Formats a compatibility string like `^1 || ^2 || ^3` into `v1–v3`.
+     * Converts a compatibility constraint like `^1 || ^2 || ^3` into the
+     * compatible versions `v1–v3` customers read.
      */
-    public static function formatCompatibility(string $compatibility): string
+    public static function toCompatibleVersions(string $compatibilityConstraint): string
     {
         // Only the leading major of each alternative counts, so tilde and exact
         // constraints like `~1.2` must not collapse into their digits.
         $versions = array_map(
             fn ($part) => preg_match('/^[\^~]?(\d+)/', trim($part), $matches) ? (int)$matches[1] : 0,
-            explode('||', $compatibility)
+            explode('||', $compatibilityConstraint)
         );
 
         if (count($versions) <= 1) {

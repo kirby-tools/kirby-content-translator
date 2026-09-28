@@ -30,18 +30,18 @@ final class LicenseValidator
     }
 
     /**
-     * Checks whether the installed plugin version satisfies the license's version constraint.
+     * Checks whether the installed plugin version satisfies the license's compatibility constraint.
      */
-    public function isCompatible(string|null $versionConstraint): bool
+    public function isCompatible(string|null $compatibilityConstraint): bool
     {
         $version = $this->getPluginVersion();
 
-        if ($versionConstraint === null || $version === null) {
+        if ($compatibilityConstraint === null || $version === null) {
             return false;
         }
 
         try {
-            return Semver::satisfies($version, $versionConstraint);
+            return Semver::satisfies($version, $compatibilityConstraint);
         } catch (UnexpectedValueException) {
             // A hand-edited or truncated license file can hold a constraint
             // Composer cannot parse, which must not escape as a fatal error.
@@ -52,9 +52,9 @@ final class LicenseValidator
     /**
      * Checks whether the installed plugin's major version is newer than every major the license covers.
      */
-    public function isUpgradeable(string|null $versionConstraint): bool
+    public function isUpgradeable(string|null $compatibilityConstraint): bool
     {
-        if ($versionConstraint === null) {
+        if ($compatibilityConstraint === null) {
             return false;
         }
 
@@ -67,8 +67,8 @@ final class LicenseValidator
         // or exact versions, so each alternative opens with the major it licenses.
         $maxLicensedMajor = null;
 
-        foreach (explode('||', $versionConstraint) as $constraint) {
-            if (preg_match('/^[\^~]?(\d+)/', trim($constraint), $matches)) {
+        foreach (explode('||', $compatibilityConstraint) as $alternative) {
+            if (preg_match('/^[\^~]?(\d+)/', trim($alternative), $matches)) {
                 $maxLicensedMajor = max($maxLicensedMajor ?? 0, (int)$matches[1]);
             }
         }
@@ -85,15 +85,6 @@ final class LicenseValidator
         }
 
         return false;
-    }
-
-    public function getLicenseGeneration(string|null $licenseKey): int|null
-    {
-        if ($licenseKey !== null && preg_match(self::LICENSE_PATTERN, $licenseKey, $matches) === 1) {
-            return (int)$matches[1];
-        }
-
-        return null;
     }
 
     public function getPluginVersion(): string|null

@@ -72,13 +72,13 @@ final class Licenses
             return LicenseStatus::Invalid;
         }
 
-        $compatibility = $this->repository->getLicenseCompatibility($this->packageName);
+        $compatibilityConstraint = $this->repository->getCompatibilityConstraint($this->packageName);
 
-        if ($this->validator->isCompatible($compatibility)) {
+        if ($this->validator->isCompatible($compatibilityConstraint)) {
             return LicenseStatus::Active;
         }
 
-        if ($this->validator->isUpgradeable($compatibility)) {
+        if ($this->validator->isUpgradeable($compatibilityConstraint)) {
             return LicenseStatus::Upgradeable;
         }
 
@@ -95,8 +95,7 @@ final class Licenses
 
         return [
             'key' => $licenseKey,
-            'generation' => $this->validator->getLicenseGeneration($licenseKey),
-            'compatibility' => $this->repository->getLicenseCompatibility($this->packageName)
+            'compatibilityConstraint' => $this->repository->getCompatibilityConstraint($this->packageName)
         ];
     }
 

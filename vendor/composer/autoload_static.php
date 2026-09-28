@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitffb89230b2833376a19884beafe063a8
+class ComposerStaticInitadd38140d45c03014ff6e503988d1870
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -41,6 +41,7 @@ class ComposerStaticInitffb89230b2833376a19884beafe063a8
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'JohannSchopplich\\ContentTranslator\\BatchTranslation' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/BatchTranslation.php',
+        'JohannSchopplich\\ContentTranslator\\Cascade' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/Cascade.php',
         'JohannSchopplich\\ContentTranslator\\DeepL' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepL.php',
         'JohannSchopplich\\ContentTranslator\\DeepLLanguages' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/DeepLLanguages.php',
         'JohannSchopplich\\ContentTranslator\\KirbyText' => __DIR__ . '/../..' . '/src/classes/ContentTranslator/KirbyText.php',
@@ -87,9 +88,9 @@ class ComposerStaticInitffb89230b2833376a19884beafe063a8
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitffb89230b2833376a19884beafe063a8::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitffb89230b2833376a19884beafe063a8::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitffb89230b2833376a19884beafe063a8::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitadd38140d45c03014ff6e503988d1870::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitadd38140d45c03014ff6e503988d1870::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitadd38140d45c03014ff6e503988d1870::$classMap;
 
         }, null, ClassLoader::class);
     }

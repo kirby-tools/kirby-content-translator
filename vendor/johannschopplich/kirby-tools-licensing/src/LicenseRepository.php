@@ -67,7 +67,7 @@ final class LicenseRepository
         return $this->get($packageName)['licenseKey'] ?? null;
     }
 
-    public function getLicenseCompatibility(string $packageName): string|null
+    public function getCompatibilityConstraint(string $packageName): string|null
     {
         return $this->get($packageName)['licenseCompatibility'] ?? null;
     }
@@ -77,20 +77,32 @@ final class LicenseRepository
         return $this->get($packageName)['pluginVersion'] ?? null;
     }
 
-    public function save(string $packageName, array $data, string|null $pluginVersion): void
+    public function save(string $packageName, array $license, string|null $pluginVersion): void
     {
         $licenses = $this->readAll();
 
+        // `licenseCompatibility` is the compatibility constraint under the name the
+        // licensing API sends and every installed license file stores.
         $licenses[$packageName] = [
-            'licenseKey' => $data['licenseKey'],
-            'licenseCompatibility' => $data['licenseCompatibility'],
+            'licenseKey' => $license['licenseKey'],
+            'licenseCompatibility' => $license['licenseCompatibility'],
             'pluginVersion' => $pluginVersion,
-            'createdAt' => $data['order']['createdAt']
+            'createdAt' => $license['order']['createdAt']
         ];
 
         Json::write($this->licenseFile, $licenses);
 
         $this->cache = $licenses;
         $this->readError = null;
+    }
+
+    public function remove(string $packageName): void
+    {
+        $licenses = $this->readAll();
+        unset($licenses[$packageName]);
+
+        Json::write($this->licenseFile, $licenses);
+
+        $this->cache = $licenses;
     }
 }

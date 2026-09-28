@@ -8,6 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'JohannSchopplich\\ContentTranslator\\BatchTranslation' => $baseDir . '/src/classes/ContentTranslator/BatchTranslation.php',
+    'JohannSchopplich\\ContentTranslator\\Cascade' => $baseDir . '/src/classes/ContentTranslator/Cascade.php',
     'JohannSchopplich\\ContentTranslator\\DeepL' => $baseDir . '/src/classes/ContentTranslator/DeepL.php',
     'JohannSchopplich\\ContentTranslator\\DeepLLanguages' => $baseDir . '/src/classes/ContentTranslator/DeepLLanguages.php',
     'JohannSchopplich\\ContentTranslator\\KirbyText' => $baseDir . '/src/classes/ContentTranslator/KirbyText.php',

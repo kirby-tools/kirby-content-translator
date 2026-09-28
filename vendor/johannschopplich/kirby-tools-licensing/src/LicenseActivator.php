@@ -9,6 +9,7 @@ use JohannSchopplich\Licensing\Http\KirbyHttpClient;
 use Kirby\Cms\App;
 use Kirby\Exception\LogicException;
 use Kirby\Http\Request;
+use Throwable;
 
 /**
  * @link      https://kirby.tools
@@ -50,14 +51,14 @@ final class LicenseActivator
             ]
         ]);
 
-        if ($response['packageName'] !== $this->packageName) {
+        if (($response['packageName'] ?? null) !== $this->packageName) {
             throw new LogicException('License key not valid for this plugin');
         }
 
-        $compatibility = $response['licenseCompatibility'];
+        $compatibilityConstraint = $response['licenseCompatibility'];
 
-        if (!$this->validator->isCompatible($compatibility)) {
-            if ($this->validator->isUpgradeable($compatibility)) {
+        if (!$this->validator->isCompatible($compatibilityConstraint)) {
+            if ($this->validator->isUpgradeable($compatibilityConstraint)) {
                 throw new LogicException('License key not valid for this plugin version, please upgrade your license');
             }
 
@@ -82,7 +83,7 @@ final class LicenseActivator
         $licenseKey = $request->get('licenseKey') ?? $request->get('orderId');
 
         if (!$email || !$licenseKey) {
-            throw new LogicException('Missing license registration parameters "email" or "licenseKey"');
+            throw new LogicException('Missing license activation parameters "email" or "licenseKey"');
         }
 
         $this->activate($email, (string)$licenseKey);
@@ -108,7 +109,19 @@ final class LicenseActivator
             $this->validator->isValid($licenseKey) &&
             $currentVersion !== $storedVersion
         ) {
-            $response = $this->request('licenses/' . $licenseKey . '/package');
+            try {
+                $response = $this->request('licenses/' . $licenseKey . '/package');
+            } catch (Throwable $e) {
+                // The licensing API answers 401 for a license key it does not
+                // know. Any other failure keeps the stored license, so the next
+                // read refreshes again.
+                if ($e->getCode() === 'error.401') {
+                    $this->repository->remove($this->packageName);
+                }
+
+                return;
+            }
+
             $this->repository->save($this->packageName, $response, $currentVersion);
         }
     }
@@ -119,10 +132,10 @@ final class LicenseActivator
     public function isActivated(): bool
     {
         $licenseKey = $this->repository->getLicenseKey($this->packageName);
-        $compatibility = $this->repository->getLicenseCompatibility($this->packageName);
+        $compatibilityConstraint = $this->repository->getCompatibilityConstraint($this->packageName);
 
         return $this->validator->isValid($licenseKey) &&
-            $this->validator->isCompatible($compatibility);
+            $this->validator->isCompatible($compatibilityConstraint);
     }
 
     private function request(string $path, array $options = []): array
