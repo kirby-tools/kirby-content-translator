@@ -1,6 +1,7 @@
 {
   "$schema": "./schema.json",
   "input": "Visit (link: /a text: our site)!",
+  "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },

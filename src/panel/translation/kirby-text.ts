@@ -1,3 +1,5 @@
+import type { KirbyTagRules } from "./types";
+
 /** Must match `KirbyText::PLACEHOLDER_PATTERN` in PHP for ASCII whitespace. */
 export const PLACEHOLDER_PATTERN = /<c(\d+)\s*\/>/g;
 
@@ -8,8 +10,13 @@ interface KirbyTag {
   attrs: [name: string, value: string][];
 }
 
-export function splitKirbyText(text: string, config: Record<string, string[]>) {
-  const tagSpans = findKirbyTags(text);
+/**
+ * Keeps a parenthetical such as `(Note: …)` as prose unless its type is in
+ * `kirbyTags.types`. Unlike Kirby, it still splits a KirbyTag inside such a
+ * parenthetical.
+ */
+export function splitKirbyText(text: string, kirbyTags: KirbyTagRules) {
+  const tagSpans = findKirbyTags(text, kirbyTags.types);
 
   const proseParts: string[] = [];
   const attrValues: string[] = [];
@@ -24,7 +31,7 @@ export function splitKirbyText(text: string, config: Record<string, string[]>) {
     proseParts.push(`<c${tagSlots.length}/>`);
 
     const tag = parseKirbyTag(text.slice(start, end));
-    const translatable = config[tag.type] ?? [];
+    const translatable = kirbyTags.attributes[tag.type] ?? [];
     const attrIndices = new Map<string, number>();
 
     if (translatable.includes("value") && tag.value) {
@@ -65,15 +72,19 @@ export function splitKirbyText(text: string, config: Record<string, string[]>) {
   return { unitTexts, restore };
 }
 
-function findKirbyTags(text: string): [start: number, end: number][] {
+function findKirbyTags(
+  text: string,
+  tagTypes: readonly string[],
+): [start: number, end: number][] {
   const spans: [number, number][] = [];
-  const opener = /\([\w-]+:/g;
+  const opener = /\(([\w-]+):/g;
   // End of the most recently extracted span; matches inside it are skipped
   // so nested `(` inside a tag's value never start a new tag.
   let lastEnd = 0;
   for (const match of text.matchAll(opener)) {
     const start = match.index;
-    if (start < lastEnd) continue;
+    if (start < lastEnd || !tagTypes.includes(match[1]!.toLowerCase()))
+      continue;
     let depth = 0;
     let i = start;
     while (i < text.length) {

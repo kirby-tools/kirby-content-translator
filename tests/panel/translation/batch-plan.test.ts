@@ -12,7 +12,7 @@ const HOST_SETTINGS = {
   fieldTypes: ["text"],
   includeFields: ["text"],
   excludeFields: ["notes"],
-  kirbyTags: { link: ["text"] },
+  kirbyTags: { types: ["link"], attributes: { link: ["text"] } },
   isTitleTranslationEnabled: true,
   isSlugTranslationEnabled: true,
 };
@@ -77,7 +77,10 @@ describe("planBatchRun", () => {
     expect(models[1]).toMatchObject({
       path: "pages/notes+intro",
       targets: [{ language: GERMAN }, { language: FRENCH }],
-      settings: { fieldTypes: ["text"], kirbyTags: { link: ["text"] } },
+      settings: {
+        fieldTypes: ["text"],
+        kirbyTags: { types: ["link"], attributes: { link: ["text"] } },
+      },
     });
   });
 

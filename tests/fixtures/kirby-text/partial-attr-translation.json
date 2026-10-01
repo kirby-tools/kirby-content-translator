@@ -2,6 +2,7 @@
   "$schema": "./schema.json",
   "description": "Attrs not listed in the kirbyTags config keep their original value on restore.",
   "input": "(image: hero.jpg alt: Sunset caption: Mountain view)",
+  "kirbyTagTypes": ["image"],
   "kirbyTags": {
     "image": ["alt"]
   },

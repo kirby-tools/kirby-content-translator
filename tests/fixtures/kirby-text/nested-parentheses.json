@@ -2,6 +2,7 @@
   "$schema": "./schema.json",
   "description": "Parentheses inside an attribute value must not terminate the tag span.",
   "input": "(link: /a text: our (awesome) site)",
+  "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },

@@ -10,6 +10,7 @@ import type { BatchOutcome } from "../translation/batch";
 import type { BatchCandidate } from "../translation/batch-plan";
 import type {
   ContentTranslationResult,
+  KirbyTagRules,
   TranslationStrategy,
 } from "../translation/types";
 import type {
@@ -96,7 +97,7 @@ export function useContentTranslator() {
   const fieldTypes = ref<string[]>([]);
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
-  const kirbyTags = ref<Record<string, string[]>>({});
+  const kirbyTags = ref<KirbyTagRules>({ types: [], attributes: {} });
   const strategyName = ref<StrategyName>("deepl");
   const systemPrompt = ref<string>();
   const hasCascade = ref(false);
@@ -137,7 +138,10 @@ export function useContentTranslator() {
     fieldTypes.value = resolvedConfig.fieldTypes;
     includeFields.value = resolvedConfig.includeFields;
     excludeFields.value = resolvedConfig.excludeFields;
-    kirbyTags.value = resolvedConfig.kirbyTags;
+    kirbyTags.value = {
+      types: context.kirbyTagTypes,
+      attributes: resolvedConfig.kirbyTags,
+    };
     systemPrompt.value = resolvedConfig.systemPrompt;
     // The cascade is saved through `batch-write`, which needs Kirby 5.
     // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.

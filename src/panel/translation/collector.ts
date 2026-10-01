@@ -115,7 +115,7 @@ function collectFromField(
 
     const { unitTexts, restore } = splitKirbyText(
       value,
-      context.options.kirbyTags ?? {},
+      context.options.kirbyTags,
     );
     const translated: string[] = Array.from({ length: unitTexts.length });
 

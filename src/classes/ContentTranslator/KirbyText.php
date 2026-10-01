@@ -93,6 +93,21 @@ final class KirbyText
     }
 
     /**
+     * Lists the registered KirbyTag types and aliases, lowercased. Kirby
+     * resolves an alias only under a lowercase key: one registered as `Cite`
+     * stays text there, but is split here.
+     *
+     * @return list<string>
+     */
+    public static function tagTypes(): array
+    {
+        return array_map(
+            strtolower(...),
+            [...array_keys(KirbyTag::$types), ...array_keys(KirbyTag::$aliases)]
+        );
+    }
+
+    /**
      * Locates paren-balanced KirbyTag spans in `$text`. A parenthetical whose
      * type names no registered KirbyTag, such as `(Note: …)`, stays text as in
      * Kirby, though a KirbyTag inside it is still split.
@@ -103,12 +118,13 @@ final class KirbyText
     {
         preg_match_all('!\(([\w-]+):!', $text, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
 
+        $tagTypes = self::tagTypes();
         $spans = [];
         $lastEnd = 0;
         $length = strlen($text);
 
         foreach ($matches as [[, $start], [$type]]) {
-            if ($start < $lastEnd || !self::isKirbyTagType($type)) {
+            if ($start < $lastEnd || !in_array(strtolower($type), $tagTypes, true)) {
                 continue;
             }
 
@@ -129,12 +145,6 @@ final class KirbyText
         }
 
         return $spans;
-    }
-
-    private static function isKirbyTagType(string $type): bool
-    {
-        $type = strtolower($type);
-        return isset(KirbyTag::$types[$type]) || isset(KirbyTag::$aliases[$type]);
     }
 
     /**

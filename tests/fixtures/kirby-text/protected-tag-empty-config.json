@@ -2,6 +2,7 @@
   "$schema": "./schema.json",
   "description": "An empty kirbyTags config protects every tag verbatim – only prose is exposed for translation.",
   "input": "Hello (link: /a text: world)!",
+  "kirbyTagTypes": ["link"],
   "kirbyTags": {},
   "expectedUnitTexts": ["Hello <c0/>!"],
   "expectedPlaceholderCount": 1,

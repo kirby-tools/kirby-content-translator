@@ -1,0 +1,11 @@
+{
+  "$schema": "./schema.json",
+  "description": "A label in parentheses whose type is no registered KirbyTag is prose, so it is translated.",
+  "input": "Opening hours (Note: closed on Sundays)",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {},
+  "expectedUnitTexts": ["Opening hours (Note: closed on Sundays)"],
+  "expectedPlaceholderCount": 0,
+  "restoredWith": ["Öffnungszeiten (Hinweis: sonntags geschlossen)"],
+  "expectedRestore": "Öffnungszeiten (Hinweis: sonntags geschlossen)"
+}

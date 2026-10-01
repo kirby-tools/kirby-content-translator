@@ -45,7 +45,7 @@ describe("translateContent", () => {
       strategy: spyStrategy,
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["textarea"] as const,
-      kirbyTags: { button: ["text"] },
+      kirbyTags: { types: ["button"], attributes: { button: ["text"] } },
       fields,
     });
 
@@ -75,7 +75,10 @@ describe("translateContent", () => {
       strategy: spyStrategy,
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["textarea"] as const,
-      kirbyTags: { image: ["alt", "caption"] },
+      kirbyTags: {
+        types: ["image"],
+        attributes: { image: ["alt", "caption"] },
+      },
       fields,
     });
 
@@ -101,7 +104,7 @@ describe("translateContent", () => {
       strategy: manglingStrategy,
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["textarea"] as const,
-      kirbyTags: {},
+      kirbyTags: { types: ["link"], attributes: {} },
       fields,
     });
 
@@ -130,7 +133,7 @@ describe("translateContent", () => {
       strategy: new AIStrategy(),
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["text"] as const,
-      kirbyTags: {},
+      kirbyTags: { types: ["link"], attributes: {} },
       fields,
     });
 
@@ -151,7 +154,7 @@ describe("translateContent", () => {
       strategy: paddingStrategy,
       targetLanguage: { code: "de", name: "German" },
       fieldTypes: ["textarea"] as const,
-      kirbyTags: {},
+      kirbyTags: { types: ["link"], attributes: {} },
       fields: { body: field({ type: "textarea", name: "textarea" }) },
     });
 

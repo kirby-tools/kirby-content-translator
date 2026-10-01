@@ -33,6 +33,8 @@ export interface PluginConfig {
 
 export interface PluginContextResponse {
   config: PluginConfig;
+  /** The registered KirbyTag types and aliases, lowercased. */
+  kirbyTagTypes: string[];
   homePageId: string;
   errorPageId: string;
   licenseStatus?: LicenseStatus;

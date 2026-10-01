@@ -1,6 +1,7 @@
 {
   "$schema": "./schema.json",
   "input": "Just some prose, nothing tagged here.",
+  "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },

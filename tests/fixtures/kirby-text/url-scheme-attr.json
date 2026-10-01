@@ -2,6 +2,7 @@
   "$schema": "./schema.json",
   "description": "URL schemes like `https:` must not be parsed as attribute boundaries.",
   "input": "(link: https://example.com text: visit us)",
+  "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },

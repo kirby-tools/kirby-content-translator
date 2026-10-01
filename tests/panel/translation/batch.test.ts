@@ -57,7 +57,7 @@ function createBatchModel(
       fieldTypes: ["text"],
       includeFields: [],
       excludeFields: [],
-      kirbyTags: {},
+      kirbyTags: { types: [], attributes: {} },
       isTitleTranslationEnabled,
       isSlugTranslationEnabled: false,
     },

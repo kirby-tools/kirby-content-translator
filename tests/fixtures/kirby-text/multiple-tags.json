@@ -1,6 +1,7 @@
 {
   "$schema": "./schema.json",
   "input": "Visit (link: /a text: site) or (email: x@y.com text: email us)",
+  "kirbyTagTypes": ["email", "link"],
   "kirbyTags": {
     "link": ["text"],
     "email": ["text"]
