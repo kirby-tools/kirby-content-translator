@@ -1,5 +1,4 @@
 import type { PanelLanguage } from "kirby-types";
-import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTranslationDialogs } from "../../../src/panel/composables/dialogs";
 import { copilotWith } from "../helpers/mock-copilot";
@@ -7,7 +6,6 @@ import { copilotWith } from "../helpers/mock-copilot";
 // Assigned per test and read lazily by the mocks below.
 let copilot: Record<string, unknown> | undefined;
 let openFieldsDialog: ReturnType<typeof vi.fn>;
-let escapeHTML: Mock<(text: string) => string>;
 
 const LANGUAGES = [
   { code: "en", name: "English", default: true },
@@ -19,18 +17,16 @@ vi.mock("kirbyuse", async () => {
   return {
     ...baseKirbyuseMock(),
     usePanel: () => ({
-      t: (key: string, data?: Record<string, unknown>) =>
-        data ? `${key} ${JSON.stringify(data)}` : key,
+      t: (key: string) => key,
       languages: LANGUAGES,
       plugins: { thirdParty: copilot ? { copilot } : {} },
     }),
     useDialog: () => ({ openFieldsDialog }),
-    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
 
-function openTranslationDialog(cascadeHelp?: string) {
-  return useTranslationDialogs().openTranslationDialog(cascadeHelp);
+function openTranslationDialog(help?: string) {
+  return useTranslationDialogs().openTranslationDialog(help);
 }
 
 describe("useTranslationDialogs", () => {
@@ -48,40 +44,11 @@ describe("useTranslationDialogs", () => {
     });
     localStorage.setItem("kirby$content-translator$preferences$provider", "ai");
     openFieldsDialog = vi.fn(async () => ({ strategyName: "deepl" }));
-    escapeHTML = vi.fn((text: string) => text);
     copilot = undefined;
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
-  });
-
-  it("openBatchTranslationDialog appends the cascadeHelp to the languages field help", async () => {
-    await useTranslationDialogs().openBatchTranslationDialog(
-      "1 page is also translated.",
-    );
-
-    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"} 1 page is also translated.',
-    );
-  });
-
-  it("openBatchTranslationDialog shows only the batchHelp without a cascadeHelp", async () => {
-    await useTranslationDialogs().openBatchTranslationDialog();
-
-    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"}',
-    );
-  });
-
-  it("openBatchTranslationDialog escapes the name of the default language in the batchHelp", async () => {
-    escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
-    await useTranslationDialogs().openBatchTranslationDialog();
-
-    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      'johannschopplich.content-translator.dialog.batchHelp {"language":"escaped(English)"}',
-    );
   });
 
   it("openTranslationDialog returns strategy deepl without opening the dialog when Copilot has no API key", async () => {
@@ -101,13 +68,13 @@ describe("useTranslationDialogs", () => {
     );
   });
 
-  it("openTranslationDialog opens the dialog with the cascadeHelp as its only field when Copilot has no API key", async () => {
+  it("openTranslationDialog opens the dialog with the help as its only field when Copilot has no API key", async () => {
     copilot = copilotWith({ hasApiKey: false });
 
     await openTranslationDialog("1 page is also translated.");
 
     expect(openFieldsDialog.mock.calls[0]![0].fields).toEqual({
-      cascade: { type: "info", text: "1 page is also translated." },
+      help: { type: "info", text: "1 page is also translated." },
     });
   });
 
@@ -120,13 +87,13 @@ describe("useTranslationDialogs", () => {
     });
   });
 
-  it("openTranslationDialog shows the cascadeHelp above the strategyName field when Copilot is ready", async () => {
+  it("openTranslationDialog shows the help above the strategyName field when Copilot is ready", async () => {
     copilot = copilotWith();
 
     await openTranslationDialog("1 page is also translated.");
 
     expect(Object.keys(openFieldsDialog.mock.calls[0]![0].fields)).toEqual([
-      "cascade",
+      "help",
       "strategyName",
     ]);
   });

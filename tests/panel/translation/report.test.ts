@@ -2,7 +2,6 @@ import type { PanelLanguage } from "kirby-types";
 import type { BatchOutcome } from "../../../src/panel/translation/batch";
 import { describe, expect, it } from "vitest";
 import { describeBatchOutcomes } from "../../../src/panel/translation/report";
-import { field } from "../utils";
 
 const translateKey = (key: string, data?: Record<string, unknown>) =>
   data ? `${key} ${JSON.stringify(data)}` : key;
@@ -10,9 +9,6 @@ const translateKey = (key: string, data?: Record<string, unknown>) =>
 describe("describeBatchOutcomes", () => {
   it("names a field once for two rejections with the same reason", () => {
     const outcome = {
-      model: {
-        fields: { text: field({ type: "text", name: "text", label: "Text" }) },
-      },
       language: { code: "de", name: "Deutsch" } as PanelLanguage,
       status: "saved",
       result: {
@@ -25,6 +21,7 @@ describe("describeBatchOutcomes", () => {
 
     const [entry] = describeBatchOutcomes([outcome], {
       labelOutcome: ({ language }) => language.name,
+      labelField: () => "Text",
       t: translateKey,
     });
 

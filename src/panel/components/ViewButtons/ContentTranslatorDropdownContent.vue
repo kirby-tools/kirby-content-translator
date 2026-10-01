@@ -1,7 +1,6 @@
 <script lang="ts">
 import type { PropType } from "vue";
 import type { PluginContextResponse, TranslatorOptions } from "../../types";
-import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
 import { useTranslationActions } from "../../composables/actions";
 import { useModel } from "../../composables/model";
@@ -41,7 +40,6 @@ const {
   isBatchTranslationEnabled,
 
   fields,
-  licenseStatus,
   hasAnyStrategy,
   missingStrategyMessage,
   isContentEditable,
@@ -173,16 +171,6 @@ const { handleImport, handleTranslate, handleBatchTranslate } =
           })
         }}
       </k-dropdown-item>
-    </template>
-
-    <template v-if="licenseStatus !== undefined && licenseStatus !== 'active'">
-      <hr />
-      <LicensingDropdownItems
-        label="Kirby Content Translator"
-        api-namespace="__content-translator__"
-        :license-status="licenseStatus"
-        pricing-url="https://kirby.tools/content-translator/buy"
-      />
     </template>
   </div>
 </template>

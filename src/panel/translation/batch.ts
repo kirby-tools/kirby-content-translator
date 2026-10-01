@@ -54,8 +54,8 @@ export interface BatchModelSettings {
   isSlugTranslationEnabled: boolean;
 }
 
+/** What became of one target language, with or without a model behind it. */
 export type BatchOutcome = {
-  model: BatchModel;
   language: PanelLanguageInfo | PanelLanguage;
 } & (
   | HeldBackOutcome
@@ -66,6 +66,8 @@ export type BatchOutcome = {
       "invalidFields" | "titleError" | "slugError"
     >)
 );
+
+export type ModelBatchOutcome = BatchOutcome & { model: BatchModel };
 
 /**
  * Translates every model into each of its targets that is not held back and
@@ -90,7 +92,7 @@ export async function runBatchTranslation(
     write: (request: BatchWriteRequest) => Promise<BatchWriteResponse>;
     onProgress?: (completed: number, total: number) => void;
   },
-): Promise<BatchOutcome[]> {
+): Promise<ModelBatchOutcome[]> {
   const pairs = models.flatMap((model) =>
     model.targets.map((target) => ({ model, ...target })),
   );
@@ -107,7 +109,7 @@ export async function runBatchTranslation(
   return await pAll(
     pairs.map(
       ({ heldBackOutcome, ...pair }) =>
-        async (): Promise<BatchOutcome> => {
+        async (): Promise<ModelBatchOutcome> => {
           if (heldBackOutcome) return { ...pair, ...heldBackOutcome };
 
           const lockedBy = lockedByPath.get(pair.model.path);
@@ -141,8 +143,8 @@ export async function runBatchTranslation(
   );
 
   async function translatePair(
-    pair: Pick<BatchOutcome, "model" | "language">,
-  ): Promise<BatchOutcome> {
+    pair: Pick<ModelBatchOutcome, "model" | "language">,
+  ): Promise<ModelBatchOutcome> {
     const { model, language: targetLanguage } = pair;
     const { settings } = model;
 

@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { PluginContextResponse } from "../../types";
-import { ref, usePanel } from "kirbyuse";
-import { usePluginContext } from "../../composables/plugin";
+import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
+import { computed, ref, usePanel } from "kirbyuse";
+import {
+  resolveLicenseStatus,
+  usePluginContext,
+} from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
 
@@ -60,6 +64,9 @@ const { isTranslating } = useTranslationState();
 const dropdownContent = ref();
 const context = ref<PluginContextResponse>();
 const hasInitializationError = ref(false);
+const licenseStatus = computed(
+  () => context.value && resolveLicenseStatus(context.value),
+);
 
 (async () => {
   try {
@@ -103,6 +110,18 @@ function toggle() {
         :context="context"
         :props="props"
       />
+
+      <template
+        v-if="licenseStatus !== undefined && licenseStatus !== 'active'"
+      >
+        <hr />
+        <LicensingDropdownItems
+          label="Kirby Content Translator"
+          api-namespace="__content-translator__"
+          :license-status="licenseStatus"
+          pricing-url="https://kirby.tools/content-translator/buy"
+        />
+      </template>
     </k-dropdown-content>
   </div>
 </template>

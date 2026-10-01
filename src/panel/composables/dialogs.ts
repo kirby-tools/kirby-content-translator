@@ -2,7 +2,7 @@ import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
-import { isLocalDev, useDialog, useHelpers, usePanel } from "kirbyuse";
+import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
 import { getStrategyAvailability } from "../utils/translator-config";
@@ -44,7 +44,6 @@ export interface BatchTranslationDialogResult {
 
 export function useTranslationDialogs() {
   const panel = usePanel();
-  const helpers = useHelpers();
   const { openFieldsDialog, openTextDialog } = useDialog();
 
   const defaultLanguage = panel.languages.find((language) => language.default)!;
@@ -67,12 +66,13 @@ export function useTranslationDialogs() {
   }
 
   async function openTranslationDialog(
-    cascadeHelp?: string,
+    help?: string,
   ): Promise<TranslationDialogResult | undefined> {
     const { strategyName, strategyField } = await resolveStrategyField();
 
-    // Opens for a cascade alone, since a direct save cannot be taken back.
-    if (!strategyField && !cascadeHelp) {
+    // Opens for the help alone, since it warns of a direct save that cannot be
+    // taken back.
+    if (!strategyField && !help) {
       return { strategyName };
     }
 
@@ -85,7 +85,7 @@ export function useTranslationDialogs() {
         ),
       },
       fields: {
-        ...(cascadeHelp && { cascade: { type: "info", text: cascadeHelp } }),
+        ...(help && { help: { type: "info", text: help } }),
         ...(strategyField && { strategyName: strategyField }),
       },
       value: {
@@ -102,7 +102,7 @@ export function useTranslationDialogs() {
   }
 
   async function openBatchTranslationDialog(
-    cascadeHelp?: string,
+    help: string,
   ): Promise<BatchTranslationDialogResult | undefined> {
     const { strategyName, strategyField } = await resolveStrategyField();
 
@@ -122,14 +122,7 @@ export function useTranslationDialogs() {
             value: language.code,
             text: language.name,
           })),
-          help: [
-            panel.t("johannschopplich.content-translator.dialog.batchHelp", {
-              language: helpers.string.escapeHTML(defaultLanguage.name),
-            }),
-            cascadeHelp,
-          ]
-            .filter(Boolean)
-            .join(" "),
+          help,
         },
         ...(strategyField && { strategyName: strategyField }),
       },
