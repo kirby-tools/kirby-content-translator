@@ -16,6 +16,10 @@ return [
             env('PLAYGROUND') !== false ? 'assets/panel-demo.css' : null
         ]),
         'favicon' => 'favicon.ico',
+        'viewButtons' => [
+            // Kirby's defaults plus the plugin's button.
+            'language' => ['open', 'content-translator', 'settings', 'delete']
+        ],
         'vue' => [
             'compiler' => false
         ]

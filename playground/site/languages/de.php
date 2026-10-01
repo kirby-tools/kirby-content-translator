@@ -9,7 +9,8 @@ return [
     ],
     'name' => 'German',
     'translations' => [
-
+        'footer.imprint' => 'Impressum',
+        'greeting' => 'Hello, {{ name }}!'
     ],
     'url' => null
 ];
