@@ -12,6 +12,7 @@ Kirby Content Translator is a plugin for [Kirby CMS](https://getkirby.com) that 
 - 📊 **Translation Coverage**: Rings per language and the pages still missing one, in the Languages view.
 - 🧩 **Nested Fields**: Walks blocks, layouts, structures, and objects – `translate: false` holds at any depth.
 - 🏷️ **KirbyTags**: Tag attributes translated selectively, URLs and UUIDs preserved.
+- 🔤 **Language Variables**: Missing or untouched variables translated from a language's view, or into several languages at once from the default one.
 - 🔁 **Import from Source**: Copy default-language content without translating.
 - 🎛️ **Configurable Scope**: By field type, or include and exclude fields, globally or per section.
 - ⚡ **PHP API**: Drive translations from CLI or custom workflows, with `before`, `after`, and `warning` hooks – see [PHP classes](https://kirby.tools/docs/content-translator/php-classes).
