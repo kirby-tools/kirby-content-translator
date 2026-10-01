@@ -5,7 +5,9 @@ declare(strict_types = 1);
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
+use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -34,8 +36,11 @@ final class ContractTest extends TestCase
     }
 
     #[Test]
+    #[RunInSeparateProcess]
     public function emits_placeholders_in_the_contract_format(): void
     {
+        // Registers the `link` KirbyTag.
+        new App();
         $placeholder = self::contract()['placeholder'];
         ['unitTexts' => $unitTexts] = KirbyText::split('(link: /a)');
 
