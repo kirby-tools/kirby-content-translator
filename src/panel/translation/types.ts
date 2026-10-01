@@ -9,7 +9,7 @@ export interface TranslationLanguage {
 
 export interface TranslationUnit {
   text: string;
-  /** Key of the field the unit came from (e.g. `title`, `blocks.text`). */
+  /** Key of the field or language variable the unit came from (e.g. `title`, `blocks.text`, `cart.title`). */
   fieldKey?: string;
 }
 
@@ -71,7 +71,7 @@ export interface KirbyTagRules {
 /** A unit that kept its source text, and the reason it did. */
 export interface TranslationRejection {
   fieldKey?: string;
-  /** One of the terms `tests/fixtures/contract.json` pins. */
+  /** One of the terms `tests/fixtures/contract.json` pins, or `variable placeholder mismatch` for a language variable. */
   reason: string;
   /** The reason spelled out, where the check that raised it has specifics to add. */
   detail?: string;

@@ -4,7 +4,7 @@ import { translatePlural } from "../utils/i18n";
 
 type Translate = (key: string, data?: Record<string, unknown>) => string;
 
-/** Names the field of a unit, given the outcome it belongs to when the caller has one. */
+/** Names the field or language variable of a unit, given the outcome it belongs to when the caller has one. */
 export type LabelField<Outcome = void> = (
   fieldKey: string | undefined,
   outcome: Outcome,
@@ -61,16 +61,19 @@ export function describeBatchOutcomes<Outcome extends BatchOutcome>(
   {
     labelOutcome,
     labelField,
+    keptSourceKey,
     t,
   }: {
     labelOutcome: (outcome: Outcome) => string;
     labelField: LabelField<Outcome>;
+    keptSourceKey: string;
     t: Translate;
   },
 ) {
   return outcomes.flatMap((outcome) => {
     const lines = describeBatchOutcome(outcome, {
       labelField: (fieldKey) => labelField(fieldKey, outcome),
+      keptSourceKey,
       t,
     });
     return lines.length > 0
@@ -101,7 +104,11 @@ export function fieldLabel(
 
 function describeBatchOutcome(
   outcome: BatchOutcome,
-  { labelField, t }: { labelField: LabelField; t: Translate },
+  {
+    labelField,
+    keptSourceKey,
+    t,
+  }: { labelField: LabelField; keptSourceKey: string; t: Translate },
 ): string[] {
   const reportLine = (key: string, data?: Record<string, unknown>) =>
     t(`johannschopplich.content-translator.batchReport.${key}`, data);
@@ -134,7 +141,7 @@ function describeBatchOutcome(
 
   for (const rejection of outcome.result.rejections) {
     lines.add(
-      reportLine("keptSource", {
+      t(keptSourceKey, {
         field: labelField(rejection.fieldKey),
         reason: describeRejection(rejection, t),
       }),
@@ -192,6 +199,10 @@ function describeRejection(
     case "placeholder mismatch":
       return t(
         "johannschopplich.content-translator.rejection.placeholderMismatch",
+      );
+    case "variable placeholder mismatch":
+      return t(
+        "johannschopplich.content-translator.rejection.variablePlaceholderMismatch",
       );
     default:
       return detail ?? reason;

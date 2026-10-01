@@ -22,6 +22,8 @@ describe("describeBatchOutcomes", () => {
     const [entry] = describeBatchOutcomes([outcome], {
       labelOutcome: ({ language }) => language.name,
       labelField: () => "Text",
+      keptSourceKey:
+        "johannschopplich.content-translator.batchReport.keptSource",
       t: translateKey,
     });
 

@@ -9,6 +9,7 @@ import {
 } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
+import VariablesDropdownContent from "./VariablesDropdownContent.vue";
 
 const props = defineProps({
   label: {
@@ -62,6 +63,7 @@ const panel = usePanel();
 const { isTranslating } = useTranslationState();
 
 const dropdownContent = ref();
+const isLanguageView = panel.view.component === "k-language-view";
 const context = ref<PluginContextResponse>();
 const hasInitializationError = ref(false);
 const licenseStatus = computed(
@@ -105,8 +107,13 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
+      <VariablesDropdownContent
+        v-if="context && isLanguageView"
+        :context="context"
+        :props="props"
+      />
       <ContentTranslatorDropdownContent
-        v-if="context"
+        v-else-if="context"
         :context="context"
         :props="props"
       />

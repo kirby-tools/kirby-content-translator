@@ -17,7 +17,26 @@ import { formatList, translatePlural } from "../utils/i18n";
  */
 const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 
-export function useTranslationNotifications() {
+interface RejectionMessageKeys {
+  partiallyTranslated: string;
+  noneTranslated: string;
+  batchPartiallyTranslated: string;
+  keptSource: string;
+}
+
+const CONTENT_REJECTION_MESSAGE_KEYS: RejectionMessageKeys = {
+  partiallyTranslated:
+    "johannschopplich.content-translator.notification.partiallyTranslated",
+  noneTranslated:
+    "johannschopplich.content-translator.notification.noSegmentTranslated",
+  batchPartiallyTranslated:
+    "johannschopplich.content-translator.notification.batchPartiallyTranslated",
+  keptSource: "johannschopplich.content-translator.batchReport.keptSource",
+};
+
+export function useTranslationNotifications(
+  rejectionMessageKeys = CONTENT_REJECTION_MESSAGE_KEYS,
+) {
   const panel = usePanel();
 
   function notifyProgress(message: string) {
@@ -71,10 +90,9 @@ export function useTranslationNotifications() {
       // Not `notification.error`, which in a view also opens Kirby's blocking
       // error dialog.
       panel.notification.open({
-        message: panel.t(
-          "johannschopplich.content-translator.notification.noSegmentTranslated",
-          { total: result.translatableCount },
-        ),
+        message: panel.t(rejectionMessageKeys.noneTranslated, {
+          total: result.translatableCount,
+        }),
         icon: "alert",
         theme: "negative",
         timeout: PERSISTENT_TIMEOUT,
@@ -85,7 +103,7 @@ export function useTranslationNotifications() {
     notifyPartialTranslation(
       translatePlural(
         panel.t,
-        "johannschopplich.content-translator.notification.partiallyTranslated",
+        rejectionMessageKeys.partiallyTranslated,
         {
           untranslated: untranslatedCount,
           total: result.translatableCount,
@@ -148,15 +166,9 @@ export function useTranslationNotifications() {
     }
 
     notifyPartialTranslation(
-      panel.t(
-        "johannschopplich.content-translator.notification.batchPartiallyTranslated",
-        {
-          languages: formatList(
-            languagesWithKeptSource,
-            panel.translation.code,
-          ),
-        },
-      ),
+      panel.t(rejectionMessageKeys.batchPartiallyTranslated, {
+        languages: formatList(languagesWithKeptSource, panel.translation.code),
+      }),
     );
   }
 
@@ -189,6 +201,7 @@ export function useTranslationNotifications() {
         details: describeBatchOutcomes(outcomes, {
           labelOutcome,
           labelField,
+          keptSourceKey: rejectionMessageKeys.keptSource,
           t: panel.t,
         }),
       },
