@@ -1,3 +1,7 @@
+import type {
+  CopilotThirdPartyApi,
+  StreamTextSeamResult,
+} from "../../../src/panel/utils/copilot-contract";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv } from "ajv";
@@ -109,14 +113,32 @@ describe("translation contract", () => {
 });
 
 describe("copilot seam contract", () => {
-  it("requires the seam version pinned in the shared fixture", () => {
-    const seamContract = JSON.parse(
-      readFileSync(
-        join(import.meta.dirname, "../../fixtures/copilot-seam-contract.json"),
-        "utf8",
-      ),
-    ) as { apiVersion: number };
+  const seamContract = JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, "../../fixtures/copilot-seam-contract.json"),
+      "utf8",
+    ),
+  ) as { apiVersion: number; methods: string[]; streamTextResult: string[] };
 
+  it("requires the seam version pinned in the shared fixture", () => {
     expect(REQUIRED_COPILOT_API_VERSION).toBe(seamContract.apiVersion);
+  });
+
+  it("consumes only methods and streamText result keys the shared fixture lists", () => {
+    // Typed as records so a key added to either seam type fails to compile here.
+    const consumedMethods: Record<
+      Exclude<keyof CopilotThirdPartyApi, "apiVersion">,
+      true
+    > = { resolvePluginContext: true, streamText: true };
+    const consumedResultKeys: Record<keyof StreamTextSeamResult, true> = {
+      output: true,
+    };
+
+    expect(seamContract.methods).toEqual(
+      expect.arrayContaining(Object.keys(consumedMethods)),
+    );
+    expect(seamContract.streamTextResult).toEqual(
+      expect.arrayContaining(Object.keys(consumedResultKeys)),
+    );
   });
 });
