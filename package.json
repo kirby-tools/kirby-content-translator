@@ -10,7 +10,7 @@
     "build:playground": "PLAYGROUND=true pnpm run build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier \"src/panel/**\" --write",
+    "format": "prettier \"src/panel/**\" \"tests/fixtures/**\" --write",
     "playground:reset": "git checkout -- playground/storage/content && git clean -fdq playground/storage/content",
     "test": "vitest",
     "test:types": "tsc --noEmit",

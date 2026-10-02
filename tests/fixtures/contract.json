@@ -17,21 +17,43 @@
     { "sourceText": ".5", "isUntranslatable": true },
     { "sourceText": "5.", "isUntranslatable": true },
     { "sourceText": "1.5e10", "isUntranslatable": true },
-    { "sourceText": "https://example.com/docs?query=1", "isUntranslatable": true },
+    {
+      "sourceText": "https://example.com/docs?query=1",
+      "isUntranslatable": true
+    },
     { "sourceText": "http://localhost:3000", "isUntranslatable": true },
     { "sourceText": "Hello world", "isUntranslatable": false },
     { "sourceText": "42 apples", "isUntranslatable": false },
-    { "sourceText": "Visit https://example.com today", "isUntranslatable": false },
+    {
+      "sourceText": "Visit https://example.com today",
+      "isUntranslatable": false
+    },
     { "sourceText": "<c0/>", "isUntranslatable": true },
     { "sourceText": "<c0/> <c1/>", "isUntranslatable": true },
     { "sourceText": "<c0 />", "isUntranslatable": true },
     { "sourceText": "Text <c0/>", "isUntranslatable": false }
   ],
   "rejectionCases": [
-    { "sourceText": "Hello", "translation": null, "reason": "missing translation" },
-    { "sourceText": "Hello", "translation": 42, "reason": "non-string translation" },
-    { "sourceText": "Hello", "translation": "  ", "reason": "empty translation" },
-    { "sourceText": "Read <c0/>", "translation": "Lies", "reason": "placeholder mismatch" }
+    {
+      "sourceText": "Hello",
+      "translation": null,
+      "reason": "missing translation"
+    },
+    {
+      "sourceText": "Hello",
+      "translation": 42,
+      "reason": "non-string translation"
+    },
+    {
+      "sourceText": "Hello",
+      "translation": "  ",
+      "reason": "empty translation"
+    },
+    {
+      "sourceText": "Read <c0/>",
+      "translation": "Lies",
+      "reason": "placeholder mismatch"
+    }
   ],
   "translateUnitsRouteCase": {
     "texts": ["Hello", "Read <c0/> now"],
