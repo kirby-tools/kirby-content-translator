@@ -25,6 +25,7 @@ describe("collectTranslations", () => {
       "table",
     ] as const,
     fields: {} as Record<string, KirbyFieldProps>,
+    kirbyTags: { types: ["link"], attributes: {} },
   };
 
   describe("field collection", () => {
@@ -58,7 +59,7 @@ describe("collectTranslations", () => {
       const { translations, finalizers } = collectTranslations(content, {
         ...defaultOptions,
         fields,
-        kirbyTags: { link: ["text"] },
+        kirbyTags: { types: ["link"], attributes: { link: ["text"] } },
       });
 
       expect(translations).toHaveLength(2);

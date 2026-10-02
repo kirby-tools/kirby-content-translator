@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translation\Collector;
 use JohannSchopplich\ContentTranslator\TranslatorConfig;
+use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -85,8 +87,11 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
+    #[RunInSeparateProcess]
     public function expands_textarea_into_batch_units_with_kirbytag_protection(): void
     {
+        // Registers the `link` KirbyTag.
+        new App();
         $content = ['intro' => 'Visit (link: /a text: site)'];
         $fields = ['intro' => self::field(['type' => 'textarea'])];
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "./schema.json",
+  "description": "Kirby lowercases the tag type before it looks it up, so `(Link: …)` is a link.",
+  "input": "Visit (Link: /a text: site)",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "expectedUnitTexts": ["Visit <c0/>", "site"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Besuche <c0/>", "Seite"],
+  "expectedRestore": "Besuche (link: /a text: Seite)"
+}

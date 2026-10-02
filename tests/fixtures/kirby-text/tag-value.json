@@ -2,6 +2,7 @@
   "$schema": "./schema.json",
   "description": "The `value` entry in the kirbyTags config exposes the tag's main value for translation.",
   "input": "(callout: Important announcement)",
+  "kirbyTagTypes": ["callout"],
   "kirbyTags": {
     "callout": ["value"]
   },

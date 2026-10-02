@@ -2,6 +2,7 @@
 
 use JohannSchopplich\ContentTranslator\BatchTranslation;
 use JohannSchopplich\ContentTranslator\Cascade;
+use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
@@ -26,6 +27,7 @@ return [
 
                 return [
                     'config' => PanelContext::config(),
+                    'kirbyTagTypes' => KirbyText::tagTypes(),
                     'homePageId' => $kirby->site()->homePageId(),
                     'errorPageId' => $kirby->site()->errorPageId(),
                     'licenseStatus' => $licenses->getStatus()

@@ -150,7 +150,10 @@ describe("translation contract", () => {
 
   it("emits placeholders in the contract format", () => {
     const { placeholder } = contract;
-    const { unitTexts } = splitKirbyText("(link: /a)", {});
+    const { unitTexts } = splitKirbyText("(link: /a)", {
+      types: ["link"],
+      attributes: {},
+    });
 
     expect(unitTexts[0]).toBe(
       placeholder.format.replace("{n}", String(placeholder.indexBase)),

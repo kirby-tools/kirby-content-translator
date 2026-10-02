@@ -36,4 +36,17 @@ final class ContextRouteTest extends ApiRouteTestCase
         $this->assertStringNotContainsString('deepl-secret', $payload);
         $this->assertStringNotContainsString('test-secret', $payload);
     }
+
+    #[Test]
+    public function sends_kirbyTagTypes_with_the_registered_types_and_aliases_in_lowercase(): void
+    {
+        $app = self::bootApp(['tags' => ['Quote' => ['html' => fn () => '']]]);
+        Kirby\Text\KirbyTag::$aliases = ['Cite' => 'quote'];
+
+        $kirbyTagTypes = $this->callRoute($app, '__content-translator__/context')['kirbyTagTypes'];
+
+        $this->assertContains('link', $kirbyTagTypes);
+        $this->assertContains('quote', $kirbyTagTypes);
+        $this->assertContains('cite', $kirbyTagTypes);
+    }
 }

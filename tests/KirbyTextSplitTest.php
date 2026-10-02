@@ -3,13 +3,29 @@
 declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\KirbyText;
+use Kirby\Cms\App;
 use Kirby\Exception\LogicException;
+use Kirby\Text\KirbyTag;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
+#[RunTestsInSeparateProcesses]
+#[PreserveGlobalState(false)]
 final class KirbyTextSplitTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        new App();
+    }
+
+    protected function tearDown(): void
+    {
+        App::destroy();
+    }
+
     /**
      * @return iterable<string, array{array<string, mixed>}>
      */
@@ -33,6 +49,9 @@ final class KirbyTextSplitTest extends TestCase
     #[DataProvider('conformanceCases')]
     public function conforms_to_shared_corpus(array $case): void
     {
+        KirbyTag::$types = array_fill_keys($case['kirbyTagTypes'], []);
+        KirbyTag::$aliases = [];
+
         ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['input'], $case['kirbyTags']);
 
         $this->assertSame($case['expectedUnitTexts'], $unitTexts);

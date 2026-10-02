@@ -6,6 +6,7 @@ namespace JohannSchopplich\ContentTranslator;
 
 use Closure;
 use Kirby\Exception\LogicException;
+use Kirby\Text\KirbyTag;
 
 final class KirbyText
 {
@@ -92,20 +93,38 @@ final class KirbyText
     }
 
     /**
-     * Locates paren-balanced KirbyTag spans in `$text`.
+     * Lists the registered KirbyTag types and aliases, lowercased. Kirby
+     * resolves an alias only under a lowercase key: one registered as `Cite`
+     * stays text there, but is split here.
+     *
+     * @return list<string>
+     */
+    public static function tagTypes(): array
+    {
+        return array_map(
+            strtolower(...),
+            [...array_keys(KirbyTag::$types), ...array_keys(KirbyTag::$aliases)]
+        );
+    }
+
+    /**
+     * Locates paren-balanced KirbyTag spans in `$text`. A parenthetical whose
+     * type names no registered KirbyTag, such as `(Note: …)`, stays text as in
+     * Kirby, though a KirbyTag inside it is still split.
      *
      * @return list<array{int, int}> List of [start, endExclusive] pairs
      */
     private static function findKirbyTags(string $text): array
     {
-        preg_match_all('!\([\w-]+:!', $text, $matches, PREG_OFFSET_CAPTURE);
+        preg_match_all('!\(([\w-]+):!', $text, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
 
+        $tagTypes = self::tagTypes();
         $spans = [];
         $lastEnd = 0;
         $length = strlen($text);
 
-        foreach (array_column($matches[0], 1) as $start) {
-            if ($start < $lastEnd) {
+        foreach ($matches as [[, $start], [$type]]) {
+            if ($start < $lastEnd || !in_array(strtolower($type), $tagTypes, true)) {
                 continue;
             }
 

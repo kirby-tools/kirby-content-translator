@@ -5,6 +5,7 @@
   "type": "object",
   "required": [
     "input",
+    "kirbyTagTypes",
     "kirbyTags",
     "expectedUnitTexts",
     "expectedPlaceholderCount",
@@ -21,6 +22,13 @@
     },
     "input": {
       "type": "string"
+    },
+    "kirbyTagTypes": {
+      "description": "The registered KirbyTag types, lowercased – a parenthetical of any other type is prose.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "kirbyTags": {
       "type": "object",

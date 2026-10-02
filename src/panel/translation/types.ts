@@ -58,8 +58,14 @@ export interface CollectorOptions {
   includeFields?: string[];
   excludeFields?: string[];
   fields: Record<string, KirbyFieldProps>;
+  kirbyTags: KirbyTagRules;
+}
+
+export interface KirbyTagRules {
+  /** The registered KirbyTag types and aliases, lowercased. */
+  types: readonly string[];
   /** Translatable KirbyTag attributes per tag type, e.g. `{ link: ["text"] }`. */
-  kirbyTags?: Record<string, string[]>;
+  attributes: Record<string, string[]>;
 }
 
 /** A unit that kept its source text, and the reason it did. */

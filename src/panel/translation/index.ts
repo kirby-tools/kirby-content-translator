@@ -23,7 +23,6 @@ export async function translateContent(
     strategy: TranslationStrategy;
     sourceLanguage?: TranslationLanguage;
     targetLanguage: TranslationLanguage;
-    kirbyTags?: Record<string, string[]>;
   },
 ): Promise<ContentTranslationResult> {
   const {

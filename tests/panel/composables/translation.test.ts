@@ -100,6 +100,7 @@ function createPanelStub() {
 function createPluginContext(config: Partial<PluginConfig> = {}) {
   return {
     config: { DeepL: { apiKey: "test-api-key" }, ...config },
+    kirbyTagTypes: ["link"],
     homePageId: "home",
     errorPageId: "error",
     licenseStatus: "active",
@@ -392,6 +393,24 @@ describe("useContentTranslator", () => {
       );
     });
 
+    it("masks a KirbyTag of a type the context route registers", async () => {
+      currentContent = { value: { text: "Visit (link: /a)" } };
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "textarea", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(panel.api.post).toHaveBeenCalledWith(
+        "__content-translator__/translate-units",
+        expect.objectContaining({ texts: ["Visit <c0/>"] }),
+      );
+    });
+
     it("requests no translation and writes nothing when the editor opens another view before the translation starts", async () => {
       panel.view.path = "pages/other";
       const translator = await createContentTranslator({
@@ -522,6 +541,23 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
+    });
+
+    it("masks a KirbyTag of a type the context route registers", async () => {
+      modelData.content = { text: "Visit (link: /a)" };
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "textarea", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
+
+      expect(translateBatch).toHaveBeenCalledWith(
+        "__content-translator__/translate-units",
+        expect.objectContaining({ texts: ["Visit <c0/>"] }),
+      );
     });
 
     it("translates and saves nothing when the editor opens another view before the batch translation starts", async () => {

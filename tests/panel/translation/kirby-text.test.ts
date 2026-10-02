@@ -9,6 +9,7 @@ import {
 interface ConformanceCase {
   description?: string;
   input: string;
+  kirbyTagTypes: string[];
   kirbyTags: Record<string, string[]>;
   expectedUnitTexts: string[];
   expectedPlaceholderCount: number;
@@ -34,13 +35,17 @@ describe("splitKirbyText", () => {
       "splits and restores $name",
       ({
         input,
+        kirbyTagTypes,
         kirbyTags,
         expectedUnitTexts,
         expectedPlaceholderCount,
         restoredWith,
         expectedRestore,
       }) => {
-        const { unitTexts, restore } = splitKirbyText(input, kirbyTags);
+        const { unitTexts, restore } = splitKirbyText(input, {
+          types: kirbyTagTypes,
+          attributes: kirbyTags,
+        });
 
         expect(unitTexts).toEqual(expectedUnitTexts);
         expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
@@ -67,7 +72,10 @@ describe("splitKirbyText", () => {
       "throws when restore receives $name translations than unit texts",
       ({ input, expectedGot }) => {
         const text = "(link: /a text: site)";
-        const { unitTexts, restore } = splitKirbyText(text, { link: ["text"] });
+        const { unitTexts, restore } = splitKirbyText(text, {
+          types: ["link"],
+          attributes: { link: ["text"] },
+        });
 
         expect(unitTexts).toHaveLength(2);
         expect(() => restore(input(unitTexts))).toThrow(

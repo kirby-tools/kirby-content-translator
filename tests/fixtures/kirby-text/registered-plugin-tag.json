@@ -1,0 +1,11 @@
+{
+  "$schema": "./schema.json",
+  "description": "A tag type a plugin registers is split like Kirby's own.",
+  "input": "As she said: (quote: Less is more)",
+  "kirbyTagTypes": ["link", "quote"],
+  "kirbyTags": {},
+  "expectedUnitTexts": ["As she said: <c0/>"],
+  "expectedPlaceholderCount": 1,
+  "restoredWith": ["Wie sie sagte: <c0/>"],
+  "expectedRestore": "Wie sie sagte: (quote: Less is more)"
+}

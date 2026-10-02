@@ -5,7 +5,11 @@ import type {
   PanelModelData,
 } from "kirby-types";
 import type { BatchWriteRequest, BatchWriteResponse } from "../types";
-import type { ContentTranslationResult, TranslationStrategy } from "./types";
+import type {
+  ContentTranslationResult,
+  KirbyTagRules,
+  TranslationStrategy,
+} from "./types";
 import pAll from "p-all";
 import { filterEligibleContent } from "../utils/filter";
 import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
@@ -45,7 +49,7 @@ export interface BatchModelSettings {
   fieldTypes: string[];
   includeFields: string[];
   excludeFields: string[];
-  kirbyTags: Record<string, string[]>;
+  kirbyTags: KirbyTagRules;
   isTitleTranslationEnabled: boolean;
   isSlugTranslationEnabled: boolean;
 }
