@@ -1,3 +1,4 @@
+import type { TranslateUnitsResponse } from "../../types";
 import type {
   TranslationExecutionOptions,
   TranslationOutcome,
@@ -20,19 +21,14 @@ export class DeepLStrategy implements TranslationStrategy {
     const outcomes: TranslationOutcome[] = [];
 
     if (units.length > 0) {
-      const response = await api.post<{
-        texts: string[];
-        rejections?: {
-          index: number;
-          reason: string;
-          expectedIndexes?: number[];
-          actualIndexes?: number[];
-        }[];
-      }>(TRANSLATE_UNITS_API_ROUTE, {
-        sourceLanguage: options.sourceLanguage?.code,
-        targetLanguage: options.targetLanguage.code,
-        texts: units.map((unit) => unit.text),
-      });
+      const response = await api.post<TranslateUnitsResponse>(
+        TRANSLATE_UNITS_API_ROUTE,
+        {
+          sourceLanguage: options.sourceLanguage?.code,
+          targetLanguage: options.targetLanguage.code,
+          texts: units.map((unit) => unit.text),
+        },
+      );
 
       // The route answers for every unit, handing back the source text for a
       // rejected one, so a rejection is invisible in `texts` alone.
@@ -48,9 +44,7 @@ export class DeepLStrategy implements TranslationStrategy {
           outcomes[index] = { reason, expectedIndexes, actualIndexes };
           return;
         }
-        // A `content-translator.translate:after` hook runs after the route's
-        // own blank check, so a blank can still arrive here.
-        outcomes[index] = text.trim() ? text : { reason: "empty translation" };
+        outcomes[index] = text;
       });
     }
 

@@ -40,6 +40,16 @@ export interface PluginContextResponse {
   licenseStatus?: LicenseStatus;
 }
 
+export interface TranslateUnitsResponse {
+  texts: string[];
+  rejections?: {
+    index: number;
+    reason: string;
+    expectedIndexes?: number[];
+    actualIndexes?: number[];
+  }[];
+}
+
 export interface BatchStatusResponse {
   isUpdateAllowed: boolean;
   isTitleChangeAllowed: boolean;

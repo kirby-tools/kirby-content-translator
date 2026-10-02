@@ -1,3 +1,4 @@
+import type { TranslateUnitsResponse } from "../../../src/panel/types";
 import type {
   CopilotThirdPartyApi,
   StreamTextSeamResult,
@@ -39,15 +40,7 @@ interface TranslationContract {
   translateUnitsRouteCase: {
     texts: string[];
     translations: string[];
-    response: {
-      texts: string[];
-      rejections: {
-        index: number;
-        reason: string;
-        expectedIndexes?: number[];
-        actualIndexes?: number[];
-      }[];
-    };
+    response: TranslateUnitsResponse;
   };
 }
 

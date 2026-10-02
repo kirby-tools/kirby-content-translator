@@ -29,11 +29,8 @@ final class PanelContext
         $panelConfig = array_intersect_key($config, array_flip(self::PANEL_OPTIONS));
 
         if (isset($panelConfig['DeepL'])) {
-            // Mirrors the check in `DeepL::__construct`, so the flag means
-            // "a key DeepL would accept" rather than "a key is present".
-            $apiKey = $config['DeepL']['apiKey'] ?? null;
             $panelConfig['DeepL'] = [
-                'apiKey' => is_string($apiKey) && $apiKey !== ''
+                'apiKey' => DeepL::hasApiKey()
             ];
         }
 

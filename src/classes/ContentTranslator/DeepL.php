@@ -61,16 +61,14 @@ final class DeepL
         private readonly Closure|null $remote = null,
         private readonly Closure|null $delay = null,
     ) {
-        $kirby = App::instance();
-        $apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
-
-        if (!is_string($apiKey) || $apiKey === '') {
+        if (!self::hasApiKey()) {
             throw new AuthException('Missing DeepL API key');
         }
 
+        $kirby = App::instance();
         $requestOptions = $kirby->option('johannschopplich.content-translator.DeepL.requestOptions', []);
 
-        $this->apiKey = $apiKey;
+        $this->apiKey = $kirby->option('johannschopplich.content-translator.DeepL.apiKey');
         $this->hasConfiguredTagHandling = array_key_exists('tag_handling', $requestOptions);
         $this->requestOptions = A::merge(
             [
@@ -85,6 +83,13 @@ final class DeepL
             $requestOptions
         );
         $this->targetLanguageOverrides = $kirby->option('johannschopplich.content-translator.DeepL.targetLanguageOverrides', []);
+    }
+
+    public static function hasApiKey(): bool
+    {
+        $apiKey = App::instance()->option('johannschopplich.content-translator.DeepL.apiKey');
+
+        return is_string($apiKey) && $apiKey !== '';
     }
 
     public static function instance(): self
