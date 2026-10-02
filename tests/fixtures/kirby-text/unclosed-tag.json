@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../kirby-text.schema.json",
   "description": "An unbalanced tag is prose, not structure – it stays in the prose and is translated as is.",
   "input": "Visit (link: /a text: incomplete",
   "kirbyTagTypes": ["link"],

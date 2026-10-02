@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../kirby-text.schema.json",
   "description": "Kirby lowercases the tag type before it looks it up, so `(Link: …)` is a link.",
   "input": "Visit (Link: /a text: site)",
   "kirbyTagTypes": ["link"],

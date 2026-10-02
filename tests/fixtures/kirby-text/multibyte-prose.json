@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../kirby-text.schema.json",
   "description": "Multibyte prose and attr values survive split and restore – guards against byte-offset slicing.",
   "input": "Привет (link: /a text: 世界) — café",
   "kirbyTagTypes": ["link"],

@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../kirby-text.schema.json",
   "description": "The `value` entry in the kirbyTags config exposes the tag's main value for translation.",
   "input": "(callout: Important announcement)",
   "kirbyTagTypes": ["callout"],

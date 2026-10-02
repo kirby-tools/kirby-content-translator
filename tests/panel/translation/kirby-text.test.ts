@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Ajv } from "ajv";
 import { describe, expect, it } from "vitest";
 import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
@@ -16,13 +17,30 @@ interface ConformanceCase {
 const FIXTURES_DIR = join(import.meta.dirname, "../../fixtures/kirby-text");
 
 const conformanceCases = readdirSync(FIXTURES_DIR)
-  .filter((file) => file.endsWith(".json") && file !== "schema.json")
+  .filter((file) => file.endsWith(".json"))
   .map((file) => ({
     name: file.replace(/\.json$/, ""),
-    ...(JSON.parse(
+    conformanceCase: JSON.parse(
       readFileSync(join(FIXTURES_DIR, file), "utf8"),
-    ) as ConformanceCase),
+    ) as ConformanceCase,
   }));
+
+const validateConformanceCase = new Ajv().compile(
+  JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, "../../fixtures/kirby-text.schema.json"),
+      "utf8",
+    ),
+  ),
+);
+
+it.each(conformanceCases)(
+  "$name validates against kirby-text.schema.json",
+  ({ conformanceCase }) => {
+    validateConformanceCase(conformanceCase);
+    expect(validateConformanceCase.errors).toBeNull();
+  },
+);
 
 describe("splitKirbyText", () => {
   // Shared with `KirbyTextSplitTest.php` – drift fails here first.
@@ -30,12 +48,14 @@ describe("splitKirbyText", () => {
     it.each(conformanceCases)(
       "splits and restores $name",
       ({
-        input,
-        kirbyTagTypes,
-        kirbyTags,
-        expectedUnitTexts,
-        restoredWith,
-        expectedRestore,
+        conformanceCase: {
+          input,
+          kirbyTagTypes,
+          kirbyTags,
+          expectedUnitTexts,
+          restoredWith,
+          expectedRestore,
+        },
       }) => {
         const { unitTexts, restore } = splitKirbyText(input, {
           types: kirbyTagTypes,

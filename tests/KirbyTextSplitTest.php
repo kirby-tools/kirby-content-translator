@@ -32,11 +32,7 @@ final class KirbyTextSplitTest extends TestCase
     public static function conformanceCases(): iterable
     {
         foreach (glob(__DIR__ . '/fixtures/kirby-text/*.json') as $path) {
-            if (basename($path) === 'schema.json') {
-                continue;
-            }
-
-            yield basename($path, '.json') => [json_decode(file_get_contents($path), true)];
+            yield basename($path, '.json') => [json_decode(file_get_contents($path), associative: true, flags: JSON_THROW_ON_ERROR)];
         }
     }
 

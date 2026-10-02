@@ -13,6 +13,6 @@ trait ContractFixture
      */
     private static function contract(): array
     {
-        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), true);
+        return json_decode(file_get_contents(__DIR__ . '/fixtures/contract.json'), associative: true, flags: JSON_THROW_ON_ERROR);
     }
 }

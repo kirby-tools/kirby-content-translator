@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "../kirby-text.schema.json",
   "description": "A label in parentheses whose type is no registered KirbyTag is prose, so it is translated.",
   "input": "Opening hours (Note: closed on Sundays)",
   "kirbyTagTypes": ["link"],
