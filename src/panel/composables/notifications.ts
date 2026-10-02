@@ -90,9 +90,12 @@ export function useTranslationNotifications(
       // Not `notification.error`, which in a view also opens Kirby's blocking
       // error dialog.
       panel.notification.open({
-        message: panel.t(rejectionMessageKeys.noneTranslated, {
-          total: result.translatableCount,
-        }),
+        message: translatePlural(
+          panel.t,
+          rejectionMessageKeys.noneTranslated,
+          { total: result.translatableCount },
+          result.translatableCount,
+        ),
         icon: "alert",
         theme: "negative",
         timeout: PERSISTENT_TIMEOUT,
