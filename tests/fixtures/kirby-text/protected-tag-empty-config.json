@@ -5,7 +5,6 @@
   "kirbyTagTypes": ["link"],
   "kirbyTags": {},
   "expectedUnitTexts": ["Hello <c0/>!"],
-  "expectedPlaceholderCount": 1,
   "restoredWith": ["Hallo <c0/>!"],
   "expectedRestore": "Hallo (link: /a text: world)!"
 }

@@ -7,7 +7,6 @@
     "link": ["text"]
   },
   "expectedUnitTexts": ["Visit <c0/>", "site"],
-  "expectedPlaceholderCount": 1,
   "restoredWith": ["Besuche <c0/>", "Seite"],
   "expectedRestore": "Besuche (link: /a text: Seite)"
 }

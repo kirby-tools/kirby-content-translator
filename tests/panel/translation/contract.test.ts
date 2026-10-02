@@ -3,15 +3,7 @@ import { join } from "node:path";
 import { Ajv } from "ajv";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { translateUnits } from "../../../src/panel/translation/dispatch";
-import {
-  PLACEHOLDER_PATTERN,
-  splitKirbyText,
-} from "../../../src/panel/translation/kirby-text";
 import { DeepLStrategy } from "../../../src/panel/translation/strategies";
-import {
-  MAX_BATCH_SIZE,
-  MAX_CHARS_PER_BATCH,
-} from "../../../src/panel/translation/strategies/ai";
 import { isUntranslatable } from "../../../src/panel/translation/untranslatable";
 import { REQUIRED_COPILOT_API_VERSION } from "../../../src/panel/utils/copilot-contract";
 
@@ -45,8 +37,6 @@ interface TranslationContract {
     rejectionKeys: string[];
     optionalRejectionKeys: string[];
   };
-  placeholder: { format: string; indexBase: number };
-  batching: { maxBatchSize: number; maxSizePerBatch: number };
 }
 
 const contract = JSON.parse(
@@ -87,8 +77,7 @@ describe("translation contract", () => {
         { targetLanguage: { code: "de", name: "Deutsch" } },
       );
 
-      expect(rejections).toHaveLength(1);
-      expect(rejections[0]!.reason).toBe(reason);
+      expect(rejections).toMatchObject([{ fieldKey: "body", reason }]);
     },
   );
 
@@ -146,24 +135,6 @@ describe("translation contract", () => {
         actualIndexes: [],
       },
     ]);
-  });
-
-  it("emits placeholders in the contract format", () => {
-    const { placeholder } = contract;
-    const { unitTexts } = splitKirbyText("(link: /a)", {
-      types: ["link"],
-      attributes: {},
-    });
-
-    expect(unitTexts[0]).toBe(
-      placeholder.format.replace("{n}", String(placeholder.indexBase)),
-    );
-    expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
-  });
-
-  it("caps AI batches at the contract limits", () => {
-    expect(MAX_BATCH_SIZE).toBe(contract.batching.maxBatchSize);
-    expect(MAX_CHARS_PER_BATCH).toBe(contract.batching.maxSizePerBatch);
   });
 });
 

@@ -8,7 +8,6 @@
     "kirbyTagTypes",
     "kirbyTags",
     "expectedUnitTexts",
-    "expectedPlaceholderCount",
     "restoredWith",
     "expectedRestore"
   ],
@@ -45,10 +44,6 @@
         "type": "string"
       },
       "minItems": 1
-    },
-    "expectedPlaceholderCount": {
-      "type": "integer",
-      "minimum": 0
     },
     "restoredWith": {
       "type": "array",

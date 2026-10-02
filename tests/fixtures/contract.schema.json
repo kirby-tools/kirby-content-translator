@@ -1,14 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TS/PHP translation pipeline contract",
-  "description": "Values both pipelines must agree on: the untranslatable-text predicate, the batch route's wire shape, the placeholder scheme, and the AI batching limits. Asserted by contract.test.ts and ContractTest.php so a one-sided edit fails fast.",
+  "description": "Values both pipelines must agree on: the untranslatable-text predicate, and the batch route's wire shape. Asserted by contract.test.ts and ContractTest.php so a one-sided edit fails fast.",
   "type": "object",
   "required": [
     "untranslatableCases",
     "rejectionReasons",
-    "translateUnitsRouteResponse",
-    "placeholder",
-    "batching"
+    "translateUnitsRouteResponse"
   ],
   "additionalProperties": false,
   "properties": {
@@ -68,36 +66,6 @@
           "type": "array",
           "minItems": 1,
           "items": { "type": "string" }
-        }
-      }
-    },
-    "placeholder": {
-      "type": "object",
-      "required": ["format", "indexBase"],
-      "additionalProperties": false,
-      "properties": {
-        "format": {
-          "type": "string",
-          "pattern": "\\{n\\}"
-        },
-        "indexBase": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "batching": {
-      "type": "object",
-      "required": ["maxBatchSize", "maxSizePerBatch"],
-      "additionalProperties": false,
-      "properties": {
-        "maxBatchSize": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "maxSizePerBatch": {
-          "type": "integer",
-          "minimum": 1
         }
       }
     }

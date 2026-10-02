@@ -7,7 +7,6 @@
     "link": ["text"]
   },
   "expectedUnitTexts": ["Привет <c0/> — café", "世界"],
-  "expectedPlaceholderCount": 1,
   "restoredWith": ["Привет <c0/> — café", "世界 (translated)"],
   "expectedRestore": "Привет (link: /a text: 世界 (translated)) — café"
 }

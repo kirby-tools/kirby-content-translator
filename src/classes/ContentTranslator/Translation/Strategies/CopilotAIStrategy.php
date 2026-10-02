@@ -19,8 +19,8 @@ use Throwable;
  */
 final readonly class CopilotAIStrategy implements Strategy
 {
-    public const MAX_BATCH_SIZE = 50;
-    public const MAX_BYTES_PER_BATCH = 100_000;
+    private const MAX_BATCH_SIZE = 50;
+    private const MAX_BYTES_PER_BATCH = 100_000;
 
     private const DEFAULT_SYSTEM_PROMPT = <<<'PROMPT'
         You are a professional translator for a Kirby CMS website. Translate faithfully; convey meaning, tone, and style in the target language.

@@ -5,7 +5,6 @@
   "kirbyTagTypes": ["link", "quote"],
   "kirbyTags": {},
   "expectedUnitTexts": ["As she said: <c0/>"],
-  "expectedPlaceholderCount": 1,
   "restoredWith": ["Wie sie sagte: <c0/>"],
   "expectedRestore": "Wie sie sagte: (quote: Less is more)"
 }

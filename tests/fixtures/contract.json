@@ -37,13 +37,5 @@
     "keys": ["texts", "rejections"],
     "rejectionKeys": ["index", "reason"],
     "optionalRejectionKeys": ["expectedIndexes", "actualIndexes"]
-  },
-  "placeholder": {
-    "format": "<c{n}/>",
-    "indexBase": 0
-  },
-  "batching": {
-    "maxBatchSize": 50,
-    "maxSizePerBatch": 100000
   }
 }

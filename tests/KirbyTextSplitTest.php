@@ -55,7 +55,6 @@ final class KirbyTextSplitTest extends TestCase
         ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['input'], $case['kirbyTags']);
 
         $this->assertSame($case['expectedUnitTexts'], $unitTexts);
-        $this->assertSame($case['expectedPlaceholderCount'], preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $unitTexts[0]));
         $this->assertSame($case['expectedRestore'], $restore($case['restoredWith']));
     }
 

@@ -7,7 +7,6 @@
     "link": ["text"]
   },
   "expectedUnitTexts": ["Opening hours (Note: see <c0/>)", "hours"],
-  "expectedPlaceholderCount": 1,
   "restoredWith": ["Öffnungszeiten (Hinweis: siehe <c0/>)", "Zeiten"],
   "expectedRestore": "Öffnungszeiten (Hinweis: siehe (link: /hours text: Zeiten))"
 }

@@ -5,7 +5,6 @@
   "kirbyTagTypes": ["link"],
   "kirbyTags": {},
   "expectedUnitTexts": ["Opening hours (Note: closed on Sundays)"],
-  "expectedPlaceholderCount": 0,
   "restoredWith": ["Öffnungszeiten (Hinweis: sonntags geschlossen)"],
   "expectedRestore": "Öffnungszeiten (Hinweis: sonntags geschlossen)"
 }

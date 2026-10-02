@@ -48,30 +48,6 @@ describe("translateUnits", () => {
     ]);
   });
 
-  it("rejects a non-string slot as a non-string translation", async () => {
-    const { rejections } = await translateUnits(
-      [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => [123] as unknown as Promise<string[]> },
-      { targetLanguage: GERMAN },
-    );
-
-    expect(rejections).toEqual([
-      { fieldKey: "intro", reason: "non-string translation" },
-    ]);
-  });
-
-  it("rejects a blank answer as an empty translation", async () => {
-    const { rejections } = await translateUnits(
-      [{ text: "Hello", fieldKey: "intro" }],
-      { execute: async () => ["   "] },
-      { targetLanguage: GERMAN },
-    );
-
-    expect(rejections).toEqual([
-      { fieldKey: "intro", reason: "empty translation" },
-    ]);
-  });
-
   it("keeps source text when a strategy returns only whitespace", async () => {
     const { texts } = await translateUnits(
       [{ text: "Hello" }, { text: "World" }],

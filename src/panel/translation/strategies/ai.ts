@@ -17,10 +17,10 @@ export interface AIStrategyOptions {
   systemPrompt?: string;
 }
 
-// Pinned by `tests/fixtures/contract.json`. The size unit intentionally
-// differs (UTF-16 code units here, bytes in PHP) – only the values are shared.
-export const MAX_BATCH_SIZE = 50;
-export const MAX_CHARS_PER_BATCH = 100_000;
+// The limits of PHP's `CopilotAIStrategy`, each measured in its language's
+// native string length: UTF-16 code units here, bytes in PHP.
+const MAX_BATCH_SIZE = 50;
+const MAX_CHARS_PER_BATCH = 100_000;
 
 /**
  * Requires the Kirby Copilot plugin, which owns the provider credentials –

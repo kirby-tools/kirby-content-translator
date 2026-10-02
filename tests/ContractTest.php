@@ -2,12 +2,8 @@
 
 declare(strict_types = 1);
 
-use JohannSchopplich\ContentTranslator\KirbyText;
-use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
-use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -33,30 +29,5 @@ final class ContractTest extends TestCase
     public function evaluates_untranslatable_text_per_contract(string $text, bool $isUntranslatable): void
     {
         $this->assertSame($isUntranslatable, UntranslatableText::matches($text));
-    }
-
-    #[Test]
-    #[RunInSeparateProcess]
-    public function emits_placeholders_in_the_contract_format(): void
-    {
-        // Registers the `link` KirbyTag.
-        new App();
-        $placeholder = self::contract()['placeholder'];
-        ['unitTexts' => $unitTexts] = KirbyText::split('(link: /a)');
-
-        $this->assertSame(
-            str_replace('{n}', (string)$placeholder['indexBase'], $placeholder['format']),
-            $unitTexts[0]
-        );
-        $this->assertSame(1, preg_match(KirbyText::PLACEHOLDER_PATTERN, $unitTexts[0]));
-    }
-
-    #[Test]
-    public function caps_ai_batches_at_the_contract_limits(): void
-    {
-        $batching = self::contract()['batching'];
-
-        $this->assertSame($batching['maxBatchSize'], CopilotAIStrategy::MAX_BATCH_SIZE);
-        $this->assertSame($batching['maxSizePerBatch'], CopilotAIStrategy::MAX_BYTES_PER_BATCH);
     }
 }

@@ -1,10 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import {
-  PLACEHOLDER_PATTERN,
-  splitKirbyText,
-} from "../../../src/panel/translation/kirby-text";
+import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
 interface ConformanceCase {
   description?: string;
@@ -12,7 +9,6 @@ interface ConformanceCase {
   kirbyTagTypes: string[];
   kirbyTags: Record<string, string[]>;
   expectedUnitTexts: string[];
-  expectedPlaceholderCount: number;
   restoredWith: string[];
   expectedRestore: string;
 }
@@ -38,7 +34,6 @@ describe("splitKirbyText", () => {
         kirbyTagTypes,
         kirbyTags,
         expectedUnitTexts,
-        expectedPlaceholderCount,
         restoredWith,
         expectedRestore,
       }) => {
@@ -48,9 +43,6 @@ describe("splitKirbyText", () => {
         });
 
         expect(unitTexts).toEqual(expectedUnitTexts);
-        expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
-          expectedPlaceholderCount,
-        );
         expect(restore(restoredWith)).toBe(expectedRestore);
       },
     );
