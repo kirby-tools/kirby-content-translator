@@ -50,7 +50,7 @@ import {
 } from "../translation/result";
 import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterEligibleContent, isEligibleField } from "../utils/filter";
-import { formatPlural } from "../utils/i18n";
+import { formatList, formatPlural } from "../utils/i18n";
 import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
 import {
   describeMissingStrategy,
@@ -324,7 +324,10 @@ export function useContentTranslator() {
       panel.t(
         "johannschopplich.content-translator.notification.batchPartiallyTranslated",
         {
-          languages: languagesWithKeptSource.join(", "),
+          languages: formatList(
+            languagesWithKeptSource,
+            panel.translation.code,
+          ),
         },
       ),
     );

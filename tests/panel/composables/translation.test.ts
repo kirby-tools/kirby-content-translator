@@ -74,6 +74,7 @@ function createPanelStub() {
     ),
     language: { ...SECONDARY_LANGUAGE },
     languages: [DEFAULT_LANGUAGE, SECONDARY_LANGUAGE],
+    translation: { code: "en" },
     view: {
       path: "pages/example",
       title: "Example",
@@ -1666,7 +1667,7 @@ describe("useContentTranslator", () => {
       expect(panel.dialog.open).not.toHaveBeenCalled();
       const notification = lastNotification();
       expect(notification.message).toBe(
-        'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Français (Body), Italiano (Body)"}',
+        'johannschopplich.content-translator.notification.batchPartiallyTranslated {"languages":"Français (Body) and Italiano (Body)"}',
       );
       expect(staysOnScreen(notification)).toBe(true);
       warn.mockRestore();
