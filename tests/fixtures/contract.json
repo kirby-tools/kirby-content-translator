@@ -33,9 +33,19 @@
     { "reason": "empty translation", "sourceText": "Hello", "answer": "  " },
     { "reason": "placeholder mismatch", "sourceText": "Read <c0/>", "answer": "Lies" }
   ],
-  "translateUnitsRouteResponse": {
-    "keys": ["texts", "rejections"],
-    "rejectionKeys": ["index", "reason"],
-    "optionalRejectionKeys": ["expectedIndexes", "actualIndexes"]
+  "translateUnitsRouteCase": {
+    "texts": ["Hello", "Read <c0/> now"],
+    "translations": ["Hallo", "Lies jetzt"],
+    "response": {
+      "texts": ["Hallo", "Read <c0/> now"],
+      "rejections": [
+        {
+          "index": 1,
+          "reason": "placeholder mismatch",
+          "expectedIndexes": [0],
+          "actualIndexes": []
+        }
+      ]
+    }
   }
 }

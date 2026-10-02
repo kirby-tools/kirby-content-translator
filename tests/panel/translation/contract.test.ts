@@ -32,10 +32,18 @@ interface TranslationContract {
     sourceText: string;
     answer: string | number | null;
   }[];
-  translateUnitsRouteResponse: {
-    keys: string[];
-    rejectionKeys: string[];
-    optionalRejectionKeys: string[];
+  translateUnitsRouteCase: {
+    texts: string[];
+    translations: string[];
+    response: {
+      texts: string[];
+      rejections: {
+        index: number;
+        reason: string;
+        expectedIndexes?: number[];
+        actualIndexes?: number[];
+      }[];
+    };
   };
 }
 
@@ -82,53 +90,16 @@ describe("translation contract", () => {
   );
 
   it("reads texts and rejections from the translate-units route", async () => {
-    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] =
-      contract.translateUnitsRouteResponse.rejectionKeys;
-
-    mockApiPost.mockResolvedValueOnce({
-      [textsKey!]: ["Hello", "Welt"],
-      [rejectionsKey!]: [
-        { [indexKey!]: 0, [reasonKey!]: "placeholder mismatch" },
-      ],
-    });
+    const { texts, response } = contract.translateUnitsRouteCase;
+    mockApiPost.mockResolvedValueOnce(response);
 
     const outcomes = await new DeepLStrategy().execute(
-      [
-        { text: "Hello", fieldKey: "title" },
-        { text: "World", fieldKey: "subtitle" },
-      ],
-      { targetLanguage: { code: "de", name: "Deutsch" } },
-    );
-
-    expect(outcomes).toEqual([{ reason: "placeholder mismatch" }, "Welt"]);
-  });
-
-  it("reads the placeholder indexes from the translate-units route", async () => {
-    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] =
-      contract.translateUnitsRouteResponse.rejectionKeys;
-    const [expectedKey, actualKey] =
-      contract.translateUnitsRouteResponse.optionalRejectionKeys;
-
-    mockApiPost.mockResolvedValueOnce({
-      [textsKey!]: ["Read <c0/>"],
-      [rejectionsKey!]: [
-        {
-          [indexKey!]: 0,
-          [reasonKey!]: "placeholder mismatch",
-          [expectedKey!]: [0],
-          [actualKey!]: [],
-        },
-      ],
-    });
-
-    const outcomes = await new DeepLStrategy().execute(
-      [{ text: "Read <c0/>", fieldKey: "body" }],
+      texts.map((text) => ({ text })),
       { targetLanguage: { code: "de", name: "Deutsch" } },
     );
 
     expect(outcomes).toEqual([
+      "Hallo",
       {
         reason: "placeholder mismatch",
         expectedIndexes: [0],
