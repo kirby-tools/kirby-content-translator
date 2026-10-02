@@ -1,12 +1,12 @@
 {
-  "$schema": "./schema.json",
-  "input": "Just some prose, nothing tagged here.",
+  "$schema": "../kirby-text.schema.json",
+  "description": "Text without a KirbyTag is a single translation unit.",
+  "sourceText": "Just some prose, nothing tagged here.",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedUnitTexts": ["Just some prose, nothing tagged here."],
-  "expectedPlaceholderCount": 0,
-  "restoredWith": ["Nur etwas Prosa, nichts getaggt."],
-  "expectedRestore": "Nur etwas Prosa, nichts getaggt."
+  "translatedUnitTexts": ["Nur etwas Prosa, nichts getaggt."],
+  "unitTexts": ["Just some prose, nothing tagged here."],
+  "restoredText": "Nur etwas Prosa, nichts getaggt."
 }

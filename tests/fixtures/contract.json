@@ -1,49 +1,73 @@
 {
   "$schema": "./contract.schema.json",
   "untranslatableCases": [
-    { "text": "", "isUntranslatable": true },
-    { "text": "   ", "isUntranslatable": true },
-    { "text": "\u00a0", "isUntranslatable": true },
-    { "text": "\ufeff", "isUntranslatable": true },
-    { "text": "\u2009", "isUntranslatable": true },
-    { "text": "\u0000", "isUntranslatable": false },
-    { "text": "\u0085", "isUntranslatable": false },
-    { "text": "\u180e", "isUntranslatable": false },
-    { "text": "\u008542\u0085", "isUntranslatable": false },
-    { "text": "\u00a042\u00a0", "isUntranslatable": true },
-    { "text": "42", "isUntranslatable": true },
-    { "text": "-3.14", "isUntranslatable": true },
-    { "text": "+5", "isUntranslatable": true },
-    { "text": ".5", "isUntranslatable": true },
-    { "text": "5.", "isUntranslatable": true },
-    { "text": "1.5e10", "isUntranslatable": true },
-    { "text": "https://example.com/docs?query=1", "isUntranslatable": true },
-    { "text": "http://localhost:3000", "isUntranslatable": true },
-    { "text": "Hello world", "isUntranslatable": false },
-    { "text": "42 apples", "isUntranslatable": false },
-    { "text": "Visit https://example.com today", "isUntranslatable": false },
-    { "text": "<c0/>", "isUntranslatable": true },
-    { "text": "<c0/> <c1/>", "isUntranslatable": true },
-    { "text": "<c0 />", "isUntranslatable": true },
-    { "text": "Text <c0/>", "isUntranslatable": false }
+    { "sourceText": "", "isUntranslatable": true },
+    { "sourceText": "   ", "isUntranslatable": true },
+    { "sourceText": "\u00a0", "isUntranslatable": true },
+    { "sourceText": "\ufeff", "isUntranslatable": true },
+    { "sourceText": "\u2009", "isUntranslatable": true },
+    { "sourceText": "\u0000", "isUntranslatable": false },
+    { "sourceText": "\u0085", "isUntranslatable": false },
+    { "sourceText": "\u180e", "isUntranslatable": false },
+    { "sourceText": "\u008542\u0085", "isUntranslatable": false },
+    { "sourceText": "\u00a042\u00a0", "isUntranslatable": true },
+    { "sourceText": "42", "isUntranslatable": true },
+    { "sourceText": "-3.14", "isUntranslatable": true },
+    { "sourceText": "+5", "isUntranslatable": true },
+    { "sourceText": ".5", "isUntranslatable": true },
+    { "sourceText": "5.", "isUntranslatable": true },
+    { "sourceText": "1.5e10", "isUntranslatable": true },
+    {
+      "sourceText": "https://example.com/docs?query=1",
+      "isUntranslatable": true
+    },
+    { "sourceText": "http://localhost:3000", "isUntranslatable": true },
+    { "sourceText": "Hello world", "isUntranslatable": false },
+    { "sourceText": "42 apples", "isUntranslatable": false },
+    {
+      "sourceText": "Visit https://example.com today",
+      "isUntranslatable": false
+    },
+    { "sourceText": "<c0/>", "isUntranslatable": true },
+    { "sourceText": "<c0/> <c1/>", "isUntranslatable": true },
+    { "sourceText": "<c0 />", "isUntranslatable": true },
+    { "sourceText": "Text <c0/>", "isUntranslatable": false }
   ],
-  "rejectionReasons": [
-    { "reason": "missing translation", "sourceText": "Hello", "answer": null },
-    { "reason": "non-string translation", "sourceText": "Hello", "answer": 42 },
-    { "reason": "empty translation", "sourceText": "Hello", "answer": "  " },
-    { "reason": "placeholder mismatch", "sourceText": "Read <c0/>", "answer": "Lies" }
+  "rejectionCases": [
+    {
+      "sourceText": "Hello",
+      "translation": null,
+      "reason": "missing translation"
+    },
+    {
+      "sourceText": "Hello",
+      "translation": 42,
+      "reason": "non-string translation"
+    },
+    {
+      "sourceText": "Hello",
+      "translation": "  ",
+      "reason": "empty translation"
+    },
+    {
+      "sourceText": "Read <c0/>",
+      "translation": "Lies",
+      "reason": "placeholder mismatch"
+    }
   ],
-  "translateUnitsRouteResponse": {
-    "keys": ["texts", "rejections"],
-    "rejectionKeys": ["index", "reason"],
-    "optionalRejectionKeys": ["expectedIndexes", "actualIndexes"]
-  },
-  "placeholder": {
-    "format": "<c{n}/>",
-    "indexBase": 0
-  },
-  "batching": {
-    "maxBatchSize": 50,
-    "maxSizePerBatch": 100000
+  "translateUnitsRouteCase": {
+    "texts": ["Hello", "Read <c0/> now"],
+    "translations": ["Hallo", "Lies jetzt"],
+    "response": {
+      "texts": ["Hallo", "Read <c0/> now"],
+      "rejections": [
+        {
+          "index": 1,
+          "reason": "placeholder mismatch",
+          "expectedIndexes": [0],
+          "actualIndexes": []
+        }
+      ]
+    }
   }
 }

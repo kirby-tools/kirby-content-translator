@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "A KirbyTag placeholder a translation writes with a space before its slash, such as `<c0 />`, is restored as the KirbyTag.",
+  "sourceText": "Visit (link: /a text: our site)!",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "translatedUnitTexts": ["Besuche <c0 />!", "unsere Seite"],
+  "unitTexts": ["Visit <c0/>!", "our site"],
+  "restoredText": "Besuche (link: /a text: unsere Seite)!"
+}

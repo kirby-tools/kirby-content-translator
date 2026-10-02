@@ -1,13 +1,12 @@
 {
-  "$schema": "./schema.json",
-  "description": "Multibyte prose and attr values survive split and restore – guards against byte-offset slicing.",
-  "input": "Привет (link: /a text: 世界) — café",
+  "$schema": "../kirby-text.schema.json",
+  "description": "Multibyte prose and attribute values survive split and restore unchanged.",
+  "sourceText": "Привет (link: /a text: 世界) — café",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedUnitTexts": ["Привет <c0/> — café", "世界"],
-  "expectedPlaceholderCount": 1,
-  "restoredWith": ["Привет <c0/> — café", "世界 (translated)"],
-  "expectedRestore": "Привет (link: /a text: 世界 (translated)) — café"
+  "translatedUnitTexts": ["Привет <c0/> — café", "世界 (translated)"],
+  "unitTexts": ["Привет <c0/> — café", "世界"],
+  "restoredText": "Привет (link: /a text: 世界 (translated)) — café"
 }

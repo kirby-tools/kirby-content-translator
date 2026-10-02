@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "A translatable KirbyTag value becomes a translation unit before the KirbyTag's translatable attributes, whatever the kirbyTags option's order.",
+  "sourceText": "(callout: Important announcement title: Heads up)",
+  "kirbyTagTypes": ["callout"],
+  "kirbyTags": {
+    "callout": ["title", "value"]
+  },
+  "translatedUnitTexts": ["<c0/>", "Wichtige Mitteilung", "Achtung"],
+  "unitTexts": ["<c0/>", "Important announcement", "Heads up"],
+  "restoredText": "(callout: Wichtige Mitteilung title: Achtung)"
+}

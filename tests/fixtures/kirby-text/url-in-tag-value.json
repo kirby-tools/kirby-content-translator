@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "A URL scheme such as `https:` in a KirbyTag value is no attribute boundary.",
+  "sourceText": "(link: https://example.com text: visit us)",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "translatedUnitTexts": ["<c0/>", "besuche uns"],
+  "unitTexts": ["<c0/>", "visit us"],
+  "restoredText": "(link: https://example.com text: besuche uns)"
+}

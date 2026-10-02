@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "An attribute listed in the kirbyTags option is its own translation unit.",
+  "sourceText": "Visit (link: /a text: our site)!",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {
+    "link": ["text"]
+  },
+  "translatedUnitTexts": ["Besuche <c0/>!", "unsere Seite"],
+  "unitTexts": ["Visit <c0/>!", "our site"],
+  "restoredText": "Besuche (link: /a text: unsere Seite)!"
+}

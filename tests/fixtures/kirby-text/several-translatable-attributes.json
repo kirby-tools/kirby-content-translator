@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "Several translatable attributes of one KirbyTag become translation units in source order, not in the kirbyTags option's order.",
+  "sourceText": "(image: hero.jpg alt: Sunset caption: Mountain view)",
+  "kirbyTagTypes": ["image"],
+  "kirbyTags": {
+    "image": ["caption", "alt"]
+  },
+  "translatedUnitTexts": ["<c0/>", "Sonnenuntergang", "Bergblick"],
+  "unitTexts": ["<c0/>", "Sunset", "Mountain view"],
+  "restoredText": "(image: hero.jpg alt: Sonnenuntergang caption: Bergblick)"
+}

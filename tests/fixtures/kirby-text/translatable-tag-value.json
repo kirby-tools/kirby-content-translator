@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "`value` in the kirbyTags option makes the KirbyTag's value a translation unit.",
+  "sourceText": "(callout: Important announcement)",
+  "kirbyTagTypes": ["callout"],
+  "kirbyTags": {
+    "callout": ["value"]
+  },
+  "translatedUnitTexts": ["<c0/>", "Wichtige Mitteilung"],
+  "unitTexts": ["<c0/>", "Important announcement"],
+  "restoredText": "(callout: Wichtige Mitteilung)"
+}

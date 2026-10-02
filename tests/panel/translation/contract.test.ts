@@ -1,17 +1,13 @@
+import type {
+  CopilotThirdPartyApi,
+  StreamTextSeamResult,
+} from "../../../src/panel/utils/copilot-contract";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Ajv } from "ajv";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { translateUnits } from "../../../src/panel/translation/dispatch";
-import {
-  PLACEHOLDER_PATTERN,
-  splitKirbyText,
-} from "../../../src/panel/translation/kirby-text";
 import { DeepLStrategy } from "../../../src/panel/translation/strategies";
-import {
-  MAX_BATCH_SIZE,
-  MAX_CHARS_PER_BATCH,
-} from "../../../src/panel/translation/strategies/ai";
 import { isUntranslatable } from "../../../src/panel/translation/untranslatable";
 import { REQUIRED_COPILOT_API_VERSION } from "../../../src/panel/utils/copilot-contract";
 
@@ -34,19 +30,25 @@ beforeEach(() => {
 });
 
 interface TranslationContract {
-  untranslatableCases: { text: string; isUntranslatable: boolean }[];
-  rejectionReasons: {
-    reason: string;
+  untranslatableCases: { sourceText: string; isUntranslatable: boolean }[];
+  rejectionCases: {
     sourceText: string;
-    answer: string | number | null;
+    translation: string | number | null;
+    reason: string;
   }[];
-  translateUnitsRouteResponse: {
-    keys: string[];
-    rejectionKeys: string[];
-    optionalRejectionKeys: string[];
+  translateUnitsRouteCase: {
+    texts: string[];
+    translations: string[];
+    response: {
+      texts: string[];
+      rejections: {
+        index: number;
+        reason: string;
+        expectedIndexes?: number[];
+        actualIndexes?: number[];
+      }[];
+    };
   };
-  placeholder: { format: string; indexBase: number };
-  batching: { maxBatchSize: number; maxSizePerBatch: number };
 }
 
 const contract = JSON.parse(
@@ -56,7 +58,6 @@ const contract = JSON.parse(
   ),
 ) as TranslationContract;
 
-// Shared with `ContractTest.php` – a one-sided edit fails here first.
 describe("translation contract", () => {
   it("validates against contract.schema.json", () => {
     const schema = JSON.parse(
@@ -72,74 +73,36 @@ describe("translation contract", () => {
   });
 
   it.each(contract.untranslatableCases)(
-    "evaluates isUntranslatable('$text') as $isUntranslatable",
-    ({ text, isUntranslatable: expected }) => {
-      expect(isUntranslatable(text)).toBe(expected);
+    "evaluates isUntranslatable('$sourceText') as $isUntranslatable",
+    ({ sourceText, isUntranslatable: expected }) => {
+      expect(isUntranslatable(sourceText)).toBe(expected);
     },
   );
 
-  it.each(contract.rejectionReasons)(
+  it.each(contract.rejectionCases)(
     "rejects $sourceText as $reason",
-    async ({ reason, sourceText, answer }) => {
+    async ({ sourceText, translation, reason }) => {
       const { rejections } = await translateUnits(
         [{ text: sourceText, fieldKey: "body" }],
-        { execute: async () => [answer] as unknown as string[] },
+        { execute: async () => [translation] as unknown as string[] },
         { targetLanguage: { code: "de", name: "Deutsch" } },
       );
 
-      expect(rejections).toHaveLength(1);
-      expect(rejections[0]!.reason).toBe(reason);
+      expect(rejections).toMatchObject([{ fieldKey: "body", reason }]);
     },
   );
 
   it("reads texts and rejections from the translate-units route", async () => {
-    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] =
-      contract.translateUnitsRouteResponse.rejectionKeys;
-
-    mockApiPost.mockResolvedValueOnce({
-      [textsKey!]: ["Hello", "Welt"],
-      [rejectionsKey!]: [
-        { [indexKey!]: 0, [reasonKey!]: "placeholder mismatch" },
-      ],
-    });
+    const { texts, response } = contract.translateUnitsRouteCase;
+    mockApiPost.mockResolvedValueOnce(response);
 
     const outcomes = await new DeepLStrategy().execute(
-      [
-        { text: "Hello", fieldKey: "title" },
-        { text: "World", fieldKey: "subtitle" },
-      ],
-      { targetLanguage: { code: "de", name: "Deutsch" } },
-    );
-
-    expect(outcomes).toEqual([{ reason: "placeholder mismatch" }, "Welt"]);
-  });
-
-  it("reads the placeholder indexes from the translate-units route", async () => {
-    const [textsKey, rejectionsKey] = contract.translateUnitsRouteResponse.keys;
-    const [indexKey, reasonKey] =
-      contract.translateUnitsRouteResponse.rejectionKeys;
-    const [expectedKey, actualKey] =
-      contract.translateUnitsRouteResponse.optionalRejectionKeys;
-
-    mockApiPost.mockResolvedValueOnce({
-      [textsKey!]: ["Read <c0/>"],
-      [rejectionsKey!]: [
-        {
-          [indexKey!]: 0,
-          [reasonKey!]: "placeholder mismatch",
-          [expectedKey!]: [0],
-          [actualKey!]: [],
-        },
-      ],
-    });
-
-    const outcomes = await new DeepLStrategy().execute(
-      [{ text: "Read <c0/>", fieldKey: "body" }],
+      texts.map((text) => ({ text })),
       { targetLanguage: { code: "de", name: "Deutsch" } },
     );
 
     expect(outcomes).toEqual([
+      "Hallo",
       {
         reason: "placeholder mismatch",
         expectedIndexes: [0],
@@ -147,35 +110,35 @@ describe("translation contract", () => {
       },
     ]);
   });
-
-  it("emits placeholders in the contract format", () => {
-    const { placeholder } = contract;
-    const { unitTexts } = splitKirbyText("(link: /a)", {
-      types: ["link"],
-      attributes: {},
-    });
-
-    expect(unitTexts[0]).toBe(
-      placeholder.format.replace("{n}", String(placeholder.indexBase)),
-    );
-    expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN)).toHaveLength(1);
-  });
-
-  it("caps AI batches at the contract limits", () => {
-    expect(MAX_BATCH_SIZE).toBe(contract.batching.maxBatchSize);
-    expect(MAX_CHARS_PER_BATCH).toBe(contract.batching.maxSizePerBatch);
-  });
 });
 
 describe("copilot seam contract", () => {
-  it("requires the seam version pinned in the shared fixture", () => {
-    const seamContract = JSON.parse(
-      readFileSync(
-        join(import.meta.dirname, "../../fixtures/copilot-seam-contract.json"),
-        "utf8",
-      ),
-    ) as { apiVersion: number };
+  const seamContract = JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, "../../fixtures/copilot-seam-contract.json"),
+      "utf8",
+    ),
+  ) as { apiVersion: number; methods: string[]; streamTextResult: string[] };
 
+  it("requires the seam version pinned in the shared fixture", () => {
     expect(REQUIRED_COPILOT_API_VERSION).toBe(seamContract.apiVersion);
+  });
+
+  it("consumes only methods and streamText result keys the shared fixture lists", () => {
+    // Typed as records so a key added to either seam type fails to compile here.
+    const consumedMethods: Record<
+      Exclude<keyof CopilotThirdPartyApi, "apiVersion">,
+      true
+    > = { resolvePluginContext: true, streamText: true };
+    const consumedResultKeys: Record<keyof StreamTextSeamResult, true> = {
+      output: true,
+    };
+
+    expect(seamContract.methods).toEqual(
+      expect.arrayContaining(Object.keys(consumedMethods)),
+    );
+    expect(seamContract.streamTextResult).toEqual(
+      expect.arrayContaining(Object.keys(consumedResultKeys)),
+    );
   });
 });

@@ -1003,12 +1003,12 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     /**
-     * @return iterable<string, array{string, string, string|int|null}>
+     * @return iterable<string, array{string, string|int|null, string}>
      */
-    public static function rejectionReasons(): iterable
+    public static function rejectionCases(): iterable
     {
-        foreach (self::contract()['rejectionReasons'] as $case) {
-            yield $case['reason'] => [$case['reason'], $case['sourceText'], $case['answer']];
+        foreach (self::contract()['rejectionCases'] as $case) {
+            yield $case['reason'] => [$case['sourceText'], $case['translation'], $case['reason']];
         }
     }
 
@@ -1016,19 +1016,19 @@ final class TranslatorTest extends ApiRouteTestCase
      * Shared with `contract.test.ts` – a one-sided rename fails here first.
      */
     #[Test]
-    #[DataProvider('rejectionReasons')]
-    public function names_a_rejection_per_contract_vocabulary(string $reason, string $sourceText, string|int|null $answer): void
+    #[DataProvider('rejectionCases')]
+    public function translate_batch_names_the_rejection_reason(string $sourceText, string|int|null $translation, string $reason): void
     {
         $this->appWithTranslateFn();
 
-        $result = Translator::translateBatch([$sourceText], 'de', null, new class ($answer) implements Strategy {
-            public function __construct(private string|int|null $answer)
+        $result = Translator::translateBatch([$sourceText], 'de', null, new class ($translation) implements Strategy {
+            public function __construct(private string|int|null $translation)
             {
             }
 
             public function execute(array $units, ExecutionOptions $options): array
             {
-                return [$this->answer];
+                return [$this->translation];
             }
         });
 

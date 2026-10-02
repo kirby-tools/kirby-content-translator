@@ -32,11 +32,7 @@ final class KirbyTextSplitTest extends TestCase
     public static function conformanceCases(): iterable
     {
         foreach (glob(__DIR__ . '/fixtures/kirby-text/*.json') as $path) {
-            if (basename($path) === 'schema.json') {
-                continue;
-            }
-
-            yield basename($path, '.json') => [json_decode(file_get_contents($path), true)];
+            yield basename($path, '.json') => [json_decode(file_get_contents($path), associative: true, flags: JSON_THROW_ON_ERROR)];
         }
     }
 
@@ -47,20 +43,32 @@ final class KirbyTextSplitTest extends TestCase
      */
     #[Test]
     #[DataProvider('conformanceCases')]
-    public function conforms_to_shared_corpus(array $case): void
+    public function splits_and_restores(array $case): void
     {
         KirbyTag::$types = array_fill_keys($case['kirbyTagTypes'], []);
         KirbyTag::$aliases = [];
 
-        ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['input'], $case['kirbyTags']);
+        ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['sourceText'], $case['kirbyTags']);
 
-        $this->assertSame($case['expectedUnitTexts'], $unitTexts);
-        $this->assertSame($case['expectedPlaceholderCount'], preg_match_all(KirbyText::PLACEHOLDER_PATTERN, $unitTexts[0]));
-        $this->assertSame($case['expectedRestore'], $restore($case['restoredWith']));
+        $this->assertSame($case['unitTexts'], $unitTexts);
+        $this->assertSame($case['restoredText'], $restore($case['translatedUnitTexts']));
     }
 
+    /**
+     * @return iterable<string, array{list<string>, string}>
+     */
+    public static function mismatchedTranslationCounts(): iterable
+    {
+        yield 'fewer' => [['<c0/>'], 'Expected 2 translations, got 1'];
+        yield 'more' => [['<c0/>', 'Seite', 'extra'], 'Expected 2 translations, got 3'];
+    }
+
+    /**
+     * @param list<string> $translatedUnitTexts
+     */
     #[Test]
-    public function restore_throws_when_the_translation_count_does_not_match_the_unit_texts(): void
+    #[DataProvider('mismatchedTranslationCounts')]
+    public function restore_throws_when_the_translation_count_does_not_match_the_unit_texts(array $translatedUnitTexts, string $expectedMessage): void
     {
         $text = '(link: /a text: site)';
         ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($text, ['link' => ['text']]);
@@ -68,8 +76,8 @@ final class KirbyTextSplitTest extends TestCase
         $this->assertCount(2, $unitTexts);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Expected 2 translations, got 1');
+        $this->expectExceptionMessage($expectedMessage);
 
-        $restore([$unitTexts[0]]);
+        $restore($translatedUnitTexts);
     }
 }

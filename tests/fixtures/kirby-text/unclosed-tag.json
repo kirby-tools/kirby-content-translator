@@ -1,13 +1,12 @@
 {
-  "$schema": "./schema.json",
-  "description": "An unbalanced tag is prose, not structure – it stays in the prose and is translated as is.",
-  "input": "Visit (link: /a text: incomplete",
+  "$schema": "../kirby-text.schema.json",
+  "description": "An unclosed KirbyTag stays prose and is translated with it.",
+  "sourceText": "Visit (link: /a text: incomplete",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedUnitTexts": ["Visit (link: /a text: incomplete"],
-  "expectedPlaceholderCount": 0,
-  "restoredWith": ["Besuche (link: /a text: unvollständig"],
-  "expectedRestore": "Besuche (link: /a text: unvollständig"
+  "translatedUnitTexts": ["Besuche (link: /a text: unvollständig"],
+  "unitTexts": ["Visit (link: /a text: incomplete"],
+  "restoredText": "Besuche (link: /a text: unvollständig"
 }

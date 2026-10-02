@@ -1,13 +1,12 @@
 {
-  "$schema": "./schema.json",
-  "description": "A registered KirbyTag inside a parenthetical is split, the parenthetical around it stays prose.",
-  "input": "Opening hours (Note: see (link: /hours text: hours))",
+  "$schema": "../kirby-text.schema.json",
+  "description": "A KirbyTag inside a parenthetical is split out; the parenthetical stays prose.",
+  "sourceText": "Opening hours (Note: see (link: /hours text: hours))",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedUnitTexts": ["Opening hours (Note: see <c0/>)", "hours"],
-  "expectedPlaceholderCount": 1,
-  "restoredWith": ["Öffnungszeiten (Hinweis: siehe <c0/>)", "Zeiten"],
-  "expectedRestore": "Öffnungszeiten (Hinweis: siehe (link: /hours text: Zeiten))"
+  "translatedUnitTexts": ["Öffnungszeiten (Hinweis: siehe <c0/>)", "Zeiten"],
+  "unitTexts": ["Opening hours (Note: see <c0/>)", "hours"],
+  "restoredText": "Öffnungszeiten (Hinweis: siehe (link: /hours text: Zeiten))"
 }

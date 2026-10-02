@@ -1,60 +1,70 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { Ajv } from "ajv";
 import { describe, expect, it } from "vitest";
-import {
-  PLACEHOLDER_PATTERN,
-  splitKirbyText,
-} from "../../../src/panel/translation/kirby-text";
+import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
 interface ConformanceCase {
-  description?: string;
-  input: string;
+  description: string;
+  sourceText: string;
   kirbyTagTypes: string[];
   kirbyTags: Record<string, string[]>;
-  expectedUnitTexts: string[];
-  expectedPlaceholderCount: number;
-  restoredWith: string[];
-  expectedRestore: string;
+  translatedUnitTexts: string[];
+  unitTexts: string[];
+  restoredText: string;
 }
 
 const FIXTURES_DIR = join(import.meta.dirname, "../../fixtures/kirby-text");
 
 const conformanceCases = readdirSync(FIXTURES_DIR)
-  .filter((file) => file.endsWith(".json") && file !== "schema.json")
+  .filter((file) => file.endsWith(".json"))
   .map((file) => ({
     name: file.replace(/\.json$/, ""),
-    ...(JSON.parse(
+    conformanceCase: JSON.parse(
       readFileSync(join(FIXTURES_DIR, file), "utf8"),
-    ) as ConformanceCase),
+    ) as ConformanceCase,
   }));
+
+const validateConformanceCase = new Ajv().compile(
+  JSON.parse(
+    readFileSync(
+      join(import.meta.dirname, "../../fixtures/kirby-text.schema.json"),
+      "utf8",
+    ),
+  ),
+);
+
+it.each(conformanceCases)(
+  "$name validates against kirby-text.schema.json",
+  ({ conformanceCase }) => {
+    validateConformanceCase(conformanceCase);
+    expect(validateConformanceCase.errors).toBeNull();
+  },
+);
 
 describe("splitKirbyText", () => {
   // Shared with `KirbyTextSplitTest.php` – drift fails here first.
-  describe("conformance corpus", () => {
-    it.each(conformanceCases)(
-      "splits and restores $name",
-      ({
-        input,
+  it.each(conformanceCases)(
+    "splits and restores $name",
+    ({
+      conformanceCase: {
+        sourceText,
         kirbyTagTypes,
         kirbyTags,
-        expectedUnitTexts,
-        expectedPlaceholderCount,
-        restoredWith,
-        expectedRestore,
-      }) => {
-        const { unitTexts, restore } = splitKirbyText(input, {
-          types: kirbyTagTypes,
-          attributes: kirbyTags,
-        });
-
-        expect(unitTexts).toEqual(expectedUnitTexts);
-        expect(unitTexts[0]!.match(PLACEHOLDER_PATTERN) ?? []).toHaveLength(
-          expectedPlaceholderCount,
-        );
-        expect(restore(restoredWith)).toBe(expectedRestore);
+        translatedUnitTexts,
+        unitTexts,
+        restoredText,
       },
-    );
-  });
+    }) => {
+      const split = splitKirbyText(sourceText, {
+        types: kirbyTagTypes,
+        attributes: kirbyTags,
+      });
+
+      expect(split.unitTexts).toEqual(unitTexts);
+      expect(split.restore(translatedUnitTexts)).toBe(restoredText);
+    },
+  );
 
   describe("restore validation", () => {
     it.each([

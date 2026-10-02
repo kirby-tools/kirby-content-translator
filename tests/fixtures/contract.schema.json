@@ -1,14 +1,12 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "TS/PHP translation pipeline contract",
-  "description": "Values both pipelines must agree on: the untranslatable-text predicate, the batch route's wire shape, the placeholder scheme, and the AI batching limits. Asserted by contract.test.ts and ContractTest.php so a one-sided edit fails fast.",
+  "description": "Examples both pipelines must agree on: the untranslatable-text predicate, the rejection reasons, and the translate-units route's response. Asserted by contract.test.ts and the PHP tests using ContractFixture, so a one-sided edit fails fast.",
   "type": "object",
   "required": [
     "untranslatableCases",
-    "rejectionReasons",
-    "translateUnitsRouteResponse",
-    "placeholder",
-    "batching"
+    "rejectionCases",
+    "translateUnitsRouteCase"
   ],
   "additionalProperties": false,
   "properties": {
@@ -20,10 +18,10 @@
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["text", "isUntranslatable"],
+        "required": ["sourceText", "isUntranslatable"],
         "additionalProperties": false,
         "properties": {
-          "text": {
+          "sourceText": {
             "type": "string"
           },
           "isUntranslatable": {
@@ -32,72 +30,90 @@
         }
       }
     },
-    "rejectionReasons": {
-      "description": "The reason each check names, and an answer that provokes it. Both tiers run every row.",
+    "rejectionCases": {
+      "description": "A translation that provokes each check, and the reason the check names. Both tiers run every row.",
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["reason", "sourceText", "answer"],
+        "required": ["sourceText", "translation", "reason"],
         "additionalProperties": false,
         "properties": {
-          "reason": { "type": "string" },
-          "sourceText": { "type": "string" },
-          "answer": { "type": ["string", "number", "null"] }
+          "sourceText": {
+            "type": "string"
+          },
+          "translation": {
+            "type": ["string", "number", "null"]
+          },
+          "reason": {
+            "type": "string"
+          }
         }
       }
     },
-    "translateUnitsRouteResponse": {
-      "description": "The keys the translate-units route answers with. PHP writes them, the Panel's DeepLStrategy reads them, and nothing else ties the two literals together.",
+    "translateUnitsRouteCase": {
+      "description": "The texts the translate-units route receives, the translations a strategy returns for them, and the response the route sends. PHP sends the response, the Panel's DeepLStrategy reads it, and nothing else ties the two together.",
       "type": "object",
-      "required": ["keys", "rejectionKeys", "optionalRejectionKeys"],
+      "required": ["texts", "translations", "response"],
       "additionalProperties": false,
       "properties": {
-        "keys": {
+        "texts": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "rejectionKeys": {
+        "translations": {
           "type": "array",
           "minItems": 1,
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "optionalRejectionKeys": {
-          "description": "Keys a rejection carries only when the raising check produced them, currently the placeholder index lists.",
-          "type": "array",
-          "minItems": 1,
-          "items": { "type": "string" }
-        }
-      }
-    },
-    "placeholder": {
-      "type": "object",
-      "required": ["format", "indexBase"],
-      "additionalProperties": false,
-      "properties": {
-        "format": {
-          "type": "string",
-          "pattern": "\\{n\\}"
-        },
-        "indexBase": {
-          "type": "integer",
-          "minimum": 0
-        }
-      }
-    },
-    "batching": {
-      "type": "object",
-      "required": ["maxBatchSize", "maxSizePerBatch"],
-      "additionalProperties": false,
-      "properties": {
-        "maxBatchSize": {
-          "type": "integer",
-          "minimum": 1
-        },
-        "maxSizePerBatch": {
-          "type": "integer",
-          "minimum": 1
+        "response": {
+          "type": "object",
+          "required": ["texts", "rejections"],
+          "additionalProperties": false,
+          "properties": {
+            "texts": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "rejections": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["index", "reason"],
+                "additionalProperties": false,
+                "properties": {
+                  "index": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "expectedIndexes": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "actualIndexes": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
