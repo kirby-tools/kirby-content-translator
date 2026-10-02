@@ -1,4 +1,5 @@
 import type { PanelLanguage } from "kirby-types";
+import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTranslationDialogs } from "../../../src/panel/composables/dialogs";
 import { copilotWith } from "../helpers/mock-copilot";
@@ -6,6 +7,7 @@ import { copilotWith } from "../helpers/mock-copilot";
 // Assigned per test and read lazily by the mocks below.
 let copilot: Record<string, unknown> | undefined;
 let openFieldsDialog: ReturnType<typeof vi.fn>;
+let escapeHTML: Mock<(text: string) => string>;
 
 const LANGUAGES = [
   { code: "en", name: "English", default: true },
@@ -17,11 +19,13 @@ vi.mock("kirbyuse", async () => {
   return {
     ...baseKirbyuseMock(),
     usePanel: () => ({
-      t: (key: string) => key,
+      t: (key: string, data?: Record<string, unknown>) =>
+        data ? `${key} ${JSON.stringify(data)}` : key,
       languages: LANGUAGES,
       plugins: { thirdParty: copilot ? { copilot } : {} },
     }),
     useDialog: () => ({ openFieldsDialog }),
+    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
 
@@ -44,6 +48,7 @@ describe("useTranslationDialogs", () => {
     });
     localStorage.setItem("kirby$content-translator$preferences$provider", "ai");
     openFieldsDialog = vi.fn(async () => ({ strategyName: "deepl" }));
+    escapeHTML = vi.fn((text: string) => text);
     copilot = undefined;
   });
 
@@ -57,7 +62,7 @@ describe("useTranslationDialogs", () => {
     );
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      "johannschopplich.content-translator.dialog.batchHelp 1 page is also translated.",
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"} 1 page is also translated.',
     );
   });
 
@@ -65,7 +70,17 @@ describe("useTranslationDialogs", () => {
     await useTranslationDialogs().openBatchTranslationDialog();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      "johannschopplich.content-translator.dialog.batchHelp",
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"}',
+    );
+  });
+
+  it("openBatchTranslationDialog escapes the name of the default language in the batchHelp", async () => {
+    escapeHTML.mockImplementation((text) => `escaped(${text})`);
+
+    await useTranslationDialogs().openBatchTranslationDialog();
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"escaped(English)"}',
     );
   });
 

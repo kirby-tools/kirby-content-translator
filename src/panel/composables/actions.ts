@@ -1,6 +1,6 @@
 import type { PanelLanguageInfo } from "kirby-types";
 import type { useContentTranslator } from "./translation";
-import { usePanel } from "kirbyuse";
+import { useHelpers, usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "./dialogs";
 
 export function useTranslationActions(
@@ -15,6 +15,7 @@ export function useTranslationActions(
   initialization: Promise<void> = Promise.resolve(),
 ) {
   const panel = usePanel();
+  const helpers = useHelpers();
   const {
     openConfirmableTextDialog,
     openTranslationDialog,
@@ -31,7 +32,9 @@ export function useTranslationActions(
     const text = panel.t(
       "johannschopplich.content-translator.dialog.importConfirmation",
       {
-        language: sourceLanguage?.name ?? defaultLanguage.name,
+        language: helpers.string.escapeHTML(
+          sourceLanguage?.name ?? defaultLanguage.name,
+        ),
       },
     );
 

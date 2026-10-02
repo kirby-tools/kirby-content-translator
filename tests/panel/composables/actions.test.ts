@@ -1,4 +1,5 @@
 import type { PanelLanguageInfo } from "kirby-types";
+import type { Mock } from "vitest";
 import type { useContentTranslator } from "../../../src/panel/composables/translation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
@@ -7,6 +8,7 @@ import { useTranslationActions } from "../../../src/panel/composables/actions";
 // Assigned per test and read lazily by the mocks below.
 let openFieldsDialog: ReturnType<typeof vi.fn>;
 let openTextDialog: ReturnType<typeof vi.fn>;
+let escapeHTML: Mock<(text: string) => string>;
 let panelLanguage: PanelLanguageInfo;
 let panelView: { path: string };
 
@@ -43,6 +45,7 @@ vi.mock("kirbyuse", async () => {
       plugins: { thirdParty: {} },
     }),
     useDialog: () => ({ openFieldsDialog, openTextDialog }),
+    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
 
@@ -72,6 +75,7 @@ describe("useTranslationActions", () => {
     });
     openFieldsDialog = vi.fn(async () => ({ languages: ["de"] }));
     openTextDialog = vi.fn(async () => true);
+    escapeHTML = vi.fn((text: string) => text);
     panelLanguage = FRENCH;
     panelView = { path: "pages/example" };
   });
@@ -224,6 +228,18 @@ describe("useTranslationActions", () => {
 
     expect(openTextDialog).toHaveBeenCalledWith(
       'johannschopplich.content-translator.dialog.importConfirmation {"language":"English"}',
+    );
+  });
+
+  it("handleImport escapes the language name in the importConfirmation", async () => {
+    escapeHTML.mockImplementation((text) => `escaped(${text})`);
+
+    await useTranslationActions(
+      createTranslator({ shouldConfirm: true }),
+    ).handleImport(GERMAN);
+
+    expect(openTextDialog).toHaveBeenCalledWith(
+      'johannschopplich.content-translator.dialog.importConfirmation {"language":"escaped(Deutsch)"}',
     );
   });
 

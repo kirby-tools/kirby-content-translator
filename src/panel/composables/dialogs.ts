@@ -2,7 +2,7 @@ import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
-import { isLocalDev, useDialog, usePanel } from "kirbyuse";
+import { isLocalDev, useDialog, useHelpers, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
 import { getStrategyAvailability } from "../utils/translator-config";
@@ -44,6 +44,7 @@ export interface BatchTranslationDialogResult {
 
 export function useTranslationDialogs() {
   const panel = usePanel();
+  const helpers = useHelpers();
   const { openFieldsDialog, openTextDialog } = useDialog();
 
   const defaultLanguage = panel.languages.find((language) => language.default)!;
@@ -123,7 +124,7 @@ export function useTranslationDialogs() {
           })),
           help: [
             panel.t("johannschopplich.content-translator.dialog.batchHelp", {
-              language: defaultLanguage.name,
+              language: helpers.string.escapeHTML(defaultLanguage.name),
             }),
             cascadeHelp,
           ]
