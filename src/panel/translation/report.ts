@@ -1,6 +1,6 @@
 import type { BatchModel, BatchOutcome } from "./batch";
 import type { TranslationRejection } from "./types";
-import { formatPlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 
 type Translate = (key: string, data?: Record<string, unknown>) => string;
 
@@ -44,11 +44,10 @@ export function listKeptSourceFields(
 
   const remainingCount = uniqueLabels.length - MAX_NAMED_FIELDS;
 
-  return formatPlural(
-    t("johannschopplich.content-translator.notification.andMore", {
-      fields: namedLabels,
-      count: remainingCount,
-    }),
+  return translatePlural(
+    t,
+    "johannschopplich.content-translator.notification.andMore",
+    { fields: namedLabels, count: remainingCount },
     remainingCount,
   );
 }

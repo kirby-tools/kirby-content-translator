@@ -5,7 +5,7 @@ import {
   TOGGLE_INJECTION_KEY,
   useTranslationTree,
 } from "../../composables/tree";
-import { formatPlural } from "../../utils/i18n";
+import { translatePlural } from "../../utils/i18n";
 import TranslationRing from "../Shared/TranslationRing.vue";
 import TranslationTree from "../Shared/TranslationTree.vue";
 
@@ -24,11 +24,10 @@ const stats = computed(() =>
     label: lang.name,
     info:
       lang.incompletePageCount > 0
-        ? formatPlural(
-            panel.t(
-              "johannschopplich.content-translator.coverage.pagesIncomplete",
-              { count: lang.incompletePageCount },
-            ),
+        ? translatePlural(
+            panel.t,
+            "johannschopplich.content-translator.coverage.pagesIncomplete",
+            { count: lang.incompletePageCount },
             lang.incompletePageCount,
           )
         : panel.t("johannschopplich.content-translator.coverage.allTranslated"),

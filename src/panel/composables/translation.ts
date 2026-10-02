@@ -50,7 +50,7 @@ import {
 } from "../translation/result";
 import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterEligibleContent, isEligibleField } from "../utils/filter";
-import { formatList, formatPlural } from "../utils/i18n";
+import { formatList, translatePlural } from "../utils/i18n";
 import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
 import {
   describeMissingStrategy,
@@ -268,18 +268,17 @@ export function useContentTranslator() {
     }
 
     notifyPartialTranslation(
-      formatPlural(
-        panel.t(
-          "johannschopplich.content-translator.notification.partiallyTranslated",
-          {
-            untranslated: untranslatedCount,
-            total: result.translatableCount,
-            fields: listKeptSourceFields(result.rejections, {
-              fields: fields.value,
-              t: panel.t,
-            }),
-          },
-        ),
+      translatePlural(
+        panel.t,
+        "johannschopplich.content-translator.notification.partiallyTranslated",
+        {
+          untranslated: untranslatedCount,
+          total: result.translatableCount,
+          fields: listKeptSourceFields(result.rejections, {
+            fields: fields.value,
+            t: panel.t,
+          }),
+        },
         untranslatedCount,
       ),
     );
@@ -810,11 +809,13 @@ export function useContentTranslator() {
     panel.dialog.open({
       component: "k-error-dialog",
       props: {
-        message: formatPlural(
-          panel.t(messageKey, {
+        message: translatePlural(
+          panel.t,
+          messageKey,
+          {
             saved: outcomes.filter(({ status }) => status === "saved").length,
             total: outcomes.length,
-          }),
+          },
           outcomes.length,
         ),
         details: describeBatchOutcomes(outcomes, { labelOutcome, t: panel.t }),
@@ -886,10 +887,10 @@ export function useContentTranslator() {
 
     if (cascade.length === 0) return;
 
-    return formatPlural(
-      panel.t("johannschopplich.content-translator.dialog.cascadeHelp", {
-        models: describeCascadeModels(cascade.map((model) => model.path)),
-      }),
+    return translatePlural(
+      panel.t,
+      "johannschopplich.content-translator.dialog.cascadeHelp",
+      { models: describeCascadeModels(cascade.map((model) => model.path)) },
       cascade.length,
     );
   }
@@ -907,10 +908,10 @@ export function useContentTranslator() {
     ]
       .filter(([, count]) => count > 0)
       .map(([key, count]) =>
-        formatPlural(
-          panel.t(`johannschopplich.content-translator.cascade.${key}`, {
-            count,
-          }),
+        translatePlural(
+          panel.t,
+          `johannschopplich.content-translator.cascade.${key}`,
+          { count },
           count,
         ),
       );
