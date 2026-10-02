@@ -54,8 +54,21 @@ final class KirbyTextSplitTest extends TestCase
         $this->assertSame($case['restoredText'], $restore($case['translatedUnitTexts']));
     }
 
+    /**
+     * @return iterable<string, array{list<string>, string}>
+     */
+    public static function mismatchedTranslationCounts(): iterable
+    {
+        yield 'fewer' => [['<c0/>'], 'Expected 2 translations, got 1'];
+        yield 'more' => [['<c0/>', 'Seite', 'extra'], 'Expected 2 translations, got 3'];
+    }
+
+    /**
+     * @param list<string> $translatedUnitTexts
+     */
     #[Test]
-    public function restore_throws_when_the_translation_count_does_not_match_the_unit_texts(): void
+    #[DataProvider('mismatchedTranslationCounts')]
+    public function restore_throws_when_the_translation_count_does_not_match_the_unit_texts(array $translatedUnitTexts, string $expectedMessage): void
     {
         $text = '(link: /a text: site)';
         ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($text, ['link' => ['text']]);
@@ -63,8 +76,8 @@ final class KirbyTextSplitTest extends TestCase
         $this->assertCount(2, $unitTexts);
 
         $this->expectException(LogicException::class);
-        $this->expectExceptionMessage('Expected 2 translations, got 1');
+        $this->expectExceptionMessage($expectedMessage);
 
-        $restore([$unitTexts[0]]);
+        $restore($translatedUnitTexts);
     }
 }
