@@ -1,0 +1,10 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "A KirbyTag without a kirbyTags entry stays whole; only the prose around it is a translation unit.",
+  "sourceText": "Hello (link: /a text: world)!",
+  "kirbyTagTypes": ["link"],
+  "kirbyTags": {},
+  "translatedUnitTexts": ["Hallo <c0/>!"],
+  "unitTexts": ["Hello <c0/>!"],
+  "restoredText": "Hallo (link: /a text: world)!"
+}

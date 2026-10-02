@@ -26,11 +26,11 @@ beforeEach(() => {
 });
 
 interface TranslationContract {
-  untranslatableCases: { text: string; isUntranslatable: boolean }[];
-  rejectionReasons: {
-    reason: string;
+  untranslatableCases: { sourceText: string; isUntranslatable: boolean }[];
+  rejectionCases: {
     sourceText: string;
-    answer: string | number | null;
+    translation: string | number | null;
+    reason: string;
   }[];
   translateUnitsRouteCase: {
     texts: string[];
@@ -54,7 +54,6 @@ const contract = JSON.parse(
   ),
 ) as TranslationContract;
 
-// Shared with `ContractTest.php` – a one-sided edit fails here first.
 describe("translation contract", () => {
   it("validates against contract.schema.json", () => {
     const schema = JSON.parse(
@@ -70,18 +69,18 @@ describe("translation contract", () => {
   });
 
   it.each(contract.untranslatableCases)(
-    "evaluates isUntranslatable('$text') as $isUntranslatable",
-    ({ text, isUntranslatable: expected }) => {
-      expect(isUntranslatable(text)).toBe(expected);
+    "evaluates isUntranslatable('$sourceText') as $isUntranslatable",
+    ({ sourceText, isUntranslatable: expected }) => {
+      expect(isUntranslatable(sourceText)).toBe(expected);
     },
   );
 
-  it.each(contract.rejectionReasons)(
+  it.each(contract.rejectionCases)(
     "rejects $sourceText as $reason",
-    async ({ reason, sourceText, answer }) => {
+    async ({ sourceText, translation, reason }) => {
       const { rejections } = await translateUnits(
         [{ text: sourceText, fieldKey: "body" }],
-        { execute: async () => [answer] as unknown as string[] },
+        { execute: async () => [translation] as unknown as string[] },
         { targetLanguage: { code: "de", name: "Deutsch" } },
       );
 

@@ -1,12 +1,12 @@
 {
   "$schema": "../kirby-text.schema.json",
-  "description": "Parentheses inside an attribute value must not terminate the tag span.",
-  "input": "(link: /a text: our (awesome) site)",
+  "description": "Parentheses inside an attribute value stay part of the KirbyTag.",
+  "sourceText": "(link: /a text: our (awesome) site)",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {
     "link": ["text"]
   },
-  "expectedUnitTexts": ["<c0/>", "our (awesome) site"],
-  "restoredWith": ["<c0/>", "unsere (großartige) Seite"],
-  "expectedRestore": "(link: /a text: unsere (großartige) Seite)"
+  "translatedUnitTexts": ["<c0/>", "unsere (großartige) Seite"],
+  "unitTexts": ["<c0/>", "our (awesome) site"],
+  "restoredText": "(link: /a text: unsere (großartige) Seite)"
 }

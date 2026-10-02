@@ -5,13 +5,13 @@ import { describe, expect, it } from "vitest";
 import { splitKirbyText } from "../../../src/panel/translation/kirby-text";
 
 interface ConformanceCase {
-  description?: string;
-  input: string;
+  description: string;
+  sourceText: string;
   kirbyTagTypes: string[];
   kirbyTags: Record<string, string[]>;
-  expectedUnitTexts: string[];
-  restoredWith: string[];
-  expectedRestore: string;
+  translatedUnitTexts: string[];
+  unitTexts: string[];
+  restoredText: string;
 }
 
 const FIXTURES_DIR = join(import.meta.dirname, "../../fixtures/kirby-text");
@@ -44,29 +44,27 @@ it.each(conformanceCases)(
 
 describe("splitKirbyText", () => {
   // Shared with `KirbyTextSplitTest.php` – drift fails here first.
-  describe("conformance corpus", () => {
-    it.each(conformanceCases)(
-      "splits and restores $name",
-      ({
-        conformanceCase: {
-          input,
-          kirbyTagTypes,
-          kirbyTags,
-          expectedUnitTexts,
-          restoredWith,
-          expectedRestore,
-        },
-      }) => {
-        const { unitTexts, restore } = splitKirbyText(input, {
-          types: kirbyTagTypes,
-          attributes: kirbyTags,
-        });
-
-        expect(unitTexts).toEqual(expectedUnitTexts);
-        expect(restore(restoredWith)).toBe(expectedRestore);
+  it.each(conformanceCases)(
+    "splits and restores $name",
+    ({
+      conformanceCase: {
+        sourceText,
+        kirbyTagTypes,
+        kirbyTags,
+        translatedUnitTexts,
+        unitTexts,
+        restoredText,
       },
-    );
-  });
+    }) => {
+      const split = splitKirbyText(sourceText, {
+        types: kirbyTagTypes,
+        attributes: kirbyTags,
+      });
+
+      expect(split.unitTexts).toEqual(unitTexts);
+      expect(split.restore(translatedUnitTexts)).toBe(restoredText);
+    },
+  );
 
   describe("restore validation", () => {
     it.each([

@@ -1,10 +1,10 @@
 {
   "$schema": "../kirby-text.schema.json",
-  "description": "A label in parentheses whose type is no registered KirbyTag is prose, so it is translated.",
-  "input": "Opening hours (Note: closed on Sundays)",
+  "description": "A parenthetical whose type is no registered KirbyTag stays prose.",
+  "sourceText": "Opening hours (Note: closed on Sundays)",
   "kirbyTagTypes": ["link"],
   "kirbyTags": {},
-  "expectedUnitTexts": ["Opening hours (Note: closed on Sundays)"],
-  "restoredWith": ["Öffnungszeiten (Hinweis: sonntags geschlossen)"],
-  "expectedRestore": "Öffnungszeiten (Hinweis: sonntags geschlossen)"
+  "translatedUnitTexts": ["Öffnungszeiten (Hinweis: sonntags geschlossen)"],
+  "unitTexts": ["Opening hours (Note: closed on Sundays)"],
+  "restoredText": "Öffnungszeiten (Hinweis: sonntags geschlossen)"
 }

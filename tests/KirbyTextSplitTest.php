@@ -43,15 +43,15 @@ final class KirbyTextSplitTest extends TestCase
      */
     #[Test]
     #[DataProvider('conformanceCases')]
-    public function conforms_to_shared_corpus(array $case): void
+    public function splits_and_restores(array $case): void
     {
         KirbyTag::$types = array_fill_keys($case['kirbyTagTypes'], []);
         KirbyTag::$aliases = [];
 
-        ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['input'], $case['kirbyTags']);
+        ['unitTexts' => $unitTexts, 'restore' => $restore] = KirbyText::split($case['sourceText'], $case['kirbyTags']);
 
-        $this->assertSame($case['expectedUnitTexts'], $unitTexts);
-        $this->assertSame($case['expectedRestore'], $restore($case['restoredWith']));
+        $this->assertSame($case['unitTexts'], $unitTexts);
+        $this->assertSame($case['restoredText'], $restore($case['translatedUnitTexts']));
     }
 
     #[Test]

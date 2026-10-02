@@ -20,14 +20,14 @@ final class ContractTest extends TestCase
     public static function untranslatableCases(): iterable
     {
         foreach (self::contract()['untranslatableCases'] as $case) {
-            yield var_export($case['text'], true) => [$case['text'], $case['isUntranslatable']];
+            yield var_export($case['sourceText'], true) => [$case['sourceText'], $case['isUntranslatable']];
         }
     }
 
     #[Test]
     #[DataProvider('untranslatableCases')]
-    public function evaluates_untranslatable_text_per_contract(string $text, bool $isUntranslatable): void
+    public function evaluates_untranslatable_text(string $sourceText, bool $isUntranslatable): void
     {
-        $this->assertSame($isUntranslatable, UntranslatableText::matches($text));
+        $this->assertSame($isUntranslatable, UntranslatableText::matches($sourceText));
     }
 }

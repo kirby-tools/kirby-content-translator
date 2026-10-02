@@ -1,0 +1,12 @@
+{
+  "$schema": "../kirby-text.schema.json",
+  "description": "An attribute missing from the kirbyTags option keeps its value on restore.",
+  "sourceText": "(image: hero.jpg alt: Sunset caption: Mountain view)",
+  "kirbyTagTypes": ["image"],
+  "kirbyTags": {
+    "image": ["alt"]
+  },
+  "translatedUnitTexts": ["<c0/>", "Sonnenuntergang"],
+  "unitTexts": ["<c0/>", "Sunset"],
+  "restoredText": "(image: hero.jpg alt: Sonnenuntergang caption: Mountain view)"
+}
