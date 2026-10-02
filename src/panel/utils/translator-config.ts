@@ -1,6 +1,5 @@
 import type { PluginConfig, TranslatorOptions } from "../types";
 import type { CopilotReadiness } from "./copilot";
-import { DEFAULT_FIELD_TYPES } from "../constants";
 
 /**
  * Translator configuration resolved from section/view button props and the
@@ -40,9 +39,7 @@ export function resolveTranslatorConfig(
     isTitleTranslationEnabled: toBool(options.title ?? config.title, false),
     isSlugTranslationEnabled: toBool(options.slug ?? config.slug, false),
     shouldConfirm: toBool(options.confirm ?? config.confirm, false),
-    fieldTypes: toLowercaseNames(
-      options.fieldTypes ?? config.fieldTypes ?? [...DEFAULT_FIELD_TYPES],
-    ),
+    fieldTypes: toLowercaseNames(options.fieldTypes ?? config.fieldTypes),
     includeFields: toLowercaseNames(
       options.includeFields ?? config.includeFields ?? [],
     ),
@@ -60,7 +57,7 @@ export function resolveTranslatorConfig(
 }
 
 export function getStrategyAvailability(
-  config: PluginConfig,
+  config: Pick<PluginConfig, "strategy" | "DeepL">,
   copilotReadiness: CopilotReadiness,
 ): StrategyAvailability {
   const isCopilotReady = copilotReadiness === "ready";
@@ -84,7 +81,7 @@ export function getStrategyAvailability(
  * `panel.t`.
  */
 export function describeMissingStrategy(
-  config: PluginConfig,
+  config: Pick<PluginConfig, "strategy" | "DeepL">,
   copilotReadiness: CopilotReadiness,
 ) {
   const copilotHint = {

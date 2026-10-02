@@ -8,6 +8,21 @@ use Kirby\Cms\App;
 
 final readonly class TranslatorConfig
 {
+    public const DEFAULT_FIELD_TYPES = [
+        'blocks',
+        'layout',
+        'list',
+        'object',
+        'structure',
+        'tags',
+        'text',
+        'textarea',
+        'writer',
+        // Community plugins
+        'markdown',
+        'table'
+    ];
+
     /**
      * @param list<string> $fieldTypes
      * @param list<string> $includeFields
@@ -27,20 +42,7 @@ final readonly class TranslatorConfig
         $kirby = App::instance();
 
         return new self(
-            fieldTypes: array_map('strtolower', $options['fieldTypes'] ?? $kirby->option('johannschopplich.content-translator.fieldTypes', [
-                'blocks',
-                'layout',
-                'list',
-                'object',
-                'structure',
-                'tags',
-                'text',
-                'textarea',
-                'writer',
-                // Community plugins
-                'markdown',
-                'table'
-            ])),
+            fieldTypes: array_map('strtolower', $options['fieldTypes'] ?? $kirby->option('johannschopplich.content-translator.fieldTypes', self::DEFAULT_FIELD_TYPES)),
             includeFields: array_map('strtolower', $options['includeFields'] ?? $kirby->option('johannschopplich.content-translator.includeFields', [])),
             excludeFields: array_map('strtolower', $options['excludeFields'] ?? $kirby->option('johannschopplich.content-translator.excludeFields', [])),
             kirbyTags: array_change_key_case(

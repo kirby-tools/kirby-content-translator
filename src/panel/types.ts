@@ -14,7 +14,7 @@ export interface PluginConfig {
   title?: boolean;
   slug?: boolean;
   confirm?: boolean;
-  fieldTypes?: string[];
+  fieldTypes: string[];
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;

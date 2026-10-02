@@ -27,11 +27,7 @@ final class CollectorTest extends TestCase
     private static function defaultConfig(array $overrides = []): TranslatorConfig
     {
         return new TranslatorConfig(
-            fieldTypes: $overrides['fieldTypes'] ?? [
-                'text', 'textarea', 'writer', 'list', 'tags',
-                'blocks', 'layout', 'structure', 'object',
-                'markdown', 'table',
-            ],
+            fieldTypes: $overrides['fieldTypes'] ?? TranslatorConfig::DEFAULT_FIELD_TYPES,
             includeFields: $overrides['includeFields'] ?? [],
             excludeFields: $overrides['excludeFields'] ?? [],
             kirbyTags: $overrides['kirbyTags'] ?? [],

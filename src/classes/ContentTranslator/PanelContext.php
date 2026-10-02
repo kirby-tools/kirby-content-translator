@@ -13,9 +13,9 @@ final class PanelContext
     /**
      * An allowlist, because the namespace also holds closures and `Strategy`
      * instances with whatever properties their author gave them. Not the whole
-     * payload: `config()` adds `strategy` and `ai` below.
+     * payload: `config()` adds the server-resolved values below.
      */
-    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'fieldTypes', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
+    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
 
     /**
      * Builds the plugin configuration the Panel receives.
@@ -37,6 +37,7 @@ final class PanelContext
             ];
         }
 
+        $panelConfig['fieldTypes'] = TranslatorConfig::fromOptions()->fieldTypes;
         $panelConfig['strategy'] = Translator::resolveStrategyName();
 
         if (class_exists(CopilotClient::class)) {

@@ -10,19 +10,4 @@ export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 
 export const STRATEGY_NAMES = ["deepl", "ai"] as const;
 
-export const DEFAULT_FIELD_TYPES = [
-  "blocks",
-  "layout",
-  "list",
-  "object",
-  "structure",
-  "tags",
-  "text",
-  "textarea",
-  "writer",
-  // Community plugins
-  "markdown",
-  "table",
-] as const;
-
 export const DEFAULT_BATCH_TRANSLATION_CONCURRENCY = 2;

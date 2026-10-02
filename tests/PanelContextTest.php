@@ -78,6 +78,20 @@ final class PanelContextTest extends ApiRouteTestCase
     }
 
     #[Test]
+    public function lowercases_the_configured_fieldTypes(): void
+    {
+        self::bootApp([
+            'options' => [
+                'johannschopplich.content-translator' => [
+                    'fieldTypes' => ['Text', 'Markdown'],
+                ],
+            ],
+        ]);
+
+        $this->assertSame(['text', 'markdown'], PanelContext::config()['fieldTypes']);
+    }
+
+    #[Test]
     public function carries_the_ai_system_prompt_the_strategy_would_use(): void
     {
         if (!class_exists(CopilotClient::class)) {

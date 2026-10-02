@@ -100,7 +100,11 @@ function createPanelStub() {
 
 function createPluginContext(config: Partial<PluginConfig> = {}) {
   return {
-    config: { DeepL: { apiKey: "test-api-key" }, ...config },
+    config: {
+      DeepL: { apiKey: "test-api-key" },
+      fieldTypes: ["blocks", "text", "textarea"],
+      ...config,
+    },
     kirbyTagTypes: ["link"],
     homePageId: "home",
     errorPageId: "error",

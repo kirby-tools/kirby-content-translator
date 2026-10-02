@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_FIELD_TYPES } from "../../../src/panel/constants";
 import {
   describeMissingStrategy,
   getStrategyAvailability,
@@ -7,19 +6,20 @@ import {
 } from "../../../src/panel/utils/translator-config";
 
 describe("resolveTranslatorConfig", () => {
-  it("prefers options over config over defaults", () => {
+  const config = { fieldTypes: ["text"] };
+
+  it("prefers options over config", () => {
     const resolvedConfig = resolveTranslatorConfig(
-      { title: true, importFrom: "en", fieldTypes: ["text"] },
+      { ...config, title: true, importFrom: "en" },
       { title: false, importFrom: "de" },
     );
 
     expect(resolvedConfig.isTitleTranslationEnabled).toBe(false);
     expect(resolvedConfig.importFrom).toBe("de");
-    expect(resolvedConfig.fieldTypes).toEqual(["text"]);
   });
 
-  it("falls back to defaults when neither options nor config are set", () => {
-    const resolvedConfig = resolveTranslatorConfig({}, {});
+  it("falls back to defaults for unset options", () => {
+    const resolvedConfig = resolveTranslatorConfig(config, {});
 
     expect(resolvedConfig.isImportEnabled).toBe(true);
     expect(resolvedConfig.isBatchTranslationEnabled).toBe(true);
@@ -27,7 +27,6 @@ describe("resolveTranslatorConfig", () => {
     expect(resolvedConfig.isSlugTranslationEnabled).toBe(false);
     expect(resolvedConfig.shouldConfirm).toBe(false);
     expect(resolvedConfig.importFrom).toBeUndefined();
-    expect(resolvedConfig.fieldTypes).toEqual([...DEFAULT_FIELD_TYPES]);
     expect(resolvedConfig.includeFields).toEqual([]);
     expect(resolvedConfig.excludeFields).toEqual([]);
     expect(resolvedConfig.kirbyTags).toEqual({});
@@ -36,25 +35,34 @@ describe("resolveTranslatorConfig", () => {
 
   it("coerces loose boolean values from blueprint YAML", () => {
     expect(
-      resolveTranslatorConfig({}, { title: "true" }).isTitleTranslationEnabled,
+      resolveTranslatorConfig(config, { title: "true" })
+        .isTitleTranslationEnabled,
     ).toBe(true);
     expect(
-      resolveTranslatorConfig({}, { title: "1" }).isTitleTranslationEnabled,
+      resolveTranslatorConfig(config, { title: "1" }).isTitleTranslationEnabled,
     ).toBe(true);
     expect(
-      resolveTranslatorConfig({}, { title: 1 }).isTitleTranslationEnabled,
+      resolveTranslatorConfig(config, { title: 1 }).isTitleTranslationEnabled,
     ).toBe(true);
     expect(
-      resolveTranslatorConfig({}, { title: "false" }).isTitleTranslationEnabled,
+      resolveTranslatorConfig(config, { title: "false" })
+        .isTitleTranslationEnabled,
     ).toBe(false);
     expect(
-      resolveTranslatorConfig({}, { title: 0 }).isTitleTranslationEnabled,
+      resolveTranslatorConfig(config, { title: 0 }).isTitleTranslationEnabled,
     ).toBe(false);
+  });
+
+  it("lowercases the fieldTypes a blueprint sets", () => {
+    expect(
+      resolveTranslatorConfig(config, { fieldTypes: ["Markdown"] }).fieldTypes,
+    ).toEqual(["markdown"]);
   });
 
   it("lowercases the tag types of kirbyTags", () => {
     expect(
-      resolveTranslatorConfig({}, { kirbyTags: { Link: ["text"] } }).kirbyTags,
+      resolveTranslatorConfig(config, { kirbyTags: { Link: ["text"] } })
+        .kirbyTags,
     ).toEqual({ link: ["text"] });
   });
 });
