@@ -50,14 +50,6 @@ export interface SingleTranslationFacts
   hasViewTitle: boolean;
 }
 
-export interface SingleTranslationPlan {
-  /** Whether the executor translates the view title at all. */
-  shouldRequestTitleTranslation: boolean;
-  shouldPatchTitle: boolean;
-  /** The slug is derived from the translated title. */
-  shouldPatchSlug: boolean;
-}
-
 export interface BatchLanguageFacts extends ModelFacts, TitleSlugConfigFacts {
   /**
    * Default-language slugs are never patched (folder rename, issue #5) –
@@ -67,8 +59,8 @@ export interface BatchLanguageFacts extends ModelFacts, TitleSlugConfigFacts {
   isTargetLanguageDefault: boolean;
 }
 
-export interface BatchLanguagePlan {
-  /** Whether the executor translates the default language's title at all. */
+export interface TitleSlugPlan {
+  /** Whether the executor translates the title at all. */
   shouldRequestTitleTranslation: boolean;
   shouldPatchTitle: boolean;
   /** The slug is derived from the translated title. */
@@ -85,7 +77,7 @@ export function planImport(facts: ImportFacts): ImportPlan {
 
 export function planSingleTranslation(
   facts: SingleTranslationFacts,
-): SingleTranslationPlan {
+): TitleSlugPlan {
   const isTitlePatchEligible = isTitleEligible(facts) && facts.hasViewTitle;
   const isSlugPatchEligible =
     isSlugEligibleModel(facts) &&
@@ -101,7 +93,7 @@ export function planSingleTranslation(
 
 export function planBatchLanguageTranslation(
   facts: BatchLanguageFacts,
-): BatchLanguagePlan {
+): TitleSlugPlan {
   const isTitlePatchEligible = isTitleEligible(facts);
   const isSlugPatchEligible =
     isSlugEligibleModel(facts) && !facts.isTargetLanguageDefault;
