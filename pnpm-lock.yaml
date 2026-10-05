@@ -57,8 +57,8 @@ importers:
         specifier: ^66.10.0
         version: 66.10.0(@devframes/hub@0.9.12(crossws@0.4.12(srvx@1.0.3))(devframe@0.9.12(cac@7.0.0)(srvx@1.0.3)))(cac@7.0.0)(crossws@0.4.12(srvx@1.0.3))(rollup@4.63.1)(srvx@1.0.3)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0))
       utilful:
-        specifier: ^3.3.0
-        version: 3.3.0(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0)))
+        specifier: ^3.5.1
+        version: 3.5.1(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0)))
       vite:
         specifier: ~6.3.7
         version: 6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0)
@@ -2884,8 +2884,8 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
-  utilful@3.3.0:
-    resolution: {integrity: sha512-nSe+2vcQSNogCA2CXQqZ4QAWwDJmXrxc1EEbSjqgCcmV42WVwHT5SJUDdoTuWEQWbUb+NT2po1hEX029rDxiKA==}
+  utilful@3.5.1:
+    resolution: {integrity: sha512-Jt8fPaeFzu+7KHpxwu074csRsJhZ2f//aNFC1Almp0vLSpEXYUc06+CYFxEpv+WENvANxuqA/70FGGCBxtcBXQ==}
     peerDependencies:
       vitest: '>=4'
     peerDependenciesMeta:
@@ -6172,7 +6172,7 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
-  utilful@3.3.0(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0))):
+  utilful@3.5.1(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0))):
     optionalDependencies:
       vitest: 4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0))
 

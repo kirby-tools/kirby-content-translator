@@ -33,7 +33,7 @@
     "prettier": "^3.9.6",
     "typescript": "^6.0.3",
     "unocss": "^66.10.0",
-    "utilful": "^3.3.0",
+    "utilful": "^3.5.1",
     "vite": "~6.3.7",
     "vitest": "^4.1.11",
     "vue": "^2.7.16",
