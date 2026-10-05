@@ -1,6 +1,6 @@
 minimumReleaseAgeExcludePrune: true
 minimumReleaseAgeExclude:
-  - kirby-types@1.6.2
+  - kirby-types@1.7.0
   - kirbyuse@1.4.1
 
 trustPolicy: no-downgrade
