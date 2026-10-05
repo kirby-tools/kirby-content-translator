@@ -353,7 +353,7 @@ export function useContentTranslator() {
   ) {
     if (!(await hasResolvedBlueprint(path))) return;
 
-    let title: string;
+    let title: string | undefined;
     let content: Record<string, unknown>;
 
     if (sourceLanguage) {

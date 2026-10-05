@@ -185,7 +185,7 @@ export async function runBatchTranslation(
 
     if (plan.shouldRequestTitleTranslation) {
       const translatedTitle = await translateTitle(
-        model.defaultLanguageData.title,
+        model.defaultLanguageData.title!,
         { strategy, targetLanguage, sourceLanguage, modelPath: model.path },
       );
       languageResults.push(translatedTitle.result);
