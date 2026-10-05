@@ -50,7 +50,11 @@ import {
 import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterEligibleContent, isEligibleField } from "../utils/filter";
 import { formatList, formatPlural } from "../utils/i18n";
-import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
+import {
+  isFileModelPath,
+  isSiteModelPath,
+  isUserModelPath,
+} from "../utils/model-path";
 import {
   describeMissingStrategy,
   getStrategyAvailability,
@@ -384,6 +388,7 @@ export function useContentTranslator() {
       isErrorPage: await isErrorPage(path),
       isFileModel: isFileModelPath(path),
       isSiteModel: isSiteModelPath(path),
+      isUserModel: isUserModelPath(path),
       isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
       isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
       isCurrentLanguageDefault: targetLanguage.default === true,
@@ -515,6 +520,7 @@ export function useContentTranslator() {
         isErrorPage: await isErrorPage(path),
         isFileModel: isFileModelPath(path),
         isSiteModel: isSiteModelPath(path),
+        isUserModel: isUserModelPath(path),
         isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
         isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,

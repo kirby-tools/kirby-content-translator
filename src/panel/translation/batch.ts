@@ -11,7 +11,11 @@ import type {
 } from "./types";
 import pAll from "p-all";
 import { filterEligibleContent } from "../utils/filter";
-import { isFileModelPath, isSiteModelPath } from "../utils/model-path";
+import {
+  isFileModelPath,
+  isSiteModelPath,
+  isUserModelPath,
+} from "../utils/model-path";
 import { translateContent } from "./index";
 import { planBatchLanguageTranslation } from "./plan";
 import { mergeTranslationResults, reportRejections } from "./result";
@@ -175,6 +179,7 @@ export async function runBatchTranslation(
       isErrorPage: model.isErrorPage,
       isFileModel: isFileModelPath(model.path),
       isSiteModel: isSiteModelPath(model.path),
+      isUserModel: isUserModelPath(model.path),
       isTitleTranslationEnabled: settings.isTitleTranslationEnabled,
       isSlugTranslationEnabled: settings.isSlugTranslationEnabled,
       isTargetLanguageDefault: targetLanguage.default === true,

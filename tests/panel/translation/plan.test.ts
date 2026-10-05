@@ -11,6 +11,7 @@ const TRANSLATABLE_MODEL: ModelFacts = {
   isErrorPage: false,
   isFileModel: false,
   isSiteModel: false,
+  isUserModel: false,
 };
 
 describe("planImport", () => {
@@ -43,6 +44,7 @@ describe("planImport", () => {
     ["isErrorPage", true],
     ["isFileModel", false],
     ["isSiteModel", true],
+    ["isUserModel", false],
   ] as const)("blocks the slug when %s", (modelFact, shouldStillPatchTitle) => {
     const plan = planImport({
       ...TRANSLATABLE_MODEL,
@@ -86,6 +88,21 @@ describe("planSingleTranslation", () => {
     expect(plan.shouldPatchSlug).toBe(false);
   });
 
+  it("skips title and slug for a user model", () => {
+    const plan = planSingleTranslation({
+      ...TRANSLATABLE_MODEL,
+      isUserModel: true,
+      isTitleTranslationEnabled: true,
+      isSlugTranslationEnabled: true,
+      isTargetLanguageDefault: false,
+      hasViewTitle: true,
+    });
+
+    expect(plan.shouldRequestTitleTranslation).toBe(false);
+    expect(plan.shouldPatchTitle).toBe(false);
+    expect(plan.shouldPatchSlug).toBe(false);
+  });
+
   it("blocks the slug for the default target language", () => {
     const plan = planSingleTranslation({
       ...TRANSLATABLE_MODEL,
@@ -112,6 +129,20 @@ describe("planBatchLanguageTranslation", () => {
     expect(plan.shouldRequestTitleTranslation).toBe(true);
     expect(plan.shouldPatchTitle).toBe(false);
     expect(plan.shouldPatchSlug).toBe(true);
+  });
+
+  it("skips title and slug for a user model", () => {
+    const plan = planBatchLanguageTranslation({
+      ...TRANSLATABLE_MODEL,
+      isUserModel: true,
+      isTitleTranslationEnabled: true,
+      isSlugTranslationEnabled: true,
+      isTargetLanguageDefault: false,
+    });
+
+    expect(plan.shouldRequestTitleTranslation).toBe(false);
+    expect(plan.shouldPatchTitle).toBe(false);
+    expect(plan.shouldPatchSlug).toBe(false);
   });
 
   it("blocks the slug for the default target language even though the dialog filters it", () => {

@@ -14,6 +14,8 @@ export interface ModelFacts {
   isErrorPage: boolean;
   isFileModel: boolean;
   isSiteModel: boolean;
+  /** Users carry a name, not a title or slug. */
+  isUserModel: boolean;
 }
 
 interface TitleSlugConfigFacts {
@@ -106,7 +108,9 @@ export function planBatchLanguageTranslation(
 }
 
 function isTitleEligible(facts: ModelFacts & TitleSlugConfigFacts) {
-  return facts.isTitleTranslationEnabled && !facts.isFileModel;
+  return (
+    facts.isTitleTranslationEnabled && !facts.isFileModel && !facts.isUserModel
+  );
 }
 
 function isSlugEligibleModel(facts: ModelFacts & TitleSlugConfigFacts) {
@@ -115,6 +119,7 @@ function isSlugEligibleModel(facts: ModelFacts & TitleSlugConfigFacts) {
     !facts.isHomePage &&
     !facts.isErrorPage &&
     !facts.isFileModel &&
-    !facts.isSiteModel
+    !facts.isSiteModel &&
+    !facts.isUserModel
   );
 }
