@@ -1,4 +1,4 @@
-import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
@@ -39,7 +39,7 @@ export interface TranslationDialogResult {
 
 export interface BatchTranslationDialogResult {
   strategyName: StrategyName;
-  languages: (PanelLanguageInfo | PanelLanguage)[];
+  languages: PanelLanguageInfo[];
 }
 
 export function useTranslationDialogs() {

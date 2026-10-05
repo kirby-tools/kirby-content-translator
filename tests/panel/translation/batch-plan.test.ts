@@ -1,12 +1,12 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { BatchCandidate } from "../../../src/panel/translation/batch-plan";
 import type { BatchStatusResponse } from "../../../src/panel/types";
 import { describe, expect, it } from "vitest";
 import { planBatchRun } from "../../../src/panel/translation/batch-plan";
 import { field } from "../utils";
 
-const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguage;
-const FRENCH = { code: "fr", name: "Français" } as PanelLanguage;
+const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguageInfo;
+const FRENCH = { code: "fr", name: "Français" } as PanelLanguageInfo;
 
 const HOST_SETTINGS = {
   fieldTypes: ["text"],

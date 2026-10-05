@@ -2,7 +2,6 @@ import type { LicenseStatus } from "@kirby-tools/licensing";
 import type {
   KirbyFieldProps,
   NotificationTheme,
-  PanelLanguage,
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
@@ -349,8 +348,8 @@ export function useContentTranslator() {
    */
   async function importModelContent(
     path: string,
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
+    targetLanguage: PanelLanguageInfo,
+    sourceLanguage?: PanelLanguageInfo,
   ) {
     if (!(await hasResolvedBlueprint(path))) return;
 
@@ -450,8 +449,8 @@ export function useContentTranslator() {
    */
   async function translateModelContent(
     path: string,
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage,
+    targetLanguage: PanelLanguageInfo,
+    sourceLanguage?: PanelLanguageInfo,
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
     if (!(await hasResolvedBlueprint(path))) return;
@@ -647,7 +646,7 @@ export function useContentTranslator() {
    */
   async function batchTranslateModelContent(
     path: string,
-    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
+    selectedLanguages: PanelLanguageInfo[],
   ) {
     if (panel.view.isLoading || isTranslating.value) return;
     if (!(await hasResolvedBlueprint(path))) return;
@@ -752,7 +751,7 @@ export function useContentTranslator() {
   async function translateAndSave(
     hostPath: string,
     host: BatchCandidate | undefined,
-    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[],
+    selectedLanguages: PanelLanguageInfo[],
     {
       strategy,
       onProgress,
@@ -830,7 +829,7 @@ export function useContentTranslator() {
    */
   async function translateCascade(
     hostPath: string,
-    targetLanguage: PanelLanguageInfo | PanelLanguage,
+    targetLanguage: PanelLanguageInfo,
     strategy: TranslationStrategy,
   ) {
     if (!hasCascade.value || targetLanguage.default) return [];

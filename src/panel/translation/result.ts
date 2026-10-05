@@ -1,9 +1,9 @@
-import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { ContentTranslationResult } from "./types";
 
 export function reportRejections(
   result: ContentTranslationResult,
-  targetLanguage: PanelLanguageInfo | PanelLanguage,
+  targetLanguage: PanelLanguageInfo,
   modelPath?: string,
 ) {
   const modelSuffix = modelPath === undefined ? "" : ` of "${modelPath}"`;

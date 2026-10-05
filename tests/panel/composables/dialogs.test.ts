@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { Mock } from "vitest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useTranslationDialogs } from "../../../src/panel/composables/dialogs";
@@ -12,7 +12,7 @@ let escapeHTML: Mock<(text: string) => string>;
 const LANGUAGES = [
   { code: "en", name: "English", default: true },
   { code: "fr", name: "Français", default: false },
-] as PanelLanguage[];
+] as PanelLanguageInfo[];
 
 vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");

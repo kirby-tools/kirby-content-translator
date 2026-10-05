@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { Mock } from "vitest";
 import type {
   BatchStatusResponse,
@@ -49,23 +49,23 @@ vi.mock("kirbyuse", async () => {
   };
 });
 
-const DEFAULT_LANGUAGE: PanelLanguage = {
+const DEFAULT_LANGUAGE: PanelLanguageInfo = {
   code: "en",
   name: "English",
   default: true,
-} as PanelLanguage;
+} as PanelLanguageInfo;
 
-const SECONDARY_LANGUAGE: PanelLanguage = {
+const SECONDARY_LANGUAGE: PanelLanguageInfo = {
   code: "fr",
   name: "Français",
   default: false,
-} as PanelLanguage;
+} as PanelLanguageInfo;
 
-const THIRD_LANGUAGE: PanelLanguage = {
+const THIRD_LANGUAGE: PanelLanguageInfo = {
   code: "it",
   name: "Italiano",
   default: false,
-} as PanelLanguage;
+} as PanelLanguageInfo;
 
 function createPanelStub() {
   return {

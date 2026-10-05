@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { BatchOutcome } from "../../../src/panel/translation/batch";
 import { describe, expect, it } from "vitest";
 import { describeBatchOutcomes } from "../../../src/panel/translation/report";
@@ -13,7 +13,7 @@ describe("describeBatchOutcomes", () => {
       model: {
         fields: { text: field({ type: "text", name: "text", label: "Text" }) },
       },
-      language: { code: "de", name: "Deutsch" } as PanelLanguage,
+      language: { code: "de", name: "Deutsch" } as PanelLanguageInfo,
       status: "saved",
       result: {
         rejections: [

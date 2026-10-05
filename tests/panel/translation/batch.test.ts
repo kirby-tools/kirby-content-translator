@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type {
   BatchModel,
   BatchTarget,
@@ -19,9 +19,13 @@ vi.mock("kirbyuse", async () => {
   return baseKirbyuseMock();
 });
 
-const ENGLISH = { code: "en", name: "English", default: true } as PanelLanguage;
-const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguage;
-const FRENCH = { code: "fr", name: "Français" } as PanelLanguage;
+const ENGLISH = {
+  code: "en",
+  name: "English",
+  default: true,
+} as PanelLanguageInfo;
+const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguageInfo;
+const FRENCH = { code: "fr", name: "Français" } as PanelLanguageInfo;
 
 const suffixStrategy: TranslationStrategy = {
   execute: async (units, { targetLanguage }) =>

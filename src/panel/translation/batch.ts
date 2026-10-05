@@ -1,6 +1,5 @@
 import type {
   KirbyFieldProps,
-  PanelLanguage,
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
@@ -33,7 +32,7 @@ export interface BatchModel {
 }
 
 export interface BatchTarget {
-  language: PanelLanguageInfo | PanelLanguage;
+  language: PanelLanguageInfo;
   heldBackOutcome?: HeldBackOutcome;
 }
 
@@ -56,7 +55,7 @@ export interface BatchModelSettings {
 
 export type BatchOutcome = {
   model: BatchModel;
-  language: PanelLanguageInfo | PanelLanguage;
+  language: PanelLanguageInfo;
 } & (
   | HeldBackOutcome
   | { status: "failed"; message: string }
@@ -84,7 +83,7 @@ export async function runBatchTranslation(
     write,
     onProgress,
   }: {
-    sourceLanguage: PanelLanguageInfo | PanelLanguage;
+    sourceLanguage: PanelLanguageInfo;
     strategy: TranslationStrategy;
     concurrency: number;
     write: (request: BatchWriteRequest) => Promise<BatchWriteResponse>;

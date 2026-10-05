@@ -1,4 +1,4 @@
-import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { BatchStatusResponse } from "../types";
 import type { BatchModel, BatchModelSettings, HeldBackOutcome } from "./batch";
 
@@ -22,7 +22,7 @@ export function planBatchRun(
     settings,
     globalFieldLists,
   }: {
-    selectedLanguages: (PanelLanguageInfo | PanelLanguage)[];
+    selectedLanguages: PanelLanguageInfo[];
     defaultLanguageCode: string;
     settings: BatchModelSettings;
     /**

@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DeepLStrategy } from "../../../src/panel/translation/strategies";
 import { translateText } from "../../../src/panel/translation/text";
@@ -13,7 +13,7 @@ vi.mock("kirbyuse", async () => {
   };
 });
 
-const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguage;
+const GERMAN = { code: "de", name: "Deutsch" } as PanelLanguageInfo;
 
 describe("translateText", () => {
   beforeEach(() => {

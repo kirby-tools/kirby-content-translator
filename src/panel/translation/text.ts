@@ -1,4 +1,4 @@
-import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { ContentTranslationResult, TranslationStrategy } from "./types";
 import { translateUnits } from "./dispatch";
 import { reportRejections } from "./result";
@@ -19,8 +19,8 @@ export async function translateText(
     fieldKey,
   }: {
     strategy: TranslationStrategy;
-    targetLanguage: PanelLanguageInfo | PanelLanguage;
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+    targetLanguage: PanelLanguageInfo;
+    sourceLanguage?: PanelLanguageInfo;
     /** Names the text in a rejection, since there is no field to name it. */
     fieldKey: string;
   },
@@ -52,8 +52,8 @@ export async function translateTitle(
     modelPath,
   }: {
     strategy: TranslationStrategy;
-    targetLanguage: PanelLanguageInfo | PanelLanguage;
-    sourceLanguage?: PanelLanguageInfo | PanelLanguage;
+    targetLanguage: PanelLanguageInfo;
+    sourceLanguage?: PanelLanguageInfo;
     /** Path of the model, named in the warning for a rejected title next to the field. */
     modelPath?: string;
   },

@@ -27,8 +27,11 @@ export function useTranslationActions(
 
   async function handleImport(sourceLanguage?: PanelLanguageInfo) {
     const { path } = panel.view;
-    // Kirby switches the language by mutating `panel.language` in place.
-    const targetLanguage = { ...panel.language };
+    // Kirby switches the language by mutating `panel.language` in place, never
+    // its `panel.languages` entry.
+    const targetLanguage = panel.languages.find(
+      (language) => language.code === panel.language.code,
+    )!;
     const text = panel.t(
       "johannschopplich.content-translator.dialog.importConfirmation",
       {
@@ -46,8 +49,11 @@ export function useTranslationActions(
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
     const { path } = panel.view;
-    // Kirby switches the language by mutating `panel.language` in place.
-    const targetLanguage = { ...panel.language };
+    // Kirby switches the language by mutating `panel.language` in place, never
+    // its `panel.languages` entry.
+    const targetLanguage = panel.languages.find(
+      (language) => language.code === panel.language.code,
+    )!;
     await initialization;
     // A translation into the default language has no cascade.
     const result = await openTranslationDialog(
