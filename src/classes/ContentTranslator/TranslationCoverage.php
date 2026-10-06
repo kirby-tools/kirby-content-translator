@@ -49,7 +49,7 @@ final class TranslationCoverage
 
         return [
             'languages' => $treeIndex['languages'],
-            'tree' => $this->treeChildren(null, $treeIndex),
+            'tree' => $this->treeChildren(null, $this->listableIndex($treeIndex)),
         ];
     }
 
@@ -61,9 +61,9 @@ final class TranslationCoverage
      *
      * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendantCount: int, missingLanguages: array<int, array{code: string, name: string}>}>
      */
-    public function treeChildren(string|null $parentId, array|null $treeIndex = null): array
+    public function treeChildren(string|null $parentId, array|null $listableIndex = null): array
     {
-        $treeIndex ??= $this->treeIndex();
+        $listableIndex ??= $this->listableIndex($this->treeIndex());
 
         $children = $parentId === null
             ? $this->kirby->site()->children()
@@ -78,7 +78,7 @@ final class TranslationCoverage
         foreach ($children as $child) {
             $childId = $child->id();
 
-            if (!isset($treeIndex['visibleIds'][$childId])) {
+            if (!isset($listableIndex['visibleIds'][$childId])) {
                 continue;
             }
 
@@ -87,9 +87,9 @@ final class TranslationCoverage
                 'label' => $child->title()->value(),
                 'icon' => $child->blueprint()->icon(),
                 'link' => $child->panel()->url(true),
-                'hasChildren' => $this->hasVisibleChildren($child, $treeIndex),
-                'incompleteDescendantCount' => $treeIndex['descendantCounts'][$childId] ?? 0,
-                'missingLanguages' => $treeIndex['incompleteIds'][$childId]['missingLanguages'] ?? [],
+                'hasChildren' => $this->hasVisibleChildren($child, $listableIndex),
+                'incompleteDescendantCount' => $listableIndex['descendantCounts'][$childId] ?? 0,
+                'missingLanguages' => $listableIndex['incompleteIds'][$childId]['missingLanguages'] ?? [],
             ];
         }
 
@@ -200,43 +200,66 @@ final class TranslationCoverage
                         : 100;
                 }
 
-                $ancestorIds = [];
-                $descendantCounts = [];
-
-                foreach (array_keys($incompleteIds) as $id) {
-                    $parts = explode('/', $id);
-                    $path = '';
-
-                    for ($i = 0, $count = count($parts) - 1; $i < $count; $i++) {
-                        $path = $path === '' ? $parts[$i] : $path . '/' . $parts[$i];
-                        $ancestorIds[$path] = true;
-                        $descendantCounts[$path] = ($descendantCounts[$path] ?? 0) + 1;
-                    }
-                }
-
-                // Ancestors stay visible so the pruned tree keeps a path down to
-                // every incomplete page.
-                $visibleIds = $ancestorIds;
-
-                foreach (array_keys($incompleteIds) as $id) {
-                    $visibleIds[$id] = true;
-                }
-
                 return [
                     'languages' => array_values($languages),
                     'incompleteIds' => $incompleteIds,
-                    'visibleIds' => $visibleIds,
-                    'descendantCounts' => $descendantCounts,
                 ];
             },
             self::TREE_INDEX_TTL_MINUTES,
         );
     }
 
-    private function hasVisibleChildren(Page $page, array $treeIndex): bool
+    /**
+     * Narrows the tree index, which is cached across users, to the incomplete
+     * pages the current user may list and the ancestors leading to them. A page
+     * counts only when it and every ancestor are listable, like in the Panel's
+     * page tree.
+     *
+     * @return array{incompleteIds: array<string, array{missingLanguages: array<int, array{code: string, name: string}>}>, visibleIds: array<string, true>, descendantCounts: array<string, int>}
+     */
+    private function listableIndex(array $treeIndex): array
+    {
+        $isListableById = [];
+        $incompleteIds = [];
+        $visibleIds = [];
+        $descendantCounts = [];
+
+        foreach ($treeIndex['incompleteIds'] as $id => $entry) {
+            $pathIds = [];
+            $path = '';
+
+            foreach (explode('/', $id) as $part) {
+                $path = $path === '' ? $part : $path . '/' . $part;
+                $isListableById[$path] ??= $this->kirby->page($path)?->isListable() === true;
+
+                if (!$isListableById[$path]) {
+                    continue 2;
+                }
+
+                $pathIds[] = $path;
+            }
+
+            $incompleteIds[$id] = $entry;
+            $visibleIds[$id] = true;
+            array_pop($pathIds);
+
+            foreach ($pathIds as $ancestorId) {
+                $visibleIds[$ancestorId] = true;
+                $descendantCounts[$ancestorId] = ($descendantCounts[$ancestorId] ?? 0) + 1;
+            }
+        }
+
+        return [
+            'incompleteIds' => $incompleteIds,
+            'visibleIds' => $visibleIds,
+            'descendantCounts' => $descendantCounts,
+        ];
+    }
+
+    private function hasVisibleChildren(Page $page, array $listableIndex): bool
     {
         foreach ($page->children() as $child) {
-            if (isset($treeIndex['visibleIds'][$child->id()])) {
+            if (isset($listableIndex['visibleIds'][$child->id()])) {
                 return true;
             }
         }

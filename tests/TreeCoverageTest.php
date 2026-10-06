@@ -101,4 +101,80 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
         $this->assertSame(1, $tree[0]['incompleteDescendantCount']);
         $this->assertSame([], $tree[0]['missingLanguages']);
     }
+
+    #[Test]
+    public function hides_pages_the_user_may_not_list(): void
+    {
+        $app = self::bootApp([
+            'languages' => self::twoLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+                'pages/secret' => [
+                    'options' => ['list' => false],
+                    'fields' => ['text' => ['type' => 'text', 'translate' => true]],
+                ],
+            ],
+            'roles' => [
+                ['name' => 'editor'],
+            ],
+            'users' => [
+                ['email' => 'editor@example.com', 'role' => 'editor'],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'parent',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hi']],
+                            ['code' => 'de', 'content' => ['text' => 'hallo']],
+                        ],
+                        'children' => [
+                            [
+                                'slug' => 'secret-child',
+                                'template' => 'secret',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['text' => 'hi']],
+                                ],
+                            ],
+                        ],
+                    ],
+                    [
+                        'slug' => 'public',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hi']],
+                        ],
+                    ],
+                    [
+                        'slug' => 'secret',
+                        'template' => 'secret',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['text' => 'hi']],
+                        ],
+                        'children' => [
+                            [
+                                'slug' => 'public-child',
+                                'template' => 'default',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['text' => 'hi']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $coverage = new TranslationCoverage($app->site()->index());
+
+        // Another user fills the cache the editor reads.
+        $app->impersonate('kirby');
+        $coverage->treeCoverage();
+        $app->impersonate('editor@example.com');
+
+        $this->assertSame(['public'], array_column($coverage->treeCoverage()['tree'], 'id'));
+        $this->assertSame([], $coverage->treeChildren('parent'));
+    }
 }
