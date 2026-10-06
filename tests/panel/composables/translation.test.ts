@@ -78,6 +78,7 @@ function createPanelStub() {
     view: {
       path: "pages/example",
       title: "Example",
+      props: { title: "Example" } as Record<string, unknown>,
       isLoading: false,
       reload: vi.fn(),
     },
@@ -413,6 +414,24 @@ describe("useContentTranslator", () => {
       expect(panel.api.post).toHaveBeenCalledWith(
         "__content-translator__/translate-units",
         expect.objectContaining({ texts: ["Visit <c0/>"] }),
+      );
+    });
+
+    it("translates the site's title, not its blueprint's", async () => {
+      panel.view.path = "site";
+      panel.view.title = "Playground";
+      panel.view.props = { title: "Kirby Tools" };
+      const translator = await createContentTranslator({
+        title: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent("site", SECONDARY_LANGUAGE);
+
+      expect(panel.api.patch).toHaveBeenCalledWith(
+        "site/title",
+        { title: "Kirby Tools (translated)" },
+        { headers: { "x-language": "fr" } },
       );
     });
 
@@ -1152,7 +1171,6 @@ describe("useContentTranslator", () => {
         async (_route: string, payload: { texts: string[] }) => {
           if (++call === 2) {
             panel.view.path = "pages/other";
-            panel.view.title = "Other";
           }
           return { texts: payload.texts.map((text) => `${text} (translated)`) };
         },

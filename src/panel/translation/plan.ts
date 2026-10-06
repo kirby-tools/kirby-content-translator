@@ -48,7 +48,6 @@ export interface SingleTranslationFacts
    * @see https://github.com/kirby-tools/kirby-content-translator/issues/5
    */
   isTargetLanguageDefault: boolean;
-  /** `panel.view.title` is nullable – no title means nothing to translate. */
   hasViewTitle: boolean;
 }
 

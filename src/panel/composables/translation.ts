@@ -347,7 +347,8 @@ export function useContentTranslator() {
       return;
     }
 
-    const { title } = panel.view;
+    // On the site view, `panel.view.title` can be the blueprint's title.
+    const title: string | undefined = panel.view.props.title || undefined;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
@@ -540,7 +541,9 @@ export function useContentTranslator() {
       return;
     }
 
-    const { title } = panel.view;
+    // On the site view, `panel.view.title` can be the blueprint's title.
+    const title: string | undefined =
+      panel.view.props.title || panel.view.title;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
