@@ -12,8 +12,8 @@ importers:
         specifier: ^9.5.1
         version: 9.5.1(@typescript-eslint/typescript-estree@8.69.0(typescript@6.0.3))(@typescript-eslint/utils@8.69.0(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3))(@unocss/eslint-plugin@66.10.0(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3))(@vue/compiler-sfc@3.5.42)(eslint@10.10.0(jiti@2.7.0))(typescript@6.0.3)(vitest@4.1.11(@types/node@26.4.1)(vite@6.3.7(@types/node@26.4.1)(jiti@2.7.0)(sass@1.104.0)(yaml@2.9.0)))
       '@kirby-tools/licensing':
-        specifier: ^0.8.0
-        version: 0.8.0(kirbyuse@1.4.1)
+        specifier: ^0.9.0
+        version: 0.9.0(kirbyuse@1.4.1)
       '@types/node':
         specifier: ^26.4.1
         version: 26.4.1
@@ -640,8 +640,8 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@kirby-tools/licensing@0.8.0':
-    resolution: {integrity: sha512-mHplmSQV9gkL8+4jWQFebyPlUYKj5q6af7k1Af3Xe0LXh+7eHW0y5pWW1rp4w1HIOuH9eO2NWEl6wWwMuW+Dog==}
+  '@kirby-tools/licensing@0.9.0':
+    resolution: {integrity: sha512-P+Z0JINLBMWTpRfJyMC9OFDsycYJxq8xfQbT/tWWDhrjnMEdf8o1N8qKAGpj2JGAEv7jkbFXkVPXvCdLC9ZAYA==}
     peerDependencies:
       kirbyuse: '*'
 
@@ -3648,7 +3648,7 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kirby-tools/licensing@0.8.0(kirbyuse@1.4.1)':
+  '@kirby-tools/licensing@0.9.0(kirbyuse@1.4.1)':
     dependencies:
       kirbyuse: 1.4.1
       vue: 2.7.16

@@ -3,6 +3,7 @@ minimumReleaseAgeExclude:
   - kirby-types@1.7.0
   - kirbyuse@1.4.1
   - utilful@3.5.1
+  - '@kirby-tools/licensing@0.9.0'
 
 trustPolicy: no-downgrade
 trustPolicyExclude:
