@@ -92,6 +92,16 @@ export type BatchWriteResponse =
       slugError?: string;
     };
 
+/** Keyed by language code. */
+export type VariablesResponse = Record<
+  string,
+  {
+    variables: Record<string, unknown>;
+    /** Keys of the default language's variables that Kirby refuses to save in this language. */
+    reservedKeys: string[];
+  }
+>;
+
 /** Translator options from section/view button props. */
 export interface TranslatorOptions {
   label?: string;

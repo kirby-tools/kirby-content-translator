@@ -5,6 +5,7 @@ declare(strict_types = 1);
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\TranslatorConfig;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
@@ -89,6 +90,14 @@ final class PanelContextTest extends ApiRouteTestCase
         ]);
 
         $this->assertSame(['text', 'markdown'], PanelContext::config()['fieldTypes']);
+    }
+
+    #[Test]
+    public function sends_the_default_fieldTypes_without_the_option(): void
+    {
+        self::bootApp();
+
+        $this->assertSame(TranslatorConfig::DEFAULT_FIELD_TYPES, PanelContext::config()['fieldTypes']);
     }
 
     #[Test]

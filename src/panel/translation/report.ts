@@ -1,8 +1,14 @@
 import type { BatchModel, BatchOutcome } from "./batch";
 import type { TranslationRejection } from "./types";
-import { formatPlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 
 type Translate = (key: string, data?: Record<string, unknown>) => string;
+
+/** Names the field or language variable of a unit, given the outcome it belongs to when the caller has one. */
+export type LabelField<Outcome = void> = (
+  fieldKey: string | undefined,
+  outcome: Outcome,
+) => string;
 
 /** How many fields of one language a notice names before it counts the rest. */
 const MAX_NAMED_FIELDS = 3;
@@ -27,41 +33,49 @@ export function shouldReportBatchOutcome(outcome: BatchOutcome) {
 export function listKeptSourceFields(
   rejections: TranslationRejection[],
   {
-    fields,
+    labelField,
     t,
   }: {
-    fields: BatchModel["fields"] | undefined;
+    labelField: LabelField;
     t: Translate;
   },
 ) {
   const uniqueLabels = [
-    ...new Set(
-      rejections.map(({ fieldKey }) => fieldLabel(fieldKey, { fields, t })),
-    ),
+    ...new Set(rejections.map(({ fieldKey }) => labelField(fieldKey))),
   ];
   const namedLabels = uniqueLabels.slice(0, MAX_NAMED_FIELDS).join(", ");
   if (uniqueLabels.length <= MAX_NAMED_FIELDS) return namedLabels;
 
   const remainingCount = uniqueLabels.length - MAX_NAMED_FIELDS;
 
-  return formatPlural(
-    t("johannschopplich.content-translator.notification.andMore", {
-      fields: namedLabels,
-      count: remainingCount,
-    }),
+  return translatePlural(
+    t,
+    "johannschopplich.content-translator.notification.andMore",
+    { fields: namedLabels, count: remainingCount },
     remainingCount,
   );
 }
 
-export function describeBatchOutcomes(
-  outcomes: BatchOutcome[],
+export function describeBatchOutcomes<Outcome extends BatchOutcome>(
+  outcomes: Outcome[],
   {
     labelOutcome,
+    labelField,
+    keptSourceKey,
     t,
-  }: { labelOutcome: (outcome: BatchOutcome) => string; t: Translate },
+  }: {
+    labelOutcome: (outcome: Outcome) => string;
+    labelField: LabelField<Outcome>;
+    keptSourceKey: string;
+    t: Translate;
+  },
 ) {
   return outcomes.flatMap((outcome) => {
-    const lines = describeBatchOutcome(outcome, t);
+    const lines = describeBatchOutcome(outcome, {
+      labelField: (fieldKey) => labelField(fieldKey, outcome),
+      keptSourceKey,
+      t,
+    });
     return lines.length > 0
       ? [{ label: labelOutcome(outcome), message: lines }]
       : [];
@@ -72,7 +86,7 @@ export function describeBatchOutcomes(
  * Names a unit's field by the label of its top-level field, which a nested
  * unit's key leads with.
  */
-function fieldLabel(
+export function fieldLabel(
   fieldKey = "",
   {
     fields,
@@ -88,7 +102,14 @@ function fieldLabel(
   return name === "title" ? t("title") : name;
 }
 
-function describeBatchOutcome(outcome: BatchOutcome, t: Translate): string[] {
+function describeBatchOutcome(
+  outcome: BatchOutcome,
+  {
+    labelField,
+    keptSourceKey,
+    t,
+  }: { labelField: LabelField; keptSourceKey: string; t: Translate },
+): string[] {
   const reportLine = (key: string, data?: Record<string, unknown>) =>
     t(`johannschopplich.content-translator.batchReport.${key}`, data);
 
@@ -120,11 +141,8 @@ function describeBatchOutcome(outcome: BatchOutcome, t: Translate): string[] {
 
   for (const rejection of outcome.result.rejections) {
     lines.add(
-      reportLine("keptSource", {
-        field: fieldLabel(rejection.fieldKey, {
-          fields: outcome.model.fields,
-          t,
-        }),
+      t(keptSourceKey, {
+        field: labelField(rejection.fieldKey),
         reason: describeRejection(rejection, t),
       }),
     );
@@ -181,6 +199,10 @@ function describeRejection(
     case "placeholder mismatch":
       return t(
         "johannschopplich.content-translator.rejection.placeholderMismatch",
+      );
+    case "variable placeholder mismatch":
+      return t(
+        "johannschopplich.content-translator.rejection.variablePlaceholderMismatch",
       );
     default:
       return detail ?? reason;

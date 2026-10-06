@@ -123,10 +123,10 @@ describe("useTranslationActions", () => {
     expect(translator.strategyName.value).toBe("deepl");
   });
 
-  it("handleTranslate passes the getCascadeHelp text into the cascade field of the dialog", async () => {
+  it("handleTranslate passes the getCascadeHelp text into the help field of the dialog", async () => {
     await useTranslationActions(createTranslator()).handleTranslate();
 
-    expect(openFieldsDialog.mock.calls[0]![0].fields.cascade.text).toBe(
+    expect(openFieldsDialog.mock.calls[0]![0].fields.help.text).toBe(
       "1 page is also translated.",
     );
   });
@@ -278,11 +278,24 @@ describe("useTranslationActions", () => {
     );
   });
 
-  it("handleBatchTranslate passes the getCascadeHelp text into the languages help of the dialog", async () => {
+  it("handleBatchTranslate shows only the batchHelp without a cascade", async () => {
+    const translator = createTranslator();
+    vi.mocked(translator.getCascadeHelp).mockResolvedValue(undefined);
+
+    await useTranslationActions(translator).handleBatchTranslate();
+
+    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"}',
+    );
+  });
+
+  it("handleBatchTranslate appends the getCascadeHelp text to the batchHelp with the escaped name of the default language", async () => {
+    escapeHTML.mockImplementation((text) => `escaped(${text})`);
+
     await useTranslationActions(createTranslator()).handleBatchTranslate();
 
-    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toContain(
-      "1 page is also translated.",
+    expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"escaped(English)"} 1 page is also translated.',
     );
   });
 

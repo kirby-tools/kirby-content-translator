@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { PluginContextResponse } from "../../types";
-import { ref, usePanel } from "kirbyuse";
-import { usePluginContext } from "../../composables/plugin";
+import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
+import { computed, ref, usePanel } from "kirbyuse";
+import {
+  resolveLicenseStatus,
+  usePluginContext,
+} from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
+import VariablesDropdownContent from "./VariablesDropdownContent.vue";
 
 const props = defineProps({
   label: {
@@ -58,8 +63,12 @@ const panel = usePanel();
 const { isTranslating } = useTranslationState();
 
 const dropdownContent = ref();
+const isLanguageView = panel.view.component === "k-language-view";
 const context = ref<PluginContextResponse>();
 const hasInitializationError = ref(false);
+const licenseStatus = computed(
+  () => context.value && resolveLicenseStatus(context.value),
+);
 
 (async () => {
   try {
@@ -98,11 +107,28 @@ function toggle() {
     >
     </k-button>
     <k-dropdown-content ref="dropdownContent">
-      <ContentTranslatorDropdownContent
-        v-if="context"
+      <VariablesDropdownContent
+        v-if="context && isLanguageView"
         :context="context"
         :props="props"
       />
+      <ContentTranslatorDropdownContent
+        v-else-if="context"
+        :context="context"
+        :props="props"
+      />
+
+      <template
+        v-if="licenseStatus !== undefined && licenseStatus !== 'active'"
+      >
+        <hr />
+        <LicensingDropdownItems
+          label="Kirby Content Translator"
+          api-namespace="__content-translator__"
+          :license-status="licenseStatus"
+          pricing-url="https://kirby.tools/content-translator/buy"
+        />
+      </template>
     </k-dropdown-content>
   </div>
 </template>

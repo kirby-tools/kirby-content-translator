@@ -1,17 +1,12 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
 import type {
   KirbyFieldProps,
-  NotificationTheme,
   PanelLanguageInfo,
   PanelModelData,
 } from "kirby-types";
-import type { BatchOutcome } from "../translation/batch";
+import type { ModelBatchOutcome } from "../translation/batch";
 import type { BatchCandidate } from "../translation/batch-plan";
-import type {
-  ContentTranslationResult,
-  KirbyTagRules,
-  TranslationStrategy,
-} from "../translation/types";
+import type { KirbyTagRules, TranslationStrategy } from "../translation/types";
 import type {
   BatchStatusResponse,
   BatchWriteResponse,
@@ -29,46 +24,31 @@ import {
   CASCADE_API_ROUTE,
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
 } from "../constants";
-import {
-  AIStrategy,
-  DeepLStrategy,
-  translateContent,
-  translateTitle,
-} from "../translation";
+import { translateContent, translateTitle } from "../translation";
 import { runBatchTranslation } from "../translation/batch";
 import { planBatchRun } from "../translation/batch-plan";
 import { planImport, planSingleTranslation } from "../translation/plan";
-import {
-  describeBatchOutcomes,
-  listKeptSourceFields,
-  shouldReportBatchOutcome,
-} from "../translation/report";
+import { fieldLabel, shouldReportBatchOutcome } from "../translation/report";
 import {
   mergeTranslationResults,
   reportRejections,
 } from "../translation/result";
-import { resolveCopilotReadiness } from "../utils/copilot";
 import { filterEligibleContent, isEligibleField } from "../utils/filter";
-import { formatList, formatPlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 import {
   isFileModelPath,
   isSiteModelPath,
   isUserModelPath,
 } from "../utils/model-path";
+import { createStrategy, resolveStrategyReadiness } from "../utils/strategy";
 import {
-  describeMissingStrategy,
-  getStrategyAvailability,
+  resolveKirbyTagRules,
   resolveTranslatorConfig,
 } from "../utils/translator-config";
 import { useModel } from "./model";
+import { useTranslationNotifications } from "./notifications";
+import { resolveLicenseStatus } from "./plugin";
 import { createGlobalState } from "./state";
-
-/**
- * Long enough that a notification stays until something replaces it. A falsy
- * timeout would be coerced back to four seconds, and `type: "error"` – the
- * other way out of that coercion – keeps the view shell from rendering it.
- */
-const PERSISTENT_TIMEOUT = 60 * 60 * 1000;
 
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
@@ -88,6 +68,12 @@ export function useContentTranslator() {
   const { t } = useI18n();
   const { getModelData } = useModel();
   const { isTranslating } = useTranslationState();
+  const {
+    notifyProgress,
+    notifyTranslationResult,
+    notifyBatchTranslationResult,
+    openBatchReport,
+  } = useTranslationNotifications();
 
   // #region Configuration state
   const label = ref<string>();
@@ -141,10 +127,7 @@ export function useContentTranslator() {
     fieldTypes.value = resolvedConfig.fieldTypes;
     includeFields.value = resolvedConfig.includeFields;
     excludeFields.value = resolvedConfig.excludeFields;
-    kirbyTags.value = {
-      types: context.kirbyTagTypes,
-      attributes: resolvedConfig.kirbyTags,
-    };
+    kirbyTags.value = resolveKirbyTagRules(context, resolvedConfig);
     systemPrompt.value = resolvedConfig.systemPrompt;
     // The cascade is saved through `batch-write`, which needs Kirby 5.
     // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.
@@ -154,16 +137,11 @@ export function useContentTranslator() {
     config.value = context.config;
     homePageId.value = context.homePageId;
     errorPageId.value = context.errorPageId;
-    licenseStatus.value = __PLAYGROUND__ ? "active" : context.licenseStatus;
+    licenseStatus.value = resolveLicenseStatus(context);
 
-    const copilotReadiness = await resolveCopilotReadiness();
-    hasAnyStrategy.value = getStrategyAvailability(
-      context.config,
-      copilotReadiness,
-    ).hasAnyStrategy;
-    missingStrategyMessage.value = hasAnyStrategy.value
-      ? undefined
-      : describeMissingStrategy(context.config, copilotReadiness);
+    const strategyReadiness = await resolveStrategyReadiness(context.config);
+    hasAnyStrategy.value = strategyReadiness.hasAnyStrategy;
+    missingStrategyMessage.value = strategyReadiness.missingStrategyMessage;
   }
 
   async function hasResolvedBlueprint(path: string) {
@@ -206,132 +184,33 @@ export function useContentTranslator() {
     );
   }
 
-  function notifyProgress(current: number, total: number) {
-    panel.notification.open({
-      message: panel.t(
+  function describeNothingToTranslate() {
+    return hasEligibleFields()
+      ? panel.t(
+          "johannschopplich.content-translator.notification.nothingToTranslate",
+        )
+      : panel.t(
+          "johannschopplich.content-translator.notification.noEligibleFields",
+          { fieldTypes: fieldTypes.value.join(", ") },
+        );
+  }
+
+  function labelHostField(fieldKey: string | undefined) {
+    return fieldLabel(fieldKey, { fields: fields.value, t: panel.t });
+  }
+
+  function labelModelField(
+    fieldKey: string | undefined,
+    outcome: ModelBatchOutcome,
+  ) {
+    return fieldLabel(fieldKey, { fields: outcome.model.fields, t: panel.t });
+  }
+
+  function notifyBatchProgress(current: number, total: number) {
+    notifyProgress(
+      panel.t(
         "johannschopplich.content-translator.notification.batchTranslating",
         { current, total },
-      ),
-      icon: "loader",
-      theme: "info",
-      timeout: PERSISTENT_TIMEOUT,
-    });
-  }
-
-  function notifyPartialTranslation(message: string) {
-    panel.notification.open({
-      message,
-      icon: "alert",
-      theme: "notice" as NotificationTheme,
-      timeout: PERSISTENT_TIMEOUT,
-    });
-  }
-
-  // Only one notification is visible at a time, so the most specific outcome wins.
-  function notifyTranslationResult(
-    result: ContentTranslationResult,
-    successMessage: string,
-  ) {
-    if (result.translatableCount === 0) {
-      panel.notification.open({
-        message: hasEligibleFields()
-          ? panel.t(
-              "johannschopplich.content-translator.notification.nothingToTranslate",
-            )
-          : panel.t(
-              "johannschopplich.content-translator.notification.noEligibleFields",
-              { fieldTypes: fieldTypes.value.join(", ") },
-            ),
-        icon: "info",
-        theme: "info",
-      });
-      return;
-    }
-
-    const untranslatedCount = result.translatableCount - result.translatedCount;
-
-    if (untranslatedCount === 0) {
-      panel.notification.success(successMessage);
-      return;
-    }
-
-    if (result.translatedCount === 0) {
-      // Not `notification.error`, which in a view also opens Kirby's blocking
-      // error dialog.
-      panel.notification.open({
-        message: panel.t(
-          "johannschopplich.content-translator.notification.noSegmentTranslated",
-          { total: result.translatableCount },
-        ),
-        icon: "alert",
-        theme: "negative",
-        timeout: PERSISTENT_TIMEOUT,
-      });
-      return;
-    }
-
-    notifyPartialTranslation(
-      formatPlural(
-        panel.t(
-          "johannschopplich.content-translator.notification.partiallyTranslated",
-          {
-            untranslated: untranslatedCount,
-            total: result.translatableCount,
-            fields: listKeptSourceFields(result.rejections, {
-              fields: fields.value,
-              t: panel.t,
-            }),
-          },
-        ),
-        untranslatedCount,
-      ),
-    );
-  }
-
-  /**
-   * Notifies per language rather than summing across them: one total would
-   * fold a language at 0 of 10 into "10 of 20 kept their source text" and hide
-   * which language went wrong.
-   */
-  function notifyBatchTranslationResult(
-    outcomes: BatchOutcome[],
-    labelOutcome: (outcome: BatchOutcome) => string,
-  ) {
-    const savedResults = outcomes.flatMap((outcome) =>
-      outcome.status === "saved" ? [outcome.result] : [],
-    );
-    const languagesWithKeptSource = outcomes.flatMap((outcome) => {
-      if (
-        outcome.status !== "saved" ||
-        outcome.result.translatedCount === outcome.result.translatableCount
-      ) {
-        return [];
-      }
-
-      return [
-        `${labelOutcome(outcome)} (${listKeptSourceFields(outcome.result.rejections, { fields: outcome.model.fields, t: panel.t })})`,
-      ];
-    });
-
-    if (languagesWithKeptSource.length === 0) {
-      notifyTranslationResult(
-        mergeTranslationResults(savedResults),
-        panel.t(
-          "johannschopplich.content-translator.notification.batchTranslated",
-        ),
-      );
-      return;
-    }
-
-    notifyPartialTranslation(
-      panel.t(
-        "johannschopplich.content-translator.notification.batchPartiallyTranslated",
-        {
-          languages: formatList(
-            languagesWithKeptSource,
-            panel.translation.code,
-          ),
-        },
       ),
     );
   }
@@ -472,24 +351,16 @@ export function useContentTranslator() {
     panel.view.isLoading = true;
     isTranslating.value = true;
 
-    panel.notification.open({
-      message: panel.t(
-        "johannschopplich.content-translator.notification.translating",
-      ),
-      icon: "loader",
-      theme: "info",
-      timeout: PERSISTENT_TIMEOUT,
-    });
+    notifyProgress(
+      panel.t("johannschopplich.content-translator.notification.translating"),
+    );
 
     try {
       const contentCopy: Record<string, unknown> = JSON.parse(
         JSON.stringify(currentContent.value),
       );
 
-      const strategy =
-        strategyName.value === "ai"
-          ? new AIStrategy({ systemPrompt: systemPrompt.value })
-          : new DeepLStrategy();
+      const strategy = createStrategy(strategyName.value, systemPrompt.value);
 
       const contentResult = await translateContent(contentCopy, {
         strategy,
@@ -558,7 +429,7 @@ export function useContentTranslator() {
 
       // A cascade that fails is reported only after the view reloaded: the
       // host's fields are in the form and its title is saved by now.
-      let cascadeOutcomes: BatchOutcome[] = [];
+      let cascadeOutcomes: ModelBatchOutcome[] = [];
       let cascadeError: unknown;
 
       try {
@@ -591,12 +462,13 @@ export function useContentTranslator() {
 
       const notifyHostResult = () => {
         if (translatedCascadePaths.length === 0) {
-          notifyTranslationResult(
-            hostResult,
-            panel.t(
+          notifyTranslationResult(hostResult, {
+            successMessage: panel.t(
               "johannschopplich.content-translator.notification.translated",
             ),
-          );
+            nothingToTranslateMessage: describeNothingToTranslate(),
+            labelField: labelHostField,
+          });
         } else if (hostResult.translatableCount === 0) {
           // A host without text of its own, such as a page that only holds
           // modules, would otherwise report that there was nothing to translate.
@@ -607,13 +479,14 @@ export function useContentTranslator() {
             ),
           );
         } else {
-          notifyTranslationResult(
-            hostResult,
-            panel.t(
+          notifyTranslationResult(hostResult, {
+            successMessage: panel.t(
               "johannschopplich.content-translator.notification.translatedWithCascade",
               { models: describeCascadeModels(translatedCascadePaths) },
             ),
-          );
+            nothingToTranslateMessage: describeNothingToTranslate(),
+            labelField: labelHostField,
+          });
         }
       };
 
@@ -632,12 +505,13 @@ export function useContentTranslator() {
 
       // Kirby closes every notification when a dialog opens, so the host's
       // result follows once the report is closed.
-      openBatchReport(
-        cascadeOutcomes,
-        (outcome) => outcome.model.title,
-        "johannschopplich.content-translator.batchReport.cascadeMessage",
-        notifyHostResult,
-      );
+      openBatchReport(cascadeOutcomes, {
+        labelOutcome: (outcome) => outcome.model.title,
+        labelField: labelModelField,
+        messageKey:
+          "johannschopplich.content-translator.batchReport.cascadeMessage",
+        onClose: notifyHostResult,
+      });
     } catch (error) {
       isTranslating.value = false;
       panel.view.isLoading = false;
@@ -692,10 +566,7 @@ export function useContentTranslator() {
         return;
       }
 
-      const strategy =
-        strategyName.value === "ai"
-          ? new AIStrategy({ systemPrompt: systemPrompt.value })
-          : new DeepLStrategy();
+      const strategy = createStrategy(strategyName.value, systemPrompt.value);
 
       const outcomes = await translateAndSave(
         path,
@@ -709,12 +580,12 @@ export function useContentTranslator() {
           status: batchStatus,
         },
         selectedLanguages,
-        { strategy, onProgress: notifyProgress },
+        { strategy, onProgress: notifyBatchProgress },
       );
       const hasCascadedModel = outcomes.some(
         ({ model }) => model.path !== path,
       );
-      const labelOutcome = (outcome: BatchOutcome) =>
+      const labelOutcome = (outcome: ModelBatchOutcome) =>
         hasCascadedModel
           ? `${outcome.model.title} – ${outcome.language.name}`
           : outcome.language.name;
@@ -722,7 +593,14 @@ export function useContentTranslator() {
       const hasReport = outcomes.some(shouldReportBatchOutcome);
 
       if (!hasReport) {
-        notifyBatchTranslationResult(outcomes, labelOutcome);
+        notifyBatchTranslationResult(outcomes, {
+          labelOutcome,
+          labelField: labelModelField,
+          successMessage: panel.t(
+            "johannschopplich.content-translator.notification.batchTranslated",
+          ),
+          nothingToTranslateMessage: describeNothingToTranslate(),
+        });
       }
 
       isTranslating.value = false;
@@ -733,13 +611,13 @@ export function useContentTranslator() {
         // Opened after the reload, so the saved languages are on screen before
         // the dialog covers them.
         panel.notification.close();
-        openBatchReport(
-          outcomes,
+        openBatchReport(outcomes, {
           labelOutcome,
-          hasCascadedModel
+          labelField: labelModelField,
+          messageKey: hasCascadedModel
             ? "johannschopplich.content-translator.batchReport.cascadeMessage"
             : "johannschopplich.content-translator.batchReport.message",
-        );
+        });
       }
     } catch (error) {
       isTranslating.value = false;
@@ -806,28 +684,6 @@ export function useContentTranslator() {
     });
   }
 
-  function openBatchReport(
-    outcomes: BatchOutcome[],
-    labelOutcome: (outcome: BatchOutcome) => string,
-    messageKey: string,
-    onClose?: () => void,
-  ) {
-    panel.dialog.open({
-      component: "k-error-dialog",
-      props: {
-        message: formatPlural(
-          panel.t(messageKey, {
-            saved: outcomes.filter(({ status }) => status === "saved").length,
-            total: outcomes.length,
-          }),
-          outcomes.length,
-        ),
-        details: describeBatchOutcomes(outcomes, { labelOutcome, t: panel.t }),
-      },
-      on: { close: onClose },
-    });
-  }
-
   /**
    * Translates the cascade of the host at `hostPath` into the target language
    * and saves it. The cascade is always translated from the default language,
@@ -849,7 +705,7 @@ export function useContentTranslator() {
 
     return await translateAndSave(hostPath, undefined, [targetLanguage], {
       strategy,
-      onProgress: notifyProgress,
+      onProgress: notifyBatchProgress,
     });
   }
 
@@ -891,10 +747,10 @@ export function useContentTranslator() {
 
     if (cascade.length === 0) return;
 
-    return formatPlural(
-      panel.t("johannschopplich.content-translator.dialog.cascadeHelp", {
-        models: describeCascadeModels(cascade.map((model) => model.path)),
-      }),
+    return translatePlural(
+      panel.t,
+      "johannschopplich.content-translator.dialog.cascadeHelp",
+      { models: describeCascadeModels(cascade.map((model) => model.path)) },
       cascade.length,
     );
   }
@@ -912,10 +768,10 @@ export function useContentTranslator() {
     ]
       .filter(([, count]) => count > 0)
       .map(([key, count]) =>
-        formatPlural(
-          panel.t(`johannschopplich.content-translator.cascade.${key}`, {
-            count,
-          }),
+        translatePlural(
+          panel.t,
+          `johannschopplich.content-translator.cascade.${key}`,
+          { count },
           count,
         ),
       );

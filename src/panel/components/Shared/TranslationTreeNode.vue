@@ -3,7 +3,7 @@ import type { PropType } from "vue";
 import type { TranslationTreeEntry } from "../../types";
 import { computed, inject, usePanel } from "kirbyuse";
 import { TOGGLE_INJECTION_KEY } from "../../composables/tree";
-import { formatPlural } from "../../utils/i18n";
+import { translatePlural } from "../../utils/i18n";
 
 const props = defineProps({
   item: {
@@ -25,10 +25,10 @@ const arrowIcon = computed(() => {
 });
 
 const descendantLabel = computed(() =>
-  formatPlural(
-    panel.t("johannschopplich.content-translator.coverage.pagesIncomplete", {
-      count: props.item.incompleteDescendantCount,
-    }),
+  translatePlural(
+    panel.t,
+    "johannschopplich.content-translator.coverage.pagesIncomplete",
+    { count: props.item.incompleteDescendantCount },
     props.item.incompleteDescendantCount,
   ),
 );

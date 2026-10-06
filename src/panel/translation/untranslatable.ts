@@ -12,11 +12,7 @@ export function isUntranslatable(text: string): boolean {
   const trimmedText = text.trim();
   if (!trimmedText) return true;
 
-  // Pure numeric, mirroring PHP's `is_numeric` so both pipelines count the same
-  // values as untranslatable (signed, bare-decimal, trailing-dot, scientific
-  // notation).
-  if (/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(trimmedText))
-    return true;
+  if (isNumeric(trimmedText)) return true;
 
   if (/^https?:\/\/\S+$/i.test(trimmedText)) return true;
 
@@ -25,4 +21,12 @@ export function isUntranslatable(text: string): boolean {
   if (!trimmedText.replace(PLACEHOLDER_PATTERN, "").trim()) return true;
 
   return false;
+}
+
+/**
+ * Mirrors PHP's `is_numeric` so both pipelines count the same values as
+ * numeric: signed, bare-decimal, trailing-dot, and scientific notation.
+ */
+export function isNumeric(text: string): boolean {
+  return /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text.trim());
 }

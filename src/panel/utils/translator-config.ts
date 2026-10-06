@@ -1,4 +1,9 @@
-import type { PluginConfig, TranslatorOptions } from "../types";
+import type { KirbyTagRules } from "../translation/types";
+import type {
+  PluginConfig,
+  PluginContextResponse,
+  TranslatorOptions,
+} from "../types";
 import type { CopilotReadiness } from "./copilot";
 
 /**
@@ -72,6 +77,16 @@ export function getStrategyAvailability(
     hasDefaultStrategy,
     hasMultipleStrategies: isCopilotReady && hasDefaultStrategy,
     hasAnyStrategy: isCopilotReady || hasDefaultStrategy,
+  };
+}
+
+export function resolveKirbyTagRules(
+  context: PluginContextResponse,
+  resolvedConfig: ResolvedTranslatorConfig,
+): KirbyTagRules {
+  return {
+    types: context.kirbyTagTypes,
+    attributes: resolvedConfig.kirbyTags,
   };
 }
 

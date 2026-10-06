@@ -7,4 +7,4 @@ Kirby 5 rules the `changes` design out (checked against 5.6.0). With content loc
 ## Consequences
 
 - A single-language translation is asymmetric: the host's fields wait in the form, its cascade is already saved, and discarding the host does not take the cascade back. Title and slug have always been saved directly too. The dialog that starts a run therefore counts the cascade and says it is saved directly – a single-language translation opens it for that sentence alone when there is no strategy to pick.
-- Writing `latest` bypasses Kirby's lock check, because `latest` content never carries a lock. `BatchTranslation::writeLanguage()` therefore checks the lock and unsaved changes for every model. A model that fails the check is skipped and reported by name, and the run continues.
+- Writing `latest` bypasses Kirby's lock check, because `latest` content never carries a lock. `BatchTranslation::writeLanguage()` therefore checks the lock and unsaved changes for every model. A model that fails the check is not written but reported by name – as locked, or for its unsaved changes – and the run continues.

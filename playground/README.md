@@ -15,6 +15,8 @@ Two modes, switched by `KIRBY_DEBUG` in `.env`:
 | Projects → Creatious Labs | section | `cascade` over the case studies and the project's files, German only – a batch translation fills `es`, `fr` and `zh` |
 | Blog → Exploring the Universe | view button | blocks and KirbyTags |
 | Site | view button | `importFrom: all`, `title: true`, no batch translation |
+| Languages → German | view button | variable translation: a missing variable, one identical to English, one with multiple values, variable placeholders, a KirbyTag, and `menu`, a key Kirby keeps for its own strings |
+| Languages → English | view button | variable translation into all languages |
 
 `TRANSLATOR_STRATEGY` in `.env` swaps the default strategy for a stub, so a notification can be tested without a DeepL request: `blank` rejects every unit, `partial` rejects the units that hold a KirbyTag, and `failing` fails the language named by `TRANSLATOR_FAILING_LANGUAGE` (`fr` by default). An AI translation goes from the Panel to Kirby Copilot and ignores the stub.
 

@@ -71,7 +71,16 @@ export function useTranslationActions(
   async function handleBatchTranslate() {
     const { path } = panel.view;
     await initialization;
-    const result = await openBatchTranslationDialog(await getCascadeHelp(path));
+    const result = await openBatchTranslationDialog(
+      [
+        panel.t("johannschopplich.content-translator.dialog.batchHelp", {
+          language: helpers.string.escapeHTML(defaultLanguage.name),
+        }),
+        await getCascadeHelp(path),
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
     if (result) {
       strategyName.value = result.strategyName;
       await batchTranslateModelContent(path, result.languages);

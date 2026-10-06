@@ -27,3 +27,7 @@ export function usePluginContext() {
 
   return pendingPromise;
 }
+
+export function resolveLicenseStatus(context: PluginContextResponse) {
+  return __PLAYGROUND__ ? "active" : context.licenseStatus;
+}

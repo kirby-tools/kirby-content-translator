@@ -15,16 +15,24 @@ Translating the current view's content into its language. Fields are left in the
 _Avoid_: per-language translation
 
 **Batch translation**:
-Translating the default language into several secondary languages in one run, each saved directly.
+Translating the default language's content or language variables into several secondary languages in one run, each saved directly.
 _Avoid_: bulk translation
 
 **Batch outcome**:
-What became of one model in one target language of a batch translation, or of the cascade of a single-language translation: saved, locked by another user, failed, not started because a lock on its model stopped it, or held back. A model is held back in a target language when it is ruled out before the run starts: by unsaved changes – in that language, or in the default language a cascaded model is translated from – or by another user who is editing a cascaded model.
+What became of one target language of a batch translation – for one model, or for the language variables – or of one cascaded model of a single-language translation: saved or failed, and for a model also locked by another user, not started because a lock on its model stopped it, or held back.
 _Avoid_: skipped, status
+
+**Held back**:
+A model ruled out in a target language before the run starts: by unsaved changes – in that language, or in the default language a cascaded model is translated from – or by another user who is editing a cascaded model.
+_Avoid_: skipped
 
 **Invalid field**:
 A field that fails its blueprint validation in a language a batch translation saved.
 _Avoid_: violation, form error
+
+**Variable translation**:
+Translating the language variables of the default language into one secondary language, or into several as a batch translation from the default language's view: the variables with text to translate that are missing or blank in the target language, or still identical to the default language, saved directly.
+_Avoid_: string translation, variable sync
 
 ### Models
 
@@ -49,19 +57,27 @@ _Avoid_: completion, progress
 ### Texts
 
 **Translation unit**:
-One text a strategy receives: a field value, a block's text, a structure cell, or a KirbyTag attribute.
+One text a strategy receives: a field value, a block's text, a structure cell, a KirbyTag attribute, or a text of a language variable.
 _Avoid_: segment, text segment, fragment
 
 **KirbyTag placeholder**:
 The stand-in for a KirbyTag inside a translation unit, which a translation must return unchanged.
 _Avoid_: placeholder (bare), tag marker
 
+**Language variable**:
+A key and its text, or its `tc()` forms, that a language holds for templates to print with `t()`, `tt()`, and `tc()`; _variable_ for short.
+_Avoid_: translation, translation string, string
+
+**Variable placeholder**:
+A `{…}` slot in a language variable that Kirby fills in at runtime, which a translation must return unchanged.
+_Avoid_: template tag, placeholder (bare)
+
 **Untranslatable text**:
-Text a provider could only corrupt – blank, numeric, a bare URL, or nothing but KirbyTags – which never reaches a strategy.
+Text a provider could only corrupt – blank, numeric, a bare URL, or nothing but KirbyTags and variable placeholders – which never reaches a strategy.
 _Avoid_: skipped text
 
 **Rejection**:
-A translation unit that keeps its source text because its strategy returned no usable translation for it.
+A translation unit that keeps its source text because its strategy returned no usable translation for it; in a language variable, the whole variable is not translated.
 _Avoid_: drop, failed unit
 
 ### Strategies
