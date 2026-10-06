@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-content-translator",
   "description": "DeepL and AI translation in the Kirby Panel",
   "type": "kirby-plugin",
-  "version": "3.17.0",
+  "version": "3.18.0",
   "keywords": [
     "content",
     "DeepL",
