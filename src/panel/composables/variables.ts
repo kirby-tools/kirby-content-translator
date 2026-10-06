@@ -1,4 +1,4 @@
-import type { PanelLanguage, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { BatchOutcome } from "../translation/batch";
 import type { KirbyTagRules, TranslationStrategy } from "../translation/types";
 import type { VariableTranslationPlan } from "../translation/variables";
@@ -30,8 +30,6 @@ import { useTranslationDialogs } from "./dialogs";
 import { useTranslationNotifications } from "./notifications";
 import { usePluginContext } from "./plugin";
 import { useTranslationState } from "./translation";
-
-type Language = PanelLanguageInfo | PanelLanguage;
 
 /** Message keys that say "not translated", since a missing variable has no current value to keep. */
 const VARIABLE_REJECTION_MESSAGE_KEYS = {
@@ -68,7 +66,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
    * `targetLanguage`, or still identical to the default language, and saves
    * them directly.
    */
-  async function translateLanguageVariables(targetLanguage: Language) {
+  async function translateLanguageVariables(targetLanguage: PanelLanguageInfo) {
     if (panel.view.isLoading || isTranslating.value) return;
 
     let strategyName: StrategyName;
@@ -275,7 +273,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
   }
 
   async function translateAndSave(
-    targetLanguage: Language,
+    targetLanguage: PanelLanguageInfo,
     plan: VariableTranslationPlan,
     strategy: TranslationStrategy,
     kirbyTags: KirbyTagRules,
@@ -326,7 +324,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
 
   function planLanguage(
     languages: VariablesResponse,
-    targetLanguage: Language,
+    targetLanguage: PanelLanguageInfo,
     kirbyTags: KirbyTagRules,
   ): VariableTranslationPlan {
     const target = findLanguageVariables(languages, targetLanguage);
@@ -342,7 +340,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
 
   function findLanguageVariables(
     languages: VariablesResponse,
-    language: Language,
+    language: PanelLanguageInfo,
   ) {
     const entry = languages[language.code];
     // `panel.languages` can still list a language another tab deleted.
@@ -352,7 +350,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
 
   function describeNothingToTranslate(
     translatableKeys: string[],
-    targetLanguages: Language[],
+    targetLanguages: PanelLanguageInfo[],
   ) {
     return translatableKeys.length === 0
       ? panel.t(

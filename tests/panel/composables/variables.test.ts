@@ -1,4 +1,4 @@
-import type { PanelLanguage } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { Mock } from "vitest";
 import type {
   PluginConfig,
@@ -16,13 +16,21 @@ let pluginConfig: Partial<PluginConfig>;
 let variablesResponses: VariablesResponse[];
 let translateTexts: (texts: string[], targetLanguage: string) => string[];
 
-const ENGLISH = { code: "en", name: "English", default: true } as PanelLanguage;
-const GERMAN = { code: "de", name: "Deutsch", default: false } as PanelLanguage;
+const ENGLISH = {
+  code: "en",
+  name: "English",
+  default: true,
+} as PanelLanguageInfo;
+const GERMAN = {
+  code: "de",
+  name: "Deutsch",
+  default: false,
+} as PanelLanguageInfo;
 const FRENCH = {
   code: "fr",
   name: "Français",
   default: false,
-} as PanelLanguage;
+} as PanelLanguageInfo;
 
 const SOURCE_VARIABLES = {
   "cart.title": "Shopping cart",
