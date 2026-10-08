@@ -25,7 +25,7 @@
     "ajv": "^8.20.0",
     "bumpp": "^12.3.0",
     "eslint": "^10.10.0",
-    "kirby-types": "^1.7.0",
+    "kirby-types": "^1.8.1",
     "kirbyup": "^3.5.0",
     "kirbyuse": "^1.4.1",
     "mprocs": "^0.9.6",
