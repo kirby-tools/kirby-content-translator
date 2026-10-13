@@ -1,16 +1,16 @@
 {
   "name": "johannschopplich/kirby-content-translator",
-  "description": "DeepL and AI translation in the Kirby Panel",
+  "description": "One click translates a whole page, nested blocks included",
   "type": "kirby-plugin",
   "version": "3.18.0",
   "keywords": [
-    "content",
-    "DeepL",
-    "i18n",
     "kirby",
-    "language",
+    "kirby-cms",
+    "kirby-plugin",
+    "deepl",
     "translation",
-    "translator"
+    "i18n",
+    "multilingual"
   ],
   "license": "proprietary",
   "homepage": "https://kirby.tools/content-translator",
