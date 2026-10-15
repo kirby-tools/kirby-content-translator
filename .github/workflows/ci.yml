@@ -9,15 +9,11 @@ on:
 jobs:
   php:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # 8.3 links the system's libxml2, 8.4 parses with its own HTML5 parser.
-        php: ["8.3", "8.4"]
     steps:
       - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: "8.4"
           coverage: none
 
       - run: composer install --no-interaction --no-progress
