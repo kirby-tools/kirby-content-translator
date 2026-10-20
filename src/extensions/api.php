@@ -15,7 +15,6 @@ use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Find;
 use Kirby\Exception\BadMethodCallException;
-use Kirby\Exception\PermissionException;
 
 return [
     'routes' => fn (App $kirby) => [
@@ -146,18 +145,14 @@ return [
             'pattern' => '__content-translator__/variables',
             'method' => 'GET',
             'action' => function () use ($kirby) {
-                // TODO: Call `$this->validateAreaAccess('languages')` once Kirby 5.4 is the floor.
-                if ($kirby->user()?->role()->permissions()->for('access', 'languages') !== true) {
-                    throw new PermissionException('No access to the languages');
-                }
+                $this->validateAreaAccess('languages');
 
                 $sourceVariables = $kirby->defaultLanguage()?->translations() ?? [];
                 $languages = [];
 
                 foreach ($kirby->languages() as $language) {
-                    // Kirby 5.6 refuses to save a variable that shadows one of its own strings.
-                    // TODO: Drop the `method_exists` check once Kirby 5.6 is the floor.
-                    $coreStrings = method_exists($kirby, 'coreI18nStrings') ? $kirby->coreI18nStrings($language->code()) : [];
+                    // Kirby refuses to save a variable that shadows one of its own strings.
+                    $coreStrings = $kirby->coreI18nStrings($language->code());
 
                     $languages[$language->code()] = [
                         // An object even when empty or list-shaped, which JSON would turn into an array.
