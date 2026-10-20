@@ -67,7 +67,6 @@ export function filterEligibleContent(
       continue;
     }
 
-    // Layouts nest their blocks inside columns, so they need their own walk.
     if (field.type === "layout" && Array.isArray(value)) {
       eligibleContent[key] = filterLayoutContent(
         value as KirbyLayout[],

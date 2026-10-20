@@ -9,7 +9,7 @@ use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
 
 /**
- * Adapts a user-supplied closure to the {@see Strategy} contract.
+ * Adapter from a user-supplied closure to the {@see Strategy} contract.
  */
 final readonly class CallableStrategy implements Strategy
 {

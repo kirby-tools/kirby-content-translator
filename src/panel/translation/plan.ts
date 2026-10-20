@@ -28,7 +28,6 @@ export interface ImportFacts extends ModelFacts, TitleSlugConfigFacts {
    * The slug guard keys on the language being patched (the currently viewed
    * one), not the import source – changing the default language's slug would
    * rename the page folder.
-   * @see https://github.com/kirby-tools/kirby-content-translator/issues/5
    */
   isCurrentLanguageDefault: boolean;
 }
@@ -42,11 +41,7 @@ export interface ImportPlan {
 
 export interface SingleTranslationFacts
   extends ModelFacts, TitleSlugConfigFacts {
-  /**
-   * Default-language slugs are never patched – the page folder would be
-   * renamed.
-   * @see https://github.com/kirby-tools/kirby-content-translator/issues/5
-   */
+  /** Default-language slugs are never patched – the page folder would be renamed. */
   isTargetLanguageDefault: boolean;
   hasViewTitle: boolean;
 }

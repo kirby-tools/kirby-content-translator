@@ -26,7 +26,7 @@ export interface PluginConfig {
     apiKey?: boolean;
   };
   ai?: {
-    /** Custom system prompt to replace the default translation instructions. */
+    /** The `ai.systemPrompt` option, or the plugin's default prompt without one – resolved server-side. */
     systemPrompt?: string;
   };
 }

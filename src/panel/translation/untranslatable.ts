@@ -4,9 +4,6 @@ import { PLACEHOLDER_PATTERN } from "./kirby-text";
  * Matches text a translation provider would only corrupt: it either holds no
  * language at all, or holds a value – a price, a URL – that a translator will happily
  * localize into something broken.
- *
- * Structural emptiness ("this field has no content") is a separate question,
- * answered by the callers that walk the content.
  */
 export function isUntranslatable(text: string): boolean {
   const trimmedText = text.trim();

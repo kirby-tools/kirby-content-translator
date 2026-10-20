@@ -24,9 +24,6 @@ interface CollectorContext {
 }
 
 /**
- * Walks content and returns translatable units with their
- * apply callbacks and post-translation finalizers.
- *
  * Emits every unit that holds content, including ones a provider would only
  * corrupt – `translateUnits` makes that call once, downstream, where it also
  * sees the units this function fans out of a KirbyText.
@@ -192,7 +189,6 @@ function collectFromTableField(
   let tableData = value as string | string[][];
   let isYamlEncoded = false;
 
-  // Parse YAML-encoded table data from the Panel.
   if (typeof tableData === "string") {
     isYamlEncoded = true;
     try {
@@ -208,7 +204,6 @@ function collectFromTableField(
 
   if (!Array.isArray(tableData)) return;
 
-  // Store reference for cell updates and YAML serialization.
   const tableRef = tableData;
 
   for (const [rowIndex, row] of tableData.entries()) {

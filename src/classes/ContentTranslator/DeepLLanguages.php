@@ -7,7 +7,7 @@ namespace JohannSchopplich\ContentTranslator;
 use Kirby\Exception\LogicException;
 
 /**
- * Resolves a Kirby language to a DeepL language code.
+ * Mapping from a Kirby language to a DeepL language code.
  *
  * Both lists are transcribed from a live
  * `GET /v3/languages?resource=translate_text`, filtered on `usable_as_source`
@@ -157,9 +157,6 @@ final class DeepLLanguages
         return in_array($baseCode, self::SUPPORTED_TARGET_CODES, true) ? $baseCode : null;
     }
 
-    /**
-     * Checks whether a locale may refine the language code's own resolution.
-     */
     private static function localeSharpensCode(string $locale, string $languageCode): bool
     {
         $codeSubtags = self::splitSubtags($languageCode);

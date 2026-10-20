@@ -21,7 +21,7 @@ export async function translateText(
     strategy: TranslationStrategy;
     targetLanguage: PanelLanguageInfo;
     sourceLanguage?: PanelLanguageInfo;
-    /** Names the text in a rejection, since there is no field to name it. */
+    /** Key that names the text in a rejection, since there is no field to name it. */
     fieldKey: string;
   },
 ): Promise<{ text: string; result: ContentTranslationResult }> {

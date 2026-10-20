@@ -103,7 +103,7 @@ function findKirbyTags(
   return spans;
 }
 
-// Treat every `name:` token as an attribute boundary. The `kirbyTags` config
+// Treats every `name:` token as an attribute boundary. The `kirbyTags` config
 // lists which attrs to translate, not which are valid – restricting boundaries
 // to it would let non-translatable attrs (class, rel, …) leak into values.
 function parseKirbyTag(raw: string): KirbyTag {

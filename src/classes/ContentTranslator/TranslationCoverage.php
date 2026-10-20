@@ -54,10 +54,8 @@ final class TranslationCoverage
     }
 
     /**
-     * Returns pruned tree children for a given parent page.
-     *
-     * Only pages that are incomplete themselves, or ancestors of one, survive
-     * the pruning.
+     * Returns the children of `$parentId`, or of the site, that are incomplete
+     * or lead to an incomplete page.
      *
      * @return array<int, array{id: string, label: string, icon: string|null, link: string, hasChildren: bool, incompleteDescendantCount: int, missingLanguages: array<int, array{code: string, name: string}>}>
      */
@@ -296,10 +294,6 @@ final class TranslationCoverage
     }
 
     /**
-     * Resolves and memoizes the blueprint-level eligible field keys
-     * per blueprint name, so `FieldResolver::resolveModelFields()` runs once
-     * per blueprint instead of once per page.
-     *
      * @return list<string>
      */
     private function eligibleKeys(Page $page): array

@@ -353,7 +353,6 @@ final class DeepL
                 );
             }
 
-            // Exponential backoff with jitter.
             $exponentDelay = (int)(self::INITIAL_RETRY_DELAY_MS * (2 ** $attempt));
             if ($exponentDelay > self::MAX_RETRY_DELAY_MS) {
                 $exponentDelay = self::MAX_RETRY_DELAY_MS;

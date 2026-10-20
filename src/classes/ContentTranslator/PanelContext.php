@@ -12,16 +12,10 @@ final class PanelContext
 {
     /**
      * An allowlist, because the namespace also holds closures and `Strategy`
-     * instances with whatever properties their author gave them. Not the whole
-     * payload: `config()` adds the server-resolved values below.
+     * instances with whatever properties their author gave them.
      */
     private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
 
-    /**
-     * Builds the plugin configuration the Panel receives.
-     *
-     * @return array<string, mixed>
-     */
     public static function config(): array
     {
         $kirby = App::instance();

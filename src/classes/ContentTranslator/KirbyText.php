@@ -190,9 +190,6 @@ final class KirbyText
         return ['type' => $type, 'value' => $value, 'attrs' => $attrs];
     }
 
-    /**
-     * Reassembles a parsed tag, splicing translated attribute values into the indicated slots.
-     */
     private static function rebuildKirbyTag(array $tag, array $attrIndices, array $translatedAttrs): string
     {
         $parts = [];

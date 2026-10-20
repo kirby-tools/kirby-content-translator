@@ -19,9 +19,6 @@ export function isBlockTranslatable(block: KirbyBlock) {
   );
 }
 
-/**
- * Merges all tab fields of a block's fieldset into a single flat record.
- */
 export function flattenTabFields(
   fieldsets:
     KirbyBlocksFieldProps["fieldsets"] | KirbyLayoutFieldProps["fieldsets"],

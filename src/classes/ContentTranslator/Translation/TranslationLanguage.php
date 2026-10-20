@@ -8,9 +8,7 @@ use Kirby\Cms\App;
 use Kirby\Exception\InvalidArgumentException;
 
 /**
- * Language identifier for translation operations.
- *
- * Carries everything a {@see Strategy} may need to name the language, so no
+ * Everything a {@see Strategy} may need to name the language, so no
  * strategy has to reach back into Kirby's language registry: the display name
  * for a prompt, the locale for a provider that resolves regional variants.
  */

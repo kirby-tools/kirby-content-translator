@@ -114,9 +114,9 @@ function placeholderMismatchDetail(expected: string, actual: string): string {
 }
 
 /**
- * Sorted `<cN/>` indexes as one comparable string. Counting alone would accept
- * `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, and `restore()` would then
- * rebuild tag 0 twice and drop tag 1.
+ * Joins the sorted `<cN/>` indexes into one comparable string. Counting alone
+ * would accept `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, and
+ * `restore()` would then rebuild tag 0 twice and drop tag 1.
  */
 function placeholderIndexes(text: string): string {
   return [...text.matchAll(PLACEHOLDER_PATTERN)]

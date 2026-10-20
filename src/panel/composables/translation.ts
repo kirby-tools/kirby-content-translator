@@ -831,11 +831,7 @@ export function useContentTranslator() {
     return defaultLanguageData.id === errorPageId.value;
   }
 
-  /**
-   * Tells whether the view of the model at `path` is open in the language with
-   * `languageCode`. `currentContent` and `updateContent` read and write the
-   * form of whichever view is open.
-   */
+  /** `currentContent` and `updateContent` read and write the form of whichever view is open. */
   function isViewOpen(path: string, languageCode: string) {
     return panel.view.path === path && panel.language.code === languageCode;
   }

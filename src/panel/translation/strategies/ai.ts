@@ -9,11 +9,6 @@ import { resolveCopilot } from "../../utils/copilot";
 import { REQUIRED_COPILOT_API_VERSION } from "../../utils/copilot-contract";
 
 export interface AIStrategyOptions {
-  /**
-   * System prompt for the AI translation. Resolved server-side from
-   * `johannschopplich.content-translator.ai.systemPrompt` with a Copilot-side
-   * default fallback, then handed in from `usePluginContext()`.
-   */
   systemPrompt?: string;
 }
 

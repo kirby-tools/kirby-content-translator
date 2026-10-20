@@ -13,7 +13,7 @@ use Kirby\Toolkit\Str;
 use Throwable;
 
 /**
- * Walks a content array and emits translatable units plus
+ * Walker over a content array, emitting translatable units plus
  * post-translation finalizers.
  *
  * Emits every unit that holds content, including ones a provider would only

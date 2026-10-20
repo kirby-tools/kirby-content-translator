@@ -1,9 +1,7 @@
 import type { KirbyFieldProps } from "kirby-types";
 
 export interface TranslationLanguage {
-  /** Language code (e.g., `en`, `de`). */
   code: string;
-  /** Display name (e.g., `English`, `German`). */
   name: string;
 }
 

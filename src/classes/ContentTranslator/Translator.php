@@ -126,9 +126,8 @@ final class Translator
         $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
             $defaultLanguage = $this->kirby->defaultLanguage();
 
-            // When copying from the default language to a secondary language,
-            // delete the target content file so Kirby's built-in inheritance
-            // keeps it in sync with the default language automatically.
+            // Deleting the secondary language's content lets Kirby inherit it
+            // from the default language.
             // TODO: Drop K4 compat in v4 – remove the `method_exists` check once Kirby 5 is the floor.
             if (
                 $defaultLanguage !== null &&
@@ -368,11 +367,11 @@ final class Translator
     }
 
     /**
-     * The `<cN/>` indexes a text carries, sorted so two texts compare directly.
-     * A lost or invented KirbyTag placeholder means the `restore` closure from
-     * `KirbyText::split()` can no longer rebuild the tag, and counting alone
-     * would accept `<c0/> <c0/>` for a source holding `<c0/> <c1/>`, which
-     * rebuilds tag 0 twice and drops tag 1.
+     * Collects the `<cN/>` indexes a text carries, sorted so two texts compare
+     * directly. A lost or invented KirbyTag placeholder means the `restore`
+     * closure from `KirbyText::split()` can no longer rebuild the tag, and
+     * counting alone would accept `<c0/> <c0/>` for a source holding
+     * `<c0/> <c1/>`, which rebuilds tag 0 twice and drops tag 1.
      *
      * @return list<int>
      */

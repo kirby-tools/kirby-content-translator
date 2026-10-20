@@ -6,11 +6,7 @@ import type {
 } from "../types";
 import type { CopilotReadiness } from "./copilot";
 
-/**
- * Translator configuration resolved from section/view button props and the
- * global plugin config. The resolution precedence is documented blueprint
- * API – don't reorder it.
- */
+/** Precedence of props over the global plugin config is documented blueprint API – don't reorder it. */
 export interface ResolvedTranslatorConfig {
   isImportEnabled: boolean;
   importFrom: string | undefined;
@@ -124,9 +120,6 @@ function toLowercaseNames(names: string[]) {
   return names.map((name) => name.toLowerCase());
 }
 
-/**
- * Coerces loose boolean values from YAML/PHP into real JavaScript booleans.
- */
 function toBool(value: unknown, defaultValue = false) {
   if (value == null) return defaultValue;
   if (typeof value === "boolean") return value;

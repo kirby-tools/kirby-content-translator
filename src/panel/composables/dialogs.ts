@@ -165,7 +165,6 @@ export function useTranslationDialogs() {
 
     const context = await copilot.resolvePluginContext();
 
-    // Only show toast for unlicensed users.
     if (["inactive", "invalid"].includes(context.licenseStatus!)) {
       panel.notification.info({
         icon: "key",
@@ -207,7 +206,6 @@ async function resolveStrategyField() {
     return { strategyName, strategyField: undefined };
   }
 
-  // Fetch Copilot context for the provider name.
   let copilotContext: PluginContextResponse | undefined;
   if (copilot) {
     try {

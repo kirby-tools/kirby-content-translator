@@ -8,9 +8,6 @@ import type {
 import { useApi } from "kirbyuse";
 import { TRANSLATE_UNITS_API_ROUTE } from "../../constants";
 
-/**
- * Translates all units in a single batch API call.
- */
 export class DeepLStrategy implements TranslationStrategy {
   async execute(
     units: TranslationUnit[],
