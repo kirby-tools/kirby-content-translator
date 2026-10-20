@@ -386,7 +386,7 @@ export function useContentTranslator() {
         );
       }
 
-      const isHostSaved = await updateContent(contentCopy);
+      await updateContent(contentCopy);
       const plan = planSingleTranslation({
         isHomePage: await isHomePage(path),
         isErrorPage: await isErrorPage(path),
@@ -434,15 +434,11 @@ export function useContentTranslator() {
       let cascadeError: unknown;
 
       try {
-        // Kirby doesn't save a host another user edits, and its cascade
-        // stays untranslated with it.
-        if (isHostSaved) {
-          cascadeOutcomes = await translateCascade(
-            path,
-            targetLanguage,
-            strategy,
-          );
-        }
+        cascadeOutcomes = await translateCascade(
+          path,
+          targetLanguage,
+          strategy,
+        );
       } catch (error) {
         cascadeError = error;
       }
@@ -702,6 +698,13 @@ export function useContentTranslator() {
     strategy: TranslationStrategy,
   ) {
     if (!hasCascade.value || targetLanguage.default) return [];
+
+    // For a host another user edits, Kirby's `content.save()` opens the lock
+    // dialog instead of throwing, and reports the refused write only from
+    // Kirby 5.6 on, so the status has to tell that the host was not written.
+    const hostStatus = await fetchBatchStatus(hostPath);
+
+    if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
 
     return await translateAndSave(hostPath, undefined, [targetLanguage], {
       strategy,
