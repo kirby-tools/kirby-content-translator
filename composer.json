@@ -29,9 +29,9 @@
   },
   "require-dev": {
     "getkirby/cms": "^5",
-    "getkirby/cli": "^1",
-    "vlucas/phpdotenv": "^5",
     "phpunit/phpunit": "^12",
+    "vlucas/phpdotenv": "^5",
+    "getkirby/cli": "^1",
     "medienbaecker/kirby-modules": "^5.8"
   },
   "scripts": {
@@ -41,7 +41,7 @@
     ],
     "csfix": "@php tools/phpcs/vendor/bin/php-cs-fixer fix",
     "test": "phpunit",
-    "dist": "composer install --no-dev --optimize-autoloader"
+    "dist": "composer install --no-dev"
   },
   "autoload": {
     "psr-4": {
