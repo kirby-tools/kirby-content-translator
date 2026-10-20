@@ -277,10 +277,6 @@ final class TranslationCoverage
     {
         // Read raw default-language content _without_ fallback so the
         // denominator reflects only fields actually filled at the source.
-        if (!$page->version()->exists($defaultLanguage)) {
-            return [];
-        }
-
         $fields = $page->version()->read($defaultLanguage);
 
         if ($fields === null) {
@@ -337,11 +333,6 @@ final class TranslationCoverage
         array $sourceFilledFields,
         int $translatableFieldCount
     ): array {
-        // Fast path: no content file means nothing is translated.
-        if (!$page->version()->exists($language)) {
-            return ['translatableFieldCount' => $translatableFieldCount, 'translatedFieldCount' => 0];
-        }
-
         // Read raw content _without_ default-language fallback.
         $fields = $page->version()->read($language);
 

@@ -20,33 +20,31 @@ export class DeepLStrategy implements TranslationStrategy {
 
     const outcomes: TranslationOutcome[] = [];
 
-    if (units.length > 0) {
-      const response = await api.post<TranslateUnitsResponse>(
-        TRANSLATE_UNITS_API_ROUTE,
-        {
-          sourceLanguage: options.sourceLanguage?.code,
-          targetLanguage: options.targetLanguage.code,
-          texts: units.map((unit) => unit.text),
-        },
-      );
+    const response = await api.post<TranslateUnitsResponse>(
+      TRANSLATE_UNITS_API_ROUTE,
+      {
+        sourceLanguage: options.sourceLanguage?.code,
+        targetLanguage: options.targetLanguage.code,
+        texts: units.map((unit) => unit.text),
+      },
+    );
 
-      // The route answers for every unit, handing back the source text for a
-      // rejected one, so a rejection is invisible in `texts` alone.
-      const rejections = new Map(
-        response.rejections?.map((rejection) => [rejection.index, rejection]) ??
-          [],
-      );
+    // The route answers for every unit, handing back the source text for a
+    // rejected one, so a rejection is invisible in `texts` alone.
+    const rejections = new Map(
+      response.rejections?.map((rejection) => [rejection.index, rejection]) ??
+        [],
+    );
 
-      response.texts.forEach((text, index) => {
-        const rejection = rejections.get(index);
-        if (rejection) {
-          const { reason, expectedIndexes, actualIndexes } = rejection;
-          outcomes[index] = { reason, expectedIndexes, actualIndexes };
-          return;
-        }
-        outcomes[index] = text;
-      });
-    }
+    response.texts.forEach((text, index) => {
+      const rejection = rejections.get(index);
+      if (rejection) {
+        const { reason, expectedIndexes, actualIndexes } = rejection;
+        outcomes[index] = { reason, expectedIndexes, actualIndexes };
+        return;
+      }
+      outcomes[index] = text;
+    });
 
     return outcomes;
   }

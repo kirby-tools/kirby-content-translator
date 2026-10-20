@@ -229,9 +229,6 @@ function collectFromTableField(
     }
   }
 
-  // Update the object reference (handles non-YAML case).
-  obj[key] = tableData;
-
   if (isYamlEncoded) {
     context.finalizers.push(() => {
       const rowStrings = tableRef.map((row) => {
