@@ -1,8 +1,5 @@
-/* eslint-disable ts/ban-ts-comment */
 import { isKirby5 } from "kirbyuse";
-// @ts-ignore - Vue component
 import ContentTranslator from "./components/Sections/ContentTranslator.vue";
-// @ts-ignore - Vue component
 import ContentTranslatorDropdownButton from "./components/ViewButtons/ContentTranslatorDropdownButton.vue";
 import LanguagesViewWrapper from "./components/Views/LanguagesViewWrapper";
 import { icons } from "./config/icons";

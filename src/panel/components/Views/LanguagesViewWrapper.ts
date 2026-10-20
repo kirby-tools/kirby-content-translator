@@ -1,4 +1,3 @@
-/* eslint-disable ts/ban-ts-comment */
 import type Vue from "vue";
 import type {
   ComponentOptions,
@@ -7,7 +6,6 @@ import type {
   VueConstructor,
 } from "vue";
 import { isLocalDev } from "kirbyuse";
-// @ts-ignore - Vue component
 import TranslationCoverageView from "./TranslationCoverageView.vue";
 
 type ResolvedExtends = VueConstructor & { options: ComponentOptions<Vue> };
