@@ -91,6 +91,7 @@ function createPanelStub() {
     notification: {
       open: vi.fn(),
       success: vi.fn(),
+      info: vi.fn(),
       error: vi.fn(),
       close: vi.fn(),
     },
@@ -645,7 +646,8 @@ describe("useContentTranslator", () => {
 
       expect(translateBatch).not.toHaveBeenCalled();
       expect(batchWrite).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.info).toHaveBeenCalledWith(
         'johannschopplich.content-translator.error.batchLocked {"user":"Colleague"}',
       );
       expect(panel.view.isLoading).toBe(false);

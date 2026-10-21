@@ -553,15 +553,18 @@ export function useContentTranslator() {
       if (!batchStatus.isUpdateAllowed || batchStatus.lockedBy !== null) {
         isTranslating.value = false;
         panel.view.isLoading = false;
-        panel.notification.error(
-          batchStatus.isUpdateAllowed
-            ? panel.t("johannschopplich.content-translator.error.batchLocked", {
-                user: batchStatus.lockedBy,
-              })
-            : panel.t(
-                "johannschopplich.content-translator.error.batchForbidden",
-              ),
-        );
+
+        if (!batchStatus.isUpdateAllowed) {
+          panel.notification.error(
+            panel.t("johannschopplich.content-translator.error.batchForbidden"),
+          );
+        } else {
+          panel.notification.info(
+            panel.t("johannschopplich.content-translator.error.batchLocked", {
+              user: batchStatus.lockedBy,
+            }),
+          );
+        }
         return;
       }
 
