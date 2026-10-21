@@ -292,8 +292,12 @@ describe("useContentTranslator", () => {
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
     });
 
@@ -316,8 +320,12 @@ describe("useContentTranslator", () => {
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
     });
 
@@ -336,8 +344,12 @@ describe("useContentTranslator", () => {
 
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
     });
 
@@ -356,9 +368,13 @@ describe("useContentTranslator", () => {
         DEFAULT_LANGUAGE,
       );
 
-      expect(panel.notification.open).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledOnce();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
     });
 
@@ -450,8 +466,12 @@ describe("useContentTranslator", () => {
       expect(translateBatch).not.toHaveBeenCalled();
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
       expect(panel.view.isLoading).toBe(false);
     });
@@ -471,8 +491,12 @@ describe("useContentTranslator", () => {
       expect(translateBatch).not.toHaveBeenCalled();
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
       expect(panel.view.isLoading).toBe(false);
     });
@@ -597,8 +621,12 @@ describe("useContentTranslator", () => {
 
       expect(translateBatch).not.toHaveBeenCalled();
       expect(batchWrite).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
       expect(panel.view.isLoading).toBe(false);
     });
@@ -1090,8 +1118,12 @@ describe("useContentTranslator", () => {
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
       expect(batchWrite).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
@@ -1121,8 +1153,12 @@ describe("useContentTranslator", () => {
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
       expect(batchWrite).not.toHaveBeenCalled();
-      expect(panel.notification.error).toHaveBeenCalledWith(
-        "johannschopplich.content-translator.error.viewChanged",
+      expect(panel.notification.error).not.toHaveBeenCalled();
+      expect(panel.notification.open).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: "johannschopplich.content-translator.error.viewChanged",
+          theme: "negative",
+        }),
       );
       error.mockRestore();
     });

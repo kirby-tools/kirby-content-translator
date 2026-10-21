@@ -70,6 +70,7 @@ export function useContentTranslator() {
   const { isTranslating } = useTranslationState();
   const {
     notifyProgress,
+    notifyViewChanged,
     notifyTranslationResult,
     notifyBatchTranslationResult,
     openBatchReport,
@@ -276,9 +277,7 @@ export function useContentTranslator() {
     // Checked before the first write, so an import that stops has written
     // nothing.
     if (!isViewOpen(path, targetLanguage.code)) {
-      panel.notification.error(
-        panel.t("johannschopplich.content-translator.error.viewChanged"),
-      );
+      notifyViewChanged();
       return;
     }
 
@@ -341,9 +340,7 @@ export function useContentTranslator() {
 
     // Checked before the view's title and form are read.
     if (!isViewOpen(path, targetLanguage.code)) {
-      panel.notification.error(
-        panel.t("johannschopplich.content-translator.error.viewChanged"),
-      );
+      notifyViewChanged();
       return;
     }
 
@@ -381,9 +378,10 @@ export function useContentTranslator() {
       // Checked before the first write, so a run that stops has written
       // nothing.
       if (!isViewOpen(path, targetLanguage.code)) {
-        throw new Error(
-          panel.t("johannschopplich.content-translator.error.viewChanged"),
-        );
+        isTranslating.value = false;
+        panel.view.isLoading = false;
+        notifyViewChanged();
+        return;
       }
 
       await updateContent(contentCopy);
@@ -535,9 +533,7 @@ export function useContentTranslator() {
     // Checked before the view's title is read. The run names every language it
     // reads or writes, so the language the view is open in does not matter.
     if (panel.view.path !== path) {
-      panel.notification.error(
-        panel.t("johannschopplich.content-translator.error.viewChanged"),
-      );
+      notifyViewChanged();
       return;
     }
 

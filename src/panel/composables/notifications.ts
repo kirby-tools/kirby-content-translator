@@ -48,6 +48,16 @@ export function useTranslationNotifications(
     });
   }
 
+  // Not `notification.error`, which in a view opens Kirby's blocking error
+  // dialog over the view the editor has moved on to.
+  function notifyViewChanged() {
+    panel.notification.open({
+      message: panel.t("johannschopplich.content-translator.error.viewChanged"),
+      icon: "alert",
+      theme: "negative",
+    });
+  }
+
   function notifyPartialTranslation(message: string) {
     panel.notification.open({
       message,
@@ -214,6 +224,7 @@ export function useTranslationNotifications(
 
   return {
     notifyProgress,
+    notifyViewChanged,
     notifyTranslationResult,
     notifyBatchTranslationResult,
     openBatchReport,
