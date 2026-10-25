@@ -2,7 +2,7 @@
 
 Commercial Kirby CMS plugin for translating content between a site's languages, through DeepL, AI by way of Kirby Copilot, or a custom strategy.
 
-Use the terms from `CONTEXT.md`.
+Use the terms from `GLOSSARY.md`.
 
 ## Commands
 
