@@ -26,8 +26,10 @@ const props = defineProps({
     type: [Boolean, String, Number],
     default: null,
   },
+  // Kirby's button sends `title` as a string, `""` for `false`, which Vue
+  // casts to `true` when `Boolean` comes first.
   title: {
-    type: [Boolean, String, Number],
+    type: [String, Boolean, Number],
     default: null,
   },
   slug: {
