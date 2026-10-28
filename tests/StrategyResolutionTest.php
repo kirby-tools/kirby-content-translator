@@ -17,12 +17,12 @@ use PHPUnit\Framework\Attributes\Test;
 final class StrategyResolutionTest extends ApiRouteTestCase
 {
     #[Test]
-    public function method_param_strategy_wins_over_translate_fn_config(): void
+    public function method_param_strategy_wins_over_strategy_config(): void
     {
         self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
-                    'translateFn' => fn (string $text, string $lang) => "[fromConfig]$text",
+                    'strategy' => fn (string $text, string $lang) => "[fromConfig]$text",
                 ],
             ],
         ]);
@@ -107,21 +107,6 @@ final class StrategyResolutionTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function strategy_config_takes_precedence_over_translate_fn(): void
-    {
-        self::bootApp([
-            'options' => [
-                'johannschopplich.content-translator' => [
-                    'strategy' => fn (string $text, string $lang): string => "[fromStrategy]$text",
-                    'translateFn' => fn (string $text, string $lang): string => "[fromTranslateFn]$text",
-                ],
-            ],
-        ]);
-
-        $this->assertSame('[fromStrategy]hi', Translator::translateText('hi', 'de'));
-    }
-
-    #[Test]
     public function unknown_strategy_string_throws_logic_exception(): void
     {
         self::bootApp([
@@ -171,7 +156,7 @@ final class StrategyResolutionTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function resolved_strategy_name_is_custom_for_the_deprecated_translate_fn(): void
+    public function resolve_strategy_name_throws_on_a_leftover_translateFn_option(): void
     {
         self::bootApp([
             'options' => [
@@ -181,6 +166,9 @@ final class StrategyResolutionTest extends ApiRouteTestCase
             ],
         ]);
 
-        $this->assertSame('custom', Translator::resolveStrategyName());
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('rename it to "strategy"');
+
+        Translator::resolveStrategyName();
     }
 }
