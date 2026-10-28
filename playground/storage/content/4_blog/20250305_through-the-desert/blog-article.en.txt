@@ -6,7 +6,7 @@ Subheading: Without water
 
 ----
 
-Cover: []
+Cover: 
 
 ----
 
@@ -18,7 +18,7 @@ Date: 2025-03-05
 
 ----
 
-Author: []
+Author: 
 
 ----
 

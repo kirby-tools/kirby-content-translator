@@ -6,7 +6,7 @@ Position: PDG
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
@@ -14,7 +14,7 @@ Email: ajo@example.com
 
 ----
 
-Account:
+Account: 
 
 ----
 

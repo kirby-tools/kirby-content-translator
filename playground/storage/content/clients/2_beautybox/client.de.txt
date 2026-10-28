@@ -14,11 +14,11 @@ Contact:
 
 name: Peter
 email: peter@example.com
-phone: 1234 5678
+phone: '1234 5678'
 
 ----
 
-Notes:
+Notes: 
 
 ----
 
@@ -30,7 +30,7 @@ Vip: false
 
 ----
 
-Vatid:
+Vatid: 
 
 ----
 
@@ -43,4 +43,4 @@ country: Middle Earth
 
 ----
 
-Phone:
+Phone: 

@@ -6,7 +6,7 @@ Subheading: In a nutshell
 
 ----
 
-Cover: []
+Cover: 
 
 ----
 
@@ -18,7 +18,7 @@ Date: 2024-09-21
 
 ----
 
-Author: []
+Author: 
 
 ----
 

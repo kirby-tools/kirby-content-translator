@@ -15,7 +15,7 @@ columns:
         size: small
 
   - width: 1/3
-    sections:
+    fields:
       contentTranslator:
         type: content-translator
         label: Content Translator
