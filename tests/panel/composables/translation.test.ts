@@ -257,6 +257,7 @@ describe("useContentTranslator", () => {
     it("patches the slug in the language the import started in after the editor switches the language", async () => {
       updateContent.mockImplementation(async () => {
         Object.assign(panel.language, THIRD_LANGUAGE);
+        return true;
       });
       const translator = await createContentTranslator({
         title: false,
@@ -400,6 +401,25 @@ describe("useContentTranslator", () => {
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
+    });
+
+    it("patches no title or slug and shows no success notification when Kirby refuses the save", async () => {
+      updateContent.mockResolvedValue(false);
+      const translator = await createContentTranslator({
+        title: true,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
+
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.close).toHaveBeenCalled();
     });
   });
 

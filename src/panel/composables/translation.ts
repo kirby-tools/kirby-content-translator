@@ -282,7 +282,10 @@ export function useContentTranslator() {
       return;
     }
 
-    await updateContent(eligibleContent);
+    if (!(await updateContent(eligibleContent))) {
+      panel.notification.close();
+      return;
+    }
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(
