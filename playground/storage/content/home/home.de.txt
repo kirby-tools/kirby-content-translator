@@ -6,7 +6,7 @@ Heading: Wir sind eine digitale Produktagentur mit Fokus auf Strategie und Desig
 
 ----
 
-Cover: - file://WbpPZiMOsNcoSedv
+Cover: - 'file://WbpPZiMOsNcoSedv'
 
 ----
 
@@ -16,9 +16,9 @@ Featuredprojectsheading: Ausgewählte Arbeiten
 
 Featuredprojects:
 
-- page://XIjHqXtH9ulA2EeN
-- page://3bxHZwWeSc3CE8FX
-- page://oPgW0pm14TCyiE43
+- 'page://XIjHqXtH9ulA2EeN'
+- 'page://3bxHZwWeSc3CE8FX'
+- 'page://oPgW0pm14TCyiE43'
 
 ----
 
@@ -36,12 +36,12 @@ Featuredclientsheading: Unsere Kunden
 
 Featuredclients:
 
-- page://zQbIunQLQdqIfqte
-- page://HDn0X1SDpuaROq4S
-- page://2Zb53fOotnor1Yvh
-- page://ftGPxUUKD3sfAL1c
-- page://Avbz51V1rF7TePlQ
-- page://N7X3pEfEoRXQddV4
+- 'page://zQbIunQLQdqIfqte'
+- 'page://HDn0X1SDpuaROq4S'
+- 'page://2Zb53fOotnor1Yvh'
+- 'page://ftGPxUUKD3sfAL1c'
+- 'page://Avbz51V1rF7TePlQ'
+- 'page://N7X3pEfEoRXQddV4'
 
 ----
 

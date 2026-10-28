@@ -6,7 +6,7 @@ Position: Design
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
@@ -14,7 +14,7 @@ Email: sara@example.com
 
 ----
 
-Account:
+Account: 
 
 ----
 

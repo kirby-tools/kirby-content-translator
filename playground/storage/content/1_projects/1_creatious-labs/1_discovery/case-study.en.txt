@@ -6,11 +6,11 @@ Subheading: What teachers need from a microscope
 
 ----
 
-Phase: Discovery
+Text: <p>We spent two weeks in six classrooms. Teachers lose most of a lesson to setup, and half the devices they own are broken.</p><p>The brief changed as a result: fewer features, one cable, and parts a school can replace itself.</p>
 
 ----
 
-Text: <p>We spent two weeks in six classrooms. Teachers lose most of a lesson to setup, and half the devices they own are broken.</p><p>The brief changed as a result: fewer features, one cable, and parts a school can replace itself.</p>
+Phase: Discovery
 
 ----
 

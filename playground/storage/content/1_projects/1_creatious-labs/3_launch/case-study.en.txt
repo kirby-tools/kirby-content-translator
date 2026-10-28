@@ -6,11 +6,11 @@ Subheading: Forty schools in the first term
 
 ----
 
-Phase: Launch
+Text: <p>The microscope launched at a teachers' conference in March. Forty schools ordered class sets before the summer.</p><p>Returns stayed under one percent, and most of them were solved with the repair kit.</p>
 
 ----
 
-Text: <p>The microscope launched at a teachers' conference in March. Forty schools ordered class sets before the summer.</p><p>Returns stayed under one percent, and most of them were solved with the repair kit.</p>
+Phase: Launch
 
 ----
 

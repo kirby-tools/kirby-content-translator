@@ -6,7 +6,7 @@ Subheading: OMG all those ants
 
 ----
 
-Cover: []
+Cover: 
 
 ----
 
@@ -18,7 +18,7 @@ Date: 2025-01-25
 
 ----
 
-Author: []
+Author: 
 
 ----
 

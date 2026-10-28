@@ -6,7 +6,7 @@ Subheading: High mountains, high hope
 
 ----
 
-Cover: []
+Cover: 
 
 ----
 
@@ -18,7 +18,7 @@ Date: 2025-04-13
 
 ----
 
-Author: []
+Author: 
 
 ----
 

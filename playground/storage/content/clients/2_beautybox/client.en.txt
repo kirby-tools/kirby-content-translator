@@ -14,7 +14,7 @@ Contact:
 
 name: Peter
 email: peter@example.com
-phone: 1234 5678
+phone: '1234 5678'
 
 ----
 

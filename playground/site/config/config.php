@@ -19,9 +19,6 @@ return [
         'viewButtons' => [
             // Kirby's defaults plus the plugin's button.
             'language' => ['open', 'content-translator', 'settings', 'delete']
-        ],
-        'vue' => [
-            'compiler' => false
         ]
     ],
 

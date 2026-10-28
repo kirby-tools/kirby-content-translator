@@ -6,7 +6,7 @@ Position: Marketing
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
@@ -14,7 +14,7 @@ Email: janae@example.com
 
 ----
 
-Account:
+Account: 
 
 ----
 

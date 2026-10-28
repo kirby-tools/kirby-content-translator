@@ -6,7 +6,7 @@ Subheading: Don't go
 
 ----
 
-Cover: []
+Cover: 
 
 ----
 
@@ -18,7 +18,7 @@ Date: 2024-12-15
 
 ----
 
-Author: []
+Author: 
 
 ----
 
