@@ -171,7 +171,7 @@ describe("useContentTranslator", () => {
 
     panel = createPanelStub();
     currentContent = { value: { text: "Hello" } };
-    updateContent = vi.fn();
+    updateContent = vi.fn(async () => true);
 
     modelData = {
       id: "example",
@@ -570,6 +570,24 @@ describe("useContentTranslator", () => {
       expect(updateContent).not.toHaveBeenCalled();
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
+    });
+
+    it("shows no success notification for a host whose save Kirby refuses", async () => {
+      updateContent.mockResolvedValue(false);
+      const translator = await createContentTranslator({
+        title: true,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.close).toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
     });
   });
 
@@ -1391,24 +1409,8 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("never translates the cascade of a host another user edits in a single-language translation", async () => {
-      batchStatus.lockedBy = "Colleague";
-      cascadeIntroPage();
-      const translator = await createContentTranslator({
-        cascade: "page.children",
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(batchWrite).not.toHaveBeenCalled();
-    });
-
-    it("never translates the cascade of a host without the update permission in a single-language translation", async () => {
-      batchStatus.isUpdateAllowed = false;
+    it("never translates the cascade of a host whose save Kirby refuses in a single-language translation", async () => {
+      updateContent.mockResolvedValue(false);
       cascadeIntroPage();
       const translator = await createContentTranslator({
         cascade: "page.children",
