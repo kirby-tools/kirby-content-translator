@@ -368,7 +368,15 @@ export function useContentTranslator() {
         return;
       }
 
-      await updateContent(contentCopy);
+      // `false`: Kirby opened its lock dialog for a host another user edits, or
+      // a newer save took this one over.
+      if (!(await updateContent(contentCopy))) {
+        isTranslating.value = false;
+        panel.view.isLoading = false;
+        panel.notification.close();
+        return;
+      }
+
       const plan = planSingleTranslation({
         isHomePage: await isHomePage(path),
         isErrorPage: await isErrorPage(path),
@@ -681,13 +689,6 @@ export function useContentTranslator() {
     strategy: TranslationStrategy,
   ) {
     if (!hasCascade.value || targetLanguage.default) return [];
-
-    // For a host another user edits, Kirby's `content.save()` opens the lock
-    // dialog and resolves `false`, which `updateContent()` drops, so the status
-    // has to tell that the host was not written.
-    const hostStatus = await fetchBatchStatus(hostPath);
-
-    if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
 
     return await translateAndSave(hostPath, undefined, [targetLanguage], {
       strategy,

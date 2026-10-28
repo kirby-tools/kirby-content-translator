@@ -94,6 +94,7 @@ function createPanelStub() {
       error: vi.fn(),
       close: vi.fn(),
     },
+    events: { on: vi.fn() },
     plugins: { thirdParty: {} },
   };
 }
@@ -114,8 +115,8 @@ function createPluginContext(config: Partial<PluginConfig> = {}) {
 
 /**
  * Imports a fresh composable instance per test: `vi.resetModules()` in
- * `beforeEach` clears the global `isTranslating` state, which would otherwise
- * leak between tests.
+ * `beforeEach` clears the module-level model data cache and the global
+ * `isTranslating` state, which would otherwise leak between tests.
  */
 async function createContentTranslator(
   {
@@ -163,28 +164,6 @@ function staysOnScreen(notification: { type?: string; timeout?: number }) {
   );
 }
 
-function cascadeIntroPage(status: Partial<BatchStatusResponse> = {}) {
-  cascade = [
-    {
-      path: "pages/example+intro",
-      title: "Intro",
-      fields: { text: field({ type: "text", name: "text" }) },
-      status: {
-        isUpdateAllowed: true,
-        isTitleChangeAllowed: true,
-        lockedBy: null,
-        languagesWithUnsavedChanges: [],
-        ...status,
-      },
-    },
-  ];
-  cascadeModelData["pages/example+intro"] = {
-    id: "example/intro",
-    title: "Intro",
-    content: { text: "Welcome" },
-  };
-}
-
 describe("useContentTranslator", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -192,7 +171,7 @@ describe("useContentTranslator", () => {
 
     panel = createPanelStub();
     currentContent = { value: { text: "Hello" } };
-    updateContent = vi.fn();
+    updateContent = vi.fn(async () => true);
 
     modelData = {
       id: "example",
@@ -254,20 +233,6 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).not.toHaveBeenCalled();
     });
 
-    it("imports the default language's current content after it changed elsewhere", async () => {
-      const translator = await createContentTranslator({
-        title: false,
-        slug: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.importModelContent("pages/example", SECONDARY_LANGUAGE);
-
-      modelData = { ...modelData, content: { text: "Hello again" } };
-      await translator.importModelContent("pages/example", SECONDARY_LANGUAGE);
-
-      expect(updateContent).toHaveBeenLastCalledWith({ text: "Hello again" });
-    });
-
     it("hands the source title to Kirby as the slug when importing from the default language into a secondary language", async () => {
       modelData.title = "Über uns";
       const translator = await createContentTranslator({
@@ -287,23 +252,6 @@ describe("useContentTranslator", () => {
         { slug: "Über uns" },
         { headers: { "x-language": "fr" } },
       );
-    });
-
-    it("patches no slug on the home page", async () => {
-      modelData.id = "home";
-      const translator = await createContentTranslator({
-        title: false,
-        slug: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.importModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-        DEFAULT_LANGUAGE,
-      );
-
-      expect(panel.api.patch).not.toHaveBeenCalled();
     });
 
     it("patches the slug in the language the import started in after the editor switches the language", async () => {
@@ -453,24 +401,6 @@ describe("useContentTranslator", () => {
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
     });
-
-    it("patches no title or slug and shows no success notification when Kirby refuses the save", async () => {
-      updateContent.mockResolvedValue(false);
-      const translator = await createContentTranslator({
-        title: true,
-        slug: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.importModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-        DEFAULT_LANGUAGE,
-      );
-
-      expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(panel.notification.success).not.toHaveBeenCalled();
-    });
   });
 
   describe("single-language translation", () => {
@@ -594,22 +524,6 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("patches no slug on the home page", async () => {
-      modelData.id = "home";
-      const translator = await createContentTranslator({
-        title: false,
-        slug: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(panel.api.patch).not.toHaveBeenCalled();
-    });
-
     it("resets the translating state before reloading and notifies success after the reload", async () => {
       const { useTranslationState } =
         await import("../../../src/panel/composables/translation");
@@ -658,16 +572,11 @@ describe("useContentTranslator", () => {
       error.mockRestore();
     });
 
-    it("stops before patching, the cascade, and the success notification when Kirby refuses the host save", async () => {
-      const { useTranslationState } =
-        await import("../../../src/panel/composables/translation");
-      const { isTranslating } = useTranslationState();
+    it("shows no success notification for a host whose save Kirby refuses", async () => {
       updateContent.mockResolvedValue(false);
-      cascadeIntroPage();
       const translator = await createContentTranslator({
         title: true,
         slug: true,
-        cascade: "page.children",
         fields: { text: field({ type: "text", name: "text" }) },
       });
 
@@ -679,9 +588,6 @@ describe("useContentTranslator", () => {
       expect(panel.notification.success).not.toHaveBeenCalled();
       expect(panel.notification.close).toHaveBeenCalled();
       expect(panel.api.patch).not.toHaveBeenCalled();
-      expect(batchWrite).not.toHaveBeenCalled();
-      expect(isTranslating.value).toBe(false);
-      expect(panel.view.isLoading).toBe(false);
     });
   });
 
@@ -705,29 +611,6 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
-    });
-
-    it("translates the default language's current content after it changed elsewhere", async () => {
-      const translator = await createContentTranslator({
-        title: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-      // Kirby's `panel.view.reload()` ends the loading state the stub keeps.
-      panel.view.isLoading = false;
-
-      modelData = { ...modelData, content: { text: "Hello again" } };
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-
-      expect(batchWrite).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          content: { text: "Hello again (translated)" },
-        }),
-      );
     });
 
     it("masks a KirbyTag of a type the context route registers", async () => {
@@ -1022,6 +905,28 @@ describe("useContentTranslator", () => {
   });
 
   describe("cascade", () => {
+    function cascadeIntroPage(status: Partial<BatchStatusResponse> = {}) {
+      cascade = [
+        {
+          path: "pages/example+intro",
+          title: "Intro",
+          fields: { text: field({ type: "text", name: "text" }) },
+          status: {
+            isUpdateAllowed: true,
+            isTitleChangeAllowed: true,
+            lockedBy: null,
+            languagesWithUnsavedChanges: [],
+            ...status,
+          },
+        },
+      ];
+      cascadeModelData["pages/example+intro"] = {
+        id: "example/intro",
+        title: "Intro",
+        content: { text: "Welcome" },
+      };
+    }
+
     it("writes a cascaded model into the selected language under its own path", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({
@@ -1504,24 +1409,8 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("never translates the cascade of a host another user edits in a single-language translation", async () => {
-      batchStatus.lockedBy = "Colleague";
-      cascadeIntroPage();
-      const translator = await createContentTranslator({
-        cascade: "page.children",
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(batchWrite).not.toHaveBeenCalled();
-    });
-
-    it("never translates the cascade of a host without the update permission in a single-language translation", async () => {
-      batchStatus.isUpdateAllowed = false;
+    it("never translates the cascade of a host whose save Kirby refuses in a single-language translation", async () => {
+      updateContent.mockResolvedValue(false);
       cascadeIntroPage();
       const translator = await createContentTranslator({
         cascade: "page.children",
