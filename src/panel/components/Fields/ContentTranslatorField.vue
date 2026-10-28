@@ -76,7 +76,11 @@ const {
 
 if (panel.multilang) {
   (async () => {
-    await initialize(await usePluginContext());
+    try {
+      await initialize(await usePluginContext());
+    } catch (error) {
+      panel.error(error as Error);
+    }
   })();
 }
 </script>

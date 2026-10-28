@@ -1,11 +1,21 @@
 // @vitest-environment happy-dom
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
 import ContentTranslatorField from "../../../src/panel/components/Fields/ContentTranslatorField.vue";
 
+const { panel, initialize } = vi.hoisted(() => ({
+  panel: {
+    multilang: true,
+    languages: [],
+    t: (key: string) => key,
+    error: vi.fn(),
+  },
+  initialize: vi.fn(async () => {}),
+}));
+
 vi.mock("kirbyuse", () => ({
-  usePanel: () => ({ multilang: true, languages: [], t: (key: string) => key }),
+  usePanel: () => panel,
 }));
 
 vi.mock("@kirby-tools/licensing/components", () => ({
@@ -18,7 +28,7 @@ vi.mock("../../../src/panel/composables/plugin", () => ({
 
 vi.mock("../../../src/panel/composables/translator-actions", () => ({
   useContentTranslatorActions: () => ({
-    initialize: async () => {},
+    initialize,
     isInitialized: ref(false),
     hasAnyStrategy: ref(true),
     missingStrategyMessage: ref(),
@@ -32,17 +42,31 @@ const KField = defineComponent({
       h("section", slots.default?.()),
 });
 
-it("keeps disabled off k-field", () => {
-  const wrapper = mount(ContentTranslatorField, {
+function mountField(attrs: Record<string, unknown> = {}) {
+  return mount(ContentTranslatorField, {
     props: {
       name: "translator",
       label: "Content Translator",
       licenseStatus: "active",
       licenseDialog: "",
     },
-    attrs: { disabled: true },
+    attrs,
     global: { stubs: { "k-field": KField } },
   });
+}
+
+it("keeps disabled off k-field", () => {
+  const wrapper = mountField({ disabled: true });
 
   expect(wrapper.find("section").attributes("disabled")).toBeUndefined();
+});
+
+it("hands a failed setup to panel.error", async () => {
+  const error = new Error("Setup failed");
+  initialize.mockRejectedValueOnce(error);
+
+  mountField();
+  await flushPromises();
+
+  expect(panel.error).toHaveBeenCalledWith(error);
 });
