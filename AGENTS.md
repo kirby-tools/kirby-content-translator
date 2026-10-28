@@ -10,11 +10,12 @@ Use the terms from `GLOSSARY.md`.
 composer test          # PHPUnit
 composer csfix         # php-cs-fixer, lives in tools/phpcs/vendor/bin/, not vendor/bin/
 pnpm run test --run    # Vitest
-pnpm run test:types    # typecheck
+pnpm run test:types    # vue-tsc
 pnpm run lint          # ESLint
 ```
 
 ## Conventions
 
 - `__PLAYGROUND__` is a build-time constant defined in `kirbyup.config.js`.
+- `src/panel/site.ts` feeds kirby.tools' Panel mocks.
 - `playground/site/plugins/kirby-copilot` is a symlink to the sibling copilot checkout, for developing the two together.
