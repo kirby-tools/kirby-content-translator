@@ -1,6 +1,6 @@
 <?php
 
-use JohannSchopplich\Licensing\LicensePanel;
+use KirbyTools\Licensing\LicensePanel;
 
 return array_replace_recursive(
     LicensePanel::translations(),

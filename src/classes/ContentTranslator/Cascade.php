@@ -47,7 +47,7 @@ final class Cascade
                 }
 
                 // A query reaches models regardless of the user's permissions.
-                if (!self::isReachable($path) || !$candidate->permissions()->can('update')) {
+                if (!self::isReachable($path) || !$candidate->guards()->isAvailable('update')) {
                     continue;
                 }
 
@@ -60,10 +60,10 @@ final class Cascade
 
     /**
      * Collects the queries of the `cascade` option from the host's
-     * `content-translator` sections and view button.
+     * `content-translator` fields and view button.
      *
-     * Reads the raw section props rather than `Blueprint::sections()`, which
-     * would instantiate every section of the host.
+     * Reads the raw field props rather than building the form, which would
+     * instantiate every field of the host.
      *
      * @return list<string>
      */
@@ -71,13 +71,9 @@ final class Cascade
     {
         $options = [];
 
-        foreach ($host->blueprint()->tabs() as $tab) {
-            foreach ($tab['columns'] ?? [] as $column) {
-                foreach ($column['sections'] ?? [] as $section) {
-                    if (($section['type'] ?? null) === 'content-translator') {
-                        $options[] = $section['cascade'] ?? [];
-                    }
-                }
+        foreach ($host->blueprint()->fields() as $field) {
+            if (($field['type'] ?? null) === 'content-translator') {
+                $options[] = $field['cascade'] ?? [];
             }
         }
 

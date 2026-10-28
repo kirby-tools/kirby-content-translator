@@ -8,6 +8,7 @@ use JohannSchopplich\ContentTranslator\DeepL;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use Kirby\Cms\App;
 use Throwable;
@@ -32,7 +33,7 @@ final readonly class DeepLStrategy implements Strategy
             return $client->translateMany($texts, $options->targetLanguage, $options->sourceLanguage);
         } catch (Throwable $error) {
             foreach ($units as $unit) {
-                self::warn($unit, $error->getMessage(), $error);
+                self::warn($unit, TranslationRejectionReason::ProviderError, $error);
             }
 
             throw new TranslationException(
@@ -43,7 +44,7 @@ final readonly class DeepLStrategy implements Strategy
         }
     }
 
-    private static function warn(TranslationUnit $unit, string $reason, Throwable|null $previous): void
+    private static function warn(TranslationUnit $unit, TranslationRejectionReason $reason, Throwable|null $previous): void
     {
         App::instance()->trigger('content-translator.translate:warning', [
             'unit' => $unit,

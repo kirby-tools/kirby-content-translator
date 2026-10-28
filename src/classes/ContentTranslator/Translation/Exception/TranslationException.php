@@ -21,14 +21,13 @@ final class TranslationException extends Exception
         int $unitsAttempted,
         int $unitsTranslated = 0,
     ) {
-        // TODO: Drop K4 compat in v4 – use the named arguments `message:` and `details:` once Kirby 5 is the floor.
-        parent::__construct([
-            'fallback' => $reason,
-            'details' => [
+        parent::__construct(
+            message: $reason,
+            details: [
                 'strategy' => $strategy,
                 'unitsAttempted' => $unitsAttempted,
                 'unitsTranslated' => $unitsTranslated,
             ],
-        ]);
+        );
     }
 }

@@ -7,6 +7,7 @@ namespace JohannSchopplich\ContentTranslator\Translation\Strategies;
 use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationException;
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use JohannSchopplich\Copilot\AI\Client;
@@ -86,16 +87,16 @@ final readonly class CopilotAIStrategy implements Strategy
             } catch (Throwable $error) {
                 $lastReason = $error->getMessage();
                 foreach ($chunk as [, $unit]) {
-                    self::warn($unit, $lastReason, $error);
+                    self::warn($unit, TranslationRejectionReason::ProviderError, $error);
                 }
                 continue;
             }
 
             $translations = $response['translations'] ?? [];
             if (!is_array($translations) || count($translations) !== count($chunk)) {
-                $lastReason = 'response length mismatch';
+                $lastReason = TranslationRejectionReason::ResponseLengthMismatch->value;
                 foreach ($chunk as [, $unit]) {
-                    self::warn($unit, $lastReason, null);
+                    self::warn($unit, TranslationRejectionReason::ResponseLengthMismatch, null);
                 }
                 continue;
             }
@@ -104,14 +105,14 @@ final readonly class CopilotAIStrategy implements Strategy
                 $translation = $translations[$chunkIndex];
 
                 if (!is_string($translation)) {
-                    $lastReason = 'non-string translation';
-                    self::warn($unit, $lastReason, null);
+                    $lastReason = TranslationRejectionReason::NonStringTranslation->value;
+                    self::warn($unit, TranslationRejectionReason::NonStringTranslation, null);
                     continue;
                 }
 
                 if (UntranslatableText::isBlank($translation)) {
-                    $lastReason = 'empty translation';
-                    self::warn($unit, $lastReason, null);
+                    $lastReason = TranslationRejectionReason::EmptyTranslation->value;
+                    self::warn($unit, TranslationRejectionReason::EmptyTranslation, null);
                     continue;
                 }
 
@@ -144,7 +145,7 @@ final readonly class CopilotAIStrategy implements Strategy
         return self::DEFAULT_SYSTEM_PROMPT;
     }
 
-    private static function warn(TranslationUnit $unit, string $reason, Throwable|null $previous): void
+    private static function warn(TranslationUnit $unit, TranslationRejectionReason $reason, Throwable|null $previous): void
     {
         App::instance()->trigger('content-translator.translate:warning', [
             'unit' => $unit,

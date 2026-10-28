@@ -1,4 +1,4 @@
-import type { PanelLanguageInfo } from "kirby-types";
+import type { HtmlString, PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
@@ -52,7 +52,7 @@ export function useTranslationDialogs() {
   );
 
   async function openConfirmableTextDialog(
-    text: string,
+    text: string | HtmlString,
     shouldConfirm?: boolean,
     callback?: () => void | Promise<void>,
   ) {

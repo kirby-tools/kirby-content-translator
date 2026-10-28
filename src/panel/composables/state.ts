@@ -1,4 +1,4 @@
-import { effectScope } from "kirbyuse";
+import { effectScope } from "vue";
 
 /**
  * Keeps state in the global scope so it is shared across Vue instances.

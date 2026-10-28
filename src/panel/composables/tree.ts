@@ -1,6 +1,8 @@
 import type { InjectionKey } from "vue";
 import type { TranslationTreeEntry } from "../types";
-import { reactive, useApi, usePanel } from "kirbyuse";
+import { useApi, usePanel } from "kirbyuse";
+import { reactive } from "vue";
+import { COVERAGE_API_ROUTE } from "../constants";
 
 // eslint-disable-next-line symbol-description
 export const TOGGLE_INJECTION_KEY = Symbol() as InjectionKey<
@@ -30,7 +32,7 @@ export function useTranslationTree() {
       item.isLoading = true;
 
       try {
-        const response = await api.get("__content-translator__/coverage", {
+        const response = await api.get(COVERAGE_API_ROUTE, {
           parent: item.id,
         });
         item.children = response.children.map(initEntry);

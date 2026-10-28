@@ -1,4 +1,4 @@
-import type { PanelLanguageInfo } from "kirby-types";
+import type { KirbyFieldProps, PanelLanguageInfo } from "kirby-types";
 import type { Mock } from "vitest";
 import type {
   BatchStatusResponse,
@@ -39,7 +39,6 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    isKirby5: () => true,
     usePanel: () => panel,
     useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
@@ -120,13 +119,17 @@ function createPluginContext(config: Partial<PluginConfig> = {}) {
  * `isTranslating` state, which would otherwise leak between tests.
  */
 async function createContentTranslator(
-  options: TranslatorOptions = {},
+  {
+    fields = {},
+    ...options
+  }: TranslatorOptions & { fields?: Record<string, KirbyFieldProps> } = {},
   config: Partial<PluginConfig> = {},
 ) {
   const { useContentTranslator } =
     await import("../../../src/panel/composables/translation");
   const translator = useContentTranslator();
   await translator.initializeConfig(createPluginContext(config), options);
+  translator.fields.value = fields;
   return translator;
 }
 

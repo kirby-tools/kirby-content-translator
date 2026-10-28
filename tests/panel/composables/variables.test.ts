@@ -11,7 +11,6 @@ import { PLUGIN_CONTEXT_API_ROUTE } from "../../../src/panel/constants";
 // Assigned in `beforeEach` and read lazily by the mocks below.
 let panel: ReturnType<typeof createPanelStub>;
 let openFieldsDialog: Mock<(options: any) => Promise<any>>;
-let escapeHTML: Mock<(text: string) => string>;
 let pluginConfig: Partial<PluginConfig>;
 let variablesResponses: VariablesResponse[];
 let translateTexts: (texts: string[], targetLanguage: string) => string[];
@@ -56,7 +55,6 @@ vi.mock("kirbyuse", async () => {
     usePanel: () => panel,
     useApi: () => panel.api,
     useDialog: () => ({ openFieldsDialog }),
-    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
 
@@ -70,6 +68,7 @@ function createPanelStub() {
     translation: { code: "en" },
     view: { path: "languages/de", isLoading: false, reload: vi.fn() },
     dialog: { open: vi.fn() },
+    events: { on: vi.fn() },
     api: {
       get: vi.fn(async (route: string) => {
         if (route === PLUGIN_CONTEXT_API_ROUTE) {
@@ -168,17 +167,12 @@ describe("useVariableTranslation", () => {
   beforeEach(async () => {
     vi.resetModules();
     panel = createPanelStub();
-    // Vue reads `window.navigator` as it loads, so the composable loads first.
-    await import("../../../src/panel/composables/variables");
-    // `usePluginContext` requests the plugin context through `window.panel`.
-    vi.stubGlobal("window", { panel });
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
     });
     openFieldsDialog = vi.fn(async () => ({}));
-    escapeHTML = vi.fn((text: string) => text);
     pluginConfig = {};
     variablesResponses = [
       variables(SOURCE_VARIABLES, { de: TARGET_VARIABLES, fr: {} }),
@@ -220,13 +214,11 @@ describe("useVariableTranslation", () => {
       });
     });
 
-    it("opens the dialog with the count of pending variables and the escaped language names", async () => {
-      escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
+    it("opens the dialog with the count of pending variables and the language names", async () => {
       await translateLanguageVariables();
 
       expect(openFieldsDialog.mock.calls[0]![0].fields.help.text).toBe(
-        'johannschopplich.content-translator.dialog.variablesHelp {"count":4,"total":5,"source":"escaped(English)","target":"escaped(Deutsch)"}',
+        'johannschopplich.content-translator.dialog.variablesHelp {"count":4,"total":5,"source":"English","target":"Deutsch"}',
       );
     });
 
@@ -486,13 +478,11 @@ describe("useVariableTranslation", () => {
       openFieldsDialog = vi.fn(async () => ({ languages: ["de", "fr"] }));
     });
 
-    it("opens the batch dialog with the variablesBatchHelp and the escaped name of the default language", async () => {
-      escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
+    it("opens the batch dialog with the variablesBatchHelp and the name of the default language", async () => {
       await batchTranslateLanguageVariables();
 
       expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-        'johannschopplich.content-translator.dialog.variablesBatchHelp {"language":"escaped(English)"}',
+        'johannschopplich.content-translator.dialog.variablesBatchHelp {"language":"English"}',
       );
     });
 

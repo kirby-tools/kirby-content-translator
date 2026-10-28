@@ -325,6 +325,43 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
+    public function leaves_structure_and_object_yaml_with_an_at_leading_value_untouched(): void
+    {
+        $content = [
+            'title' => 'Hello',
+            'items' => "-\n  label: @One",
+            'meta' => 'title: @Nested',
+        ];
+        $fields = [
+            'title' => self::field(['type' => 'text']),
+            'items' => self::field([
+                'type' => 'structure',
+                'fields' => ['label' => self::field(['type' => 'text'])],
+            ]),
+            'meta' => self::field([
+                'type' => 'object',
+                'fields' => ['title' => self::field(['type' => 'text'])],
+            ]),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertSame(['Hello'], array_map(fn ($t) => $t->unit->text, $result->translations));
+
+        $result->translations[0]->writeBack->__invoke('Hallo');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertSame([
+            'title' => 'Hallo',
+            'items' => "-\n  label: @One",
+            'meta' => 'title: @Nested',
+        ], $content);
+    }
+
+    #[Test]
     public function blocks_json_string_round_trips_through_translation(): void
     {
         $blocks = [

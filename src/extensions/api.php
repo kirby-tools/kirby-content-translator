@@ -3,35 +3,31 @@
 use JohannSchopplich\ContentTranslator\BatchTranslation;
 use JohannSchopplich\ContentTranslator\Cascade;
 use JohannSchopplich\ContentTranslator\KirbyText;
+use JohannSchopplich\ContentTranslator\Licensing;
 use JohannSchopplich\ContentTranslator\PanelContext;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
 use JohannSchopplich\ContentTranslator\TranslationCoverage;
 use JohannSchopplich\ContentTranslator\Translator;
-use JohannSchopplich\KirbyTools\FieldResolver;
-use JohannSchopplich\KirbyTools\ModelResolver;
-use JohannSchopplich\Licensing\LicensePanel;
-use JohannSchopplich\Licensing\Licenses;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Find;
 use Kirby\Exception\BadMethodCallException;
-use Kirby\Exception\PermissionException;
+use KirbyTools\Utils\FieldResolver;
+use KirbyTools\Utils\ModelResolver;
 
 return [
     'routes' => fn (App $kirby) => [
-        ...LicensePanel::api('johannschopplich/kirby-content-translator'),
         [
             'pattern' => '__content-translator__/context',
             'method' => 'GET',
             'action' => function () use ($kirby) {
-                $licenses = Licenses::read('johannschopplich/kirby-content-translator');
-
                 return [
                     'config' => PanelContext::config(),
                     'kirbyTagTypes' => KirbyText::tagTypes(),
                     'homePageId' => $kirby->site()->homePageId(),
                     'errorPageId' => $kirby->site()->errorPageId(),
-                    'licenseStatus' => $licenses->getStatus()
+                    'licenseStatus' => Licensing::status(),
+                    'licenseDialog' => Licensing::dialog()
                 ];
             }
         ],
@@ -70,7 +66,7 @@ return [
                         static function (TranslationRejection $rejection): array {
                             $payload = [
                                 'index' => $rejection->index,
-                                'reason' => $rejection->reason
+                                'reason' => $rejection->reason->value
                             ];
 
                             // The Panel formats the detail from these, so the wire
@@ -146,18 +142,14 @@ return [
             'pattern' => '__content-translator__/variables',
             'method' => 'GET',
             'action' => function () use ($kirby) {
-                // TODO: Call `$this->validateAreaAccess('languages')` once Kirby 5.4 is the floor.
-                if ($kirby->user()?->role()->permissions()->for('access', 'languages') !== true) {
-                    throw new PermissionException('No access to the languages');
-                }
+                $this->validateAreaAccess('languages');
 
                 $sourceVariables = $kirby->defaultLanguage()?->translations() ?? [];
                 $languages = [];
 
                 foreach ($kirby->languages() as $language) {
-                    // Kirby 5.6 refuses to save a variable that shadows one of its own strings.
-                    // TODO: Drop the `method_exists` check once Kirby 5.6 is the floor.
-                    $coreStrings = method_exists($kirby, 'coreI18nStrings') ? $kirby->coreI18nStrings($language->code()) : [];
+                    // Kirby refuses to save a variable that shadows one of its own strings.
+                    $coreStrings = $kirby->coreI18nStrings($language->code());
 
                     $languages[$language->code()] = [
                         // An object even when empty or list-shaped, which JSON would turn into an array.

@@ -67,10 +67,10 @@ final class CascadeTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function models_returns_the_models_a_section_names(): void
+    public function models_returns_the_models_a_field_names(): void
     {
         $kirby = $this->app([
-            'sections' => [
+            'fields' => [
                 'translator' => ['type' => 'content-translator', 'cascade' => 'page.files']
             ]
         ]);

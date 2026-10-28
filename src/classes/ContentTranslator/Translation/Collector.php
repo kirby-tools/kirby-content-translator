@@ -187,12 +187,11 @@ final class Collector
         if ($fieldType === 'table') {
             $shouldReencode = is_string($value);
             if ($shouldReencode) {
-                try {
-                    $node[$fieldName] = Data::decode($value, 'yaml');
-                } catch (Throwable) {
-                    // Tolerate malformed third-party YAML.
+                $decodedValue = self::decodeYaml($value);
+                if ($decodedValue === null) {
                     return;
                 }
+                $node[$fieldName] = $decodedValue;
             }
             if (!is_array($node[$fieldName])) {
                 return;
@@ -228,7 +227,11 @@ final class Collector
         if ($fieldType === 'structure') {
             $shouldReencode = is_string($value);
             if ($shouldReencode) {
-                $node[$fieldName] = Data::decode($value, 'yaml');
+                $decodedValue = self::decodeYaml($value);
+                if ($decodedValue === null) {
+                    return;
+                }
+                $node[$fieldName] = $decodedValue;
             }
             if (!is_array($node[$fieldName])) {
                 return;
@@ -253,7 +256,11 @@ final class Collector
         if ($fieldType === 'object') {
             $shouldReencode = is_string($value);
             if ($shouldReencode) {
-                $node[$fieldName] = Data::decode($value, 'yaml');
+                $decodedValue = self::decodeYaml($value);
+                if ($decodedValue === null) {
+                    return;
+                }
+                $node[$fieldName] = $decodedValue;
             }
             if (!is_array($node[$fieldName]) || !A::isAssociative($node[$fieldName])) {
                 return;
@@ -332,6 +339,16 @@ final class Collector
             if ($shouldReencode) {
                 $this->queueEncode($node, $fieldName, 'json');
             }
+        }
+    }
+
+    // Symfony YAML rejects some content Spyc read, such as a value starting with `@`.
+    private static function decodeYaml(string $value): array|null
+    {
+        try {
+            return Data::decode($value, 'yaml');
+        } catch (Throwable) {
+            return null;
         }
     }
 

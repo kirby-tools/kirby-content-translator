@@ -2,9 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\Licensing;
+namespace KirbyTools\Licensing;
 
-use JohannSchopplich\Licensing\Http\HttpClientInterface;
+use KirbyTools\Licensing\Http\HttpClientInterface;
 
 /**
  * Facade for managing licenses for Kirby Tools plugins.
@@ -109,8 +109,8 @@ final class Licenses
         return $this->activator->isActivated();
     }
 
-    public function activateFromRequest(): array
+    public function activateFromRequest(): void
     {
-        return $this->activator->activateFromRequest();
+        $this->activator->activateFromRequest();
     }
 }

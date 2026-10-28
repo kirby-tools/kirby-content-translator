@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { TranslationLanguageCoverage } from "../../types";
-import { computed, onMounted, provide, ref, useApi, usePanel } from "kirbyuse";
+import { useApi, usePanel } from "kirbyuse";
+import { computed, onMounted, provide, ref } from "vue";
 import {
   TOGGLE_INJECTION_KEY,
   useTranslationTree,
 } from "../../composables/tree";
+import { COVERAGE_API_ROUTE } from "../../constants";
 import { translatePlural } from "../../utils/i18n";
 import TranslationRing from "../Shared/TranslationRing.vue";
 import TranslationTree from "../Shared/TranslationTree.vue";
@@ -37,7 +39,7 @@ const stats = computed(() =>
 );
 
 async function fetchCoverage() {
-  const response = await api.get("__content-translator__/coverage");
+  const response = await api.get(COVERAGE_API_ROUTE);
   if (!response) return;
   languages.value = response.languages;
   setTree(response.tree);
@@ -47,6 +49,7 @@ onMounted(async () => {
   try {
     await fetchCoverage();
   } catch {
+    // Kirby answers 404 when the `coverage` option turns the panel off.
   } finally {
     isLoading.value = false;
   }
