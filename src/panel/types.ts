@@ -13,7 +13,6 @@ export interface PluginConfig {
   batch?: boolean;
   title?: boolean;
   slug?: boolean;
-  confirm?: boolean;
   fieldTypes: string[];
   includeFields?: string[];
   excludeFields?: string[];
@@ -109,7 +108,6 @@ export interface TranslatorOptions {
   batch?: BooleanInput;
   title?: BooleanInput;
   slug?: BooleanInput;
-  confirm?: BooleanInput;
   fieldTypes?: string[];
   includeFields?: string[];
   excludeFields?: string[];

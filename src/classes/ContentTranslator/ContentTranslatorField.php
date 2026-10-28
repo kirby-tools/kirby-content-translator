@@ -26,9 +26,6 @@ final class ContentTranslatorField extends DisplayField
     protected bool|null $slug = null;
 
     #[Prop]
-    protected bool|null $confirm = null;
-
-    #[Prop]
     protected array|null $fieldTypes = null;
 
     #[Prop]

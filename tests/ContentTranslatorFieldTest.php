@@ -22,7 +22,6 @@ final class ContentTranslatorFieldTest extends ApiRouteTestCase
             'batch' => true,
             'title' => true,
             'slug' => false,
-            'confirm' => false,
             'fieldTypes' => ['text', 'writer'],
             'includeFields' => ['intro'],
             'excludeFields' => ['seo'],
@@ -34,7 +33,6 @@ final class ContentTranslatorFieldTest extends ApiRouteTestCase
         $expected = [
             'batch' => true,
             'cascade' => 'page.files',
-            'confirm' => false,
             'excludeFields' => ['seo'],
             'fieldTypes' => ['text', 'writer'],
             'import' => false,
@@ -57,7 +55,7 @@ final class ContentTranslatorFieldTest extends ApiRouteTestCase
         $props = $this->formField($this->appWithField())->toArray();
 
         $this->assertSame('inactive', $props['licenseStatus']);
-        foreach (['import', 'importFrom', 'batch', 'title', 'slug', 'confirm', 'fieldTypes', 'includeFields', 'excludeFields', 'kirbyTags', 'cascade', 'systemPrompt'] as $key) {
+        foreach (['import', 'importFrom', 'batch', 'title', 'slug', 'fieldTypes', 'includeFields', 'excludeFields', 'kirbyTags', 'cascade', 'systemPrompt'] as $key) {
             $this->assertArrayNotHasKey($key, $props);
         }
     }

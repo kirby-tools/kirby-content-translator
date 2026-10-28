@@ -13,7 +13,6 @@ export interface ResolvedTranslatorConfig {
   isBatchTranslationEnabled: boolean;
   isTitleTranslationEnabled: boolean;
   isSlugTranslationEnabled: boolean;
-  shouldConfirm: boolean;
   fieldTypes: string[];
   includeFields: string[];
   excludeFields: string[];
@@ -39,7 +38,6 @@ export function resolveTranslatorConfig(
     isBatchTranslationEnabled: toBool(options.batch ?? config.batch, true),
     isTitleTranslationEnabled: toBool(options.title ?? config.title, false),
     isSlugTranslationEnabled: toBool(options.slug ?? config.slug, false),
-    shouldConfirm: toBool(options.confirm ?? config.confirm, false),
     fieldTypes: toLowercaseNames(options.fieldTypes ?? config.fieldTypes),
     includeFields: toLowercaseNames(
       options.includeFields ?? config.includeFields ?? [],
