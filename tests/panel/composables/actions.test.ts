@@ -1,5 +1,4 @@
 import type { PanelLanguageInfo } from "kirby-types";
-import type { Mock } from "vitest";
 import type { useContentTranslator } from "../../../src/panel/composables/translation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
@@ -8,7 +7,6 @@ import { useTranslationActions } from "../../../src/panel/composables/actions";
 // Assigned per test and read lazily by the mocks below.
 let openFieldsDialog: ReturnType<typeof vi.fn>;
 let openTextDialog: ReturnType<typeof vi.fn>;
-let escapeHTML: Mock<(text: string) => string>;
 let panelLanguage: PanelLanguageInfo;
 let panelView: { path: string };
 
@@ -35,6 +33,11 @@ vi.mock("kirbyuse", async () => {
     usePanel: () => ({
       t: (key: string, data?: Record<string, unknown>) =>
         data ? `${key} ${JSON.stringify(data)}` : key,
+      // Stands in for the `HtmlString` Kirby renders as trusted HTML.
+      th: (key: string, data?: Record<string, unknown>) =>
+        `html(${key} ${JSON.stringify(data)})`,
+      api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
+      events: { on: vi.fn() },
       get language() {
         return panelLanguage;
       },
@@ -45,7 +48,6 @@ vi.mock("kirbyuse", async () => {
       plugins: { thirdParty: {} },
     }),
     useDialog: () => ({ openFieldsDialog, openTextDialog }),
-    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
 
@@ -62,12 +64,6 @@ function createTranslator({ shouldConfirm = false } = {}) {
 
 describe("useTranslationActions", () => {
   beforeEach(() => {
-    // `usePluginContext` requests the plugin context through `window.panel`.
-    vi.stubGlobal("window", {
-      panel: {
-        api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
-      },
-    });
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,
@@ -75,7 +71,6 @@ describe("useTranslationActions", () => {
     });
     openFieldsDialog = vi.fn(async () => ({ languages: ["de"] }));
     openTextDialog = vi.fn(async () => true);
-    escapeHTML = vi.fn((text: string) => text);
     panelLanguage = FRENCH;
     panelView = { path: "pages/example" };
   });
@@ -139,46 +134,18 @@ describe("useTranslationActions", () => {
     expect(openFieldsDialog).not.toHaveBeenCalled();
   });
 
-  it("handleTranslate translates nothing before initialization resolves", async () => {
+  it("handleImport imports from the sourceLanguage into the panel.languages entry of panel.language", async () => {
     const translator = createTranslator();
-    let resolveInitialization!: () => void;
-    const initialization = new Promise<void>((resolve) => {
-      resolveInitialization = resolve;
-    });
+    panelLanguage = { ...FRENCH };
 
-    const translation = useTranslationActions(
-      translator,
-      initialization,
-    ).handleTranslate();
-    await new Promise((resolve) => setTimeout(resolve));
+    await useTranslationActions(translator).handleImport(GERMAN);
 
-    expect(translator.translateModelContent).not.toHaveBeenCalled();
-
-    resolveInitialization();
-    await translation;
-
-    expect(translator.translateModelContent).toHaveBeenCalledOnce();
-  });
-
-  it("handleImport imports nothing before initialization resolves", async () => {
-    const translator = createTranslator();
-    let resolveInitialization!: () => void;
-    const initialization = new Promise<void>((resolve) => {
-      resolveInitialization = resolve;
-    });
-
-    const contentImport = useTranslationActions(
-      translator,
-      initialization,
-    ).handleImport(GERMAN);
-    await new Promise((resolve) => setTimeout(resolve));
-
-    expect(translator.importModelContent).not.toHaveBeenCalled();
-
-    resolveInitialization();
-    await contentImport;
-
-    expect(translator.importModelContent).toHaveBeenCalledOnce();
+    const [path, targetLanguage, sourceLanguage] = vi.mocked(
+      translator.importModelContent,
+    ).mock.calls[0]!;
+    expect(path).toBe("pages/example");
+    expect(targetLanguage).toBe(FRENCH);
+    expect(sourceLanguage).toBe(GERMAN);
   });
 
   it("handleImport imports from the sourceLanguage after an accepted importConfirmation", async () => {
@@ -217,7 +184,7 @@ describe("useTranslationActions", () => {
     ).handleImport(GERMAN);
 
     expect(openTextDialog).toHaveBeenCalledWith(
-      'johannschopplich.content-translator.dialog.importConfirmation {"language":"Deutsch"}',
+      'html(johannschopplich.content-translator.dialog.importConfirmation {"language":"Deutsch"})',
     );
   });
 
@@ -227,19 +194,7 @@ describe("useTranslationActions", () => {
     await useTranslationActions(translator).handleImport();
 
     expect(openTextDialog).toHaveBeenCalledWith(
-      'johannschopplich.content-translator.dialog.importConfirmation {"language":"English"}',
-    );
-  });
-
-  it("handleImport escapes the language name in the importConfirmation", async () => {
-    escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
-    await useTranslationActions(
-      createTranslator({ shouldConfirm: true }),
-    ).handleImport(GERMAN);
-
-    expect(openTextDialog).toHaveBeenCalledWith(
-      'johannschopplich.content-translator.dialog.importConfirmation {"language":"escaped(Deutsch)"}',
+      'html(johannschopplich.content-translator.dialog.importConfirmation {"language":"English"})',
     );
   });
 
@@ -289,13 +244,11 @@ describe("useTranslationActions", () => {
     );
   });
 
-  it("handleBatchTranslate appends the getCascadeHelp text to the batchHelp with the escaped name of the default language", async () => {
-    escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
+  it("handleBatchTranslate appends the getCascadeHelp text to the batchHelp", async () => {
     await useTranslationActions(createTranslator()).handleBatchTranslate();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-      'johannschopplich.content-translator.dialog.batchHelp {"language":"escaped(English)"} 1 page is also translated.',
+      'johannschopplich.content-translator.dialog.batchHelp {"language":"English"} 1 page is also translated.',
     );
   });
 

@@ -2,8 +2,6 @@
 
 declare(strict_types = 1);
 
-use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
-use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -18,7 +16,7 @@ final class HooksTest extends ApiRouteTestCase
     {
         return [
             'johannschopplich.content-translator' => [
-                'translateFn' => fn (string $text, string $lang) => "[$lang]$text",
+                'strategy' => fn (string $text, string $lang) => "[$lang]$text",
             ],
         ];
     }
@@ -166,38 +164,6 @@ final class HooksTest extends ApiRouteTestCase
             'targetCode' => 'de',
             'sourceCode' => 'en',
         ], $captured);
-    }
-
-    #[Test]
-    public function warning_hook_receives_unit_reason_and_previous(): void
-    {
-        $warnings = [];
-        self::bootApp([
-            'hooks' => [
-                'content-translator.translate:warning' => function ($unit, $reason, $previous) use (&$warnings) {
-                    $warnings[] = compact('unit', 'reason', 'previous');
-                },
-            ],
-        ]);
-
-        $strategy = new class () implements Strategy {
-            public function execute(array $units, ExecutionOptions $options): array
-            {
-                App::instance()->trigger('content-translator.translate:warning', [
-                    'unit' => $units[0],
-                    'reason' => 'simulated failure',
-                    'previous' => null,
-                ]);
-                return array_map(fn ($u) => $u->text, $units);
-            }
-        };
-
-        Translator::translateText('Hello', 'de', null, $strategy);
-
-        $this->assertCount(1, $warnings);
-        $this->assertSame('Hello', $warnings[0]['unit']->text);
-        $this->assertSame('simulated failure', $warnings[0]['reason']);
-        $this->assertNull($warnings[0]['previous']);
     }
 
     #[Test]

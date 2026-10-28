@@ -37,7 +37,8 @@ export interface PluginContextResponse {
   kirbyTagTypes: string[];
   homePageId: string;
   errorPageId: string;
-  licenseStatus?: LicenseStatus;
+  licenseStatus: LicenseStatus;
+  licenseDialog: string;
 }
 
 export interface TranslateUnitsResponse {
@@ -102,9 +103,7 @@ export type VariablesResponse = Record<
   }
 >;
 
-/** Translator options from section/view button props. */
 export interface TranslatorOptions {
-  label?: string;
   import?: BooleanInput;
   importFrom?: string;
   batch?: BooleanInput;
@@ -117,10 +116,8 @@ export interface TranslatorOptions {
   kirbyTags?: Record<string, string[]>;
   /** Queries for the models a run translates along with its host. */
   cascade?: string | string[];
-  /** System prompt for AI translation in place of the global `ai.systemPrompt`. Sections only – the view button does not declare it. */
+  /** Override of the global `ai.systemPrompt`; the view button has no such prop. */
   systemPrompt?: string;
-  /** Only available when passed from section computed props. */
-  fields?: Record<string, KirbyFieldProps>;
 }
 
 export interface TranslationLanguageCoverage {

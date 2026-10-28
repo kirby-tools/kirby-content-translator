@@ -1,23 +1,38 @@
 <?php
 
+use JohannSchopplich\ContentTranslator\ContentTranslatorField;
+use JohannSchopplich\ContentTranslator\Licensing;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App as Kirby;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
+use Kirby\Exception\LogicException;
+use KirbyTools\Licensing\LicensePanel;
+use KirbyTools\Licensing\PluginLicense;
+
+if (version_compare(Kirby::version() ?? '0', '6.0.0-beta', '<')) {
+    throw new LogicException('Kirby Content Translator requires Kirby 6');
+}
 
 @include_once __DIR__ . '/vendor/autoload.php';
 
-$packageName = 'johannschopplich/kirby-content-translator';
-$pluginConfig = [
-    'name' => 'johannschopplich/content-translator',
-    'extends' => [
+Kirby::plugin(
+    name: 'johannschopplich/content-translator',
+    extends: [
         'options' => [
             'cache' => true
         ],
         'api' => require __DIR__ . '/src/extensions/api.php',
+        'areas' => [
+            'system' => fn () => [
+                'dialogs' => LicensePanel::dialogs(Licensing::PACKAGE_NAME, 'Kirby Content Translator')
+            ]
+        ],
+        'fields' => [
+            'content-translator' => ContentTranslatorField::class
+        ],
         'hooks' => require __DIR__ . '/src/extensions/hooks.php',
-        'sections' => require __DIR__ . '/src/extensions/sections.php',
         'translations' => require __DIR__ . '/src/extensions/translations.php',
         'siteMethods' => [
             'translator' => function (array $options = []) {
@@ -34,34 +49,20 @@ $pluginConfig = [
                 return new Translator($this, $options);
             }
         ]
-    ]
-];
-
-if (class_exists('Kirby\Plugin\License')) {
-    $pluginConfig['extends']['areas'] = [
-        'system' => fn () => [
-            'dialogs' => \JohannSchopplich\Licensing\LicensePanel::dialogs($packageName, 'Kirby Content Translator')
-        ]
-    ];
-
-    Kirby::plugin(
-        ...$pluginConfig,
-        license: fn ($plugin) => new \JohannSchopplich\Licensing\PluginLicense($plugin, $packageName)
-    );
-} else {
-    Kirby::plugin(...$pluginConfig);
-}
+    ],
+    license: fn ($plugin) => new PluginLicense($plugin, Licensing::PACKAGE_NAME)
+);
 
 if (!function_exists('translator')) {
-    function translator(Site|Page|File $model, array $options = []): \JohannSchopplich\ContentTranslator\Translator
+    function translator(Site|Page|File $model, array $options = []): Translator
     {
-        return new \JohannSchopplich\ContentTranslator\Translator($model, $options);
+        return new Translator($model, $options);
     }
 }
 
 if (!function_exists('translate')) {
     function translate(string $text, string $targetLanguage, string|null $sourceLanguage = null): string
     {
-        return \JohannSchopplich\ContentTranslator\Translator::translateText($text, $targetLanguage, $sourceLanguage);
+        return Translator::translateText($text, $targetLanguage, $sourceLanguage);
     }
 }

@@ -342,8 +342,7 @@ final class Collector
         }
     }
 
-    // Symfony YAML, which `yaml.handler` can select, rejects some content Spyc
-    // reads, such as a value starting with `@`.
+    // Symfony YAML rejects some content Spyc read, such as a value starting with `@`.
     private static function decodeYaml(string $value): array|null
     {
         try {

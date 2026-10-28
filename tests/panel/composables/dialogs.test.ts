@@ -18,6 +18,8 @@ vi.mock("kirbyuse", async () => {
     ...baseKirbyuseMock(),
     usePanel: () => ({
       t: (key: string) => key,
+      api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
+      events: { on: vi.fn() },
       languages: LANGUAGES,
       plugins: { thirdParty: copilot ? { copilot } : {} },
     }),
@@ -31,12 +33,6 @@ function openTranslationDialog(help?: string) {
 
 describe("useTranslationDialogs", () => {
   beforeEach(() => {
-    // `usePluginContext` requests the plugin context through `window.panel`.
-    vi.stubGlobal("window", {
-      panel: {
-        api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
-      },
-    });
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,

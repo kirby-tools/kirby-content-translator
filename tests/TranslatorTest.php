@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
@@ -29,7 +30,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ];
     }
 
-    private static function fakeTranslateFn(): \Closure
+    private static function fakeStrategy(): \Closure
     {
         return function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
             $prefix = $fromLanguageCode !== null ? "[$toLanguageCode:$fromLanguageCode]" : "[$toLanguageCode]";
@@ -37,12 +38,12 @@ final class TranslatorTest extends ApiRouteTestCase
         };
     }
 
-    private static function pluginOptions(\Closure|null $translateFn = null): array
+    private static function pluginOptions(\Closure|null $strategy = null): array
     {
         return [
             'debug' => true,
             'johannschopplich.content-translator' => [
-                'translateFn' => $translateFn ?? self::fakeTranslateFn(),
+                'strategy' => $strategy ?? self::fakeStrategy(),
             ],
         ];
     }
@@ -122,7 +123,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ]);
     }
 
-    private function appWithTranslateFn(): App
+    private function appWithStrategy(): App
     {
         return self::bootApp([
             'languages' => self::threeLanguages(),
@@ -365,7 +366,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ]);
     }
 
-    private function appWithKirbyTagsPage(\Closure|null $translateFn = null): App
+    private function appWithKirbyTagsPage(\Closure|null $strategy = null): App
     {
         return self::bootApp([
             'languages' => self::threeLanguages(),
@@ -401,7 +402,7 @@ final class TranslatorTest extends ApiRouteTestCase
                     ],
                 ],
             ],
-            'options' => self::pluginOptions($translateFn),
+            'options' => self::pluginOptions($strategy),
             'tags' => [
                 'link' => [
                     'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
@@ -425,7 +426,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('whitespaceTexts')]
     public function returns_whitespace_only_text_unchanged(string $text): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($text, Translator::translateText($text, 'de'));
     }
 
@@ -440,9 +441,9 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_text_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_text_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame("{$prefix}hello", Translator::translateText('hello', 'de', $sourceLanguage));
     }
 
@@ -461,14 +462,14 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('pureNumericValues')]
     public function keeps_pure_numeric_values_as_untranslatable_text(string $value): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($value, Translator::translateText($value, 'de'));
     }
 
     #[Test]
     public function translates_text_with_embedded_numbers(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame('[de]Product 123', Translator::translateText('Product 123', 'de'));
     }
 
@@ -485,14 +486,14 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('pureUrlValues')]
     public function keeps_pure_url_values_as_untranslatable_text(string $value): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($value, Translator::translateText($value, 'de'));
     }
 
     #[Test]
     public function translates_text_with_embedded_url(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame('[de]Visit https://example.com today', Translator::translateText('Visit https://example.com today', 'de'));
     }
 
@@ -553,7 +554,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_content_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_content_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -568,7 +569,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_title_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_title_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -704,7 +705,7 @@ final class TranslatorTest extends ApiRouteTestCase
         $this->assertSame(4, $result->translatableCount);
         $this->assertSame(3, $result->translatedCount);
         $this->assertCount(1, $result->rejections);
-        $this->assertSame('missing translation', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::MissingTranslation, $result->rejections[0]->reason);
         $this->assertSame('text', $result->rejections[0]->fieldKey);
     }
 
@@ -842,7 +843,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_texts_sends_only_translatable_entries(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $strategy = self::recordingStrategy();
 
         $result = Translator::translateTexts(['', 'Hello', '2024', 'https://example.com'], 'de', null, $strategy);
@@ -854,7 +855,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_texts_calls_no_strategy_when_every_text_is_untranslatable(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $strategy = self::recordingStrategy();
 
         $result = Translator::translateTexts(['', '2024'], 'de', null, $strategy);
@@ -879,7 +880,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function keeps_source_text_when_a_translation_drops_a_placeholder(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $this->assertSame(
             ['Click <c0/> now', '[de]Hello'],
@@ -907,7 +908,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
 
-        $this->assertSame([['Click <c0/> now', 'placeholder mismatch', null]], $warnings);
+        $this->assertSame([['Click <c0/> now', TranslationRejectionReason::PlaceholderMismatch, null]], $warnings);
     }
 
     #[Test]
@@ -953,13 +954,13 @@ final class TranslatorTest extends ApiRouteTestCase
             }
         });
 
-        $this->assertSame([['World', 'missing translation', null]], $warnings);
+        $this->assertSame([['World', TranslationRejectionReason::MissingTranslation, null]], $warnings);
     }
 
     #[Test]
     public function translate_batch_reports_the_index_and_reason_of_a_unit_it_could_not_translate(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(
             ['Click <c0/> now', 'Hello'],
@@ -971,13 +972,13 @@ final class TranslatorTest extends ApiRouteTestCase
         $this->assertSame(['Click <c0/> now', '[de]Hello'], $result->texts);
         $this->assertCount(1, $result->rejections);
         $this->assertSame(0, $result->rejections[0]->index);
-        $this->assertSame('placeholder mismatch', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::PlaceholderMismatch, $result->rejections[0]->reason);
     }
 
     #[Test]
     public function translate_batch_records_the_placeholder_indexes_of_a_mismatch(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(['Read <c0/> and <c1/>'], 'de', null, new class () implements Strategy {
             public function execute(array $units, ExecutionOptions $options): array
@@ -993,7 +994,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_batch_omits_an_untranslatable_text_from_rejections(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         // Never handed to the strategy, so it is untranslatable text rather than a rejection.
         $result = Translator::translateBatch(['2024'], 'de', null, self::recordingStrategy());
@@ -1019,7 +1020,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('rejectionCases')]
     public function translate_batch_names_the_rejection_reason(string $sourceText, string|int|null $translation, string $reason): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch([$sourceText], 'de', null, new class ($translation) implements Strategy {
             public function __construct(private string|int|null $translation)
@@ -1033,13 +1034,13 @@ final class TranslatorTest extends ApiRouteTestCase
         });
 
         $this->assertCount(1, $result->rejections);
-        $this->assertSame($reason, $result->rejections[0]->reason);
+        $this->assertSame($reason, $result->rejections[0]->reason->value);
     }
 
     #[Test]
     public function translate_batch_reports_a_unit_the_strategy_left_unanswered(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(['Hello'], 'de', null, new class () implements Strategy {
             public function execute(array $units, ExecutionOptions $options): array
@@ -1050,7 +1051,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $this->assertSame(['Hello'], $result->texts);
         $this->assertCount(1, $result->rejections);
-        $this->assertSame('missing translation', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::MissingTranslation, $result->rejections[0]->reason);
     }
 
     #[Test]
@@ -1072,7 +1073,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function keeps_source_text_when_a_translation_is_only_whitespace(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $this->assertSame(
             ['Hello'],
@@ -1101,7 +1102,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         Translator::translateTexts(['Hello'], 'de', null, self::blankTranslationStrategy());
 
-        $this->assertSame([['Hello', 'empty translation', null]], $warnings);
+        $this->assertSame([['Hello', TranslationRejectionReason::EmptyTranslation, null]], $warnings);
     }
 
     #[Test]
@@ -1127,6 +1128,6 @@ final class TranslatorTest extends ApiRouteTestCase
         $result = Translator::translateTexts(['Hello', 'World'], 'de', null, $strategy);
 
         $this->assertSame(['Hello', 'Welt'], $result);
-        $this->assertSame([['Hello', 'non-string translation', null]], $warnings);
+        $this->assertSame([['Hello', TranslationRejectionReason::NonStringTranslation, null]], $warnings);
     }
 }

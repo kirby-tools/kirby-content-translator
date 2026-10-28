@@ -1,6 +1,6 @@
 procs:
   kirbyup:
-    cmd: [pnpm, kirbyup, serve, src/panel/index.ts]
+    cmd: [pnpm, kirbyup, dev, src/panel/index.ts]
     env:
       PLAYGROUND: "true"
     autostart: true

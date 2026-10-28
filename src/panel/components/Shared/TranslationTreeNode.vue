@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
 import type { TranslationTreeEntry } from "../../types";
-import { computed, inject, usePanel } from "kirbyuse";
+import { usePanel } from "kirbyuse";
+import { computed, inject } from "vue";
 import { TOGGLE_INJECTION_KEY } from "../../composables/tree";
 import { translatePlural } from "../../utils/i18n";
 
@@ -88,7 +89,7 @@ function navigateToLanguage(code: string) {
           :key="lang.code"
           :text="lang.code.toUpperCase()"
           theme="light"
-          @click.native.stop="navigateToLanguage(lang.code)"
+          @click.stop="navigateToLanguage(lang.code)"
         />
       </span>
     </p>

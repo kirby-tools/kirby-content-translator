@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "kirbyuse";
+import { computed } from "vue";
 
 const props = defineProps({
   value: {

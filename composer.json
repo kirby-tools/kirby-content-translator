@@ -22,17 +22,20 @@
     }
   ],
   "require": {
-    "php": ">=8.2",
+    "php": ">=8.3",
     "getkirby/composer-installer": "^1",
-    "johannschopplich/kirby-tools-licensing": "^0.9",
-    "johannschopplich/kirby-tools-utils": "^0.1"
+    "johannschopplich/kirby-tools-licensing": "^1.0.0-beta.1",
+    "johannschopplich/kirby-tools-utils": "^1.0.0-beta.1"
   },
   "require-dev": {
-    "getkirby/cms": "^5",
+    "getkirby/cms": "^6.0@beta",
     "phpunit/phpunit": "^12",
     "vlucas/phpdotenv": "^5",
     "getkirby/cli": "^1",
-    "medienbaecker/kirby-modules": "^5.8"
+    "medienbaecker/kirby-modules": "^6.0@rc"
+  },
+  "conflict": {
+    "getkirby/cms": "<6"
   },
   "scripts": {
     "dev": [
@@ -58,7 +61,7 @@
     "kirby-cms-path": false,
     "kirby-plugin-path": "playground/site/plugins",
     "kirby": {
-      "compatible": "^4.0 || ^5.0"
+      "compatible": "^6.0"
     }
   }
 }

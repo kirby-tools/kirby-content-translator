@@ -1,5 +1,8 @@
-import type { LicenseStatus } from "@kirby-tools/licensing";
-import type { KirbyFieldProps, PanelLanguageInfo } from "kirby-types";
+import type {
+  KirbyFieldProps,
+  PanelLanguageInfo,
+  PanelModelData,
+} from "kirby-types";
 import type { ModelBatchOutcome } from "../translation/batch";
 import type { BatchCandidate } from "../translation/batch-plan";
 import type { KirbyTagRules, TranslationStrategy } from "../translation/types";
@@ -12,8 +15,9 @@ import type {
   StrategyName,
   TranslatorOptions,
 } from "../types";
-import { isKirby5, ref, useContent, useI18n, usePanel } from "kirbyuse";
+import { useContent, usePanel } from "kirbyuse";
 import pAll from "p-all";
+import { ref } from "vue";
 import {
   BATCH_STATUS_API_ROUTE,
   BATCH_WRITE_API_ROUTE,
@@ -43,7 +47,6 @@ import {
 } from "../utils/translator-config";
 import { useModel } from "./model";
 import { useTranslationNotifications } from "./notifications";
-import { resolveLicenseStatus } from "./plugin";
 import { createGlobalState } from "./state";
 
 export const useTranslationState = createGlobalState(() => {
@@ -61,7 +64,6 @@ export function useContentTranslator() {
     isEditable: isContentEditable,
     update: updateContent,
   } = useContent();
-  const { t } = useI18n();
   const { getModelData } = useModel();
   const { isTranslating } = useTranslationState();
   const {
@@ -73,7 +75,6 @@ export function useContentTranslator() {
   } = useTranslationNotifications();
 
   // #region Configuration state
-  const label = ref<string>();
   const isImportEnabled = ref<boolean>();
   const importFrom = ref<string>();
   const isBatchTranslationEnabled = ref<boolean>();
@@ -94,7 +95,6 @@ export function useContentTranslator() {
   const config = ref<PluginConfig>();
   const homePageId = ref<string>();
   const errorPageId = ref<string>();
-  const licenseStatus = ref<LicenseStatus>();
   const hasAnyStrategy = ref(false);
   const missingStrategyMessage = ref<string>();
 
@@ -109,15 +109,10 @@ export function useContentTranslator() {
     context: PluginContextResponse,
     options: TranslatorOptions = {},
   ) {
-    label.value =
-      t(options.label) || panel.t("johannschopplich.content-translator.label");
-
     const resolvedConfig = resolveTranslatorConfig(context.config, options);
     isImportEnabled.value = resolvedConfig.isImportEnabled;
     importFrom.value = resolvedConfig.importFrom;
-    // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.
-    isBatchTranslationEnabled.value =
-      isKirby5() && resolvedConfig.isBatchTranslationEnabled;
+    isBatchTranslationEnabled.value = resolvedConfig.isBatchTranslationEnabled;
     isTitleTranslationEnabled.value = resolvedConfig.isTitleTranslationEnabled;
     isSlugTranslationEnabled.value = resolvedConfig.isSlugTranslationEnabled;
     shouldConfirm.value = resolvedConfig.shouldConfirm;
@@ -126,15 +121,11 @@ export function useContentTranslator() {
     excludeFields.value = resolvedConfig.excludeFields;
     kirbyTags.value = resolveKirbyTagRules(context, resolvedConfig);
     systemPrompt.value = resolvedConfig.systemPrompt;
-    // The cascade is saved through `batch-write`, which needs Kirby 5.
-    // TODO: Drop K4 compat in v4 – remove the `isKirby5()` check once Kirby 5 is the floor.
-    hasCascade.value = isKirby5() && resolvedConfig.hasCascade;
+    hasCascade.value = resolvedConfig.hasCascade;
 
-    fields.value = options.fields ?? {};
     config.value = context.config;
     homePageId.value = context.homePageId;
     errorPageId.value = context.errorPageId;
-    licenseStatus.value = resolveLicenseStatus(context);
 
     const strategyReadiness = await resolveStrategyReadiness(context.config);
     hasAnyStrategy.value = strategyReadiness.hasAnyStrategy;
@@ -212,13 +203,13 @@ export function useContentTranslator() {
     );
   }
 
-  // TODO: Next major version – unify import flow through a server-side
-  // `copyContent` API endpoint. When importing from the default language,
-  // delete the content file (Kirby inherits automatically) and reload the
-  // Panel instead of using `updateContent()`. For non-default `importFrom`
-  // sources, the server-side `copyContent` behavior is kept. This also removes
-  // the need for client-side `filterEligibleContent` during import and the
-  // title/slug patching for default-language imports.
+  // TODO: Unify the import flow through a server-side `copyContent` API
+  // endpoint. When importing from the default language, delete the content
+  // file (Kirby inherits automatically) and reload the Panel instead of using
+  // `updateContent()`. For non-default `importFrom` sources, the server-side
+  // `copyContent` behavior is kept. This also removes the need for client-side
+  // `filterEligibleContent` during import and the title/slug patching for
+  // default-language imports.
   // TODO: Next major version – remove confirm dialog options entirely.
   /**
    * Imports the content of `sourceLanguage`, or of the default language, into
@@ -233,10 +224,24 @@ export function useContentTranslator() {
   ) {
     if (!(await hasResolvedBlueprint(path))) return;
 
-    const { id, title, content } = await getModelData(
-      path,
-      sourceLanguage?.code,
-    );
+    let title: string | undefined;
+    let content: Record<string, unknown>;
+
+    if (sourceLanguage) {
+      const data = await panel.api.get<PanelModelData>(
+        path,
+        { language: sourceLanguage.code },
+        undefined,
+        // Avoid showing Panel loading indicator.
+        true,
+      );
+      title = data.title;
+      content = data.content;
+    } else {
+      const data = await getModelData(path);
+      title = data.title;
+      content = data.content;
+    }
 
     const eligibleContent = filterEligibleContent(content, {
       fields: fields.value!,
@@ -246,8 +251,8 @@ export function useContentTranslator() {
     });
 
     const plan = planImport({
-      isHomePage: id === homePageId.value,
-      isErrorPage: id === errorPageId.value,
+      isHomePage: await isHomePage(path),
+      isErrorPage: await isErrorPage(path),
       isFileModel: isFileModelPath(path),
       isSiteModel: isSiteModelPath(path),
       isUserModel: isUserModelPath(path),
@@ -280,9 +285,7 @@ export function useContentTranslator() {
       return;
     }
 
-    // Kirby reports a refused save from 5.6 on; before, `updateContent()`
-    // resolves to `undefined` and the import goes on.
-    if ((await updateContent(eligibleContent)) === false) return;
+    await updateContent(eligibleContent);
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(
@@ -368,20 +371,10 @@ export function useContentTranslator() {
         return;
       }
 
-      // `false`: Kirby opened its lock dialog for a host another user edits, or
-      // a newer save took this one over. Before Kirby 5.6, `updateContent()`
-      // resolves to `undefined` either way.
-      if ((await updateContent(contentCopy)) === false) {
-        isTranslating.value = false;
-        panel.view.isLoading = false;
-        panel.notification.close();
-        return;
-      }
-
-      const { id } = await getModelData(path);
+      await updateContent(contentCopy);
       const plan = planSingleTranslation({
-        isHomePage: id === homePageId.value,
-        isErrorPage: id === errorPageId.value,
+        isHomePage: await isHomePage(path),
+        isErrorPage: await isErrorPage(path),
         isFileModel: isFileModelPath(path),
         isSiteModel: isSiteModelPath(path),
         isUserModel: isUserModelPath(path),
@@ -646,7 +639,9 @@ export function useContentTranslator() {
     const globalConfig = resolveTranslatorConfig(config.value!);
     const models = planBatchRun(
       host,
-      hasCascade.value ? await getCascadeCandidates(hostPath) : [],
+      hasCascade.value
+        ? await getCascadeCandidates(hostPath, sourceLanguage.code)
+        : [],
       {
         selectedLanguages,
         defaultLanguageCode: sourceLanguage.code,
@@ -691,8 +686,8 @@ export function useContentTranslator() {
     if (!hasCascade.value || targetLanguage.default) return [];
 
     // For a host another user edits, Kirby's `content.save()` opens the lock
-    // dialog instead of throwing, and reports the refused write only from
-    // Kirby 5.6 on, so the status has to tell that the host was not written.
+    // dialog and resolves `false`, which `updateContent()` drops, so the status
+    // has to tell that the host was not written.
     const hostStatus = await fetchBatchStatus(hostPath);
 
     if (!hostStatus.isUpdateAllowed || hostStatus.lockedBy !== null) return [];
@@ -778,14 +773,24 @@ export function useContentTranslator() {
       : (countLabels[0] ?? "");
   }
 
+  /**
+   * Loads the default-language content of every cascaded model afresh: a
+   * cascaded model has no open view whose events could clear a cache.
+   */
   async function getCascadeCandidates(
     hostPath: string,
+    defaultLanguageCode: string,
   ): Promise<BatchCandidate[]> {
     const cascade = await fetchCascade(hostPath);
 
     return await pAll(
       cascade.map(({ path, title, fields, status }) => async () => {
-        const defaultLanguageData = await getModelData(path);
+        const defaultLanguageData = await panel.api.get<PanelModelData>(
+          path,
+          { language: defaultLanguageCode },
+          undefined,
+          true,
+        );
 
         return {
           path,
@@ -805,13 +810,22 @@ export function useContentTranslator() {
     );
   }
 
+  async function isHomePage(path: string) {
+    const defaultLanguageData = await getModelData(path);
+    return defaultLanguageData.id === homePageId.value;
+  }
+
+  async function isErrorPage(path: string) {
+    const defaultLanguageData = await getModelData(path);
+    return defaultLanguageData.id === errorPageId.value;
+  }
+
   /** `currentContent` and `updateContent` read and write the form of whichever view is open. */
   function isViewOpen(path: string, languageCode: string) {
     return panel.view.path === path && panel.language.code === languageCode;
   }
 
   return {
-    label,
     isImportEnabled,
     importFrom,
     isBatchTranslationEnabled,
@@ -819,7 +833,6 @@ export function useContentTranslator() {
     strategyName,
 
     fields,
-    licenseStatus,
     hasAnyStrategy,
     missingStrategyMessage,
     isContentEditable,

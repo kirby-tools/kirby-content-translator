@@ -52,27 +52,30 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.9.5",
-            "version_normalized": "0.9.5.0",
+            "version": "1.0.0-beta.1",
+            "version_normalized": "1.0.0.0-beta1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "18ce762ee7f296a0c7ed37eeb9fa09159c50a73d"
+                "reference": "f1814e0555aae86250054ce660d9b540c46b4328"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/18ce762ee7f296a0c7ed37eeb9fa09159c50a73d",
-                "reference": "18ce762ee7f296a0c7ed37eeb9fa09159c50a73d",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/f1814e0555aae86250054ce660d9b540c46b4328",
+                "reference": "f1814e0555aae86250054ce660d9b540c46b4328",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.2"
+                "php": ">=8.3"
+            },
+            "conflict": {
+                "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^5",
+                "getkirby/cms": "^6",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-09-20T19:09:02+00:00",
+            "time": "2026-10-28T12:16:49+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -80,7 +83,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "JohannSchopplich\\Licensing\\": "src/"
+                    "KirbyTools\\Licensing\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -98,33 +101,36 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.9.5"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v1.0.0-beta.1"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
-            "version": "0.1.4",
-            "version_normalized": "0.1.4.0",
+            "version": "1.0.0-beta.1",
+            "version_normalized": "1.0.0.0-beta1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/utils.git",
-                "reference": "71b4b67f466c6c99b5fbe5a21a2e40d63d3e7b5d"
+                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/71b4b67f466c6c99b5fbe5a21a2e40d63d3e7b5d",
-                "reference": "71b4b67f466c6c99b5fbe5a21a2e40d63d3e7b5d",
+                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/ea7c1096011f526d6e7f877c64bd7324945b7004",
+                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004",
                 "shasum": ""
             },
             "require": {
-                "php": ">=8.2"
+                "php": ">=8.3"
+            },
+            "conflict": {
+                "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^5",
+                "getkirby/cms": "^6",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-09-07T07:05:05+00:00",
+            "time": "2026-10-27T15:53:15+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -132,7 +138,7 @@
             "installation-source": "dist",
             "autoload": {
                 "psr-4": {
-                    "JohannSchopplich\\KirbyTools\\": "src/"
+                    "KirbyTools\\Utils\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -150,7 +156,7 @@
             "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/utils/issues",
-                "source": "https://github.com/kirby-tools/utils/tree/v0.1.4"
+                "source": "https://github.com/kirby-tools/utils/tree/v1.0.0-beta.1"
             },
             "install-path": "../johannschopplich/kirby-tools-utils"
         }

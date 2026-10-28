@@ -1,93 +1,117 @@
-<script lang="ts">
-import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
-import { ref, usePanel, useSection } from "kirbyuse";
-import { section } from "kirbyuse/props";
-import { useTranslationActions } from "../../composables/actions";
-import { usePluginContext } from "../../composables/plugin";
-import {
-  useContentTranslator,
-  useTranslationState,
-} from "../../composables/translation";
-
-const propsDefinition = {
-  ...section,
-};
-
-export default {
-  inheritAttrs: false,
-};
-</script>
-
 <script setup lang="ts">
-const props = defineProps(propsDefinition);
+import type { LicenseStatus } from "@kirby-tools/licensing";
+import type { PropType } from "vue";
+import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
+import { usePanel } from "kirbyuse";
+import {
+  disabled as disabledProp,
+  help as helpProp,
+  id as idProp,
+  name as nameProp,
+} from "kirbyuse/props";
+import { usePluginContext } from "../../composables/plugin";
+import { useTranslationState } from "../../composables/translation";
+import { useContentTranslatorActions } from "../../composables/translator-actions";
+
+const props = defineProps({
+  // Declared to keep `disabled` off `k-field`, so the field never looks disabled.
+  ...disabledProp,
+  ...helpProp,
+  ...idProp,
+  ...nameProp,
+  label: {
+    type: String,
+    required: true,
+  },
+  import: {
+    type: Boolean,
+    default: undefined,
+  },
+  importFrom: String,
+  batch: {
+    type: Boolean,
+    default: undefined,
+  },
+  title: {
+    type: Boolean,
+    default: undefined,
+  },
+  slug: {
+    type: Boolean,
+    default: undefined,
+  },
+  confirm: {
+    type: Boolean,
+    default: undefined,
+  },
+  fieldTypes: Array as PropType<string[]>,
+  includeFields: Array as PropType<string[]>,
+  excludeFields: Array as PropType<string[]>,
+  kirbyTags: Object as PropType<Record<string, string[]>>,
+  cascade: [String, Array] as PropType<string | string[]>,
+  systemPrompt: String,
+  licenseStatus: {
+    type: String as PropType<LicenseStatus>,
+    required: true,
+  },
+  licenseDialog: {
+    type: String,
+    required: true,
+  },
+});
 
 const panel = usePanel();
+const hasLicenseButtons = !__PLAYGROUND__;
 const { isTranslating } = useTranslationState();
-
 const defaultLanguage = panel.languages.find((language) => language.default)!;
-const isInitialized = ref(false);
-
-const translator = useContentTranslator();
 const {
-  label,
+  initialize,
+  isInitialized,
   isImportEnabled,
   importFrom,
   isBatchTranslationEnabled,
-
-  licenseStatus,
   hasAnyStrategy,
   missingStrategyMessage,
   isContentEditable,
+  handleImport,
+  handleTranslate,
+  handleBatchTranslate,
+} = useContentTranslatorActions(props);
 
-  initializeConfig,
-} = translator;
-
-const { handleImport, handleTranslate, handleBatchTranslate } =
-  useTranslationActions(translator);
-
-(async () => {
-  const { load } = useSection();
-
-  const [context, sectionProps] = await Promise.all([
-    usePluginContext(),
-    load({
-      parent: props.parent!,
-      name: props.name!,
-    }),
-  ]);
-
-  await initializeConfig(context, sectionProps);
-
-  isInitialized.value = true;
-})();
+if (panel.multilang) {
+  (async () => {
+    await initialize(await usePluginContext());
+  })();
+}
 </script>
 
 <template>
-  <k-section v-if="isInitialized" :label="label">
-    <template v-if="licenseStatus !== undefined" slot="options">
+  <k-field
+    :id="id"
+    :help="help"
+    :input="false"
+    :label="label"
+    :name="name"
+    type="content-translator"
+    class="k-content-translator-field"
+  >
+    <template v-if="hasLicenseButtons" #options>
       <LicensingButtonGroup
-        label="Kirby Content Translator"
-        api-namespace="__content-translator__"
+        :dialog="licenseDialog"
         :license-status="licenseStatus"
         pricing-url="https://kirby.tools/content-translator/buy"
       />
     </template>
 
     <k-box v-if="!panel.multilang" theme="empty">
-      <k-text>
-        This section requires multi-language support to be enabled.
-      </k-text>
+      <k-text>This field requires multi-language support to be enabled.</k-text>
     </k-box>
-    <template v-else>
+    <div v-else-if="isInitialized" class="[&>*+*]:kct-mt-[var(--spacing-1)]">
       <k-box v-if="!hasAnyStrategy" theme="empty">
         <k-text>{{ missingStrategyMessage }}</k-text>
       </k-box>
 
-      <k-box
-        v-if="isImportEnabled && importFrom === 'all'"
-        theme="none"
-        :class="!hasAnyStrategy && 'kct-mt-[var(--spacing-1)]'"
-      >
+      <k-box v-if="isImportEnabled && importFrom === 'all'" theme="none">
         <k-button-group layout="collapsed">
           <k-button
             v-for="language in panel.languages.filter(
@@ -141,10 +165,7 @@ const { handleImport, handleTranslate, handleBatchTranslate } =
       </k-box>
 
       <template v-else-if="isImportEnabled || hasAnyStrategy">
-        <k-box
-          theme="none"
-          :class="!hasAnyStrategy && 'kct-mt-[var(--spacing-1)]'"
-        >
+        <k-box theme="none">
           <k-button-group layout="collapsed">
             <k-button
               v-if="
@@ -201,7 +222,7 @@ const { handleImport, handleTranslate, handleBatchTranslate } =
         </k-box>
 
         <k-box
-          v-show="
+          v-if="
             hasAnyStrategy &&
             !isBatchTranslationEnabled &&
             panel.language.default
@@ -212,9 +233,8 @@ const { handleImport, handleTranslate, handleBatchTranslate } =
               'johannschopplich.content-translator.help.defaultLanguageInfo',
             )
           "
-          class="kct-mt-[var(--spacing-1)]"
         />
       </template>
-    </template>
-  </k-section>
+    </div>
+  </k-field>
 </template>

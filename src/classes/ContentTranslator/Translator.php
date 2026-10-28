@@ -16,10 +16,10 @@ use JohannSchopplich\ContentTranslator\Translation\Strategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslatedUnits;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
 use JohannSchopplich\ContentTranslator\Translation\TranslationRejection;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translation\UntranslatableText;
 use JohannSchopplich\Copilot\AI\Client as CopilotClient;
-use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
@@ -27,6 +27,7 @@ use Kirby\Cms\Site;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\LogicException;
+use KirbyTools\Utils\FieldResolver;
 
 final class Translator
 {
@@ -128,12 +129,10 @@ final class Translator
 
             // Deleting the secondary language's content lets Kirby inherit it
             // from the default language.
-            // TODO: Drop K4 compat in v4 – remove the `method_exists` check once Kirby 5 is the floor.
             if (
                 $defaultLanguage !== null &&
                 $defaultLanguage->code() === $fromLanguageCode &&
-                $defaultLanguage->code() !== $toLanguageCode &&
-                method_exists($this->model, 'version')
+                $defaultLanguage->code() !== $toLanguageCode
             ) {
                 $this->model->version()->delete($toLanguageCode);
                 return;
@@ -326,7 +325,7 @@ final class Translator
             $unit = $translatableUnits[$position];
 
             if (!array_key_exists($position, $translations)) {
-                $rejections[] = self::reject($unit, $index, 'missing translation');
+                $rejections[] = self::reject($unit, $index, TranslationRejectionReason::MissingTranslation);
                 continue;
             }
 
@@ -335,19 +334,19 @@ final class Translator
             // A strategy that hands back `null` has already fired the hook with
             // the real reason, so warning again would report one rejection twice.
             if ($translation === null) {
-                $rejections[] = new TranslationRejection($index, 'missing translation', $unit->fieldKey);
+                $rejections[] = new TranslationRejection($index, TranslationRejectionReason::MissingTranslation, $unit->fieldKey);
                 continue;
             }
 
             if (!is_string($translation)) {
-                $rejections[] = self::reject($unit, $index, 'non-string translation');
+                $rejections[] = self::reject($unit, $index, TranslationRejectionReason::NonStringTranslation);
                 continue;
             }
 
             // `UntranslatableText` already dropped the blank sources, so a unit
             // that reaches a strategy cannot legitimately come back blank.
             if (UntranslatableText::isBlank($translation)) {
-                $rejections[] = self::reject($unit, $index, 'empty translation');
+                $rejections[] = self::reject($unit, $index, TranslationRejectionReason::EmptyTranslation);
                 continue;
             }
 
@@ -355,7 +354,7 @@ final class Translator
             $actualIndexes = self::placeholderIndexes($translation);
 
             if ($expectedIndexes !== $actualIndexes) {
-                $rejections[] = self::reject($unit, $index, 'placeholder mismatch', $expectedIndexes, $actualIndexes);
+                $rejections[] = self::reject($unit, $index, TranslationRejectionReason::PlaceholderMismatch, $expectedIndexes, $actualIndexes);
                 continue;
             }
 
@@ -389,17 +388,14 @@ final class Translator
      * @param list<int>|null $expectedIndexes
      * @param list<int>|null $actualIndexes
      */
-    private static function reject(TranslationUnit $unit, int $index, string $reason, array|null $expectedIndexes = null, array|null $actualIndexes = null): TranslationRejection
+    private static function reject(TranslationUnit $unit, int $index, TranslationRejectionReason $reason, array|null $expectedIndexes = null, array|null $actualIndexes = null): TranslationRejection
     {
         self::warn($unit, $reason);
         return new TranslationRejection($index, $reason, $unit->fieldKey, $expectedIndexes, $actualIndexes);
     }
 
-    private static function warn(TranslationUnit $unit, string $reason): void
+    private static function warn(TranslationUnit $unit, TranslationRejectionReason $reason): void
     {
-        // TODO: Next major version – back the reason strings with an enum. This
-        // hook publishes them, so a consumer branches on them, yet a rename is
-        // invisible to the compiler and to both test suites.
         App::instance()->trigger('content-translator.translate:warning', [
             'unit' => $unit,
             'reason' => $reason,

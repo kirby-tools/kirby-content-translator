@@ -103,10 +103,6 @@ final class VariablesRouteTest extends ApiRouteTestCase
     #[Test]
     public function sends_the_default_language_keys_kirby_reserves_for_its_own_strings(): void
     {
-        if (!method_exists(App::class, 'coreI18nStrings')) {
-            $this->markTestSkipped('Kirby refuses a key that shadows one of its own strings since 5.6.');
-        }
-
         $response = $this->callVariablesRoute(
             source: ['menu' => 'Menu', 'cart.title' => 'Shopping cart', 'save' => 'Save'],
             target: []

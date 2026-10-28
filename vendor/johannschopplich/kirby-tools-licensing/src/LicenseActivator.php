@@ -2,13 +2,12 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\Licensing;
+namespace KirbyTools\Licensing;
 
-use JohannSchopplich\Licensing\Http\HttpClientInterface;
-use JohannSchopplich\Licensing\Http\KirbyHttpClient;
 use Kirby\Cms\App;
-use Kirby\Exception\LogicException;
 use Kirby\Http\Request;
+use KirbyTools\Licensing\Http\HttpClientInterface;
+use KirbyTools\Licensing\Http\KirbyHttpClient;
 use Throwable;
 
 /**
@@ -32,15 +31,12 @@ final class LicenseActivator
     }
 
     /**
-     * Thrown messages are matched verbatim by `LicensePanel::ACTIVATION_ERROR_KEYS`
-     * to resolve a translation, so they cannot be reworded on their own.
-     *
-     * @throws LogicException When the license is already activated, belongs to another plugin, does not cover the installed version, or when the licensing API rejects the request (message taken verbatim from the response)
+     * @throws ActivationException When the license is already activated, belongs to another plugin, does not cover the installed version, or when the licensing API rejects the request
      */
     public function activate(string $email, string $licenseKey): void
     {
         if ($this->isActivated()) {
-            throw new LogicException('License key already activated');
+            throw new ActivationException(ActivationOutcome::AlreadyActivated);
         }
 
         $response = $this->request('auth/activate', [
@@ -52,17 +48,17 @@ final class LicenseActivator
         ]);
 
         if (($response['packageName'] ?? null) !== $this->packageName) {
-            throw new LogicException('License key not valid for this plugin');
+            throw new ActivationException(ActivationOutcome::WrongPlugin);
         }
 
         $compatibilityConstraint = $response['licenseCompatibility'];
 
         if (!$this->validator->isCompatible($compatibilityConstraint)) {
             if ($this->validator->isUpgradeable($compatibilityConstraint)) {
-                throw new LogicException('License key not valid for this plugin version, please upgrade your license');
+                throw new ActivationException(ActivationOutcome::Upgradeable);
             }
 
-            throw new LogicException('License key not valid for this plugin version');
+            throw new ActivationException(ActivationOutcome::Incompatible);
         }
 
         $this->repository->save(
@@ -73,26 +69,19 @@ final class LicenseActivator
     }
 
     /**
-     * @throws LogicException When `email` or `licenseKey` is missing, or when activation fails
+     * @throws ActivationException When `email` or `licenseKey` is missing, or when activation fails
      */
-    public function activateFromRequest(Request|null $request = null): array
+    public function activateFromRequest(Request|null $request = null): void
     {
         $request ??= App::instance()->request();
         $email = $request->get('email');
-        // TODO: Remove the `orderId` fallback once all plugins ship with licensing-backend >=0.9.
-        $licenseKey = $request->get('licenseKey') ?? $request->get('orderId');
+        $licenseKey = $request->get('licenseKey');
 
         if (!$email || !$licenseKey) {
-            throw new LogicException('Missing license activation parameters "email" or "licenseKey"');
+            throw new ActivationException(ActivationOutcome::MissingParameters);
         }
 
         $this->activate($email, (string)$licenseKey);
-
-        return [
-            'code' => 200,
-            'status' => 'ok',
-            'message' => 'License key successfully activated'
-        ];
     }
 
     /**
@@ -115,7 +104,7 @@ final class LicenseActivator
                 // The licensing API answers 401 for a license key it does not
                 // know. Any other failure keeps the stored license, so the next
                 // read refreshes again.
-                if ($e->getCode() === 'error.401') {
+                if ($e instanceof ActivationException && $e->outcome === ActivationOutcome::InvalidCredentials) {
                     $this->repository->remove($this->packageName);
                 }
 

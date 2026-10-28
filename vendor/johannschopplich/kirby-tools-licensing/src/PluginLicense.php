@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\Licensing;
+namespace KirbyTools\Licensing;
 
 use Kirby\Plugin\License as KirbyLicense;
 use Kirby\Plugin\LicenseStatus as KirbyLicenseStatus;
@@ -36,6 +36,7 @@ final class PluginLicense extends KirbyLicense
     private function toKirbyStatus(LicenseStatus $customStatus): KirbyLicenseStatus
     {
         $dialogPrefix = LicenseUtils::toPackageSlug($this->packageName);
+        $activationDialog = LicenseUtils::toActivationDialog($this->packageName);
         $label = LicensePanel::statusLabel($customStatus);
 
         return match ($customStatus) {
@@ -51,14 +52,14 @@ final class PluginLicense extends KirbyLicense
                 label: $label,
                 icon: 'key',
                 theme: 'love',
-                dialog: "{$dialogPrefix}/activate"
+                dialog: $activationDialog
             ),
             LicenseStatus::Invalid => new KirbyLicenseStatus(
                 value: LicenseStatus::Invalid->value,
                 label: $label,
                 icon: 'alert',
                 theme: 'negative',
-                dialog: "{$dialogPrefix}/activate"
+                dialog: $activationDialog
             ),
             LicenseStatus::Incompatible => new KirbyLicenseStatus(
                 value: LicenseStatus::Incompatible->value,

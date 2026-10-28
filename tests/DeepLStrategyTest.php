@@ -7,6 +7,7 @@ use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationExceptio
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\DeepLStrategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use Kirby\Cms\App;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
@@ -133,8 +134,8 @@ final class DeepLStrategyTest extends ApiRouteTestCase
         }
 
         $this->assertSame([
-            ['fieldKey' => 'a', 'reason' => 'upstream timeout', 'previousMessage' => 'upstream timeout'],
-            ['fieldKey' => 'b', 'reason' => 'upstream timeout', 'previousMessage' => 'upstream timeout'],
+            ['fieldKey' => 'a', 'reason' => TranslationRejectionReason::ProviderError, 'previousMessage' => 'upstream timeout'],
+            ['fieldKey' => 'b', 'reason' => TranslationRejectionReason::ProviderError, 'previousMessage' => 'upstream timeout'],
         ], $captured);
     }
 

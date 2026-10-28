@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\Licensing;
+namespace KirbyTools\Licensing;
 
 use Kirby\Cms\App;
 
@@ -30,19 +30,20 @@ final class LicenseUtils
     }
 
     /**
+     * Builds the ID of the activation dialog `LicensePanel::dialogs()` registers
+     * (e.g., `johannschopplich/kirby-copilot` → `johannschopplich-kirby-copilot/activate`).
+     */
+    public static function toActivationDialog(string $packageName): string
+    {
+        return self::toPackageSlug($packageName) . '/activate';
+    }
+
+    /**
      * Extracts plugin ID from package name (e.g., `johannschopplich/kirby-copilot` → `copilot`).
      */
     public static function toPluginId(string $packageName): string
     {
         return preg_replace('!^.*/kirby-!', '', $packageName);
-    }
-
-    /**
-     * Converts package name to API prefix (e.g., `johannschopplich/kirby-copilot` → `__copilot__`).
-     */
-    public static function toApiPrefix(string $packageName): string
-    {
-        return '__' . self::toPluginId($packageName) . '__';
     }
 
     /**

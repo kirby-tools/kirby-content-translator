@@ -325,17 +325,15 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    #[RunInSeparateProcess]
-    public function leaves_structure_and_object_yaml_with_a_value_starting_with_an_at_sign_untouched(): void
+    public function leaves_structure_and_object_yaml_with_an_at_leading_value_untouched(): void
     {
-        // Spyc, Kirby's default handler, reads a value starting with `@`.
-        new App(['options' => ['yaml.handler' => 'symfony']]);
         $content = [
+            'title' => 'Hello',
             'items' => "-\n  label: @One",
             'meta' => 'title: @Nested',
-            'title' => 'Hello',
         ];
         $fields = [
+            'title' => self::field(['type' => 'text']),
             'items' => self::field([
                 'type' => 'structure',
                 'fields' => ['label' => self::field(['type' => 'text'])],
@@ -344,7 +342,6 @@ final class CollectorTest extends TestCase
                 'type' => 'object',
                 'fields' => ['title' => self::field(['type' => 'text'])],
             ]),
-            'title' => self::field(['type' => 'text']),
         ];
 
         $collector = new Collector($fields, self::defaultConfig());
@@ -358,9 +355,9 @@ final class CollectorTest extends TestCase
         }
 
         $this->assertSame([
+            'title' => 'Hallo',
             'items' => "-\n  label: @One",
             'meta' => 'title: @Nested',
-            'title' => 'Hallo',
         ], $content);
     }
 
