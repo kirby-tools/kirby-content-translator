@@ -4,7 +4,6 @@ import { usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "./dialogs";
 
 export function useTranslationActions({
-  shouldConfirm,
   strategyName,
   importModelContent,
   translateModelContent,
@@ -13,7 +12,6 @@ export function useTranslationActions({
 }: ReturnType<typeof useContentTranslator>) {
   const panel = usePanel();
   const {
-    openConfirmableTextDialog,
     openTranslationDialog,
     openBatchTranslationDialog,
     showCopilotLicenseToastOnce,
@@ -28,14 +26,7 @@ export function useTranslationActions({
     const targetLanguage = panel.languages.find(
       (language) => language.code === panel.language.code,
     )!;
-    const text = panel.th(
-      "johannschopplich.content-translator.dialog.importConfirmation",
-      { language: sourceLanguage?.name ?? defaultLanguage.name },
-    );
-
-    await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
-      await importModelContent(path, targetLanguage, sourceLanguage);
-    });
+    await importModelContent(path, targetLanguage, sourceLanguage);
   }
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {

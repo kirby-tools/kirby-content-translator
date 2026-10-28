@@ -80,7 +80,6 @@ export function useContentTranslator() {
   const isBatchTranslationEnabled = ref<boolean>();
   const isTitleTranslationEnabled = ref<boolean>();
   const isSlugTranslationEnabled = ref<boolean>();
-  const shouldConfirm = ref<boolean>();
   const fieldTypes = ref<string[]>([]);
   const includeFields = ref<string[]>([]);
   const excludeFields = ref<string[]>([]);
@@ -115,7 +114,6 @@ export function useContentTranslator() {
     isBatchTranslationEnabled.value = resolvedConfig.isBatchTranslationEnabled;
     isTitleTranslationEnabled.value = resolvedConfig.isTitleTranslationEnabled;
     isSlugTranslationEnabled.value = resolvedConfig.isSlugTranslationEnabled;
-    shouldConfirm.value = resolvedConfig.shouldConfirm;
     fieldTypes.value = resolvedConfig.fieldTypes;
     includeFields.value = resolvedConfig.includeFields;
     excludeFields.value = resolvedConfig.excludeFields;
@@ -210,7 +208,6 @@ export function useContentTranslator() {
   // `copyContent` behavior is kept. This also removes the need for client-side
   // `filterEligibleContent` during import and the title/slug patching for
   // default-language imports.
-  // TODO: Next major version – remove confirm dialog options entirely.
   /**
    * Imports the content of `sourceLanguage`, or of the default language, into
    * the form of the view at `path` in `targetLanguage`, both taken when the
@@ -829,7 +826,6 @@ export function useContentTranslator() {
     isImportEnabled,
     importFrom,
     isBatchTranslationEnabled,
-    shouldConfirm,
     strategyName,
 
     fields,

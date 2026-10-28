@@ -1,4 +1,4 @@
-import type { HtmlString, PanelLanguageInfo } from "kirby-types";
+import type { PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
@@ -44,26 +44,12 @@ export interface BatchTranslationDialogResult {
 
 export function useTranslationDialogs() {
   const panel = usePanel();
-  const { openFieldsDialog, openTextDialog } = useDialog();
+  const { openFieldsDialog } = useDialog();
 
   const defaultLanguage = panel.languages.find((language) => language.default)!;
   const translationLanguages = panel.languages.filter(
     (language) => language.code !== defaultLanguage.code,
   );
-
-  async function openConfirmableTextDialog(
-    text: string | HtmlString,
-    shouldConfirm?: boolean,
-    callback?: () => void | Promise<void>,
-  ) {
-    if (!shouldConfirm) {
-      await callback?.();
-      return;
-    }
-
-    const isOk = await openTextDialog(text);
-    if (isOk) callback?.();
-  }
 
   async function openTranslationDialog(
     help?: string,
@@ -180,7 +166,6 @@ export function useTranslationDialogs() {
   return {
     defaultLanguage,
     translationLanguages,
-    openConfirmableTextDialog,
     openTranslationDialog,
     openBatchTranslationDialog,
     showCopilotLicenseToastOnce,

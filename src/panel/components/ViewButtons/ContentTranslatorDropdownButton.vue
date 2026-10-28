@@ -38,10 +38,6 @@ const props = defineProps({
     type: [Boolean, String, Number],
     default: null,
   },
-  confirm: {
-    type: [Boolean, String, Number],
-    default: null,
-  },
   fieldTypes: {
     type: Array as PropType<string[]>,
   },

@@ -40,10 +40,6 @@ const props = defineProps({
     type: Boolean,
     default: undefined,
   },
-  confirm: {
-    type: Boolean,
-    default: undefined,
-  },
   fieldTypes: Array as PropType<string[]>,
   includeFields: Array as PropType<string[]>,
   excludeFields: Array as PropType<string[]>,
