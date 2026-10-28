@@ -9,9 +9,11 @@ import {
   id as idProp,
   name as nameProp,
 } from "kirbyuse/props";
+import { computed } from "vue";
 import { usePluginContext } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import { useContentTranslatorActions } from "../../composables/translator-actions";
+import TranslatorButtons from "../Shared/TranslatorButtons.vue";
 
 const props = defineProps({
   // Declared to keep `disabled` off `k-field`, so the field never looks disabled.
@@ -59,20 +61,21 @@ const props = defineProps({
 const panel = usePanel();
 const hasLicenseButtons = !__PLAYGROUND__;
 const { isTranslating } = useTranslationState();
-const defaultLanguage = panel.languages.find((language) => language.default)!;
 const {
   initialize,
   isInitialized,
-  isImportEnabled,
-  importFrom,
-  isBatchTranslationEnabled,
+  actions,
+  hasDefaultLanguageInfo,
   hasAnyStrategy,
   missingStrategyMessage,
-  isContentEditable,
-  handleImport,
-  handleTranslate,
-  handleBatchTranslate,
+  run,
 } = useContentTranslatorActions(props);
+
+const info = computed(() =>
+  hasDefaultLanguageInfo.value
+    ? panel.t("johannschopplich.content-translator.help.defaultLanguageInfo")
+    : undefined,
+);
 
 if (panel.multilang) {
   (async () => {
@@ -110,131 +113,12 @@ if (panel.multilang) {
       <k-box v-if="!hasAnyStrategy" theme="empty">
         <k-text>{{ missingStrategyMessage }}</k-text>
       </k-box>
-
-      <k-box v-if="isImportEnabled && importFrom === 'all'" theme="none">
-        <k-button-group layout="collapsed">
-          <k-button
-            v-for="language in panel.languages.filter(
-              (language) => language.code !== panel.language.code,
-            )"
-            :key="language.code"
-            :disabled="isTranslating || !isContentEditable"
-            icon="import"
-            variant="filled"
-            @click="handleImport(language)"
-          >
-            {{
-              panel.t("johannschopplich.content-translator.importFrom", {
-                language: language.code.toUpperCase(),
-              })
-            }}
-          </k-button>
-          <k-button
-            v-if="hasAnyStrategy"
-            :disabled="isTranslating || !isContentEditable"
-            :icon="isTranslating ? 'loader' : 'translate'"
-            variant="filled"
-            theme="notice-icon"
-            @click="handleTranslate()"
-          >
-            {{
-              panel.t("johannschopplich.content-translator.translate", {
-                language: panel.language.code?.toUpperCase(),
-              })
-            }}
-          </k-button>
-          <k-button
-            v-if="
-              hasAnyStrategy &&
-              isBatchTranslationEnabled &&
-              panel.language.default
-            "
-            :disabled="isTranslating || !isContentEditable"
-            :icon="isTranslating ? 'loader' : 'content-translator-global'"
-            variant="filled"
-            theme="notice-icon"
-            @click="handleBatchTranslate()"
-          >
-            {{
-              panel.t("johannschopplich.content-translator.batchTranslate", {
-                language: defaultLanguage.code.toUpperCase(),
-              })
-            }}
-          </k-button>
-        </k-button-group>
-      </k-box>
-
-      <template v-else-if="isImportEnabled || hasAnyStrategy">
-        <k-box theme="none">
-          <k-button-group layout="collapsed">
-            <k-button
-              v-if="
-                isImportEnabled &&
-                (!isBatchTranslationEnabled || !panel.language.default)
-              "
-              :disabled="
-                panel.language.default || isTranslating || !isContentEditable
-              "
-              icon="import"
-              variant="filled"
-              @click="handleImport()"
-            >
-              {{ panel.t("johannschopplich.content-translator.import") }}
-            </k-button>
-            <k-button
-              v-if="
-                hasAnyStrategy &&
-                (!isBatchTranslationEnabled || !panel.language.default)
-              "
-              :disabled="
-                panel.language.default || isTranslating || !isContentEditable
-              "
-              :icon="isTranslating ? 'loader' : 'translate'"
-              variant="filled"
-              theme="notice-icon"
-              @click="handleTranslate(defaultLanguage)"
-            >
-              {{
-                panel.t("johannschopplich.content-translator.translate", {
-                  language: panel.language.code?.toUpperCase(),
-                })
-              }}
-            </k-button>
-            <k-button
-              v-if="
-                hasAnyStrategy &&
-                isBatchTranslationEnabled &&
-                panel.language.default
-              "
-              :disabled="isTranslating || !isContentEditable"
-              :icon="isTranslating ? 'loader' : 'content-translator-global'"
-              variant="filled"
-              theme="notice-icon"
-              @click="handleBatchTranslate()"
-            >
-              {{
-                panel.t("johannschopplich.content-translator.batchTranslate", {
-                  language: defaultLanguage.code.toUpperCase(),
-                })
-              }}
-            </k-button>
-          </k-button-group>
-        </k-box>
-
-        <k-box
-          v-if="
-            hasAnyStrategy &&
-            !isBatchTranslationEnabled &&
-            panel.language.default
-          "
-          theme="none"
-          :text="
-            panel.t(
-              'johannschopplich.content-translator.help.defaultLanguageInfo',
-            )
-          "
-        />
-      </template>
+      <TranslatorButtons
+        :actions="actions"
+        :is-translating="isTranslating"
+        :info="info"
+        @run="run"
+      />
     </div>
   </k-field>
 </template>

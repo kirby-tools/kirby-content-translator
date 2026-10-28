@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { TranslationTreeEntry } from "../../types";
+import type { CoverageLabels, TranslationTreeEntry } from "../../types";
 import TranslationTreeNode from "./TranslationTreeNode.vue";
 
 defineProps({
@@ -8,7 +8,16 @@ defineProps({
     type: Array as PropType<TranslationTreeEntry[]>,
     required: true,
   },
+  labels: {
+    type: Object as PropType<CoverageLabels>,
+    required: true,
+  },
 });
+
+const emit = defineEmits<{
+  (event: "toggle", item: TranslationTreeEntry): void;
+  (event: "navigate", link: string): void;
+}>();
 </script>
 
 <template>
@@ -18,6 +27,9 @@ defineProps({
       :key="item.id"
       :item="item"
       :level="0"
+      :labels="labels"
+      @toggle="emit('toggle', $event)"
+      @navigate="emit('navigate', $event)"
     />
   </ul>
 </template>

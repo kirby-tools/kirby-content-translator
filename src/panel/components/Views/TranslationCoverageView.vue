@@ -1,99 +1,53 @@
 <script setup lang="ts">
-import type { TranslationLanguageCoverage } from "../../types";
+import type { CoverageLabels, TranslationLanguageCoverage } from "../../types";
 import { useApi, usePanel } from "kirbyuse";
-import { computed, onMounted, provide, ref } from "vue";
-import {
-  TOGGLE_INJECTION_KEY,
-  useTranslationTree,
-} from "../../composables/tree";
+import { onMounted, ref } from "vue";
+import { useTranslationTree } from "../../composables/tree";
 import { COVERAGE_API_ROUTE } from "../../constants";
 import { translatePlural } from "../../utils/i18n";
-import TranslationRing from "../Shared/TranslationRing.vue";
-import TranslationTree from "../Shared/TranslationTree.vue";
+import TranslationCoverage from "../Shared/TranslationCoverage.vue";
 
 const panel = usePanel();
 const api = useApi();
 
-const isLoading = ref(true);
 const languages = ref<TranslationLanguageCoverage[]>([]);
 const { tree, setTree, toggle } = useTranslationTree();
-provide(TOGGLE_INJECTION_KEY, toggle);
 
-const stats = computed(() =>
-  languages.value.map((lang) => ({
-    code: lang.code,
-    value: `${lang.percentage}%`,
-    label: lang.name,
-    info:
-      lang.incompletePageCount > 0
-        ? translatePlural(
-            panel.t,
-            "johannschopplich.content-translator.coverage.pagesIncomplete",
-            { count: lang.incompletePageCount },
-            lang.incompletePageCount,
-          )
-        : panel.t("johannschopplich.content-translator.coverage.allTranslated"),
-    theme: lang.percentage >= 100 ? "positive" : "info",
-    percentage: lang.percentage,
-  })),
-);
-
-async function fetchCoverage() {
-  const response = await api.get(COVERAGE_API_ROUTE);
-  if (!response) return;
-  languages.value = response.languages;
-  setTree(response.tree);
-}
+const labels: CoverageLabels = {
+  title: panel.t("johannschopplich.content-translator.coverage.title"),
+  pagesToTranslate: panel.t(
+    "johannschopplich.content-translator.coverage.pagesToTranslate",
+  ),
+  allTranslated: panel.t(
+    "johannschopplich.content-translator.coverage.allTranslated",
+  ),
+  pagesIncomplete: (count) =>
+    translatePlural(
+      panel.t,
+      "johannschopplich.content-translator.coverage.pagesIncomplete",
+      { count },
+      count,
+    ),
+};
 
 onMounted(async () => {
   try {
-    await fetchCoverage();
+    const response = await api.get(COVERAGE_API_ROUTE);
+    languages.value = response.languages;
+    setTree(response.tree);
   } catch {
     // Kirby answers 404 when the `coverage` option turns the panel off.
-  } finally {
-    isLoading.value = false;
   }
 });
 </script>
 
 <template>
-  <div
-    v-if="!isLoading && stats.length > 0"
-    class="kct-mt-[var(--columns-block-gap)]"
-  >
-    <k-section
-      :headline="panel.t('johannschopplich.content-translator.coverage.title')"
-    >
-      <dl class="k-stats">
-        <div
-          v-for="stat in stats"
-          :key="stat.code"
-          class="k-stat kct-items-center"
-          :data-theme="stat.theme"
-        >
-          <dt class="k-stat-label">{{ stat.label }}</dt>
-          <dd
-            class="k-stat-value kct-relative kct-mb-[var(--spacing-2)] kct-flex kct-items-center kct-justify-center"
-          >
-            <TranslationRing :value="stat.percentage" />
-            <span
-              class="kct-[font-weight:var(--font-bold)] kct-absolute kct-text-[length:var(--text-lg)]"
-            >
-              {{ stat.value }}
-            </span>
-          </dd>
-          <dd class="k-stat-info">{{ stat.info }}</dd>
-        </div>
-      </dl>
-    </k-section>
-
-    <k-section
-      v-if="tree.length > 0"
-      :headline="
-        panel.t('johannschopplich.content-translator.coverage.pagesToTranslate')
-      "
-    >
-      <TranslationTree :items="tree" />
-    </k-section>
-  </div>
+  <TranslationCoverage
+    v-if="languages.length > 0"
+    :languages="languages"
+    :tree="tree"
+    :labels="labels"
+    @toggle="toggle"
+    @navigate="panel.view.open($event)"
+  />
 </template>
