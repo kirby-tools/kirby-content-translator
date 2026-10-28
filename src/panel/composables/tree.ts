@@ -1,13 +1,7 @@
-import type { InjectionKey } from "vue";
 import type { TranslationTreeEntry } from "../types";
 import { useApi, usePanel } from "kirbyuse";
 import { reactive } from "vue";
 import { COVERAGE_API_ROUTE } from "../constants";
-
-// eslint-disable-next-line symbol-description
-export const TOGGLE_INJECTION_KEY = Symbol() as InjectionKey<
-  (item: TranslationTreeEntry) => Promise<void>
->;
 
 export function useTranslationTree() {
   const panel = usePanel();

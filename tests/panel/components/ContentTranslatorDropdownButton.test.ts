@@ -7,7 +7,6 @@ import ContentTranslatorDropdownButton from "../../../src/panel/components/ViewB
 vi.mock("kirbyuse", () => ({
   usePanel: () => ({
     multilang: true,
-    languages: [],
     t: (key: string) => key,
     view: { component: "k-site-view" },
   }),
@@ -28,8 +27,9 @@ vi.mock("../../../src/panel/composables/translation", () => ({
 vi.mock("../../../src/panel/composables/translator-actions", () => ({
   useContentTranslatorActions: () => ({
     initialize: async () => {},
-    isInitialized: ref(false),
+    actions: ref([]),
     missingStrategyMessage: ref(),
+    run: vi.fn(),
   }),
 }));
 

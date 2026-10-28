@@ -5,6 +5,10 @@ import type { StrategyAvailability } from "../utils/translator-config";
 import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
+import {
+  createStrategyField,
+  createTranslationDialogFields,
+} from "../utils/dialog-fields";
 import { getStrategyAvailability } from "../utils/translator-config";
 import { usePluginContext } from "./plugin";
 
@@ -13,25 +17,6 @@ const LICENSE_TOAST_COUNT_KEY = `${STORAGE_KEY_PREFIX}licenseToastCount`;
 const STRATEGY_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$provider`;
 const BATCH_LANGUAGES_PREFERENCE_KEY = `${STORAGE_KEY_PREFIX}preferences$batchLanguages`;
 const LICENSE_TOAST_THRESHOLD = 2;
-
-const AI_PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
-  openai: {
-    labelKey: "johannschopplich.content-translator.provider.openai",
-    icon: "content-translator-openai",
-  },
-  anthropic: {
-    labelKey: "johannschopplich.content-translator.provider.anthropic",
-    icon: "content-translator-anthropic",
-  },
-  google: {
-    labelKey: "johannschopplich.content-translator.provider.google",
-    icon: "content-translator-google",
-  },
-  mistral: {
-    labelKey: "johannschopplich.content-translator.provider.mistral",
-    icon: "content-translator-mistral",
-  },
-};
 
 export interface TranslationDialogResult {
   strategyName: StrategyName;
@@ -70,10 +55,11 @@ export function useTranslationDialogs() {
           "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
-      fields: {
-        ...(help && { help: { type: "info", text: help } }),
-        ...(strategyField && { strategyName: strategyField }),
-      },
+      fields: createTranslationDialogFields({
+        help,
+        strategyField,
+        t: panel.t,
+      }),
       value: {
         strategyName,
       },
@@ -100,18 +86,12 @@ export function useTranslationDialogs() {
           "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
-      fields: {
-        languages: {
-          type: "checkboxes",
-          label: panel.t("johannschopplich.content-translator.translateTo"),
-          options: translationLanguages.map((language) => ({
-            value: language.code,
-            text: language.name,
-          })),
-          help,
-        },
-        ...(strategyField && { strategyName: strategyField }),
-      },
+      fields: createTranslationDialogFields({
+        help,
+        strategyField,
+        translationLanguages,
+        t: panel.t,
+      }),
       value: {
         strategyName,
         languages: getValidStoredBatchLanguages(
@@ -200,36 +180,11 @@ async function resolveStrategyField() {
     }
   }
 
-  const aiProviderKey = copilotContext?.config.provider;
-  const aiProviderConfig = aiProviderKey
-    ? AI_PROVIDER_CONFIG[aiProviderKey]
-    : undefined;
-
-  const strategyField = {
-    type: "toggles",
-    label: panel.t("johannschopplich.content-translator.dialog.strategyLabel"),
-    labels: true,
-    grow: true,
-    options: [
-      {
-        value: "deepl",
-        text: panel.t(
-          context.config.strategy === "custom"
-            ? "johannschopplich.content-translator.strategy.custom"
-            : "johannschopplich.content-translator.strategy.deepl",
-        ),
-        icon: "translate",
-      },
-      {
-        value: "ai",
-        text: aiProviderConfig
-          ? panel.t(aiProviderConfig.labelKey)
-          : panel.t("johannschopplich.content-translator.strategy.copilot"),
-        // Fallback: https://getkirby.com/docs/reference/panel/icons/ai
-        icon: aiProviderConfig?.icon ?? "ai",
-      },
-    ],
-  };
+  const strategyField = createStrategyField({
+    isCustomStrategy: context.config.strategy === "custom",
+    aiProvider: copilotContext?.config.provider,
+    t: panel.t,
+  });
 
   return { strategyName, strategyField };
 }

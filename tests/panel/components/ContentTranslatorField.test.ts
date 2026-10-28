@@ -5,12 +5,7 @@ import { defineComponent, h, ref } from "vue";
 import ContentTranslatorField from "../../../src/panel/components/Fields/ContentTranslatorField.vue";
 
 const { panel, initialize } = vi.hoisted(() => ({
-  panel: {
-    multilang: true,
-    languages: [],
-    t: (key: string) => key,
-    error: vi.fn(),
-  },
+  panel: { multilang: true, t: (key: string) => key, error: vi.fn() },
   initialize: vi.fn(async () => {}),
 }));
 
@@ -30,8 +25,11 @@ vi.mock("../../../src/panel/composables/translator-actions", () => ({
   useContentTranslatorActions: () => ({
     initialize,
     isInitialized: ref(false),
+    actions: ref([]),
+    hasDefaultLanguageInfo: ref(false),
     hasAnyStrategy: ref(true),
     missingStrategyMessage: ref(),
+    run: vi.fn(),
   }),
 }));
 

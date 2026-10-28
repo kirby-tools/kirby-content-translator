@@ -125,6 +125,14 @@ export interface TranslationLanguageCoverage {
   incompletePageCount: number;
 }
 
+/** Strings already translated by the caller. */
+export interface CoverageLabels {
+  title: string;
+  pagesToTranslate: string;
+  allTranslated: string;
+  pagesIncomplete: (count: number) => string;
+}
+
 export interface TranslationTreeEntry {
   id: string;
   label: string;
