@@ -426,11 +426,16 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException When the `strategy` option names an unknown strategy
+     * @throws LogicException When the `strategy` option names an unknown strategy, or the removed `translateFn` option is set
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {
         $kirby = App::instance();
+
+        if ($kirby->option('johannschopplich.content-translator.translateFn') !== null) {
+            throw new LogicException('The "translateFn" option was removed, rename it to "strategy"');
+        }
+
         $strategyOption = $kirby->option('johannschopplich.content-translator.strategy');
 
         if ($strategyOption instanceof Strategy || $strategyOption instanceof Closure) {
@@ -442,12 +447,6 @@ final class Translator
                 'deepl', 'ai' => $strategyOption,
                 default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
             };
-        }
-
-        // TODO: Remove the `translateFn` fallback in v4 – use the `strategy` option instead.
-        $translateFn = $kirby->option('johannschopplich.content-translator.translateFn');
-        if (is_callable($translateFn)) {
-            return Closure::fromCallable($translateFn);
         }
 
         return 'deepl';
