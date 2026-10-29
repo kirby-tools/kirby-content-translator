@@ -7,7 +7,7 @@ import type {
   TranslatorOptions,
   VariablesResponse,
 } from "../types";
-import { usePanel } from "kirbyuse";
+import { toIntlLocale, usePanel } from "kirbyuse";
 import pAll from "p-all";
 import {
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
@@ -20,7 +20,7 @@ import {
   planVariableTranslation,
   translateVariables,
 } from "../translation/variables";
-import { formatList, translatePlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 import { createStrategy } from "../utils/strategy";
 import {
   resolveKirbyTagRules,
@@ -359,10 +359,9 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
       : panel.t(
           "johannschopplich.content-translator.notification.variablesAllTranslated",
           {
-            target: formatList(
-              targetLanguages.map((language) => language.name),
-              panel.translation.code,
-            ),
+            target: new Intl.ListFormat(
+              toIntlLocale(panel.translation.code),
+            ).format(targetLanguages.map((language) => language.name)),
           },
         );
   }

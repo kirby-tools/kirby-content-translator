@@ -16,6 +16,10 @@ vi.mock("../../../src/panel/composables/plugin", () => ({
   usePluginContext: async () => ({ config: {} }),
 }));
 
+vi.mock("../../../src/panel/composables/translation", () => ({
+  useTranslationState: () => ({ isTranslating: ref(false) }),
+}));
+
 vi.mock("../../../src/panel/composables/translator-actions", () => ({
   useContentTranslatorActions: () => ({
     initialize: async () => {},

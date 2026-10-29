@@ -2,13 +2,13 @@ import type { NotificationTheme } from "kirby-types";
 import type { BatchOutcome } from "../translation/batch";
 import type { LabelField } from "../translation/report";
 import type { ContentTranslationResult } from "../translation/types";
-import { usePanel } from "kirbyuse";
+import { toIntlLocale, usePanel } from "kirbyuse";
 import {
   describeBatchOutcomes,
   listKeptSourceFields,
 } from "../translation/report";
 import { mergeTranslationResults } from "../translation/result";
-import { formatList, translatePlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 
 /**
  * Long enough that a notification stays until something replaces it. A falsy
@@ -180,7 +180,9 @@ export function useTranslationNotifications(
 
     notifyPartialTranslation(
       panel.t(rejectionMessageKeys.batchPartiallyTranslated, {
-        languages: formatList(languagesWithKeptSource, panel.translation.code),
+        languages: new Intl.ListFormat(
+          toIntlLocale(panel.translation.code),
+        ).format(languagesWithKeptSource),
       }),
     );
   }

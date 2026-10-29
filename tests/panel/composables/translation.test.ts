@@ -35,10 +35,14 @@ let batchWrite: Mock<
   (payload: Record<string, unknown>) => Promise<BatchWriteResponse>
 >;
 
-vi.mock("kirbyuse", async () => {
+vi.mock("kirbyuse", async (importOriginal) => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  const { createGlobalState, toIntlLocale } =
+    await importOriginal<typeof import("kirbyuse")>();
   return {
     ...baseKirbyuseMock(),
+    createGlobalState,
+    toIntlLocale,
     usePanel: () => panel,
     useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
