@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
-import { mount } from "@vue/test-utils";
+import { shallowMount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
-import { defineComponent, h, ref } from "vue";
+import { ref } from "vue";
 import ContentTranslatorField from "../../../src/panel/components/Fields/ContentTranslatorField.vue";
 
 vi.mock("kirbyuse", () => ({
@@ -28,28 +28,17 @@ vi.mock("../../../src/panel/composables/translator-actions", () => ({
   }),
 }));
 
-const KField = defineComponent({
-  setup:
-    (_, { slots }) =>
-    () =>
-      h("section", slots.default?.()),
-});
-
-function mountField(attrs: Record<string, unknown> = {}) {
-  return mount(ContentTranslatorField, {
+it("keeps disabled off k-field", () => {
+  const wrapper = shallowMount(ContentTranslatorField, {
     props: {
       name: "translator",
       label: "Content Translator",
       licenseStatus: "active",
       licenseDialog: "",
     },
-    attrs,
-    global: { stubs: { "k-field": KField } },
+    attrs: { disabled: true },
+    global: { stubs: { "k-field": true, "k-box": true, "k-text": true } },
   });
-}
 
-it("keeps disabled off k-field", () => {
-  const wrapper = mountField({ disabled: true });
-
-  expect(wrapper.find("section").attributes("disabled")).toBeUndefined();
+  expect(wrapper.attributes("disabled")).toBeUndefined();
 });
