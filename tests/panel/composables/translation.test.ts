@@ -276,7 +276,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Über uns" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -300,7 +300,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Example" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -497,7 +497,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "site/title",
         { title: "Kirby Tools (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -566,7 +566,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -1241,7 +1241,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/title",
         { title: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
       expect(translateBatch).toHaveBeenLastCalledWith(
         "__content-translator__/translate-units",
@@ -1283,7 +1283,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/title",
         { title: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
       expect(batchWrite).toHaveBeenCalledWith(
         expect.objectContaining({
