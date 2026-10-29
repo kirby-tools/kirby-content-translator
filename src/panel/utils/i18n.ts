@@ -31,5 +31,8 @@ export function translatePlural(
 
 /** Joins items as a list in the language of the Panel's interface. */
 export function formatList(items: string[], translationCode: string) {
-  return new Intl.ListFormat(translationCode.replace("_", "-")).format(items);
+  // Kirby's `sr@latin` is not a BCP 47 tag.
+  return new Intl.ListFormat(
+    translationCode.replace("_", "-").replace("@latin", "-Latn"),
+  ).format(items);
 }
