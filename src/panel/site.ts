@@ -5,4 +5,5 @@ export { default as TranslatorButtons } from "./components/Shared/TranslatorButt
 export { default as TranslatorDropdownItems } from "./components/Shared/TranslatorDropdownItems.vue";
 export type * from "./types";
 export * from "./utils/actions";
+export * from "./utils/coverage-labels";
 export * from "./utils/dialog-fields";

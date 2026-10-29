@@ -1,8 +1,7 @@
+import type { Translate } from "../types";
 import type { BatchModel, BatchOutcome } from "./batch";
 import type { TranslationRejection } from "./types";
 import { translatePlural } from "../utils/i18n";
-
-type Translate = (key: string, data?: Record<string, unknown>) => string;
 
 /** Names the field or language variable of a unit, given the outcome it belongs to when the caller has one. */
 export type LabelField<Outcome = void> = (

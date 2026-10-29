@@ -342,7 +342,7 @@ final class Collector
         }
     }
 
-    // Symfony YAML rejects some content Spyc read, such as a value starting with `@`.
+    // Kirby's default Symfony parser rejects some YAML that its Spyc handler accepts, such as a value starting with `@`.
     private static function decodeYaml(string $value): array|null
     {
         try {

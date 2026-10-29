@@ -1,4 +1,4 @@
-type Translate = (key: string, data?: Record<string, unknown>) => string;
+import type { Translate } from "../types";
 
 const AI_PROVIDER_CONFIG: Record<string, { labelKey: string; icon: string }> = {
   openai: {
@@ -24,7 +24,6 @@ export function createStrategyField({
   aiProvider,
   t,
 }: {
-  /** The `strategy` option names a custom strategy in place of DeepL. */
   isCustomStrategy: boolean;
   aiProvider?: string;
   t: Translate;
@@ -60,8 +59,20 @@ export function createStrategyField({
   };
 }
 
-/** Builds the fields of the translation dialog, or with `translationLanguages` those of the batch dialog. */
 export function createTranslationDialogFields({
+  help,
+  strategyField,
+}: {
+  help?: string;
+  strategyField?: ReturnType<typeof createStrategyField>;
+}) {
+  return {
+    ...(help && { help: { type: "info", text: help } }),
+    ...(strategyField && { strategyName: strategyField }),
+  };
+}
+
+export function createBatchTranslationDialogFields({
   help,
   strategyField,
   translationLanguages,
@@ -69,23 +80,19 @@ export function createTranslationDialogFields({
 }: {
   help?: string;
   strategyField?: ReturnType<typeof createStrategyField>;
-  translationLanguages?: { code: string; name: string }[];
+  translationLanguages: { code: string; name: string }[];
   t: Translate;
 }) {
   return {
-    ...(translationLanguages
-      ? {
-          languages: {
-            type: "checkboxes",
-            label: t("johannschopplich.content-translator.translateTo"),
-            options: translationLanguages.map((language) => ({
-              value: language.code,
-              text: language.name,
-            })),
-            help,
-          },
-        }
-      : help && { help: { type: "info", text: help } }),
+    languages: {
+      type: "checkboxes",
+      label: t("johannschopplich.content-translator.translateTo"),
+      options: translationLanguages.map((language) => ({
+        value: language.code,
+        text: language.name,
+      })),
+      help,
+    },
     ...(strategyField && { strategyName: strategyField }),
   };
 }

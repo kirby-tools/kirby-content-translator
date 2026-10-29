@@ -1,10 +1,12 @@
+import type { Translate } from "../types";
+
 /**
  * Resolves a Kirby plural translation (forms separated by ` | `) to the form
  * for `count`. The form is picked before the values go in, so a value holding
  * ` | ` cannot shift the pick.
  */
 export function translatePlural(
-  t: (key: string, data?: Record<string, unknown>) => string,
+  t: Translate,
   key: string,
   data: Record<string, unknown>,
   count: number,

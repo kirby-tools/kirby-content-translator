@@ -7,6 +7,8 @@ type BooleanInput = boolean | string | number | null;
 
 export type StrategyName = (typeof STRATEGY_NAMES)[number];
 
+export type Translate = (key: string, data?: Record<string, unknown>) => string;
+
 export interface PluginConfig {
   import?: boolean;
   importFrom?: string;
@@ -125,7 +127,7 @@ export interface TranslationLanguageCoverage {
   incompletePageCount: number;
 }
 
-/** Strings already translated by the caller. */
+/** Labels already translated by the caller. */
 export interface CoverageLabels {
   title: string;
   pagesToTranslate: string;

@@ -6,6 +6,7 @@ import { isLocalDev, useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
 import {
+  createBatchTranslationDialogFields,
   createStrategyField,
   createTranslationDialogFields,
 } from "../utils/dialog-fields";
@@ -55,11 +56,7 @@ export function useTranslationDialogs() {
           "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
-      fields: createTranslationDialogFields({
-        help,
-        strategyField,
-        t: panel.t,
-      }),
+      fields: createTranslationDialogFields({ help, strategyField }),
       value: {
         strategyName,
       },
@@ -86,7 +83,7 @@ export function useTranslationDialogs() {
           "johannschopplich.content-translator.dialog.translateButton",
         ),
       },
-      fields: createTranslationDialogFields({
+      fields: createBatchTranslationDialogFields({
         help,
         strategyField,
         translationLanguages,
