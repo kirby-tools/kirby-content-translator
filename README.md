@@ -38,6 +38,22 @@ composer require johannschopplich/kirby-content-translator
 
 Download and copy this repository to `/site/plugins/kirby-content-translator`.
 
+## Upgrading from Content Translator 3
+
+Content Translator 4 requires Kirby 6, which has no plugin sections, so the Content Translator section is a field now. Kirby shows `Invalid section type ("content-translator")` until you move it from `sections:` to `fields:`. Its options stay the same, except `confirm`, which Content Translator 4 drops:
+
+```yaml
+# Content Translator 3
+sections:
+  contentTranslator:
+    type: content-translator
+
+# Content Translator 4
+fields:
+  contentTranslator:
+    type: content-translator
+```
+
 ## Documentation
 
 For installation, configuration, and usage, see the [Kirby Content Translator documentation](https://kirby.tools/docs/content-translator).
