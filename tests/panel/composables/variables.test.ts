@@ -6,7 +6,6 @@ import type {
   VariablesResponse,
 } from "../../../src/panel/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PLUGIN_CONTEXT_API_ROUTE } from "../../../src/panel/constants";
 
 // Assigned in `beforeEach` and read lazily by the mocks below.
 let panel: ReturnType<typeof createPanelStub>;
@@ -51,12 +50,18 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    isLocalDev: () => true,
     usePanel: () => panel,
     useApi: () => panel.api,
     useDialog: () => ({ openFieldsDialog }),
   };
 });
+
+vi.mock("../../../src/panel/composables/plugin", () => ({
+  usePluginContext: async () => ({
+    config: { DeepL: { apiKey: true }, fieldTypes: [], ...pluginConfig },
+    kirbyTagTypes: ["link"],
+  }),
+}));
 
 function createPanelStub() {
   return {
@@ -68,20 +73,8 @@ function createPanelStub() {
     translation: { code: "en" },
     view: { path: "languages/de", isLoading: false, reload: vi.fn() },
     dialog: { open: vi.fn() },
-    events: { on: vi.fn() },
     api: {
-      get: vi.fn(async (route: string) => {
-        if (route === PLUGIN_CONTEXT_API_ROUTE) {
-          return {
-            config: {
-              DeepL: { apiKey: true },
-              fieldTypes: [],
-              ...pluginConfig,
-            },
-            kirbyTagTypes: ["link"],
-          };
-        }
-
+      get: vi.fn(async (_route: string) => {
         // The last response stands for every later read.
         return variablesResponses.length > 1
           ? variablesResponses.shift()
@@ -577,15 +570,7 @@ describe("useVariableTranslation", () => {
     });
 
     it("ends the loading state of the view after a failed read", async () => {
-      panel.api.get.mockImplementation(async (route: string) => {
-        if (route === PLUGIN_CONTEXT_API_ROUTE) {
-          return {
-            config: { DeepL: { apiKey: true }, fieldTypes: [] },
-            kirbyTagTypes: [],
-          };
-        }
-        throw new Error("The server is unreachable");
-      });
+      panel.api.get.mockRejectedValue(new Error("The server is unreachable"));
 
       await batchTranslateLanguageVariables();
 

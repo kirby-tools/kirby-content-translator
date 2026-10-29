@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { LicenseStatus } from "@kirby-tools/licensing";
 import type { PropType } from "vue";
+import { licenseProps } from "@kirby-tools/licensing";
 import { LicensingButtonGroup } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
 import {
@@ -49,14 +49,7 @@ const props = defineProps({
   kirbyTags: Object as PropType<Record<string, string[]>>,
   cascade: [String, Array] as PropType<string | string[]>,
   systemPrompt: String,
-  licenseStatus: {
-    type: String as PropType<LicenseStatus>,
-    required: true,
-  },
-  licenseDialog: {
-    type: String,
-    required: true,
-  },
+  ...licenseProps,
 });
 
 const panel = usePanel();
