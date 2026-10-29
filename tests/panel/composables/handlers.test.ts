@@ -25,6 +25,10 @@ const GERMAN = {
   default: false,
 } as PanelLanguageInfo;
 
+vi.mock("../../../src/panel/composables/plugin", () => ({
+  usePluginContext: async () => ({ config: { DeepL: { apiKey: true } } }),
+}));
+
 vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
@@ -32,8 +36,6 @@ vi.mock("kirbyuse", async () => {
     usePanel: () => ({
       t: (key: string, data?: Record<string, unknown>) =>
         data ? `${key} ${JSON.stringify(data)}` : key,
-      api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
-      events: { on: vi.fn() },
       get language() {
         return panelLanguage;
       },

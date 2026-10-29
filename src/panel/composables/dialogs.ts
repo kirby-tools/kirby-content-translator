@@ -2,7 +2,8 @@ import type { PanelLanguageInfo } from "kirby-types";
 import type { StrategyName } from "../types";
 import type { PluginContextResponse } from "../utils/copilot-contract";
 import type { StrategyAvailability } from "../utils/translator-config";
-import { isLocalDev, useDialog, usePanel } from "kirbyuse";
+import { showLicenseToastOnce } from "@kirby-tools/licensing";
+import { useDialog, usePanel } from "kirbyuse";
 import { STORAGE_KEY_PREFIX } from "../constants";
 import { resolveCopilot, resolveCopilotReadiness } from "../utils/copilot";
 import {
@@ -101,32 +102,17 @@ export function useTranslationDialogs() {
   }
 
   async function showCopilotLicenseToastOnce() {
-    if (isLocalDev()) return;
-
     const copilot = resolveCopilot();
     if (!copilot) return;
 
-    const storedValue = sessionStorage.getItem(LICENSE_TOAST_COUNT_KEY);
-    if (storedValue === "done") return;
-
-    let translationCount = Number(storedValue) || 0;
-    translationCount++;
-    sessionStorage.setItem(LICENSE_TOAST_COUNT_KEY, String(translationCount));
-
-    if (translationCount < LICENSE_TOAST_THRESHOLD) return;
-
-    const context = await copilot.resolvePluginContext();
-
-    if (["inactive", "invalid"].includes(context.licenseStatus!)) {
-      panel.notification.info({
-        icon: "key",
-        message: panel.t(
-          "johannschopplich.content-translator.copilot.licenseToast",
-        ),
-      });
-    }
-
-    sessionStorage.setItem(LICENSE_TOAST_COUNT_KEY, "done");
+    await showLicenseToastOnce({
+      storageKey: LICENSE_TOAST_COUNT_KEY,
+      threshold: LICENSE_TOAST_THRESHOLD,
+      resolveContext: copilot.resolvePluginContext,
+      message: panel.t(
+        "johannschopplich.content-translator.copilot.licenseToast",
+      ),
+    });
   }
 
   return {

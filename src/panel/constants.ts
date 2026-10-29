@@ -7,8 +7,6 @@ export const BATCH_WRITE_API_ROUTE = "__content-translator__/batch-write";
 export const CASCADE_API_ROUTE = "__content-translator__/cascade";
 export const VARIABLES_API_ROUTE = "__content-translator__/variables";
 export const COVERAGE_API_ROUTE = "__content-translator__/coverage";
-export const LICENSE_ACTIVATE_EVENT =
-  "kirby-tools.license.activate.content-translator";
 
 export const STORAGE_KEY_PREFIX = "kirby$content-translator$";
 

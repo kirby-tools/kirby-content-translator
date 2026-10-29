@@ -12,14 +12,16 @@ const LANGUAGES = [
   { code: "fr", name: "Français", default: false },
 ] as PanelLanguageInfo[];
 
+vi.mock("../../../src/panel/composables/plugin", () => ({
+  usePluginContext: async () => ({ config: { DeepL: { apiKey: true } } }),
+}));
+
 vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
     usePanel: () => ({
       t: (key: string) => key,
-      api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
-      events: { on: vi.fn() },
       languages: LANGUAGES,
       plugins: { thirdParty: copilot ? { copilot } : {} },
     }),

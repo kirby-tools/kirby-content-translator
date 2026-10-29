@@ -1,4 +1,4 @@
-import type { LicenseStatus } from "@kirby-tools/licensing";
+import type { PluginContext } from "@kirby-tools/licensing";
 import type { KirbyFieldProps } from "kirby-types";
 import type { STRATEGY_NAMES } from "./constants";
 
@@ -32,14 +32,12 @@ export interface PluginConfig {
   };
 }
 
-export interface PluginContextResponse {
+export interface PluginContextResponse extends PluginContext {
   config: PluginConfig;
   /** The registered KirbyTag types and aliases, lowercased. */
   kirbyTagTypes: string[];
   homePageId: string;
   errorPageId: string;
-  licenseStatus: LicenseStatus;
-  licenseDialog: string;
 }
 
 export interface TranslateUnitsResponse {
