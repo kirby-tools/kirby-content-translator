@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.5.1",
-    "@kirby-tools/licensing": "^1.0.0",
+    "@kirby-tools/licensing": "^1.1.0",
     "@types/node": "^26.6.5",
     "@unocss/eslint-plugin": "^66.11.0",
     "@vitejs/plugin-vue": "^6.0.10",
@@ -31,7 +31,7 @@
     "jiti": "^2.7.0",
     "kirby-types": "^2.0.0-beta.5",
     "kirbyup": "^4.0.0-beta.1",
-    "kirbyuse": "^2.0.0-beta.4",
+    "kirbyuse": "^2.0.0-beta.5",
     "mprocs": "^0.9.6",
     "p-all": "^5.0.1",
     "prettier": "^3.9.10",
