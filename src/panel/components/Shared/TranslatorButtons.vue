@@ -20,12 +20,15 @@ const buttons = computed(() => props.actions.flat());
 </script>
 
 <template>
-  <div class="[&>*+*]:kct-mt-[var(--spacing-1)]">
+  <div
+    v-if="buttons.length > 0 || info"
+    class="[&>*+*]:kct-mt-[var(--spacing-1)]"
+  >
     <k-box v-if="buttons.length > 0" theme="none">
       <k-button-group layout="collapsed">
         <k-button
           v-for="action in buttons"
-          :key="action.text"
+          :key="`${action.type}:${action.from ?? ''}`"
           :disabled="action.disabled"
           :icon="
             isTranslating && action.type !== 'import' ? 'loader' : action.icon
