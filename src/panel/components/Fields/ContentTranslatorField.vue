@@ -14,6 +14,7 @@ import { usePluginContext } from "../../composables/plugin";
 import { useTranslationState } from "../../composables/translation";
 import { useContentTranslatorActions } from "../../composables/translator-actions";
 import TranslatorButtons from "../Shared/TranslatorButtons.vue";
+import TranslatorField from "../Shared/TranslatorField.vue";
 
 const props = defineProps({
   // Declared to keep `disabled` off `k-field`, so the field never looks disabled.
@@ -89,15 +90,7 @@ if (panel.multilang) {
 </script>
 
 <template>
-  <k-field
-    :id="id"
-    :help="help"
-    :input="false"
-    :label="label"
-    :name="name"
-    type="content-translator"
-    class="k-content-translator-field"
-  >
+  <TranslatorField :id="id" :help="help" :label="label" :name="name">
     <template v-if="hasLicenseButtons" #options>
       <LicensingButtonGroup
         :dialog="licenseDialog"
@@ -120,5 +113,5 @@ if (panel.multilang) {
         @run="run"
       />
     </div>
-  </k-field>
+  </TranslatorField>
 </template>

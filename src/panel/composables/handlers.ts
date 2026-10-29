@@ -1,6 +1,7 @@
 import type { PanelLanguageInfo } from "kirby-types";
 import type { useContentTranslator } from "./translation";
 import { usePanel } from "kirbyuse";
+import { createBatchTranslationHelp } from "../utils/dialog-fields";
 import { useTranslationDialogs } from "./dialogs";
 
 export function useTranslationHandlers({
@@ -52,14 +53,11 @@ export function useTranslationHandlers({
   async function handleBatchTranslate() {
     const { path } = panel.view;
     const result = await openBatchTranslationDialog(
-      [
-        panel.t("johannschopplich.content-translator.dialog.batchHelp", {
-          language: defaultLanguage.name,
-        }),
-        await getCascadeHelp(path),
-      ]
-        .filter(Boolean)
-        .join(" "),
+      createBatchTranslationHelp({
+        defaultLanguage,
+        cascadeHelp: await getCascadeHelp(path),
+        t: panel.t,
+      }),
     );
     if (result) {
       strategyName.value = result.strategyName;

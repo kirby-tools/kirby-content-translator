@@ -29,6 +29,7 @@ onMounted(async () => {
 <template>
   <TranslationCoverage
     v-if="languages.length > 0"
+    class="kct-mt-[var(--columns-block-gap)]"
     :languages="languages"
     :tree="tree"
     :labels="labels"

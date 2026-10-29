@@ -9,6 +9,7 @@ import {
   createBatchTranslationDialogFields,
   createStrategyField,
   createTranslationDialogFields,
+  createTranslationSubmitButton,
 } from "../utils/dialog-fields";
 import { getStrategyAvailability } from "../utils/translator-config";
 import { usePluginContext } from "./plugin";
@@ -49,13 +50,7 @@ export function useTranslationDialogs() {
     }
 
     const result = await openFieldsDialog({
-      submitButton: {
-        icon: "translate",
-        theme: "positive",
-        text: panel.t(
-          "johannschopplich.content-translator.dialog.translateButton",
-        ),
-      },
+      submitButton: createTranslationSubmitButton({ t: panel.t }),
       fields: createTranslationDialogFields({ help, strategyField }),
       value: {
         strategyName,
@@ -76,13 +71,7 @@ export function useTranslationDialogs() {
     const { strategyName, strategyField } = await resolveStrategyField();
 
     const result = await openFieldsDialog({
-      submitButton: {
-        icon: "translate",
-        theme: "positive",
-        text: panel.t(
-          "johannschopplich.content-translator.dialog.translateButton",
-        ),
-      },
+      submitButton: createTranslationSubmitButton({ t: panel.t }),
       fields: createBatchTranslationDialogFields({
         help,
         strategyField,

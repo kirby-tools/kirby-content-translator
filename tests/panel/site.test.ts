@@ -7,7 +7,7 @@ const SITE_ENTRY = fileURLToPath(
   new URL("../../src/panel/site.ts", import.meta.url),
 );
 
-const PACKAGE_IMPORTS = ["vue"];
+const PACKAGE_IMPORTS = ["kirbyuse/props", "vue"];
 
 describe("site barrel", () => {
   it("loads without `window`", async () => {
@@ -21,7 +21,7 @@ describe("site barrel", () => {
     expect(TranslatorDropdownItems).toBeTypeOf("object");
   });
 
-  it("imports only vue", async () => {
+  it("imports only kirbyuse/props and vue", async () => {
     const output = await build({
       configFile: false,
       logLevel: "silent",

@@ -30,7 +30,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="kct-mt-[var(--columns-block-gap)]">
+  <div class="k-content-translator-coverage">
     <k-section :headline="labels.title">
       <dl class="k-stats">
         <div

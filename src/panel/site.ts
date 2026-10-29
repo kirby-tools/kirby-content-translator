@@ -2,7 +2,9 @@ export { default as TranslationCoverage } from "./components/Shared/TranslationC
 export { default as TranslationRing } from "./components/Shared/TranslationRing.vue";
 export { default as TranslationTree } from "./components/Shared/TranslationTree.vue";
 export { default as TranslatorButtons } from "./components/Shared/TranslatorButtons.vue";
+export { default as TranslatorDropdownButton } from "./components/Shared/TranslatorDropdownButton.vue";
 export { default as TranslatorDropdownItems } from "./components/Shared/TranslatorDropdownItems.vue";
+export { default as TranslatorField } from "./components/Shared/TranslatorField.vue";
 export type * from "./types";
 export * from "./utils/actions";
 export * from "./utils/coverage-labels";
