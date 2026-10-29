@@ -290,7 +290,7 @@ export function useContentTranslator() {
       await panel.api.patch(
         `${path}/title`,
         { title },
-        { headers: { "x-language": targetLanguage.code } },
+        { language: targetLanguage.code },
       );
     }
     if (plan.shouldPatchSlug) {
@@ -299,7 +299,7 @@ export function useContentTranslator() {
       await panel.api.patch(
         `${path}/slug`,
         { slug: title },
-        { headers: { "x-language": targetLanguage.code } },
+        { language: targetLanguage.code },
       );
     }
     if (plan.shouldPatchTitle || plan.shouldPatchSlug) {
@@ -405,7 +405,7 @@ export function useContentTranslator() {
           await panel.api.patch(
             `${path}/title`,
             { title: translatedTitle.text },
-            { headers: { "x-language": targetLanguage.code } },
+            { language: targetLanguage.code },
           );
         }
 
@@ -415,7 +415,7 @@ export function useContentTranslator() {
           await panel.api.patch(
             `${path}/slug`,
             { slug: translatedTitle.text },
-            { headers: { "x-language": targetLanguage.code } },
+            { language: targetLanguage.code },
           );
         }
       }
