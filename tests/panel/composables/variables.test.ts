@@ -46,10 +46,14 @@ const TARGET_VARIABLES = {
   legacy: "Alt",
 };
 
-vi.mock("kirbyuse", async () => {
+vi.mock("kirbyuse", async (importOriginal) => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  const { createGlobalState, toIntlLocale } =
+    await importOriginal<typeof import("kirbyuse")>();
   return {
     ...baseKirbyuseMock(),
+    createGlobalState,
+    toIntlLocale,
     usePanel: () => panel,
     useApi: () => panel.api,
     useDialog: () => ({ openFieldsDialog }),
@@ -580,8 +584,8 @@ describe("useVariableTranslation", () => {
       expect(panel.view.isLoading).toBe(false);
     });
 
-    it("lists the selected languages in the Panel's language when every variable has its own translation", async () => {
-      panel.translation.code = "de";
+    it("lists the selected languages in sr@latin (not a BCP 47 tag) when every variable has its own translation", async () => {
+      panel.translation.code = "sr@latin";
       variablesResponses = [
         variables(
           { footer: "Imprint" },
@@ -592,7 +596,7 @@ describe("useVariableTranslation", () => {
       await batchTranslateLanguageVariables();
 
       expect(lastNotification().message).toBe(
-        'johannschopplich.content-translator.notification.variablesAllTranslated {"target":"Deutsch und Français"}',
+        'johannschopplich.content-translator.notification.variablesAllTranslated {"target":"Deutsch i Français"}',
       );
     });
 

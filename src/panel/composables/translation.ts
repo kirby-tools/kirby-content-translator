@@ -15,7 +15,7 @@ import type {
   StrategyName,
   TranslatorOptions,
 } from "../types";
-import { useContent, usePanel } from "kirbyuse";
+import { createGlobalState, useContent, usePanel } from "kirbyuse";
 import pAll from "p-all";
 import { ref } from "vue";
 import {
@@ -47,7 +47,6 @@ import {
 } from "../utils/translator-config";
 import { useModel } from "./model";
 import { useTranslationNotifications } from "./notifications";
-import { createGlobalState } from "./state";
 
 export const useTranslationState = createGlobalState(() => {
   const isTranslating = ref(false);
