@@ -1,6 +1,6 @@
 import ContentTranslatorField from "./components/Fields/ContentTranslatorField.vue";
 import ContentTranslatorDropdownButton from "./components/ViewButtons/ContentTranslatorDropdownButton.vue";
-import LanguagesView from "./components/Views/LanguagesView.vue";
+import LanguagesView from "./components/Views/LanguagesView";
 import { icons } from "./config/icons";
 
 import "virtual:uno.css";
