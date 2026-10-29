@@ -14,8 +14,8 @@ interface Strategy
      * A `null` result marks a unit the strategy could not translate. The caller
      * keeps its source text and records a `MissingTranslation` rejection, but
      * leaves the `content-translator.translate:warning` hook to the strategy,
-     * which fires it with a `TranslationRejectionReason`, `ProviderError` for a
-     * caught exception.
+     * which fires it with a `TranslationRejectionReason` (`ProviderError` for a
+     * caught exception).
      *
      * @param list<TranslationUnit> $units
      * @return list<string|null>

@@ -2,7 +2,7 @@ import type { PanelLanguageInfo } from "kirby-types";
 import type { useContentTranslator } from "../../../src/panel/composables/translation";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
-import { useTranslationActions } from "../../../src/panel/composables/actions";
+import { useTranslationHandlers } from "../../../src/panel/composables/handlers";
 
 // Assigned per test and read lazily by the mocks below.
 let openFieldsDialog: ReturnType<typeof vi.fn>;
@@ -57,7 +57,7 @@ function createTranslator() {
   } as unknown as ReturnType<typeof useContentTranslator>;
 }
 
-describe("useTranslationActions", () => {
+describe("useTranslationHandlers", () => {
   beforeEach(() => {
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
@@ -76,7 +76,7 @@ describe("useTranslationActions", () => {
   it("handleTranslate translates from the sourceLanguage into panel.language", async () => {
     const translator = createTranslator();
 
-    await useTranslationActions(translator).handleTranslate(ENGLISH);
+    await useTranslationHandlers(translator).handleTranslate(ENGLISH);
 
     expect(translator.translateModelContent).toHaveBeenCalledWith(
       "pages/example",
@@ -95,7 +95,7 @@ describe("useTranslationActions", () => {
       return {};
     });
 
-    await useTranslationActions(translator).handleTranslate(ENGLISH);
+    await useTranslationHandlers(translator).handleTranslate(ENGLISH);
 
     expect(translator.translateModelContent).toHaveBeenCalledWith(
       "pages/example",
@@ -107,13 +107,13 @@ describe("useTranslationActions", () => {
   it("handleTranslate sets strategyName to the strategyName of the dialog", async () => {
     const translator = createTranslator();
 
-    await useTranslationActions(translator).handleTranslate();
+    await useTranslationHandlers(translator).handleTranslate();
 
     expect(translator.strategyName.value).toBe("deepl");
   });
 
   it("handleTranslate passes the getCascadeHelp text into the help field of the dialog", async () => {
-    await useTranslationActions(createTranslator()).handleTranslate();
+    await useTranslationHandlers(createTranslator()).handleTranslate();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.help.text).toBe(
       "1 page is also translated.",
@@ -123,7 +123,7 @@ describe("useTranslationActions", () => {
   it("handleTranslate opens no dialog for a cascade while panel.language is the default language", async () => {
     panelLanguage = ENGLISH;
 
-    await useTranslationActions(createTranslator()).handleTranslate();
+    await useTranslationHandlers(createTranslator()).handleTranslate();
 
     expect(openFieldsDialog).not.toHaveBeenCalled();
   });
@@ -132,7 +132,7 @@ describe("useTranslationActions", () => {
     const translator = createTranslator();
     panelLanguage = { ...FRENCH };
 
-    await useTranslationActions(translator).handleImport(GERMAN);
+    await useTranslationHandlers(translator).handleImport(GERMAN);
 
     const [path, targetLanguage, sourceLanguage] = vi.mocked(
       translator.importModelContent,
@@ -145,7 +145,7 @@ describe("useTranslationActions", () => {
   it("handleBatchTranslate translates into the languages of the dialog", async () => {
     const translator = createTranslator();
 
-    await useTranslationActions(translator).handleBatchTranslate();
+    await useTranslationHandlers(translator).handleBatchTranslate();
 
     expect(translator.batchTranslateModelContent).toHaveBeenCalledWith(
       "pages/example",
@@ -160,7 +160,7 @@ describe("useTranslationActions", () => {
       return { languages: ["de"] };
     });
 
-    await useTranslationActions(translator).handleBatchTranslate();
+    await useTranslationHandlers(translator).handleBatchTranslate();
 
     expect(translator.batchTranslateModelContent).toHaveBeenCalledWith(
       "pages/example",
@@ -172,7 +172,7 @@ describe("useTranslationActions", () => {
     const translator = createTranslator();
     vi.mocked(translator.getCascadeHelp).mockResolvedValue(undefined);
 
-    await useTranslationActions(translator).handleBatchTranslate();
+    await useTranslationHandlers(translator).handleBatchTranslate();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
       'johannschopplich.content-translator.dialog.batchHelp {"language":"English"}',
@@ -180,7 +180,7 @@ describe("useTranslationActions", () => {
   });
 
   it("handleBatchTranslate appends the getCascadeHelp text to the batchHelp", async () => {
-    await useTranslationActions(createTranslator()).handleBatchTranslate();
+    await useTranslationHandlers(createTranslator()).handleBatchTranslate();
 
     expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
       'johannschopplich.content-translator.dialog.batchHelp {"language":"English"} 1 page is also translated.',
@@ -191,7 +191,7 @@ describe("useTranslationActions", () => {
     const translator = createTranslator();
     openFieldsDialog = vi.fn(async () => undefined);
 
-    await useTranslationActions(translator).handleBatchTranslate();
+    await useTranslationHandlers(translator).handleBatchTranslate();
 
     expect(translator.batchTranslateModelContent).not.toHaveBeenCalled();
   });

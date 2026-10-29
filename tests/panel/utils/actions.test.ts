@@ -1,17 +1,14 @@
 import type { TranslatorActionOptions } from "../../../src/panel/utils/actions";
 import { describe, expect, it } from "vitest";
-import {
-  hasDefaultLanguageInfo,
-  resolveTranslatorActions,
-} from "../../../src/panel/utils/actions";
+import { resolveTranslatorActions } from "../../../src/panel/utils/actions";
 
 function options(
   overrides: Partial<TranslatorActionOptions> = {},
 ): TranslatorActionOptions {
   return {
-    languages: ["en", "de", "fr"],
-    language: "de",
-    defaultLanguage: "en",
+    languageCodes: ["en", "de", "fr"],
+    viewLanguageCode: "de",
+    defaultLanguageCode: "en",
     isImportEnabled: true,
     isBatchTranslationEnabled: true,
     hasAnyStrategy: true,
@@ -21,36 +18,43 @@ function options(
   };
 }
 
-function summarize(actions: ReturnType<typeof resolveTranslatorActions>) {
-  return actions.map((group) =>
-    group.map(({ type, from, disabled }) => ({ type, from, disabled })),
+function summarize({ groups }: ReturnType<typeof resolveTranslatorActions>) {
+  return groups.map((group) =>
+    group.map(({ type, sourceLanguageCode, isDisabled }) => ({
+      type,
+      sourceLanguageCode,
+      isDisabled,
+    })),
   );
 }
 
 describe("resolveTranslatorActions", () => {
   it("offers an import and a translation from the default language in a secondary language", () => {
     expect(summarize(resolveTranslatorActions(options()))).toEqual([
-      [{ type: "import", from: undefined, disabled: false }],
-      [{ type: "translate", from: "en", disabled: false }],
+      [{ type: "import", sourceLanguageCode: undefined, isDisabled: false }],
+      [{ type: "translate", sourceLanguageCode: "en", isDisabled: false }],
     ]);
   });
 
   it("offers only the batch translation in the default language", () => {
     expect(
-      summarize(resolveTranslatorActions(options({ language: "en" }))),
-    ).toEqual([[], [{ type: "batch", from: undefined, disabled: false }]]);
+      summarize(resolveTranslatorActions(options({ viewLanguageCode: "en" }))),
+    ).toEqual([
+      [],
+      [{ type: "batch", sourceLanguageCode: undefined, isDisabled: false }],
+    ]);
   });
 
   it("disables the import and the translation in the default language without batch", () => {
     expect(
       summarize(
         resolveTranslatorActions(
-          options({ language: "en", isBatchTranslationEnabled: false }),
+          options({ viewLanguageCode: "en", isBatchTranslationEnabled: false }),
         ),
       ),
     ).toEqual([
-      [{ type: "import", from: undefined, disabled: true }],
-      [{ type: "translate", from: "en", disabled: true }],
+      [{ type: "import", sourceLanguageCode: undefined, isDisabled: true }],
+      [{ type: "translate", sourceLanguageCode: "en", isDisabled: true }],
     ]);
   });
 
@@ -59,48 +63,54 @@ describe("resolveTranslatorActions", () => {
       summarize(resolveTranslatorActions(options({ importFrom: "all" }))),
     ).toEqual([
       [
-        { type: "import", from: "en", disabled: false },
-        { type: "import", from: "fr", disabled: false },
+        { type: "import", sourceLanguageCode: "en", isDisabled: false },
+        { type: "import", sourceLanguageCode: "fr", isDisabled: false },
       ],
-      [{ type: "translate", from: undefined, disabled: false }],
+      [{ type: "translate", sourceLanguageCode: undefined, isDisabled: false }],
     ]);
   });
 
   it("offers no translation without a strategy", () => {
     expect(
       summarize(resolveTranslatorActions(options({ hasAnyStrategy: false }))),
-    ).toEqual([[{ type: "import", from: undefined, disabled: false }], []]);
+    ).toEqual([
+      [{ type: "import", sourceLanguageCode: undefined, isDisabled: false }],
+      [],
+    ]);
   });
 
   it("disables every action with isDisabled", () => {
     const actions = resolveTranslatorActions(
-      options({ importFrom: "all", language: "en", isDisabled: true }),
-    ).flat();
+      options({ importFrom: "all", viewLanguageCode: "en", isDisabled: true }),
+    ).groups.flat();
 
     expect(actions).toHaveLength(4);
-    expect(actions.every((action) => action.disabled)).toBe(true);
+    expect(actions.every((action) => action.isDisabled)).toBe(true);
   });
 });
 
 describe("hasDefaultLanguageInfo", () => {
-  it("explains the default language once batch translation is off", () => {
+  it("is true for the default language only with isBatchTranslationEnabled off", () => {
     expect(
-      hasDefaultLanguageInfo(
-        options({ language: "en", isBatchTranslationEnabled: false }),
-      ),
+      resolveTranslatorActions(
+        options({ viewLanguageCode: "en", isBatchTranslationEnabled: false }),
+      ).hasDefaultLanguageInfo,
     ).toBe(true);
-    expect(hasDefaultLanguageInfo(options({ language: "en" }))).toBe(false);
+    expect(
+      resolveTranslatorActions(options({ viewLanguageCode: "en" }))
+        .hasDefaultLanguageInfo,
+    ).toBe(false);
   });
 
-  it("skips the explanation with importFrom all", () => {
+  it("is false with importFrom all", () => {
     expect(
-      hasDefaultLanguageInfo(
+      resolveTranslatorActions(
         options({
-          language: "en",
+          viewLanguageCode: "en",
           isBatchTranslationEnabled: false,
           importFrom: "all",
         }),
-      ),
+      ).hasDefaultLanguageInfo,
     ).toBe(false);
   });
 });

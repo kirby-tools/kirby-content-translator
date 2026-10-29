@@ -28,8 +28,8 @@ const buttons = computed(() => props.actions.flat());
       <k-button-group layout="collapsed">
         <k-button
           v-for="action in buttons"
-          :key="`${action.type}:${action.from ?? ''}`"
-          :disabled="action.disabled"
+          :key="`${action.type}:${action.sourceLanguageCode ?? ''}`"
+          :disabled="action.isDisabled"
           :icon="
             isTranslating && action.type !== 'import' ? 'loader' : action.icon
           "

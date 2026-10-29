@@ -4,13 +4,10 @@ import type { TranslatorAction } from "../utils/actions";
 import { usePanel } from "kirbyuse";
 import { computed, ref } from "vue";
 import { MODEL_FIELDS_API_ROUTE } from "../constants";
-import {
-  hasDefaultLanguageInfo,
-  resolveTranslatorActions,
-} from "../utils/actions";
+import { resolveTranslatorActions } from "../utils/actions";
 import { resolveStrategyReadiness } from "../utils/strategy";
 import { resolveTranslatorConfig } from "../utils/translator-config";
-import { useTranslationActions } from "./actions";
+import { useTranslationHandlers } from "./handlers";
 import { useModel } from "./model";
 import { useContentTranslator, useTranslationState } from "./translation";
 import { useVariableTranslation } from "./variables";
@@ -35,7 +32,7 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
   const isInitialized = ref(false);
 
   const { handleImport, handleTranslate, handleBatchTranslate } =
-    useTranslationActions(translator);
+    useTranslationHandlers(translator);
 
   const actionOptions = computed(() => {
     const defaultLanguage = panel.languages.find(
@@ -43,9 +40,9 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
     );
 
     return {
-      languages: panel.languages.map((language) => language.code),
-      language: panel.language.code ?? "",
-      defaultLanguage: defaultLanguage?.code ?? "",
+      languageCodes: panel.languages.map((language) => language.code),
+      viewLanguageCode: panel.language.code ?? "",
+      defaultLanguageCode: defaultLanguage?.code ?? "",
       isImportEnabled: isImportEnabled.value === true,
       importFrom: importFrom.value,
       isBatchTranslationEnabled: isBatchTranslationEnabled.value === true,
@@ -55,13 +52,14 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
     };
   });
 
-  const actions = computed(() =>
+  const resolution = computed(() =>
     isInitialized.value && panel.multilang
       ? resolveTranslatorActions(actionOptions.value)
-      : [],
+      : undefined,
   );
-  const hasInfo = computed(
-    () => isInitialized.value && hasDefaultLanguageInfo(actionOptions.value),
+  const actions = computed(() => resolution.value?.groups ?? []);
+  const hasDefaultLanguageInfo = computed(
+    () => resolution.value?.hasDefaultLanguageInfo ?? false,
   );
 
   async function initialize(context: PluginContextResponse) {
@@ -69,7 +67,8 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
     isInitialized.value = true;
   }
 
-  // Not resolved by the field class: a getter that resolves the form recurses.
+  // Fetched rather than computed by the PHP `ContentTranslatorField` class: its
+  // getter would build the form that holds the field and recurse.
   async function initializeFields() {
     const { id } = await getModelData(panel.view.path);
     fields.value = await panel.api.get<Record<string, KirbyFieldProps>>(
@@ -83,7 +82,7 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
 
   function run(action: TranslatorAction) {
     const sourceLanguage = panel.languages.find(
-      (language) => language.code === action.from,
+      (language) => language.code === action.sourceLanguageCode,
     );
 
     if (action.type === "import") return handleImport(sourceLanguage);
@@ -95,7 +94,7 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
     initialize,
     isInitialized,
     actions,
-    hasDefaultLanguageInfo: hasInfo,
+    hasDefaultLanguageInfo,
     hasAnyStrategy,
     missingStrategyMessage,
     run,
@@ -128,15 +127,15 @@ export function useVariableActions(options: TranslatorOptions) {
     )!;
 
     return resolveTranslatorActions({
-      languages: panel.languages.map((language) => language.code),
-      language: viewLanguage.value.code,
-      defaultLanguage: defaultLanguage.code,
+      languageCodes: panel.languages.map((language) => language.code),
+      viewLanguageCode: viewLanguage.value.code,
+      defaultLanguageCode: defaultLanguage.code,
       isImportEnabled: false,
       isBatchTranslationEnabled: isBatchTranslationEnabled.value,
       hasAnyStrategy: hasAnyStrategy.value,
       isDisabled: isTranslating.value || !panel.permissions.languages.update,
       t: panel.t,
-    });
+    }).groups;
   });
 
   async function initialize(context: PluginContextResponse) {
@@ -157,7 +156,6 @@ export function useVariableActions(options: TranslatorOptions) {
 
   return {
     initialize,
-    isInitialized,
     actions,
     missingStrategyMessage,
     run,

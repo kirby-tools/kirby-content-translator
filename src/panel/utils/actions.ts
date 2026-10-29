@@ -1,42 +1,45 @@
+import type { Translate } from "../types";
+
 export type TranslatorActionType = "import" | "translate" | "batch";
 
 export interface TranslatorAction {
   type: TranslatorActionType;
   text: string;
   icon: string;
-  disabled: boolean;
-  /** Code of the language the action reads from; without one, imports copy the default language and translations let the strategy detect it. */
-  from?: string;
+  isDisabled: boolean;
+  /** Language the action reads from; without one, an import or a batch reads the default language and a translation lets the strategy detect it. */
+  sourceLanguageCode?: string;
 }
 
 export interface TranslatorActionOptions {
-  languages: string[];
-  /** Code of the language the view shows. */
-  language: string;
-  defaultLanguage: string;
+  languageCodes: string[];
+  viewLanguageCode: string;
+  defaultLanguageCode: string;
   isImportEnabled: boolean;
   importFrom?: string;
   isBatchTranslationEnabled: boolean;
   hasAnyStrategy: boolean;
   isDisabled: boolean;
-  t: (key: string, data?: Record<string, unknown>) => string;
+  t: Translate;
 }
 
-/** Derives the actions, grouped into the imports and the translations. */
 export function resolveTranslatorActions({
-  languages,
-  language,
-  defaultLanguage,
+  languageCodes,
+  viewLanguageCode,
+  defaultLanguageCode,
   isImportEnabled,
   importFrom,
   isBatchTranslationEnabled,
   hasAnyStrategy,
   isDisabled,
   t,
-}: TranslatorActionOptions): TranslatorAction[][] {
-  const isDefaultLanguage = language === defaultLanguage;
+}: TranslatorActionOptions): {
+  groups: [imports: TranslatorAction[], translations: TranslatorAction[]];
+  hasDefaultLanguageInfo: boolean;
+} {
+  const isDefaultLanguage = viewLanguageCode === defaultLanguageCode;
   const translateText = t("johannschopplich.content-translator.translate", {
-    language: language.toUpperCase(),
+    language: viewLanguageCode.toUpperCase(),
   });
   const batchActions: TranslatorAction[] =
     hasAnyStrategy && isBatchTranslationEnabled && isDefaultLanguage
@@ -44,89 +47,77 @@ export function resolveTranslatorActions({
           {
             type: "batch",
             text: t("johannschopplich.content-translator.batchTranslate", {
-              language: defaultLanguage.toUpperCase(),
+              language: defaultLanguageCode.toUpperCase(),
             }),
             icon: "content-translator-global",
-            disabled: isDisabled,
+            isDisabled,
           },
         ]
       : [];
 
   if (isImportEnabled && importFrom === "all") {
-    return [
-      languages
-        .filter((code) => code !== language)
-        .map((code) => ({
-          type: "import",
-          text: t("johannschopplich.content-translator.importFrom", {
-            language: code.toUpperCase(),
-          }),
-          icon: "import",
-          disabled: isDisabled,
-          from: code,
-        })),
+    return {
+      groups: [
+        languageCodes
+          .filter((code) => code !== viewLanguageCode)
+          .map((code) => ({
+            type: "import",
+            text: t("johannschopplich.content-translator.importFrom", {
+              language: code.toUpperCase(),
+            }),
+            icon: "import",
+            isDisabled,
+            sourceLanguageCode: code,
+          })),
+        [
+          ...(hasAnyStrategy
+            ? [
+                {
+                  type: "translate" as const,
+                  text: translateText,
+                  icon: "translate",
+                  isDisabled,
+                },
+              ]
+            : []),
+          ...batchActions,
+        ],
+      ],
+      hasDefaultLanguageInfo: false,
+    };
+  }
+
+  const hasSingleLanguageActions =
+    !isBatchTranslationEnabled || !isDefaultLanguage;
+
+  return {
+    groups: [
+      isImportEnabled && hasSingleLanguageActions
+        ? [
+            {
+              type: "import",
+              text: t("johannschopplich.content-translator.import"),
+              icon: "import",
+              isDisabled: isDefaultLanguage || isDisabled,
+            },
+          ]
+        : [],
       [
-        ...(hasAnyStrategy
+        ...(hasAnyStrategy && hasSingleLanguageActions
           ? [
               {
                 type: "translate" as const,
                 text: translateText,
                 icon: "translate",
-                disabled: isDisabled,
+                isDisabled: isDefaultLanguage || isDisabled,
+                sourceLanguageCode: defaultLanguageCode,
               },
             ]
           : []),
         ...batchActions,
       ],
-    ];
-  }
-
-  const isPerLanguage = !isBatchTranslationEnabled || !isDefaultLanguage;
-
-  return [
-    isImportEnabled && isPerLanguage
-      ? [
-          {
-            type: "import",
-            text: t("johannschopplich.content-translator.import"),
-            icon: "import",
-            disabled: isDefaultLanguage || isDisabled,
-          },
-        ]
-      : [],
-    [
-      ...(hasAnyStrategy && isPerLanguage
-        ? [
-            {
-              type: "translate" as const,
-              text: translateText,
-              icon: "translate",
-              disabled: isDefaultLanguage || isDisabled,
-              from: defaultLanguage,
-            },
-          ]
-        : []),
-      ...batchActions,
     ],
-  ];
-}
-
-/**
- * Tells whether the field explains that only secondary languages take
- * imports and translations.
- */
-export function hasDefaultLanguageInfo({
-  language,
-  defaultLanguage,
-  isImportEnabled,
-  importFrom,
-  isBatchTranslationEnabled,
-  hasAnyStrategy,
-}: Omit<TranslatorActionOptions, "languages" | "isDisabled" | "t">) {
-  return (
-    !(isImportEnabled && importFrom === "all") &&
-    hasAnyStrategy &&
-    !isBatchTranslationEnabled &&
-    language === defaultLanguage
-  );
+    hasDefaultLanguageInfo:
+      hasAnyStrategy && !isBatchTranslationEnabled && isDefaultLanguage,
+  };
 }

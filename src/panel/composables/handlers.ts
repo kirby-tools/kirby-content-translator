@@ -3,7 +3,7 @@ import type { useContentTranslator } from "./translation";
 import { usePanel } from "kirbyuse";
 import { useTranslationDialogs } from "./dialogs";
 
-export function useTranslationActions({
+export function useTranslationHandlers({
   strategyName,
   importModelContent,
   translateModelContent,
