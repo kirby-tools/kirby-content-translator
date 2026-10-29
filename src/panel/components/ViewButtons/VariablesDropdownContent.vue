@@ -22,6 +22,10 @@ const props = defineProps({
     type: Object as PropType<TranslatorOptions>,
     required: true,
   },
+  initializeOnce: {
+    type: Function as PropType<<T>(initialize: () => Promise<T>) => Promise<T>>,
+    required: true,
+  },
 });
 
 const panel = usePanel();
@@ -41,13 +45,21 @@ const { isBatchTranslationEnabled } = resolveTranslatorConfig(
 );
 const hasAnyStrategy = ref(false);
 
-resolveStrategyReadiness(props.context.config).then((strategyReadiness) => {
-  hasAnyStrategy.value = strategyReadiness.hasAnyStrategy;
+props
+  .initializeOnce(async () => {
+    const strategyReadiness = await resolveStrategyReadiness(
+      props.context.config,
+    );
 
-  if (strategyReadiness.missingStrategyMessage) {
-    panel.notification.error(strategyReadiness.missingStrategyMessage);
-  }
-});
+    if (strategyReadiness.missingStrategyMessage) {
+      panel.notification.error(strategyReadiness.missingStrategyMessage);
+    }
+
+    return strategyReadiness;
+  })
+  .then((strategyReadiness) => {
+    hasAnyStrategy.value = strategyReadiness.hasAnyStrategy;
+  });
 </script>
 
 <template>

@@ -1,13 +1,11 @@
 <script lang="ts">
 import type { PropType } from "vue";
+import type { useContentTranslator } from "../../composables/translation";
 import type { PluginContextResponse, TranslatorOptions } from "../../types";
 import { usePanel } from "kirbyuse";
 import { useTranslationActions } from "../../composables/actions";
 import { useModel } from "../../composables/model";
-import {
-  useContentTranslator,
-  useTranslationState,
-} from "../../composables/translation";
+import { useTranslationState } from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
 export default {
@@ -25,6 +23,14 @@ const props = defineProps({
     type: Object as PropType<TranslatorOptions>,
     required: true,
   },
+  translator: {
+    type: Object as PropType<ReturnType<typeof useContentTranslator>>,
+    required: true,
+  },
+  initializeOnce: {
+    type: Function as PropType<<T>(initialize: () => Promise<T>) => Promise<T>>,
+    required: true,
+  },
 });
 
 const panel = usePanel();
@@ -33,7 +39,7 @@ const { isTranslating } = useTranslationState();
 
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 
-const translator = useContentTranslator();
+const translator = props.translator;
 const {
   isImportEnabled,
   importFrom,
@@ -47,14 +53,14 @@ const {
   initializeConfig,
 } = translator;
 
-initializeConfig(props.context, props.props).then(() => {
-  if (missingStrategyMessage.value) {
-    panel.notification.error(missingStrategyMessage.value);
-  }
-});
+const initializationPromise = props.initializeOnce(async () => {
+  initializeConfig(props.context, props.props).then(() => {
+    if (missingStrategyMessage.value) {
+      panel.notification.error(missingStrategyMessage.value);
+    }
+  });
 
-// Lazily fetch required view data (same as `computed` section methods).
-const initializationPromise = (async () => {
+  // Lazily fetch required view data (same as `computed` section methods).
   const defaultLanguageData = await getModelData(panel.view.path);
 
   fields.value = await panel.api.get(
@@ -69,7 +75,7 @@ const initializationPromise = (async () => {
     // eslint-disable-next-line no-console
     console.log("Model fields:", fields.value);
   }
-})();
+});
 
 const { handleImport, handleTranslate, handleBatchTranslate } =
   useTranslationActions(translator, initializationPromise);

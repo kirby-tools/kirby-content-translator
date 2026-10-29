@@ -7,7 +7,10 @@ import {
   resolveLicenseStatus,
   usePluginContext,
 } from "../../composables/plugin";
-import { useTranslationState } from "../../composables/translation";
+import {
+  useContentTranslator,
+  useTranslationState,
+} from "../../composables/translation";
 import ContentTranslatorDropdownContent from "./ContentTranslatorDropdownContent.vue";
 import VariablesDropdownContent from "./VariablesDropdownContent.vue";
 
@@ -66,6 +69,8 @@ const { isTranslating } = useTranslationState();
 
 const dropdownContent = ref();
 const isLanguageView = panel.view.component === "k-language-view";
+const translator = isLanguageView ? undefined : useContentTranslator();
+let actionsInitialization: Promise<unknown> | undefined;
 const context = ref<PluginContextResponse>();
 const hasInitializationError = ref(false);
 const licenseStatus = computed(
@@ -91,6 +96,16 @@ const licenseStatus = computed(
 function toggle() {
   dropdownContent.value.toggle();
 }
+
+// Kirby renders the dropdown content only while it is open, so the content
+// would otherwise set itself up on every open.
+function initializeOnce<T>(initialize: () => Promise<T>) {
+  actionsInitialization ??= initialize().catch((error) => {
+    actionsInitialization = undefined;
+    throw error;
+  });
+  return actionsInitialization as Promise<T>;
+}
 </script>
 
 <template>
@@ -113,11 +128,14 @@ function toggle() {
         v-if="context && isLanguageView"
         :context="context"
         :props="props"
+        :initialize-once="initializeOnce"
       />
       <ContentTranslatorDropdownContent
-        v-else-if="context"
+        v-else-if="context && translator"
         :context="context"
         :props="props"
+        :translator="translator"
+        :initialize-once="initializeOnce"
       />
 
       <template
