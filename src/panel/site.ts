@@ -1,3 +1,4 @@
+export { default as translations } from "../../translations/en.json";
 export { default as TranslationCoverage } from "./components/Shared/TranslationCoverage.vue";
 export { default as TranslationRing } from "./components/Shared/TranslationRing.vue";
 export { default as TranslationTree } from "./components/Shared/TranslationTree.vue";
