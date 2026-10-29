@@ -113,6 +113,7 @@ async function initializeActions() {
   try {
     await initialize(context.value);
   } catch (error) {
+    actionsInitialization = undefined;
     panel.error(error as Error);
     return;
   }
