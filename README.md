@@ -56,7 +56,7 @@ For the sake of reproducible bug reports, please include the following informati
 
 - Kirby & Kirby Content Translator version
 - Browser environment (name, version, operating system)
-- Global and field configuration (without any sensitive information)
+- Global and blueprint configuration (without any sensitive information)
 - Steps to reproduce the bug (if no reproduction is provided)
 - Screenshots or screen recordings if applicable
 
