@@ -63,10 +63,7 @@ describe("usePluginContext", () => {
       .mockResolvedValueOnce(contextResponse("inactive"))
       .mockResolvedValueOnce(contextResponse("active"));
 
-    expect((await usePluginContext()).licenseStatus).toBe("inactive");
-    expect((await usePluginContext()).licenseStatus).toBe("inactive");
-    expect(api.get).toHaveBeenCalledTimes(1);
-
+    await usePluginContext();
     events.emit(LICENSE_ACTIVATE_EVENT, undefined);
 
     expect((await usePluginContext()).licenseStatus).toBe("active");

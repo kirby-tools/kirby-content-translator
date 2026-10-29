@@ -13,7 +13,7 @@ function options(
     isBatchTranslationEnabled: true,
     hasAnyStrategy: true,
     isDisabled: false,
-    t: (key) => key.split(".").at(-1)!,
+    t: () => "",
     ...overrides,
   };
 }
@@ -45,7 +45,7 @@ describe("resolveTranslatorActions", () => {
     ]);
   });
 
-  it("disables the import and the translation in the default language without batch", () => {
+  it("disables the import and the translation in the default language with isBatchTranslationEnabled off", () => {
     expect(
       summarize(
         resolveTranslatorActions(
@@ -70,6 +70,15 @@ describe("resolveTranslatorActions", () => {
     ]);
   });
 
+  it("offers only the translation from the default language with isImportEnabled off", () => {
+    expect(
+      summarize(resolveTranslatorActions(options({ isImportEnabled: false }))),
+    ).toEqual([
+      [],
+      [{ type: "translate", sourceLanguageCode: "en", isDisabled: false }],
+    ]);
+  });
+
   it("offers no translation without a strategy", () => {
     expect(
       summarize(resolveTranslatorActions(options({ hasAnyStrategy: false }))),
@@ -87,10 +96,17 @@ describe("resolveTranslatorActions", () => {
     expect(actions).toHaveLength(4);
     expect(actions.every((action) => action.isDisabled)).toBe(true);
   });
-});
 
-describe("hasDefaultLanguageInfo", () => {
-  it("is true for the default language only with isBatchTranslationEnabled off", () => {
+  it("disables the import and the translation of a secondary language with isDisabled", () => {
+    expect(
+      summarize(resolveTranslatorActions(options({ isDisabled: true }))),
+    ).toEqual([
+      [{ type: "import", sourceLanguageCode: undefined, isDisabled: true }],
+      [{ type: "translate", sourceLanguageCode: "en", isDisabled: true }],
+    ]);
+  });
+
+  it("sets hasDefaultLanguageInfo for the default language only with isBatchTranslationEnabled off", () => {
     expect(
       resolveTranslatorActions(
         options({ viewLanguageCode: "en", isBatchTranslationEnabled: false }),
@@ -102,7 +118,7 @@ describe("hasDefaultLanguageInfo", () => {
     ).toBe(false);
   });
 
-  it("is false with importFrom all", () => {
+  it("leaves hasDefaultLanguageInfo off with importFrom all", () => {
     expect(
       resolveTranslatorActions(
         options({

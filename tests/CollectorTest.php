@@ -325,7 +325,7 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
-    public function leaves_structure_and_object_yaml_with_an_at_leading_value_untouched(): void
+    public function leaves_structure_and_object_yaml_with_a_value_starting_with_an_at_sign_untouched(): void
     {
         $content = [
             'title' => 'Hello',
