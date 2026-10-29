@@ -22,7 +22,7 @@ const groups = computed(() => props.actions.filter((group) => group.length));
     <hr v-if="index > 0" />
     <k-dropdown-item
       v-for="action in group"
-      :key="action.text"
+      :key="`${action.type}:${action.from ?? ''}`"
       :disabled="action.disabled"
       :icon="action.icon"
       @click="emit('run', action)"
