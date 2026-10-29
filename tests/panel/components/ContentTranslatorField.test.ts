@@ -37,7 +37,7 @@ it("keeps disabled off k-field", () => {
       licenseDialog: "",
     },
     attrs: { disabled: true },
-    global: { stubs: { "k-field": true, "k-box": true, "k-text": true } },
+    global: { stubs: { "k-box": true, "k-text": true } },
   });
 
   expect(wrapper.attributes("disabled")).toBeUndefined();

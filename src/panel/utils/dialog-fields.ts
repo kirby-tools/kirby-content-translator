@@ -59,6 +59,33 @@ export function createStrategyField({
   };
 }
 
+export function createTranslationSubmitButton({ t }: { t: Translate }) {
+  return {
+    icon: "translate",
+    theme: "positive" as const,
+    text: t("johannschopplich.content-translator.dialog.translateButton"),
+  };
+}
+
+export function createBatchTranslationHelp({
+  defaultLanguage,
+  cascadeHelp,
+  t,
+}: {
+  defaultLanguage: { name: string };
+  cascadeHelp?: string;
+  t: Translate;
+}) {
+  return [
+    t("johannschopplich.content-translator.dialog.batchHelp", {
+      language: defaultLanguage.name,
+    }),
+    cascadeHelp,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 export function createTranslationDialogFields({
   help,
   strategyField,

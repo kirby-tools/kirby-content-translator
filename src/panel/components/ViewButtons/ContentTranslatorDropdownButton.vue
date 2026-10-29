@@ -10,10 +10,11 @@ import {
   useContentTranslatorActions,
   useVariableActions,
 } from "../../composables/translator-actions";
-import TranslatorDropdownItems from "../Shared/TranslatorDropdownItems.vue";
+import TranslatorDropdownButton from "../Shared/TranslatorDropdownButton.vue";
 
 // Kirby binds every view button prop (`responsive`, `size`, …), and the ones
-// not declared here would otherwise land as attributes on the wrapper `<div>`.
+// not declared here would otherwise fall through to the root of
+// `TranslatorDropdownButton`.
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
@@ -58,14 +59,12 @@ const props = defineProps({
   },
   theme: {
     type: String,
-    default: "notice-icon",
   },
 });
 
 const panel = usePanel();
 const { isTranslating } = useTranslationState();
 
-const dropdown = ref();
 // Kirby renders the buttons anew for every view, so the view stays the same
 // for this instance.
 const { initialize, actions, missingStrategyMessage, run } =
@@ -99,8 +98,7 @@ const contextInitialization = (async () => {
   }
 })();
 
-function toggle() {
-  dropdown.value.toggle();
+function onToggle() {
   // Kirby mounts the buttons for every view, so `initialize()` at mount would
   // request the model's fields on each navigation.
   actionsInitialization ??= initializeActions();
@@ -125,30 +123,24 @@ async function initializeActions() {
 </script>
 
 <template>
-  <div v-if="!hasInitializationError">
-    <k-button
-      :dropdown="true"
-      :text="
-        label || panel.t('johannschopplich.content-translator.viewButton.label')
-      "
-      :icon="isTranslating ? 'loader' : 'content-translator-global'"
-      responsive
-      :theme="theme"
-      variant="filled"
-      size="sm"
-      @click="toggle()"
-    />
-    <k-dropdown ref="dropdown">
-      <TranslatorDropdownItems :actions="actions" @run="run" />
-
-      <template v-if="hasLicenseItems">
-        <hr />
-        <LicensingDropdownItems
-          :dialog="context!.licenseDialog"
-          :license-status="context!.licenseStatus"
-          pricing-url="https://kirby.tools/content-translator/buy"
-        />
-      </template>
-    </k-dropdown>
-  </div>
+  <TranslatorDropdownButton
+    v-if="!hasInitializationError"
+    :actions="actions"
+    :label="
+      label || panel.t('johannschopplich.content-translator.viewButton.label')
+    "
+    :theme="theme"
+    :is-translating="isTranslating"
+    @toggle="onToggle()"
+    @run="run"
+  >
+    <template v-if="hasLicenseItems">
+      <hr />
+      <LicensingDropdownItems
+        :dialog="context!.licenseDialog"
+        :license-status="context!.licenseStatus"
+        pricing-url="https://kirby.tools/content-translator/buy"
+      />
+    </template>
+  </TranslatorDropdownButton>
 </template>
