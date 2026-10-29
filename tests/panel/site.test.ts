@@ -1,4 +1,3 @@
-// @vitest-environment node
 import { fileURLToPath } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { build } from "vite";
