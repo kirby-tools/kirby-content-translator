@@ -21,7 +21,6 @@ final class PanelContextTest extends ApiRouteTestCase
         self::bootApp([
             'options' => [
                 'johannschopplich.content-translator' => [
-                    'confirm' => true,
                     'coverage' => ['pages' => fn () => []],
                     'title' => true,
                 ],
@@ -30,7 +29,6 @@ final class PanelContextTest extends ApiRouteTestCase
 
         $config = PanelContext::config();
 
-        $this->assertArrayNotHasKey('confirm', $config);
         $this->assertArrayNotHasKey('coverage', $config);
         // Registered by the plugin itself, so it reaches the Panel unasked for.
         $this->assertArrayNotHasKey('cache', $config);
