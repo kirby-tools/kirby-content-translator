@@ -9,7 +9,7 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    useApi: () => ({ post: vi.fn() }),
+    usePanel: () => ({ api: { post: vi.fn() } }),
   };
 });
 

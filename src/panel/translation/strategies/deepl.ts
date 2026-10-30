@@ -5,7 +5,7 @@ import type {
   TranslationStrategy,
   TranslationUnit,
 } from "../types";
-import { useApi } from "kirbyuse";
+import { usePanel } from "kirbyuse";
 import { TRANSLATE_UNITS_API_ROUTE } from "../../constants";
 
 export class DeepLStrategy implements TranslationStrategy {
@@ -13,11 +13,11 @@ export class DeepLStrategy implements TranslationStrategy {
     units: TranslationUnit[],
     options: TranslationExecutionOptions,
   ) {
-    const api = useApi();
+    const panel = usePanel();
 
     const outcomes: TranslationOutcome[] = [];
 
-    const response = await api.post<TranslateUnitsResponse>(
+    const response = await panel.api.post<TranslateUnitsResponse>(
       TRANSLATE_UNITS_API_ROUTE,
       {
         sourceLanguage: options.sourceLanguage?.code,

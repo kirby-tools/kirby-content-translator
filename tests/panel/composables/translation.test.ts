@@ -44,7 +44,6 @@ vi.mock("kirbyuse", async (importOriginal) => {
     createGlobalState,
     toIntlLocale,
     usePanel: () => panel,
-    useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
     useI18n: () => ({
       t: (value: unknown) => (typeof value === "string" ? value : undefined),
