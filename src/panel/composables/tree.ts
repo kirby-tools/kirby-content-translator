@@ -1,11 +1,10 @@
 import type { TranslationTreeEntry } from "../types";
-import { useApi, usePanel } from "kirbyuse";
+import { usePanel } from "kirbyuse";
 import { reactive } from "vue";
 import { COVERAGE_API_ROUTE } from "../constants";
 
 export function useTranslationTree() {
   const panel = usePanel();
-  const api = useApi();
 
   const tree = reactive<TranslationTreeEntry[]>([]);
 
@@ -26,7 +25,7 @@ export function useTranslationTree() {
       item.isLoading = true;
 
       try {
-        const response = await api.get(COVERAGE_API_ROUTE, {
+        const response = await panel.api.get(COVERAGE_API_ROUTE, {
           parent: item.id,
         });
         item.children = response.children.map(initEntry);

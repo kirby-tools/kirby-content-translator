@@ -55,7 +55,6 @@ vi.mock("kirbyuse", async (importOriginal) => {
     createGlobalState,
     toIntlLocale,
     usePanel: () => panel,
-    useApi: () => panel.api,
     useDialog: () => ({ openFieldsDialog }),
   };
 });
