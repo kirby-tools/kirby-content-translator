@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { TranslationLanguageCoverage } from "../../types";
+import type { TranslationLanguageCoverage } from "../types";
 import { usePanel } from "kirbyuse";
 import { onMounted, ref } from "vue";
-import { useTranslationTree } from "../../composables/tree";
-import { COVERAGE_API_ROUTE } from "../../constants";
-import { createCoverageLabels } from "../../utils/coverage-labels";
-import TranslationCoverage from "../Shared/TranslationCoverage.vue";
+import { useTranslationTree } from "../composables/tree";
+import { COVERAGE_API_ROUTE } from "../constants";
+import { createCoverageLabels } from "../utils/coverage-labels";
+import CoverageBody from "./Ui/CoverageBody.vue";
 
 const panel = usePanel();
 
@@ -26,7 +26,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <TranslationCoverage
+  <CoverageBody
     v-if="languages.length > 0"
     class="kct-mt-[var(--columns-block-gap)]"
     :languages="languages"

@@ -10,11 +10,11 @@ import {
   name as nameProp,
 } from "kirbyuse/props";
 import { computed } from "vue";
-import { usePluginContext } from "../../composables/plugin";
-import { useTranslationState } from "../../composables/translation";
-import { useContentTranslatorActions } from "../../composables/translator-actions";
-import TranslatorButtons from "../Shared/TranslatorButtons.vue";
-import TranslatorField from "../Shared/TranslatorField.vue";
+import { usePluginContext } from "../composables/plugin";
+import { useTranslationState } from "../composables/translation";
+import { useContentTranslatorActions } from "../composables/translator-actions";
+import ActionButtons from "./Ui/ActionButtons.vue";
+import FieldBody from "./Ui/FieldBody.vue";
 
 const props = defineProps({
   // Declared to keep `disabled` off `k-field`, so the field never looks disabled.
@@ -83,7 +83,7 @@ if (panel.multilang) {
 </script>
 
 <template>
-  <TranslatorField :id="id" :help="help" :label="label" :name="name">
+  <FieldBody :id="id" :help="help" :label="label" :name="name">
     <template v-if="hasLicenseButtons" #options>
       <LicensingButtonGroup
         :dialog="licenseDialog"
@@ -99,12 +99,12 @@ if (panel.multilang) {
       <k-box v-if="!hasAnyStrategy" theme="empty">
         <k-text>{{ missingStrategyMessage }}</k-text>
       </k-box>
-      <TranslatorButtons
+      <ActionButtons
         :actions="actions"
         :is-translating="isTranslating"
         :info="info"
         @run="run"
       />
     </div>
-  </TranslatorField>
+  </FieldBody>
 </template>

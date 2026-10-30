@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { PluginContextResponse } from "../../types";
+import type { PluginContextResponse } from "../types";
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
 import { usePanel } from "kirbyuse";
 import { computed, ref } from "vue";
-import { usePluginContext } from "../../composables/plugin";
-import { useTranslationState } from "../../composables/translation";
+import { usePluginContext } from "../composables/plugin";
+import { useTranslationState } from "../composables/translation";
 import {
   useContentTranslatorActions,
   useVariableActions,
-} from "../../composables/translator-actions";
-import TranslatorDropdownButton from "../Shared/TranslatorDropdownButton.vue";
+} from "../composables/translator-actions";
+import ViewButtonBody from "./Ui/ViewButtonBody.vue";
 
 // Kirby binds every view button prop (`responsive`, `size`, …), and the ones
 // not declared here would otherwise fall through to the root of
-// `TranslatorDropdownButton`.
+// `ViewButtonBody`.
 defineOptions({ inheritAttrs: false });
 
 const props = defineProps({
@@ -123,7 +123,7 @@ async function initializeActions() {
 </script>
 
 <template>
-  <TranslatorDropdownButton
+  <ViewButtonBody
     v-if="!hasInitializationError"
     :actions="actions"
     :label="
@@ -142,5 +142,5 @@ async function initializeActions() {
         pricing-url="https://kirby.tools/content-translator/buy"
       />
     </template>
-  </TranslatorDropdownButton>
+  </ViewButtonBody>
 </template>

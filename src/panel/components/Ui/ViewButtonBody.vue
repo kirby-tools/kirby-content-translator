@@ -2,7 +2,7 @@
 import type { PropType } from "vue";
 import type { TranslatorAction } from "../../utils/actions";
 import { ref } from "vue";
-import TranslatorDropdownItems from "./TranslatorDropdownItems.vue";
+import ActionDropdownItems from "./ActionDropdownItems.vue";
 
 defineProps({
   actions: {
@@ -46,7 +46,7 @@ function toggle() {
       @click="toggle()"
     />
     <k-dropdown ref="dropdown">
-      <TranslatorDropdownItems :actions="actions" @run="emit('run', $event)" />
+      <ActionDropdownItems :actions="actions" @run="emit('run', $event)" />
       <slot />
     </k-dropdown>
   </div>
