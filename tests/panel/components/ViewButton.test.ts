@@ -2,7 +2,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { defineComponent, h, ref } from "vue";
-import ContentTranslatorDropdownButton from "../../../src/panel/components/ViewButtons/ContentTranslatorDropdownButton.vue";
+import ViewButton from "../../../src/panel/components/ViewButton.vue";
 
 const initialize = vi.hoisted(() => vi.fn(async () => {}));
 
@@ -51,7 +51,7 @@ const KDropdown = defineComponent({
 });
 
 function mountButton(props: Record<string, unknown> = {}) {
-  return mount(ContentTranslatorDropdownButton, {
+  return mount(ViewButton, {
     props,
     global: { stubs: { "k-button": KButton, "k-dropdown": KDropdown } },
   });

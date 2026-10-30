@@ -3,15 +3,12 @@ import type { Component } from "vue";
 import { mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { defineComponent, h, renderSlot } from "vue";
-import LanguagesView from "../../../src/panel/components/Views/LanguagesView";
+import LanguagesView from "../../../src/panel/components/LanguagesView";
 import KirbyLanguagesView from "./fixtures/KirbyLanguagesView.vue";
 
-vi.mock(
-  "../../../src/panel/components/Views/TranslationCoverageView.vue",
-  () => ({
-    default: { render: () => h("div", { class: "coverage" }) },
-  }),
-);
+vi.mock("../../../src/panel/components/Coverage.vue", () => ({
+  default: { render: () => h("div", { class: "coverage" }) },
+}));
 
 // Renders its slot through `renderSlot`, as Kirby's compiled `<slot />` does.
 const KPanelInside = defineComponent({

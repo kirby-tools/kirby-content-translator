@@ -2,7 +2,7 @@
 import { shallowMount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { ref } from "vue";
-import ContentTranslatorField from "../../../src/panel/components/Fields/ContentTranslatorField.vue";
+import Field from "../../../src/panel/components/Field.vue";
 
 vi.mock("kirbyuse", () => ({
   usePanel: () => ({ multilang: true, t: (key: string) => key }),
@@ -33,7 +33,7 @@ vi.mock("../../../src/panel/composables/translator-actions", () => ({
 }));
 
 it("keeps disabled off k-field", () => {
-  const wrapper = shallowMount(ContentTranslatorField, {
+  const wrapper = shallowMount(Field, {
     props: {
       name: "translator",
       label: "Content Translator",

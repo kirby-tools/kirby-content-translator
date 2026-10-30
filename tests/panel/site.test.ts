@@ -13,12 +13,12 @@ describe("site barrel", () => {
   it("loads without `window`", async () => {
     expect(globalThis.window).toBeUndefined();
 
-    const { TranslationCoverage, TranslatorButtons, TranslatorDropdownItems } =
+    const { ActionButtons, ActionDropdownItems, CoverageBody } =
       await import("../../src/panel/site");
 
-    expect(TranslationCoverage).toBeTypeOf("object");
-    expect(TranslatorButtons).toBeTypeOf("object");
-    expect(TranslatorDropdownItems).toBeTypeOf("object");
+    expect(ActionButtons).toBeTypeOf("object");
+    expect(ActionDropdownItems).toBeTypeOf("object");
+    expect(CoverageBody).toBeTypeOf("object");
   });
 
   it("imports only kirbyuse/props and vue", async () => {

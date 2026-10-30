@@ -1,7 +1,7 @@
 import type { ComponentPublicInstance, Slot, VNode } from "vue";
 import { isLocalDev } from "kirbyuse";
 import { h } from "vue";
-import TranslationCoverageView from "./TranslationCoverageView.vue";
+import Coverage from "./Coverage.vue";
 
 type Render = (this: ComponentPublicInstance, ...args: unknown[]) => VNode;
 
@@ -27,12 +27,12 @@ const LanguagesView = {
         ...namedSlots,
         default: (...slotArgs: unknown[]) => [
           ...(renderDefault as Slot)(...slotArgs),
-          h(TranslationCoverageView),
+          h(Coverage),
         ],
       };
     } else if (isLocalDev()) {
       console.warn(
-        "[kirby-content-translator] Cannot inject TranslationCoverageView into k-languages-view: parent render shape changed.",
+        "[kirby-content-translator] Cannot inject Coverage into k-languages-view: parent render shape changed.",
       );
     }
 

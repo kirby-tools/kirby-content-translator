@@ -5,7 +5,7 @@ import type {
   TranslationLanguageCoverage,
   TranslationTreeEntry,
 } from "../../types";
-import TranslationRing from "./TranslationRing.vue";
+import CoverageRing from "./CoverageRing.vue";
 import TranslationTree from "./TranslationTree.vue";
 
 defineProps({
@@ -43,7 +43,7 @@ const emit = defineEmits<{
           <dd
             class="k-stat-value kct-relative kct-mb-[var(--spacing-2)] kct-flex kct-items-center kct-justify-center"
           >
-            <TranslationRing :value="language.percentage" />
+            <CoverageRing :value="language.percentage" />
             <span
               class="kct-[font-weight:var(--font-bold)] kct-absolute kct-text-[length:var(--text-lg)]"
             >
