@@ -200,13 +200,6 @@ export function useContentTranslator() {
     );
   }
 
-  // TODO: Unify the import flow through a server-side `copyContent` API
-  // endpoint. When importing from the default language, delete the content
-  // file (Kirby inherits automatically) and reload the Panel instead of using
-  // `updateContent()`. For non-default `importFrom` sources, the server-side
-  // `copyContent` behavior is kept. This also removes the need for client-side
-  // `filterEligibleContent` during import and the title/slug patching for
-  // default-language imports.
   /**
    * Imports the content of `sourceLanguage`, or of the default language, into
    * the form of the view at `path` in `targetLanguage`, both taken when the
