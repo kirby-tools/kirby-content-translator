@@ -97,7 +97,6 @@ function createPanelStub() {
       error: vi.fn(),
       close: vi.fn(),
     },
-    events: { on: vi.fn() },
     plugins: { thirdParty: {} },
   };
 }
@@ -118,8 +117,8 @@ function createPluginContext(config: Partial<PluginConfig> = {}) {
 
 /**
  * Imports a fresh composable instance per test: `vi.resetModules()` in
- * `beforeEach` clears the module-level model data cache and the global
- * `isTranslating` state, which would otherwise leak between tests.
+ * `beforeEach` clears the global `isTranslating` state, which would otherwise
+ * leak between tests.
  */
 async function createContentTranslator(
   {
@@ -256,6 +255,20 @@ describe("useContentTranslator", () => {
       );
 
       expect(panel.api.patch).not.toHaveBeenCalled();
+    });
+
+    it("imports the default language's current content after it changed elsewhere", async () => {
+      const translator = await createContentTranslator({
+        title: false,
+        slug: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+      await translator.importModelContent("pages/example", SECONDARY_LANGUAGE);
+
+      modelData = { ...modelData, content: { text: "Hello again" } };
+      await translator.importModelContent("pages/example", SECONDARY_LANGUAGE);
+
+      expect(updateContent).toHaveBeenLastCalledWith({ text: "Hello again" });
     });
 
     it("hands the source title to Kirby as the slug when importing from the default language into a secondary language", async () => {
@@ -664,6 +677,29 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
+    });
+
+    it("translates the default language's current content after it changed elsewhere", async () => {
+      const translator = await createContentTranslator({
+        title: false,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
+      // Kirby's `panel.view.reload()` ends the loading state the stub keeps.
+      panel.view.isLoading = false;
+
+      modelData = { ...modelData, content: { text: "Hello again" } };
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
+
+      expect(batchWrite).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          content: { text: "Hello again (translated)" },
+        }),
+      );
     });
 
     it("masks a KirbyTag of a type the context route registers", async () => {

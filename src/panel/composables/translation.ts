@@ -213,24 +213,15 @@ export function useContentTranslator() {
   ) {
     if (!(await hasResolvedBlueprint(path))) return;
 
-    let title: string | undefined;
-    let content: Record<string, unknown>;
-
-    if (sourceLanguage) {
-      const data = await panel.api.get<PanelModelData>(
-        path,
-        { language: sourceLanguage.code },
-        undefined,
-        // Avoid showing Panel loading indicator.
-        true,
-      );
-      title = data.title;
-      content = data.content;
-    } else {
-      const data = await getModelData(path);
-      title = data.title;
-      content = data.content;
-    }
+    const { id, title, content } = sourceLanguage
+      ? await panel.api.get<PanelModelData>(
+          path,
+          { language: sourceLanguage.code },
+          undefined,
+          // Avoid showing Panel loading indicator.
+          true,
+        )
+      : await getModelData(path);
 
     const eligibleContent = filterEligibleContent(content, {
       fields: fields.value!,
@@ -240,8 +231,8 @@ export function useContentTranslator() {
     });
 
     const plan = planImport({
-      isHomePage: await isHomePage(path),
-      isErrorPage: await isErrorPage(path),
+      isHomePage: id === homePageId.value,
+      isErrorPage: id === errorPageId.value,
       isFileModel: isFileModelPath(path),
       isSiteModel: isSiteModelPath(path),
       isUserModel: isUserModelPath(path),
@@ -372,9 +363,10 @@ export function useContentTranslator() {
         return;
       }
 
+      const { id } = await getModelData(path);
       const plan = planSingleTranslation({
-        isHomePage: await isHomePage(path),
-        isErrorPage: await isErrorPage(path),
+        isHomePage: id === homePageId.value,
+        isErrorPage: id === errorPageId.value,
         isFileModel: isFileModelPath(path),
         isSiteModel: isSiteModelPath(path),
         isUserModel: isUserModelPath(path),
@@ -766,10 +758,6 @@ export function useContentTranslator() {
       : (countLabels[0] ?? "");
   }
 
-  /**
-   * Loads the default-language content of every cascaded model afresh: a
-   * cascaded model has no open view whose events could clear a cache.
-   */
   async function getCascadeCandidates(
     hostPath: string,
     defaultLanguageCode: string,
@@ -801,16 +789,6 @@ export function useContentTranslator() {
           DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
       },
     );
-  }
-
-  async function isHomePage(path: string) {
-    const defaultLanguageData = await getModelData(path);
-    return defaultLanguageData.id === homePageId.value;
-  }
-
-  async function isErrorPage(path: string) {
-    const defaultLanguageData = await getModelData(path);
-    return defaultLanguageData.id === errorPageId.value;
   }
 
   /** `currentContent` and `updateContent` read and write the form of whichever view is open. */
