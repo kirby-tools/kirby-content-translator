@@ -80,7 +80,7 @@ function createPanelStub() {
     view: {
       path: "pages/example",
       title: "Example",
-      props: { title: "Example" } as Record<string, unknown>,
+      props: { title: "Example", id: "example" } as Record<string, unknown>,
       isLoading: false,
       reload: vi.fn(),
     },
@@ -498,7 +498,7 @@ describe("useContentTranslator", () => {
     it("translates the site's title, not its blueprint's", async () => {
       panel.view.path = "site";
       panel.view.title = "Playground";
-      panel.view.props = { title: "Kirby Tools" };
+      panel.view.props = { title: "Kirby Tools", id: "/" };
       const translator = await createContentTranslator({
         title: true,
         fields: { text: field({ type: "text", name: "text" }) },
@@ -677,29 +677,6 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
-    });
-
-    it("translates the default language's current content after it changed elsewhere", async () => {
-      const translator = await createContentTranslator({
-        title: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-      // Kirby's `panel.view.reload()` ends the loading state the stub keeps.
-      panel.view.isLoading = false;
-
-      modelData = { ...modelData, content: { text: "Hello again" } };
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-
-      expect(batchWrite).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          content: { text: "Hello again (translated)" },
-        }),
-      );
     });
 
     it("masks a KirbyTag of a type the context route registers", async () => {

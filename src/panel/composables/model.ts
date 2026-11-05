@@ -5,10 +5,10 @@ export function useModel() {
   const panel = usePanel();
   const defaultLanguage = panel.languages.find((language) => language.default);
 
-  function getModelData(path: string) {
+  function getModelData(path: string, languageCode = defaultLanguage?.code) {
     return panel.api.get<PanelModelData>(
       path,
-      { language: defaultLanguage?.code },
+      { language: languageCode },
       undefined,
       // Avoid showing Panel loading indicator.
       true,
