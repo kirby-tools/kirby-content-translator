@@ -498,22 +498,49 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function copy_content_from_default_language_deletes_target_translation(): void
+    public function copy_content_from_the_default_language_writes_only_the_eligible_fields(): void
     {
-        $app = $this->appWithScalarFieldPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $app = self::bootApp([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'text' => ['type' => 'textarea'],
+                        'teaser' => ['type' => 'text'],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'title' => 'About',
+                                'text' => 'Welcome',
+                                'teaser' => 'Teaser',
+                            ]],
+                            ['code' => 'de', 'slug' => 'ueber-uns', 'content' => [
+                                'title' => 'Über uns',
+                                'text' => 'Willkommen',
+                                'teaser' => 'Anreißer',
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+
+        $translator = new Translator($app->page('about'), ['excludeFields' => ['teaser']]);
         $translator->copyContent('de', 'en');
 
-        $this->assertFalse($translator->model()->version()->exists('de'));
-        $this->assertSame(
-            'Welcome to our website',
-            $translator->model()->content('de')->get('text')->value()
-        );
-        $this->assertSame(
-            'Do not translate',
-            $translator->model()->content('de')->get('untranslatableText')->value()
-        );
+        $model = $translator->model();
+        $this->assertSame('ueber-uns', $model->slug('de'));
+        $this->assertSame('Über uns', $model->content('de')->get('title')->value());
+        $this->assertSame('Anreißer', $model->content('de')->get('teaser')->value());
+        $this->assertSame('Welcome', $model->content('de')->get('text')->value());
     }
 
     #[Test]
@@ -531,23 +558,6 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $this->assertSame(
             'Bienvenue sur notre site',
-            $translator->model()->content('de')->get('text')->value()
-        );
-    }
-
-    #[Test]
-    public function translate_content_recreates_target_translation_when_prior_copy_cleared_it(): void
-    {
-        $app = $this->appWithScalarFieldPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
-
-        $translator->copyContent('de', 'en');
-        $this->assertFalse($translator->model()->version()->exists('de'));
-
-        $translator->translateContent('de', 'de', 'en');
-        $this->assertSame(
-            '[de:en]Welcome to our website',
             $translator->model()->content('de')->get('text')->value()
         );
     }
