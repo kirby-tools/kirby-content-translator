@@ -1,9 +1,5 @@
 import type { LicenseStatus } from "@kirby-tools/licensing";
-import type {
-  KirbyFieldProps,
-  PanelLanguageInfo,
-  PanelModelData,
-} from "kirby-types";
+import type { KirbyFieldProps, PanelLanguageInfo } from "kirby-types";
 import type { ModelBatchOutcome } from "../translation/batch";
 import type { BatchCandidate } from "../translation/batch-plan";
 import type { KirbyTagRules, TranslationStrategy } from "../translation/types";
@@ -237,15 +233,10 @@ export function useContentTranslator() {
   ) {
     if (!(await hasResolvedBlueprint(path))) return;
 
-    const { id, title, content } = sourceLanguage
-      ? await panel.api.get<PanelModelData>(
-          path,
-          { language: sourceLanguage.code },
-          undefined,
-          // Avoid showing Panel loading indicator.
-          true,
-        )
-      : await getModelData(path);
+    const { id, title, content } = await getModelData(
+      path,
+      sourceLanguage?.code,
+    );
 
     const eligibleContent = filterEligibleContent(content, {
       fields: fields.value!,
@@ -655,9 +646,7 @@ export function useContentTranslator() {
     const globalConfig = resolveTranslatorConfig(config.value!);
     const models = planBatchRun(
       host,
-      hasCascade.value
-        ? await getCascadeCandidates(hostPath, sourceLanguage.code)
-        : [],
+      hasCascade.value ? await getCascadeCandidates(hostPath) : [],
       {
         selectedLanguages,
         defaultLanguageCode: sourceLanguage.code,
@@ -791,18 +780,12 @@ export function useContentTranslator() {
 
   async function getCascadeCandidates(
     hostPath: string,
-    defaultLanguageCode: string,
   ): Promise<BatchCandidate[]> {
     const cascade = await fetchCascade(hostPath);
 
     return await pAll(
       cascade.map(({ path, title, fields, status }) => async () => {
-        const defaultLanguageData = await panel.api.get<PanelModelData>(
-          path,
-          { language: defaultLanguageCode },
-          undefined,
-          true,
-        );
+        const defaultLanguageData = await getModelData(path);
 
         return {
           path,
