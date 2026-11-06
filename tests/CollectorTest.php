@@ -325,6 +325,46 @@ final class CollectorTest extends TestCase
     }
 
     #[Test]
+    #[RunInSeparateProcess]
+    public function leaves_structure_and_object_yaml_with_a_value_starting_with_an_at_sign_untouched(): void
+    {
+        // Spyc, Kirby's default handler, reads a value starting with `@`.
+        new App(['options' => ['yaml.handler' => 'symfony']]);
+        $content = [
+            'items' => "-\n  label: @One",
+            'meta' => 'title: @Nested',
+            'title' => 'Hello',
+        ];
+        $fields = [
+            'items' => self::field([
+                'type' => 'structure',
+                'fields' => ['label' => self::field(['type' => 'text'])],
+            ]),
+            'meta' => self::field([
+                'type' => 'object',
+                'fields' => ['title' => self::field(['type' => 'text'])],
+            ]),
+            'title' => self::field(['type' => 'text']),
+        ];
+
+        $collector = new Collector($fields, self::defaultConfig());
+        $result = $collector->collect($content);
+
+        $this->assertSame(['Hello'], array_map(fn ($t) => $t->unit->text, $result->translations));
+
+        $result->translations[0]->writeBack->__invoke('Hallo');
+        foreach ($result->finalizers as $finalize) {
+            $finalize();
+        }
+
+        $this->assertSame([
+            'items' => "-\n  label: @One",
+            'meta' => 'title: @Nested',
+            'title' => 'Hallo',
+        ], $content);
+    }
+
+    #[Test]
     public function blocks_json_string_round_trips_through_translation(): void
     {
         $blocks = [
