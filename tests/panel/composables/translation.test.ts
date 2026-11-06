@@ -160,6 +160,28 @@ function staysOnScreen(notification: { type?: string; timeout?: number }) {
   );
 }
 
+function cascadeIntroPage(status: Partial<BatchStatusResponse> = {}) {
+  cascade = [
+    {
+      path: "pages/example+intro",
+      title: "Intro",
+      fields: { text: field({ type: "text", name: "text" }) },
+      status: {
+        isUpdateAllowed: true,
+        isTitleChangeAllowed: true,
+        lockedBy: null,
+        languagesWithUnsavedChanges: [],
+        ...status,
+      },
+    },
+  ];
+  cascadeModelData["pages/example+intro"] = {
+    id: "example/intro",
+    title: "Intro",
+    content: { text: "Welcome" },
+  };
+}
+
 describe("useContentTranslator", () => {
   beforeEach(() => {
     vi.resetModules();
@@ -599,6 +621,32 @@ describe("useContentTranslator", () => {
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
     });
+
+    it("stops before patching, the cascade, and the success notification when Kirby refuses the host save", async () => {
+      const { useTranslationState } =
+        await import("../../../src/panel/composables/translation");
+      const { isTranslating } = useTranslationState();
+      updateContent.mockResolvedValue(false);
+      cascadeIntroPage();
+      const translator = await createContentTranslator({
+        title: true,
+        slug: true,
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.close).toHaveBeenCalled();
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(batchWrite).not.toHaveBeenCalled();
+      expect(isTranslating.value).toBe(false);
+      expect(panel.view.isLoading).toBe(false);
+    });
   });
 
   describe("batch translation", () => {
@@ -938,28 +986,6 @@ describe("useContentTranslator", () => {
   });
 
   describe("cascade", () => {
-    function cascadeIntroPage(status: Partial<BatchStatusResponse> = {}) {
-      cascade = [
-        {
-          path: "pages/example+intro",
-          title: "Intro",
-          fields: { text: field({ type: "text", name: "text" }) },
-          status: {
-            isUpdateAllowed: true,
-            isTitleChangeAllowed: true,
-            lockedBy: null,
-            languagesWithUnsavedChanges: [],
-            ...status,
-          },
-        },
-      ];
-      cascadeModelData["pages/example+intro"] = {
-        id: "example/intro",
-        title: "Intro",
-        content: { text: "Welcome" },
-      };
-    }
-
     it("writes a cascaded model into the selected language under its own path", async () => {
       cascadeIntroPage();
       const translator = await createContentTranslator({

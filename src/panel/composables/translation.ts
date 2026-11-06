@@ -377,7 +377,15 @@ export function useContentTranslator() {
         return;
       }
 
-      await updateContent(contentCopy);
+      // `false`: Kirby opened its lock dialog for a host another user edits, or
+      // a newer save took this one over. Before Kirby 5.6, `updateContent()`
+      // resolves to `undefined` either way.
+      if ((await updateContent(contentCopy)) === false) {
+        isTranslating.value = false;
+        panel.view.isLoading = false;
+        panel.notification.close();
+        return;
+      }
 
       const { id } = await getModelData(path);
       const plan = planSingleTranslation({
