@@ -292,6 +292,23 @@ describe("useContentTranslator", () => {
       );
     });
 
+    it("patches no slug on the home page", async () => {
+      modelData.id = "home";
+      const translator = await createContentTranslator({
+        title: false,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
+
+      expect(panel.api.patch).not.toHaveBeenCalled();
+    });
+
     it("patches the slug in the language the import started in after the editor switches the language", async () => {
       updateContent.mockImplementation(async () => {
         Object.assign(panel.language, THIRD_LANGUAGE);
@@ -580,6 +597,22 @@ describe("useContentTranslator", () => {
         { slug: "Example (translated)" },
         { language: "fr" },
       );
+    });
+
+    it("patches no slug on the home page", async () => {
+      panel.view.props.id = "home";
+      const translator = await createContentTranslator({
+        title: false,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.translateModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+      );
+
+      expect(panel.api.patch).not.toHaveBeenCalled();
     });
 
     it("resets the translating state before reloading and notifies success after the reload", async () => {
