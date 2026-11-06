@@ -411,6 +411,24 @@ describe("useContentTranslator", () => {
       expect(panel.view.isLoading).toBe(false);
       error.mockRestore();
     });
+
+    it("patches no title or slug and shows no success notification when Kirby refuses the save", async () => {
+      updateContent.mockResolvedValue(false);
+      const translator = await createContentTranslator({
+        title: true,
+        slug: true,
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.importModelContent(
+        "pages/example",
+        SECONDARY_LANGUAGE,
+        DEFAULT_LANGUAGE,
+      );
+
+      expect(panel.api.patch).not.toHaveBeenCalled();
+      expect(panel.notification.success).not.toHaveBeenCalled();
+    });
   });
 
   describe("single-language translation", () => {

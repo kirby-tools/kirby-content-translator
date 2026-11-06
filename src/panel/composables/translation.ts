@@ -289,7 +289,9 @@ export function useContentTranslator() {
       return;
     }
 
-    await updateContent(eligibleContent);
+    // Kirby reports a refused save from 5.6 on; before, `updateContent()`
+    // resolves to `undefined` and the import goes on.
+    if ((await updateContent(eligibleContent)) === false) return;
 
     if (plan.shouldPatchTitle) {
       await panel.api.patch(
