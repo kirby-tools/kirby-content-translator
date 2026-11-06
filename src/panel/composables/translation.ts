@@ -346,8 +346,7 @@ export function useContentTranslator() {
         return;
       }
 
-      // `false`: Kirby opened its lock dialog for a host another user edits, or
-      // a newer save took this one over.
+      // `false`: Kirby opened its lock dialog, or a newer save took over.
       if (!(await updateContent(contentCopy))) {
         isTranslating.value = false;
         panel.view.isLoading = false;
