@@ -498,7 +498,7 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function copy_content_from_the_default_language_writes_only_the_eligible_fields(): void
+    public function copy_content_from_the_default_language_writes_the_title_and_only_the_eligible_fields(): void
     {
         $app = self::bootApp([
             'languages' => self::threeLanguages(),
@@ -538,7 +538,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $model = $translator->model();
         $this->assertSame('ueber-uns', $model->slug('de'));
-        $this->assertSame('Über uns', $model->content('de')->get('title')->value());
+        $this->assertSame('About', $model->content('de')->get('title')->value());
         $this->assertSame('Anreißer', $model->content('de')->get('teaser')->value());
         $this->assertSame('Welcome', $model->content('de')->get('text')->value());
     }

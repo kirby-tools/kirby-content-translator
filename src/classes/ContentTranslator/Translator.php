@@ -125,12 +125,19 @@ final class Translator
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
     {
         $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
+            $sourceContent = $this->model->content($fromLanguageCode);
             $content = [];
 
             foreach ($this->fields as $field => $props) {
                 if ($this->config->isEligibleField($field, $props)) {
-                    $content[$field] = $this->model->content($fromLanguageCode)->get($field)->value();
+                    $content[$field] = $sourceContent->get($field)->value();
                 }
+            }
+
+            $title = $sourceContent->get('title')->value();
+
+            if ($this->model::CLASS_ALIAS !== 'file' && $title !== null && $title !== '') {
+                $this->model = $this->model->changeTitle($title, $toLanguageCode);
             }
 
             $this->model = $this->model->update($content, $toLanguageCode);
