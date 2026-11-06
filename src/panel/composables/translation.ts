@@ -280,8 +280,7 @@ export function useContentTranslator() {
       return;
     }
 
-    // Kirby reports a refused save from 5.6 on; before, `updateContent()`
-    // resolves to `undefined` and the import goes on.
+    // Before Kirby 5.6, a refused save resolves to `undefined`.
     if ((await updateContent(eligibleContent)) === false) return;
 
     if (plan.shouldPatchTitle) {
@@ -368,9 +367,8 @@ export function useContentTranslator() {
         return;
       }
 
-      // `false`: Kirby opened its lock dialog for a host another user edits, or
-      // a newer save took this one over. Before Kirby 5.6, `updateContent()`
-      // resolves to `undefined` either way.
+      // `false`: Kirby opened its lock dialog, or a newer save took over. Before
+      // Kirby 5.6, `undefined` either way.
       if ((await updateContent(contentCopy)) === false) {
         isTranslating.value = false;
         panel.view.isLoading = false;

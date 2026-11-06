@@ -328,7 +328,6 @@ final class CollectorTest extends TestCase
     #[RunInSeparateProcess]
     public function leaves_structure_and_object_yaml_with_a_value_starting_with_an_at_sign_untouched(): void
     {
-        // Spyc, Kirby's default handler, reads a value starting with `@`.
         new App(['options' => ['yaml.handler' => 'symfony']]);
         $content = [
             'items' => "-\n  label: @One",

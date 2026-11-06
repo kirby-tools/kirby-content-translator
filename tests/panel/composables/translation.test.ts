@@ -712,7 +712,7 @@ describe("useContentTranslator", () => {
       await translator.batchTranslateModelContent("pages/example", [
         SECONDARY_LANGUAGE,
       ]);
-      // Kirby's `panel.view.reload()` ends the loading state the stub keeps.
+      // Kirby's `panel.view.reload()` would end the loading state.
       panel.view.isLoading = false;
 
       modelData = { ...modelData, content: { text: "Hello again" } };
