@@ -7,11 +7,11 @@ Use the terms from `GLOSSARY.md`.
 ## Commands
 
 ```bash
-composer test          # PHPUnit
-composer csfix         # php-cs-fixer, lives in tools/phpcs/vendor/bin/, not vendor/bin/
-pnpm run test --run    # Vitest
-pnpm run test:types    # vue-tsc
-pnpm run lint          # ESLint
+composer test
+composer csfix         # lives in tools/phpcs/vendor/bin/, not vendor/bin/
+pnpm run test --run
+pnpm run test:types
+pnpm run lint
 ```
 
 ## Conventions
