@@ -12,6 +12,7 @@ composer csfix         # lives in tools/phpcs/vendor/bin/, not vendor/bin/
 pnpm run test --run
 pnpm run test:types
 pnpm run lint
+pnpm run build         # after a change in src/panel/; index.js and index.css are committed
 ```
 
 ## Conventions
