@@ -317,9 +317,17 @@ final class Translator
         );
 
         $translatedResult = self::translateUnits($processedUnits, $strategy, $options);
+        $rejectedIndexes = array_map(static fn (TranslationRejection $rejection): int => $rejection->index, $translatedResult->rejections);
 
         $translatedTexts = [];
         foreach ($translatedResult->texts as $index => $translatedText) {
+            // A rejected unit keeps the text it was collected with, untouched by
+            // either hook, while `translateUnits()` only knows the rewritten text.
+            if (in_array($index, $rejectedIndexes, true)) {
+                $translatedTexts[] = $units[$index]->text;
+                continue;
+            }
+
             $translatedTexts[] = $kirby->apply('content-translator.translate:after', [
                 'text' => $translatedText,
                 'originalText' => $units[$index]->text,

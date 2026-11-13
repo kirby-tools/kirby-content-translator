@@ -207,4 +207,23 @@ final class HooksTest extends ApiRouteTestCase
 
         $this->assertSame(['originalText' => 'Hello', 'unitText' => 'Hello!'], $captured);
     }
+
+    #[Test]
+    public function a_rejected_unit_keeps_its_source_text_after_the_hooks_rewrote_it(): void
+    {
+        self::bootApp([
+            'hooks' => [
+                'content-translator.translate:before' => fn ($text) => $text . '!',
+                'content-translator.translate:after' => fn ($text) => strtoupper($text),
+            ],
+            // A blank answer is rejected as an `empty translation`.
+            'options' => [
+                'johannschopplich.content-translator' => [
+                    'strategy' => static fn (string $text): string => ' ',
+                ],
+            ],
+        ]);
+
+        $this->assertSame(['Hello'], Translator::translateTexts(['Hello'], 'de'));
+    }
 }
