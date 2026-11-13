@@ -1,10 +1,5 @@
 {
   "apiVersion": 2,
-  "methods": [
-    "resolvePluginContext",
-    "streamText",
-    "resolveLanguageModel",
-    "loadAISDK"
-  ],
+  "methods": ["resolvePluginContext", "streamText", "resolveLanguageModel"],
   "streamTextResult": ["output"]
 }
