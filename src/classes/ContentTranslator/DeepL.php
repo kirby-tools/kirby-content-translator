@@ -344,8 +344,8 @@ final class DeepL
             if ($attempt >= self::MAX_RETRIES) {
                 $textPlural = $batchSize === 1 ? 'text' : 'texts';
                 throw new LogicException(
-                    "DeepL API error {$statusCode}. Maximum retry attempts reached after " . self::MAX_RETRIES .
-                    " attempts (batch size: {$batchSize} {$textPlural})."
+                    "DeepL API error {$statusCode}, still failing after " . self::MAX_RETRIES .
+                    " retries (batch size: {$batchSize} {$textPlural})."
                 );
             }
 

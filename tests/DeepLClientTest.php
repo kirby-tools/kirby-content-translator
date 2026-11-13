@@ -561,7 +561,7 @@ final class DeepLClientTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function throws_with_attempt_count_after_exhausting_max_retries(): void
+    public function throws_with_the_retry_count_after_exhausting_max_retries(): void
     {
         $this->appWithDeepLConfig();
 
@@ -572,9 +572,7 @@ final class DeepLClientTest extends ApiRouteTestCase
             $deepL->translateMany(['Hello'], 'de');
             $this->fail('Expected LogicException');
         } catch (LogicException $e) {
-            $this->assertStringContainsString('Maximum retry attempts reached', $e->getMessage());
-            $this->assertStringContainsString('5 attempts', $e->getMessage());
-            $this->assertStringContainsString('batch size: 1', $e->getMessage());
+            $this->assertSame('DeepL API error 429, still failing after 5 retries (batch size: 1 text).', $e->getMessage());
             $this->assertSame(6, $callCount);
         }
     }
