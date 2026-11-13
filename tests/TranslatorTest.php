@@ -11,10 +11,12 @@ use Kirby\Cms\App;
 use Kirby\Content\LockedContentException;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;
+use Kirby\Exception\LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
@@ -377,6 +379,36 @@ final class TranslatorTest extends ApiRouteTestCase
                                 'object' => $object,
                                 'layout' => $layout,
                             ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
+    /**
+     * @param 'blocks'|'layout' $fieldType
+     */
+    private function appWithBodyPage(string $fieldType): App
+    {
+        return self::bootApp([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'body' => ['type' => $fieldType, 'translate' => true],
+                        'teaser' => ['type' => 'text', 'translate' => true],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['body' => 'Hello world', 'teaser' => 'Teaser']],
                         ],
                     ],
                 ],
@@ -1000,6 +1032,25 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $layout = Json::decode($content->get('layout')->value());
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
+    }
+
+    #[Test]
+    #[TestWith(['blocks'])]
+    #[TestWith(['layout'])]
+    public function translate_content_throws_LogicException_for_a_field_that_holds_no_json(string $fieldType): void
+    {
+        $app = $this->appWithBodyPage($fieldType);
+        $strategy = self::recordingStrategy();
+
+        try {
+            (new Translator($app->page('home')))->translateContent('en', 'de', null, $strategy);
+            $this->fail('Expected a LogicException');
+        } catch (LogicException $exception) {
+            $this->assertSame('The ' . $fieldType . ' field "body" holds no JSON', $exception->getMessage());
+        }
+
+        $this->assertSame([], $strategy->calls);
+        $this->assertSame('Hello world', $app->page('home')->content('en')->get('body')->value());
     }
 
     #[Test]

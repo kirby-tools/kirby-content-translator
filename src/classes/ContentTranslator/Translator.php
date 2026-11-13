@@ -151,6 +151,7 @@ final class Translator
     /**
      * @throws TranslationException When the strategy translates no unit at all, including when the provider rejects the request
      * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
+     * @throws LogicException When a blocks or layout field holds no JSON
      * @throws AuthException When the DeepL API key is missing
      * @throws InvalidArgumentException When a language code is not registered in the site's languages
      * @throws LockedContentException When another user edits the model in any language

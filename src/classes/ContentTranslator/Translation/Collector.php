@@ -8,6 +8,7 @@ use Closure;
 use JohannSchopplich\ContentTranslator\KirbyText;
 use JohannSchopplich\ContentTranslator\TranslatorConfig;
 use Kirby\Data\Data;
+use Kirby\Exception\LogicException;
 use Kirby\Toolkit\A;
 use Kirby\Toolkit\Str;
 use Throwable;
@@ -278,7 +279,7 @@ final class Collector
         if ($fieldType === 'blocks') {
             $shouldReencode = is_string($value);
             if ($shouldReencode) {
-                $node[$fieldName] = Data::decode($value, 'json');
+                $node[$fieldName] = self::decodeJson($value, $fieldType, $fieldKey);
             }
             if (!is_array($node[$fieldName])) {
                 return;
@@ -309,7 +310,7 @@ final class Collector
         if ($fieldType === 'layout') {
             $shouldReencode = is_string($value);
             if ($shouldReencode) {
-                $node[$fieldName] = Data::decode($value, 'json');
+                $node[$fieldName] = self::decodeJson($value, $fieldType, $fieldKey);
             }
             if (!is_array($node[$fieldName])) {
                 return;
@@ -349,6 +350,15 @@ final class Collector
             return Data::decode($value, 'yaml');
         } catch (Throwable) {
             return null;
+        }
+    }
+
+    private static function decodeJson(string $value, string $fieldType, string $fieldKey): array
+    {
+        try {
+            return Data::decode($value, 'json');
+        } catch (Throwable $exception) {
+            throw new LogicException('The ' . $fieldType . ' field "' . $fieldKey . '" holds no JSON', previous: $exception);
         }
     }
 
