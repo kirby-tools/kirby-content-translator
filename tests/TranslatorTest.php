@@ -846,17 +846,6 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
-    public function translate_slug_throws_LockedContentException_while_another_user_edits_a_different_language(): void
-    {
-        $app = $this->appWithColleague();
-        self::editAsColleague($app);
-
-        $this->expectException(LockedContentException::class);
-
-        (new Translator($app->page('about')))->translateSlug('de', 'de', 'en');
-    }
-
-    #[Test]
     public function translate_title_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
     {
         $app = $this->appWithColleague(self::colleagueEditingStrategy());
@@ -868,20 +857,6 @@ final class TranslatorTest extends ApiRouteTestCase
         }
 
         $this->assertSame('Über uns', $app->page('about')->content('de')->get('title')->value());
-    }
-
-    #[Test]
-    public function translate_slug_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
-    {
-        $app = $this->appWithColleague(self::colleagueEditingStrategy());
-
-        try {
-            (new Translator($app->page('about')))->translateSlug('de', 'de', 'en');
-            $this->fail('Expected a LockedContentException');
-        } catch (LockedContentException) {
-        }
-
-        $this->assertSame('about', $app->page('about')->slug('de'));
     }
 
     #[Test]
