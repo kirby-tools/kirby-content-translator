@@ -6,7 +6,6 @@ import type {
 } from "../types";
 import * as z from "zod/mini";
 import { resolveCopilot } from "../../utils/copilot";
-import { REQUIRED_COPILOT_API_VERSION } from "../../utils/copilot-contract";
 
 export interface AIStrategyOptions {
   systemPrompt?: string;
@@ -35,14 +34,6 @@ export class AIStrategy implements TranslationStrategy {
     const copilot = resolveCopilot();
     if (!copilot) {
       throw new Error("Kirby Copilot plugin is required for AI translations");
-    }
-
-    // Composer conflict rules cannot guard manual plugin installs,
-    // so the seam version is checked at runtime as well.
-    if ((copilot.apiVersion ?? 1) < REQUIRED_COPILOT_API_VERSION) {
-      throw new Error(
-        "The installed Kirby Copilot version does not support AI translations anymore – please update the Kirby Copilot plugin.",
-      );
     }
 
     const { streamText } = copilot;

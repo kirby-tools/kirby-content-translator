@@ -6,7 +6,6 @@ const mockStreamText = vi.fn();
 
 vi.mock("../../../src/panel/utils/copilot", () => ({
   resolveCopilot: vi.fn(() => ({
-    apiVersion: 2,
     streamText: mockStreamText,
   })),
 }));
@@ -200,20 +199,6 @@ describe("AIStrategy", () => {
       await expect(strategy.execute(units, defaultOptions)).rejects.toThrow(
         "Kirby Copilot plugin is required",
       );
-    });
-
-    it("throws when the installed Copilot predates the versioned seam", async () => {
-      const { resolveCopilot } =
-        await import("../../../src/panel/utils/copilot");
-      vi.mocked(resolveCopilot).mockReturnValueOnce({
-        streamText: mockStreamText,
-      } as never);
-
-      const strategy = new AIStrategy();
-
-      await expect(
-        strategy.execute([{ text: "Test", fieldKey: "title" }], defaultOptions),
-      ).rejects.toThrow("update the Kirby Copilot plugin");
     });
   });
 });
