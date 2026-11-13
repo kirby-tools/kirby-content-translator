@@ -623,6 +623,40 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
+    public function translate_title_leaves_a_file_with_a_title_field_untouched(): void
+    {
+        $translatedTexts = [];
+        $app = self::bootApp([
+            'languages' => self::threeLanguages(),
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'files' => [
+                            [
+                                'filename' => 'cover.jpg',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['title' => 'Cover image']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(function (string $text) use (&$translatedTexts): string {
+                $translatedTexts[] = $text;
+                return "[de]$text";
+            }),
+        ]);
+
+        $translator = new Translator($app->file('about/cover.jpg'));
+        $translator->translateTitle('en', 'de');
+
+        $this->assertSame([], $translatedTexts);
+        $this->assertSame('Cover image', $translator->model()->content('en')->get('title')->value());
+    }
+
+    #[Test]
     public function translate_slug_keeps_the_target_slug_when_the_translation_is_rejected(): void
     {
         $slugChanges = [];

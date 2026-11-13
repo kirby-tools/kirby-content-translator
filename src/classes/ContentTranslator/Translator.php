@@ -187,6 +187,10 @@ final class Translator
 
     public function translateTitle(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
+        if ($this->model::CLASS_ALIAS === 'file') {
+            return;
+        }
+
         $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
             $originalTitle = $this->model->content($contentLanguageCode)->get('title')->value();
 
