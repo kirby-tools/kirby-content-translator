@@ -36,7 +36,7 @@ composer require johannschopplich/kirby-content-translator
 
 ### Manual Installation
 
-Download and copy this repository to `/site/plugins/kirby-content-translator`.
+Download a [release](https://github.com/kirby-tools/kirby-content-translator/releases) and extract it to `/site/plugins/kirby-content-translator`.
 
 ## Upgrading from Content Translator 3
 
@@ -53,6 +53,8 @@ fields:
   contentTranslator:
     type: content-translator
 ```
+
+The [migration guide](https://kirby.tools/docs/content-translator/getting-started/migration) lists the other breaking changes, among them the removed `translateFn` option, which now throws.
 
 ## Documentation
 
