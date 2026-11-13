@@ -194,7 +194,7 @@ final class TranslationCoverage
                 foreach ($languages as $langCode => &$lang) {
                     $translatableFieldCount = $translatableFieldCounts[$langCode] ?? 0;
                     $lang['percentage'] = $translatableFieldCount > 0
-                        ? (int)round(($translatedFieldCounts[$langCode] ?? 0) / $translatableFieldCount * 100)
+                        ? intdiv(($translatedFieldCounts[$langCode] ?? 0) * 100, $translatableFieldCount)
                         : 100;
                 }
 
