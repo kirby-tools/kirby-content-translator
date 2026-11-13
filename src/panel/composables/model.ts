@@ -9,9 +9,7 @@ export function useModel() {
     return panel.api.get<PanelModelData>(
       path,
       { language: languageCode },
-      undefined,
-      // Avoid showing Panel loading indicator.
-      true,
+      { silent: true },
     );
   }
 

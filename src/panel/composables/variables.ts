@@ -367,13 +367,9 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
   }
 
   function fetchVariables() {
-    return panel.api.get<VariablesResponse>(
-      VARIABLES_API_ROUTE,
-      undefined,
-      undefined,
-      // Avoid showing Panel loading indicator.
-      true,
-    );
+    return panel.api.get<VariablesResponse>(VARIABLES_API_ROUTE, undefined, {
+      silent: true,
+    });
   }
 
   return {

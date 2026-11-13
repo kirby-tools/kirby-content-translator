@@ -134,7 +134,7 @@ export function useContentTranslator() {
     const { template, blueprint } = await panel.api.get<{
       template?: string | null;
       blueprint: { name: string };
-    }>(path, { select: "template,blueprint" }, undefined, true);
+    }>(path, { select: "template,blueprint" }, { silent: true });
     const isBlueprintMissing =
       Boolean(template) &&
       template !== "default" &&
@@ -675,8 +675,7 @@ export function useContentTranslator() {
     return panel.api.get<BatchStatusResponse>(
       BATCH_STATUS_API_ROUTE,
       { path },
-      undefined,
-      true,
+      { silent: true },
     );
   }
 
@@ -684,8 +683,7 @@ export function useContentTranslator() {
     return panel.api.get<CascadeModelResponse[]>(
       CASCADE_API_ROUTE,
       { path },
-      undefined,
-      true,
+      { silent: true },
     );
   }
 

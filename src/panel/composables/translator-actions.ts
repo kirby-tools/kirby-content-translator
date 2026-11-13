@@ -74,9 +74,7 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
     fields.value = await panel.api.get<Record<string, KirbyFieldProps>>(
       MODEL_FIELDS_API_ROUTE,
       { id: id ?? "site" },
-      undefined,
-      // Avoid showing Panel loading indicator.
-      true,
+      { silent: true },
     );
   }
 
