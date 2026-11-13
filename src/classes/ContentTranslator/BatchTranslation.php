@@ -72,8 +72,9 @@ final class BatchTranslation
             throw new InvalidArgumentException('The batch never writes the default language');
         }
 
-        // Kirby's own save refuses every language while another user edits
-        // any one of them, and writing the latest version skips that check.
+        // Kirby refuses a write to the changes version in every language while
+        // another user edits any one of them, but writing the latest version
+        // never meets a lock.
         if (($lockedBy = self::lockingUsername($model)) !== null) {
             return ['status' => 'locked', 'lockedBy' => $lockedBy];
         }

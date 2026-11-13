@@ -24,6 +24,7 @@ use Kirby\Cms\App;
 use Kirby\Cms\File;
 use Kirby\Cms\Page;
 use Kirby\Cms\Site;
+use Kirby\Content\LockedContentException;
 use Kirby\Exception\AuthException;
 use Kirby\Exception\InvalidArgumentException;
 use Kirby\Exception\LogicException;
@@ -122,9 +123,12 @@ final class Translator
         return is_string($source) ? $source : 'custom';
     }
 
+    /**
+     * @throws LockedContentException When another user edits the model in any language
+     */
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
     {
-        $this->kirby->impersonate('kirby', function () use ($toLanguageCode, $fromLanguageCode) {
+        $this->writeUnlocked(function () use ($toLanguageCode, $fromLanguageCode) {
             $sourceContent = $this->model->content($fromLanguageCode);
             $content = [];
 
@@ -149,10 +153,13 @@ final class Translator
      * @throws LogicException When the configured strategy cannot be resolved: an unknown `strategy` value, or `'ai'` without the kirby-copilot plugin
      * @throws AuthException When the DeepL API key is missing
      * @throws InvalidArgumentException When a language code is not registered in the site's languages
+     * @throws LockedContentException When another user edits the model in any language
      */
     public function translateContent(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null, Strategy|null $strategy = null): ContentTranslationResult
     {
-        return $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
+        $this->ensureUnlocked();
+
+        [$content, $contentResult] = $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode, $strategy) {
             $content = $this->model->content($contentLanguageCode)->toArray();
             $result = (new Collector($this->fields, $this->config))->collect($content);
             $contentResult = new ContentTranslationResult(0, 0, []);
@@ -179,19 +186,28 @@ final class Translator
                 }
             }
 
-            $this->model = $this->model->update($content, $contentLanguageCode);
-
-            return $contentResult;
+            return [$content, $contentResult];
         });
+
+        $this->writeUnlocked(function () use ($content, $contentLanguageCode) {
+            $this->model = $this->model->update($content, $contentLanguageCode);
+        });
+
+        return $contentResult;
     }
 
+    /**
+     * @throws LockedContentException When another user edits the model in any language
+     */
     public function translateTitle(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
         if ($this->model::CLASS_ALIAS === 'file') {
             return;
         }
 
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
+        $this->ensureUnlocked();
+
+        $translatedTitle = $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode): string|null {
             $originalTitle = $this->model->content($contentLanguageCode)->get('title')->value();
 
             if (
@@ -203,41 +219,78 @@ final class Translator
                 $originalTitle = $this->model->content($fromLanguageCode)->get('title')->value();
             }
 
-            if ($originalTitle !== null && $originalTitle !== '') {
-                $result = self::translateBatch(
-                    texts: [$originalTitle],
-                    targetLanguage: $toLanguageCode,
-                    sourceLanguage: $fromLanguageCode,
-                );
-
-                // A rejected answer hands back the source title, and writing
-                // that would overwrite the target title with the wrong language.
-                if ($result->rejections === []) {
-                    $this->model = $this->model->changeTitle($result->texts[0], $contentLanguageCode);
-                }
+            if ($originalTitle === null || $originalTitle === '') {
+                return null;
             }
+
+            $result = self::translateBatch(
+                texts: [$originalTitle],
+                targetLanguage: $toLanguageCode,
+                sourceLanguage: $fromLanguageCode,
+            );
+
+            // A rejected answer hands back the source title, and writing
+            // that would overwrite the target title with the wrong language.
+            return $result->rejections === [] ? $result->texts[0] : null;
         });
+
+        if ($translatedTitle !== null) {
+            $this->writeUnlocked(function () use ($translatedTitle, $contentLanguageCode) {
+                $this->model = $this->model->changeTitle($translatedTitle, $contentLanguageCode);
+            });
+        }
     }
 
+    /**
+     * @throws LockedContentException When another user edits the model in any language
+     */
     public function translateSlug(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
         if ($this->model::CLASS_ALIAS !== 'page' || $this->model->isHomePage() || $this->model->isErrorPage()) {
             return;
         }
 
-        $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode) {
-            $originalSlug = $this->model->slug($contentLanguageCode);
+        $this->ensureUnlocked();
 
+        $translatedSlug = $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode): string|null {
             $result = self::translateBatch(
-                texts: [$originalSlug],
+                texts: [$this->model->slug($contentLanguageCode)],
                 targetLanguage: $toLanguageCode,
                 sourceLanguage: $fromLanguageCode,
             );
 
-            if ($result->rejections === []) {
-                $this->model = $this->model->changeSlug($result->texts[0], $contentLanguageCode);
-            }
+            return $result->rejections === [] ? $result->texts[0] : null;
         });
+
+        if ($translatedSlug !== null) {
+            $this->writeUnlocked(function () use ($translatedSlug, $contentLanguageCode) {
+                $this->model = $this->model->changeSlug($translatedSlug, $contentLanguageCode);
+            });
+        }
+    }
+
+    /**
+     * `update()` writes the latest version, which never carries a lock, so
+     * Kirby's own check cannot refuse it. Runs as the current user: under
+     * `kirby`, their own changes would count as another user's lock.
+     */
+    private function ensureUnlocked(): void
+    {
+        $lock = $this->model->lock();
+
+        if ($lock->isLocked()) {
+            throw new LockedContentException(lock: $lock, key: 'content.lock.update');
+        }
+    }
+
+    /**
+     * Checks the lock right before writing as the `kirby` user, so a user who
+     * opened the model while the strategy ran is not overwritten.
+     */
+    private function writeUnlocked(Closure $write): void
+    {
+        $this->ensureUnlocked();
+        $this->kirby->impersonate('kirby', $write);
     }
 
     /**

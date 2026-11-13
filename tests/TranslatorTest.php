@@ -8,6 +8,7 @@ use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
+use Kirby\Content\LockedContentException;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -121,6 +122,67 @@ final class TranslatorTest extends ApiRouteTestCase
             ],
             'options' => self::pluginOptions(),
         ]);
+    }
+
+    private function appWithColleague(\Closure|null $strategy = null): App
+    {
+        return self::bootApp([
+            'languages' => self::threeLanguages(),
+            'users' => [
+                ['id' => 'colleague', 'email' => 'colleague@example.com', 'role' => 'admin'],
+            ],
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => ['text' => ['type' => 'textarea']],
+                ],
+                'files/default' => [
+                    'fields' => ['alt' => ['type' => 'text']],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'template' => 'default',
+                        'files' => [
+                            [
+                                'filename' => 'cover.jpg',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['alt' => 'Picture']],
+                                    ['code' => 'de', 'content' => ['alt' => 'Bild']],
+                                ],
+                            ],
+                        ],
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['title' => 'About', 'text' => 'Welcome']],
+                            ['code' => 'de', 'content' => ['title' => 'Über uns', 'text' => 'Willkommen']],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions($strategy),
+        ]);
+    }
+
+    private static function colleagueEditingStrategy(): \Closure
+    {
+        return static function (string $text): string {
+            $app = App::instance();
+            $app->impersonate('colleague', fn () => $app->page('about')->version('changes')->save(['text' => 'Brouillon'], 'fr'));
+
+            return "[de]$text";
+        };
+    }
+
+    /**
+     * French is a language none of the lock tests writes.
+     */
+    private static function editAsColleague(App $app): void
+    {
+        $app->impersonate('colleague', function () use ($app) {
+            $app->page('about')->version('changes')->save(['text' => 'Brouillon'], 'fr');
+            $app->file('about/cover.jpg')->version('changes')->save(['alt' => 'Image'], 'fr');
+        });
     }
 
     private function appWithStrategy(): App
@@ -563,6 +625,90 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
+    public function translate_content_throws_LockedContentException_while_another_user_edits_the_page(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+        $strategy = self::recordingStrategy();
+
+        try {
+            (new Translator($app->page('about')))->translateContent('de', 'de', 'en', $strategy);
+            $this->fail('Expected a LockedContentException');
+        } catch (LockedContentException) {
+        }
+
+        $this->assertSame([], $strategy->calls);
+        $this->assertSame('Willkommen', $app->page('about')->content('de')->get('text')->value());
+    }
+
+    #[Test]
+    public function translate_content_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
+    {
+        $app = $this->appWithColleague();
+        $strategy = new class ($app) implements Strategy {
+            public function __construct(private App $app)
+            {
+            }
+
+            public function execute(array $units, ExecutionOptions $options): array
+            {
+                $this->app->impersonate('colleague', fn () => $this->app->page('about')->version('changes')->save(['text' => 'Brouillon'], 'fr'));
+
+                return array_map(static fn (TranslationUnit $unit): string => '[de]' . $unit->text, $units);
+            }
+        };
+
+        try {
+            (new Translator($app->page('about')))->translateContent('de', 'de', 'en', $strategy);
+            $this->fail('Expected a LockedContentException');
+        } catch (LockedContentException) {
+        }
+
+        $this->assertSame('Willkommen', $app->page('about')->content('de')->get('text')->value());
+    }
+
+    #[Test]
+    public function translate_content_writes_while_the_current_user_has_unsaved_changes(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+        $app->impersonate('colleague');
+
+        $translator = new Translator($app->page('about'));
+        $translator->translateContent('de', 'de', 'en');
+
+        $this->assertSame('[de:en]Willkommen', $translator->model()->content('de')->get('text')->value());
+    }
+
+    #[Test]
+    public function copy_content_writes_while_the_current_user_has_unsaved_changes(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+        $app->impersonate('colleague');
+
+        $translator = new Translator($app->page('about'));
+        $translator->copyContent('de', 'en');
+
+        $this->assertSame('Welcome', $translator->model()->content('de')->get('text')->value());
+    }
+
+    #[Test]
+    public function copy_content_of_a_file_throws_LockedContentException_while_another_user_edits_it(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+
+        try {
+            (new Translator($app->file('about/cover.jpg')))->copyContent('de', 'en');
+            $this->fail('Expected a LockedContentException');
+        } catch (LockedContentException) {
+        }
+
+        $this->assertSame('Bild', $app->file('about/cover.jpg')->content('de')->get('alt')->value());
+    }
+
+    #[Test]
     #[DataProvider('sourceLanguageVariants')]
     public function translate_content_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
@@ -654,6 +800,56 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $this->assertSame([], $translatedTexts);
         $this->assertSame('Cover image', $translator->model()->content('en')->get('title')->value());
+    }
+
+    #[Test]
+    public function translate_title_throws_LockedContentException_while_another_user_edits_a_different_language(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+
+        $this->expectException(LockedContentException::class);
+
+        (new Translator($app->page('about')))->translateTitle('de', 'de', 'en');
+    }
+
+    #[Test]
+    public function translate_slug_throws_LockedContentException_while_another_user_edits_a_different_language(): void
+    {
+        $app = $this->appWithColleague();
+        self::editAsColleague($app);
+
+        $this->expectException(LockedContentException::class);
+
+        (new Translator($app->page('about')))->translateSlug('de', 'de', 'en');
+    }
+
+    #[Test]
+    public function translate_title_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
+    {
+        $app = $this->appWithColleague(self::colleagueEditingStrategy());
+
+        try {
+            (new Translator($app->page('about')))->translateTitle('de', 'de', 'en');
+            $this->fail('Expected a LockedContentException');
+        } catch (LockedContentException) {
+        }
+
+        $this->assertSame('Über uns', $app->page('about')->content('de')->get('title')->value());
+    }
+
+    #[Test]
+    public function translate_slug_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
+    {
+        $app = $this->appWithColleague(self::colleagueEditingStrategy());
+
+        try {
+            (new Translator($app->page('about')))->translateSlug('de', 'de', 'en');
+            $this->fail('Expected a LockedContentException');
+        } catch (LockedContentException) {
+        }
+
+        $this->assertSame('about', $app->page('about')->slug('de'));
     }
 
     #[Test]
