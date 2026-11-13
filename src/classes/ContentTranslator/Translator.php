@@ -115,7 +115,7 @@ final class Translator
      *
      * @return 'ai'|'custom'|'deepl'
      *
-     * @throws LogicException When the `strategy` option names an unknown strategy
+     * @throws LogicException When the `strategy` option holds an unknown strategy
      */
     public static function resolveStrategyName(): string
     {
@@ -485,7 +485,7 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException When the `strategy` option names an unknown strategy, or the removed `translateFn` option is set
+     * @throws LogicException When the `strategy` option holds an unknown strategy, or the removed `translateFn` option is set
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {
@@ -506,6 +506,10 @@ final class Translator
                 'deepl', 'ai' => $strategyOption,
                 default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
             };
+        }
+
+        if ($strategyOption !== null) {
+            throw new LogicException('Unknown strategy of type ' . get_debug_type($strategyOption) . ', pass "deepl", "ai", a Closure or a Strategy');
         }
 
         return 'deepl';

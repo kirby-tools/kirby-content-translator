@@ -122,6 +122,21 @@ final class StrategyResolutionTest extends ApiRouteTestCase
     }
 
     #[Test]
+    public function callable_array_strategy_throws_logic_exception(): void
+    {
+        self::bootApp([
+            'options' => [
+                'johannschopplich.content-translator' => ['strategy' => ['Kirby\Toolkit\Str', 'upper']],
+            ],
+        ]);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('Unknown strategy of type array, pass "deepl", "ai", a Closure or a Strategy');
+
+        Translator::translateText('hi', 'de');
+    }
+
+    #[Test]
     public function resolved_strategy_name_defaults_to_deepl(): void
     {
         self::bootApp();
