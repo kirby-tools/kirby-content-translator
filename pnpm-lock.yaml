@@ -171,7 +171,7 @@ importers:
         version: 9.5.1(@typescript-eslint/typescript-estree@8.71.2(typescript@6.0.3))(@typescript-eslint/utils@8.71.2(eslint@10.13.0(jiti@2.7.0))(typescript@6.0.3))(@unocss/eslint-plugin@66.11.0(eslint@10.13.0(jiti@2.7.0))(typescript@6.0.3))(@vue/compiler-sfc@3.5.44)(eslint@10.13.0(jiti@2.7.0))(typescript@6.0.3)(vitest@5.0.5(@types/node@26.6.5)(happy-dom@21.0.4)(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(sass@1.105.2)(yaml@2.9.1)))
       '@kirby-tools/licensing':
         specifier: ^1.1.0
-        version: 1.1.0(kirbyuse@2.0.0-beta.5(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
+        version: 1.1.0(kirbyuse@2.0.0-beta.6(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))
       '@types/node':
         specifier: ^26.6.5
         version: 26.6.5
@@ -203,14 +203,14 @@ importers:
         specifier: ^2.7.0
         version: 2.7.0
       kirby-types:
-        specifier: ^2.0.0-beta.5
-        version: 2.0.0-beta.5(vue@3.5.44(typescript@6.0.3))
+        specifier: ^2.0.0-beta.7
+        version: 2.0.0-beta.7(vue@3.5.44(typescript@6.0.3))
       kirbyup:
-        specifier: ^4.0.0-beta.1
-        version: 4.0.0-beta.1(@types/node@26.6.5)(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.1)
+        specifier: ^4.0.0-beta.2
+        version: 4.0.0-beta.2(@types/node@26.6.5)(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.1)
       kirbyuse:
-        specifier: ^2.0.0-beta.5
-        version: 2.0.0-beta.5(vue@3.5.44(typescript@6.0.3))
+        specifier: ^2.0.0-beta.6
+        version: 2.0.0-beta.6(vue@3.5.44(typescript@6.0.3))
       mprocs:
         specifier: ^0.9.6
         version: 0.9.6
@@ -2165,8 +2165,8 @@ packages:
   keyv@5.6.0:
     resolution: {integrity: sha512-CYDD3SOtsHtyXeEORYRx2qBtpDJFjRTGXUtmNEMGyzYOKj1TE3tycdlho7kA1Ufx9OYWZzg52QFBGALTirzDSw==}
 
-  kirby-types@2.0.0-beta.5:
-    resolution: {integrity: sha512-sDWozhQIZVRzfbctgdfWF/Bri6XDaTbthqYyppaHn6w8GpJiP4dVtHCHoFP9AZ6BIYDTVjPpBy6TQtXLWz06wQ==}
+  kirby-types@2.0.0-beta.7:
+    resolution: {integrity: sha512-b9W+gfHuDDb7Dzq48o+WjHp71l0mDaYwYb/zPDSIyPzlsyzlSZiqnVmahoRchx087Mc1DG1LH0clpPUaxhBhMg==}
     peerDependencies:
       dayjs: ^1.11.13
       prosemirror-commands: ^1.7.1
@@ -2194,13 +2194,13 @@ packages:
       vue:
         optional: true
 
-  kirbyup@4.0.0-beta.1:
-    resolution: {integrity: sha512-Rd0EyZaLeV43h5IP4vCKxjYzo/gC/AQ02QuvHrh17F2fuKpifIsfvbAAY6hqUjmcpzDvkx3LWP7Y6h5M6LyOqg==}
+  kirbyup@4.0.0-beta.2:
+    resolution: {integrity: sha512-g94dCXomkiZtcAz45AMpIezGmkIlRQEX68y3OY1p21IVgY2j1mTFUpF0q/svKvqrwC6cgd4m4sM6hitGMhCx+Q==}
     engines: {node: '>=24'}
     hasBin: true
 
-  kirbyuse@2.0.0-beta.5:
-    resolution: {integrity: sha512-zzEGQBONu/p5SoNrFxjrmqXNEKpUcDwjOWnLNzIF5y+y0XQMvQKbrP9yzc/yMIGpOcdd4qfMbuC6nWHZgfb6Ew==}
+  kirbyuse@2.0.0-beta.6:
+    resolution: {integrity: sha512-DUAfvIVIl6RvleUwGS6kvQmss57iq19GBxyaVv3kvG+WhmyqtMDjkQaJE7vw6uE0vDPPRMGJMbR0k3RcdAbW3A==}
     peerDependencies:
       dayjs: ^1.0.0
       prosemirror-commands: ^1.7.1
@@ -3525,9 +3525,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@kirby-tools/licensing@1.1.0(kirbyuse@2.0.0-beta.5(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))':
+  '@kirby-tools/licensing@1.1.0(kirbyuse@2.0.0-beta.6(vue@3.5.44(typescript@6.0.3)))(vue@3.5.44(typescript@6.0.3))':
     dependencies:
-      kirbyuse: 2.0.0-beta.5(vue@3.5.44(typescript@6.0.3))
+      kirbyuse: 2.0.0-beta.6(vue@3.5.44(typescript@6.0.3))
       vue: 3.5.44(typescript@6.0.3)
 
   '@napi-rs/lzma-linux-x64-gnu@1.5.1':
@@ -5011,11 +5011,11 @@ snapshots:
     dependencies:
       '@keyv/serialize': 1.1.1
 
-  kirby-types@2.0.0-beta.5(vue@3.5.44(typescript@6.0.3)):
+  kirby-types@2.0.0-beta.7(vue@3.5.44(typescript@6.0.3)):
     optionalDependencies:
       vue: 3.5.44(typescript@6.0.3)
 
-  kirbyup@4.0.0-beta.1(@types/node@26.6.5)(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.1):
+  kirbyup@4.0.0-beta.2(@types/node@26.6.5)(dotenv@17.4.2)(giget@3.3.1)(jiti@2.7.0)(typescript@6.0.3)(yaml@2.9.1):
     dependencies:
       '@vitejs/plugin-vue': 6.0.10(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(sass@1.105.2)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
       '@vitejs/plugin-vue-jsx': 5.1.6(vite@8.3.5(@types/node@26.6.5)(jiti@2.7.0)(sass@1.105.2)(yaml@2.9.1))(vue@3.5.44(typescript@6.0.3))
@@ -5046,9 +5046,9 @@ snapshots:
       - typescript
       - yaml
 
-  kirbyuse@2.0.0-beta.5(vue@3.5.44(typescript@6.0.3)):
+  kirbyuse@2.0.0-beta.6(vue@3.5.44(typescript@6.0.3)):
     dependencies:
-      kirby-types: 2.0.0-beta.5(vue@3.5.44(typescript@6.0.3))
+      kirby-types: 2.0.0-beta.7(vue@3.5.44(typescript@6.0.3))
       vue: 3.5.44(typescript@6.0.3)
 
   levn@0.4.1:
