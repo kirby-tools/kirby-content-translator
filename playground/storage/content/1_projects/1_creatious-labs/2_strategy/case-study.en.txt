@@ -6,11 +6,11 @@ Subheading: One product instead of a range
 
 ----
 
-Phase: Strategy
+Text: <p>Creatious Labs had planned three models. We recommended one, sold in class sets of twelve, with a repair kit in every box.</p><p>A single model keeps the price low enough for a public school budget.</p>
 
 ----
 
-Text: <p>Creatious Labs had planned three models. We recommended one, sold in class sets of twelve, with a repair kit in every box.</p><p>A single model keeps the price low enough for a public school budget.</p>
+Phase: Strategy
 
 ----
 

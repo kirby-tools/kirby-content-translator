@@ -22,7 +22,7 @@ vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
     ...baseKirbyuseMock(),
-    useApi: () => ({ post: mockApiPost }),
+    usePanel: () => ({ api: { post: mockApiPost } }),
   };
 });
 

@@ -2,8 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\Licensing;
+namespace KirbyTools\Licensing;
 
+use Exception;
 use Kirby\Cms\App;
 use Kirby\Data\Json;
 use Throwable;
@@ -35,7 +36,8 @@ final class LicenseRepository
             return $this->cache;
         }
 
-        if (file_exists($this->licenseFile) === false) {
+        // A directory in place of the file holds no licenses either.
+        if (is_file($this->licenseFile) === false) {
             return $this->cache = [];
         }
 
@@ -90,7 +92,7 @@ final class LicenseRepository
             'createdAt' => $license['order']['createdAt']
         ];
 
-        Json::write($this->licenseFile, $licenses);
+        $this->write($licenses);
 
         $this->cache = $licenses;
         $this->readError = null;
@@ -101,8 +103,21 @@ final class LicenseRepository
         $licenses = $this->readAll();
         unset($licenses[$packageName]);
 
-        Json::write($this->licenseFile, $licenses);
+        $this->write($licenses);
 
         $this->cache = $licenses;
+    }
+
+    /**
+     * @throws Exception When the license file cannot be written, the same
+     *                   exception `F::write()` throws for a read-only file
+     */
+    private function write(array $licenses): void
+    {
+        // Kirby only checks the permissions; any other failure, like a
+        // directory in place of the file, ends in a PHP warning and `false`.
+        if (@Json::write($this->licenseFile, $licenses) === false) {
+            throw new Exception('The file "' . $this->licenseFile . '" is not writable');
+        }
     }
 }

@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { PropType } from "vue";
-import type { TranslationTreeEntry } from "../../types";
-import { computed, inject, usePanel } from "kirbyuse";
-import { TOGGLE_INJECTION_KEY } from "../../composables/tree";
-import { translatePlural } from "../../utils/i18n";
+import type { CoverageLabels, TranslationTreeEntry } from "../../types";
+import { computed } from "vue";
 
 const props = defineProps({
   item: {
@@ -14,10 +12,16 @@ const props = defineProps({
     type: Number,
     required: true,
   },
+  labels: {
+    type: Object as PropType<CoverageLabels>,
+    required: true,
+  },
 });
 
-const panel = usePanel();
-const toggle = inject(TOGGLE_INJECTION_KEY)!;
+const emit = defineEmits<{
+  (event: "toggle", item: TranslationTreeEntry): void;
+  (event: "navigate", link: string): void;
+}>();
 
 const arrowIcon = computed(() => {
   if (props.item.isLoading) return "loader";
@@ -25,25 +29,12 @@ const arrowIcon = computed(() => {
 });
 
 const descendantLabel = computed(() =>
-  translatePlural(
-    panel.t,
-    "johannschopplich.content-translator.coverage.pagesIncomplete",
-    { count: props.item.incompleteDescendantCount },
-    props.item.incompleteDescendantCount,
-  ),
+  props.labels.pagesIncomplete(props.item.incompleteDescendantCount),
 );
 
 const hasCounter = computed(
   () => props.item.incompleteDescendantCount > 0 && !props.item.isOpen,
 );
-
-function navigate() {
-  panel.view.open(props.item.link);
-}
-
-function navigateToLanguage(code: string) {
-  panel.view.open(`${props.item.link}?language=${code}`);
-}
 </script>
 
 <template>
@@ -60,12 +51,16 @@ function navigateToLanguage(code: string) {
         class="k-tree-toggle"
         :disabled="!item.hasChildren"
         type="button"
-        @click="toggle(item)"
+        @click="emit('toggle', item)"
       >
         <k-icon :type="arrowIcon" />
       </button>
 
-      <button class="k-tree-folder" type="button" @click="navigate">
+      <button
+        class="k-tree-folder"
+        type="button"
+        @click="emit('navigate', item.link)"
+      >
         <k-icon-frame :icon="item.icon ?? 'page'" />
         <span class="k-tree-folder-label">{{ item.label }}</span>
         <span
@@ -88,7 +83,7 @@ function navigateToLanguage(code: string) {
           :key="lang.code"
           :text="lang.code.toUpperCase()"
           theme="light"
-          @click.native.stop="navigateToLanguage(lang.code)"
+          @click.stop="emit('navigate', `${item.link}?language=${lang.code}`)"
         />
       </span>
     </p>
@@ -99,6 +94,9 @@ function navigateToLanguage(code: string) {
         :key="child.id"
         :item="child"
         :level="level + 1"
+        :labels="labels"
+        @toggle="emit('toggle', $event)"
+        @navigate="emit('navigate', $event)"
       />
     </ul>
   </li>

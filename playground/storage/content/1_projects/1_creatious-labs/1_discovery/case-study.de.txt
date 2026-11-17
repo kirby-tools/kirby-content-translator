@@ -6,8 +6,8 @@ Subheading: Was Lehrkräfte von einem Mikroskop brauchen
 
 ----
 
-Phase: Discovery
+Text: <p>Wir haben zwei Wochen in sechs Klassenzimmern verbracht. Lehrkräfte verlieren den Großteil einer Stunde mit dem Aufbau, und die Hälfte ihrer Geräte ist defekt.</p><p>Das Briefing hat sich dadurch geändert: weniger Funktionen, ein Kabel und Teile, die eine Schule selbst ersetzen kann.</p>
 
 ----
 
-Text: <p>Wir haben zwei Wochen in sechs Klassenzimmern verbracht. Lehrkräfte verlieren den Großteil einer Stunde mit dem Aufbau, und die Hälfte ihrer Geräte ist defekt.</p><p>Das Briefing hat sich dadurch geändert: weniger Funktionen, ein Kabel und Teile, die eine Schule selbst ersetzen kann.</p>
+Phase: Discovery

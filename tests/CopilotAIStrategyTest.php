@@ -6,6 +6,7 @@ use JohannSchopplich\ContentTranslator\Translation\Exception\TranslationExceptio
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategies\CopilotAIStrategy;
 use JohannSchopplich\ContentTranslator\Translation\TranslationLanguage;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\Copilot\AI\Client;
 use JohannSchopplich\Copilot\AI\ProviderName;
@@ -254,7 +255,34 @@ final class CopilotAIStrategyTest extends ApiRouteTestCase
 
         $this->assertCount(1, $warnings);
         $this->assertSame('k50', $warnings[0]['fieldKey']);
+        $this->assertSame(TranslationRejectionReason::ProviderError, $warnings[0]['reason']);
         $this->assertNotEmpty($warnings[0]['previousMessage']);
+    }
+
+    #[Test]
+    public function fires_translate_warning_hook_with_ResponseLengthMismatch_for_a_short_response(): void
+    {
+        $reasons = [];
+        self::bootApp([
+            'hooks' => [
+                'content-translator.translate:warning' => function ($unit, $reason) use (&$reasons) {
+                    $reasons[] = $reason;
+                },
+            ],
+        ]);
+
+        $strategy = new CopilotAIStrategy(client: $this->client([['translations' => ['Hallo']]]));
+
+        try {
+            $strategy->execute(
+                units: [new TranslationUnit('Hello', 'a'), new TranslationUnit('World', 'b')],
+                options: self::options(),
+            );
+            $this->fail('Expected TranslationException');
+        } catch (TranslationException) {
+        }
+
+        $this->assertSame([TranslationRejectionReason::ResponseLengthMismatch, TranslationRejectionReason::ResponseLengthMismatch], $reasons);
     }
 
     #[Test]

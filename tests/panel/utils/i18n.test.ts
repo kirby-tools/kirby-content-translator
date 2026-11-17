@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatList, translatePlural } from "../../../src/panel/utils/i18n";
+import { translatePlural } from "../../../src/panel/utils/i18n";
 
 const TRANSLATIONS: Record<string, string> = {
   items: "{count} item | {count} items",
@@ -29,13 +29,5 @@ describe("translatePlural", () => {
     expect(
       translatePlural(t, "keptSource", { count: 1, fields: "Price | Tax" }, 1),
     ).toBe("1 text kept its source text: Price | Tax");
-  });
-});
-
-describe("formatList", () => {
-  it("joins the items in the Latin script for sr@latin", () => {
-    expect(formatList(["Deutsch", "Français"], "sr@latin")).toBe(
-      "Deutsch i Français",
-    );
   });
 });

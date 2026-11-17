@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace JohannSchopplich\ContentTranslator;
 
-use JohannSchopplich\KirbyTools\FieldResolver;
 use Kirby\Cms\App;
 use Kirby\Cms\Language;
 use Kirby\Cms\Page;
@@ -12,6 +11,7 @@ use Kirby\Cms\Pages;
 use Kirby\Content\Content;
 use Kirby\Exception\LogicException;
 use Kirby\Uuid\PageUuid;
+use KirbyTools\Utils\FieldResolver;
 
 final class TranslationCoverage
 {
@@ -194,7 +194,7 @@ final class TranslationCoverage
                 foreach ($languages as $langCode => &$lang) {
                     $translatableFieldCount = $translatableFieldCounts[$langCode] ?? 0;
                     $lang['percentage'] = $translatableFieldCount > 0
-                        ? (int)round(($translatedFieldCounts[$langCode] ?? 0) / $translatableFieldCount * 100)
+                        ? intdiv(($translatedFieldCounts[$langCode] ?? 0) * 100, $translatableFieldCount)
                         : 100;
                 }
 

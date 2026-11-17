@@ -12,6 +12,10 @@ const LANGUAGES = [
   { code: "fr", name: "Français", default: false },
 ] as PanelLanguageInfo[];
 
+vi.mock("../../../src/panel/composables/plugin", () => ({
+  usePluginContext: async () => ({ config: { DeepL: { apiKey: true } } }),
+}));
+
 vi.mock("kirbyuse", async () => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
   return {
@@ -31,12 +35,6 @@ function openTranslationDialog(help?: string) {
 
 describe("useTranslationDialogs", () => {
   beforeEach(() => {
-    // `usePluginContext` requests the plugin context through `window.panel`.
-    vi.stubGlobal("window", {
-      panel: {
-        api: { get: async () => ({ config: { DeepL: { apiKey: true } } }) },
-      },
-    });
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,

@@ -25,7 +25,6 @@ describe("resolveTranslatorConfig", () => {
     expect(resolvedConfig.isBatchTranslationEnabled).toBe(true);
     expect(resolvedConfig.isTitleTranslationEnabled).toBe(false);
     expect(resolvedConfig.isSlugTranslationEnabled).toBe(false);
-    expect(resolvedConfig.shouldConfirm).toBe(false);
     expect(resolvedConfig.importFrom).toBeUndefined();
     expect(resolvedConfig.includeFields).toEqual([]);
     expect(resolvedConfig.excludeFields).toEqual([]);

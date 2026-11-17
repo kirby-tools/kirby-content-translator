@@ -7,14 +7,16 @@ Use the terms from `GLOSSARY.md`.
 ## Commands
 
 ```bash
-composer test          # PHPUnit
-composer csfix         # php-cs-fixer, lives in tools/phpcs/vendor/bin/, not vendor/bin/
-pnpm run test --run    # Vitest
-pnpm run test:types    # typecheck
-pnpm run lint          # ESLint
+composer test
+composer csfix         # lives in tools/phpcs/vendor/bin/, not vendor/bin/
+pnpm run test --run
+pnpm run test:types
+pnpm run lint
+pnpm run build         # after a change in src/panel/; index.js and index.css are committed
 ```
 
 ## Conventions
 
 - `__PLAYGROUND__` is a build-time constant defined in `kirbyup.config.js`.
+- `src/panel/site.ts` feeds kirby.tools' Panel mocks.
 - `playground/site/plugins/kirby-copilot` is a symlink to the sibling copilot checkout, for developing the two together.

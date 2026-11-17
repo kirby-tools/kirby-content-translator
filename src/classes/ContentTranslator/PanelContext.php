@@ -14,7 +14,7 @@ final class PanelContext
      * An allowlist, because the namespace also holds closures and `Strategy`
      * instances with whatever properties their author gave them.
      */
-    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'confirm', 'DeepL', 'excludeFields', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
+    private const PANEL_OPTIONS = ['batch', 'batchConcurrency', 'DeepL', 'excludeFields', 'import', 'importFrom', 'includeFields', 'kirbyTags', 'slug', 'title'];
 
     public static function config(): array
     {

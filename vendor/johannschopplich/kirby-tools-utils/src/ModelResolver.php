@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\KirbyTools;
+namespace KirbyTools\Utils;
 
 use Kirby\Cms\App;
 use Kirby\Cms\Find;

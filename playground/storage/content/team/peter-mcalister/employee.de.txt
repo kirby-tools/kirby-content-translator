@@ -2,20 +2,20 @@ Title: Peter McAlister
 
 ----
 
-Position:
+Position: 
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
-Email:
+Email: 
 
 ----
 
-Account:
+Account: 
 
 ----
 
-About:
+About: 

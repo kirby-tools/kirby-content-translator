@@ -6,8 +6,8 @@ Subheading: Ein Produkt statt einer Produktreihe
 
 ----
 
-Phase: Strategy
+Text: <p>Creatious Labs hatte drei Modelle geplant. Wir haben eines empfohlen, verkauft in Klassensätzen zu zwölf Stück, mit einem Reparaturset in jedem Karton.</p><p>Ein einziges Modell hält den Preis niedrig genug für das Budget einer öffentlichen Schule.</p>
 
 ----
 
-Text: <p>Creatious Labs hatte drei Modelle geplant. Wir haben eines empfohlen, verkauft in Klassensätzen zu zwölf Stück, mit einem Reparaturset in jedem Karton.</p><p>Ein einziges Modell hält den Preis niedrig genug für das Budget einer öffentlichen Schule.</p>
+Phase: Strategy

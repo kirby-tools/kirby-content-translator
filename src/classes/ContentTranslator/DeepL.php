@@ -14,10 +14,6 @@ use Kirby\Toolkit\A;
 
 final class DeepL
 {
-    /** @deprecated v4 Will be removed. Use `DeepLLanguages::SUPPORTED_SOURCE_CODES`. */
-    public const SUPPORTED_SOURCE_LANGUAGES = DeepLLanguages::SUPPORTED_SOURCE_CODES;
-    /** @deprecated v4 Will be removed. Use `DeepLLanguages::SUPPORTED_TARGET_CODES`. */
-    public const SUPPORTED_TARGET_LANGUAGES = DeepLLanguages::SUPPORTED_TARGET_CODES;
     public const API_URL_FREE = 'https://api-free.deepl.com';
     public const API_URL_PRO = 'https://api.deepl.com';
 
@@ -348,8 +344,8 @@ final class DeepL
             if ($attempt >= self::MAX_RETRIES) {
                 $textPlural = $batchSize === 1 ? 'text' : 'texts';
                 throw new LogicException(
-                    "DeepL API error {$statusCode}. Maximum retry attempts reached after " . self::MAX_RETRIES .
-                    " attempts (batch size: {$batchSize} {$textPlural})."
+                    "DeepL API error {$statusCode}, still failing after " . self::MAX_RETRIES .
+                    " retries (batch size: {$batchSize} {$textPlural})."
                 );
             }
 

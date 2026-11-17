@@ -36,6 +36,7 @@ return [
 
             $translator->copyContent($language->code(), $defaultLanguage);
             $translator->translateContent($language->code(), $language->code(), $defaultLanguage);
+            $translator->translateTitle($language->code(), $language->code(), $defaultLanguage);
             $cli->{$hasAllLanguagesSelected ? 'out' : 'success'}('Translated site data to ' . $language->name());
         }
 

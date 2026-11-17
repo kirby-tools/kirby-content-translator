@@ -4,16 +4,19 @@ declare(strict_types = 1);
 
 use JohannSchopplich\ContentTranslator\Translation\ExecutionOptions;
 use JohannSchopplich\ContentTranslator\Translation\Strategy;
+use JohannSchopplich\ContentTranslator\Translation\TranslationRejectionReason;
 use JohannSchopplich\ContentTranslator\Translation\TranslationUnit;
 use JohannSchopplich\ContentTranslator\Translator;
 use Kirby\Cms\App;
 use Kirby\Content\LockedContentException;
 use Kirby\Data\Json;
 use Kirby\Data\Yaml;
+use Kirby\Exception\LogicException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\TestWith;
 
 #[RunTestsInSeparateProcesses]
 #[PreserveGlobalState(false)]
@@ -30,7 +33,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ];
     }
 
-    private static function fakeTranslateFn(): \Closure
+    private static function fakeStrategy(): \Closure
     {
         return function (string $text, string $toLanguageCode, string|null $fromLanguageCode = null): string {
             $prefix = $fromLanguageCode !== null ? "[$toLanguageCode:$fromLanguageCode]" : "[$toLanguageCode]";
@@ -38,12 +41,12 @@ final class TranslatorTest extends ApiRouteTestCase
         };
     }
 
-    private static function pluginOptions(\Closure|null $translateFn = null): array
+    private static function pluginOptions(\Closure|null $strategy = null): array
     {
         return [
             'debug' => true,
             'johannschopplich.content-translator' => [
-                'translateFn' => $translateFn ?? self::fakeTranslateFn(),
+                'strategy' => $strategy ?? self::fakeStrategy(),
             ],
         ];
     }
@@ -123,7 +126,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ]);
     }
 
-    private function appWithColleague(\Closure|null $translateFn = null): App
+    private function appWithColleague(\Closure|null $strategy = null): App
     {
         return self::bootApp([
             'languages' => self::threeLanguages(),
@@ -159,11 +162,11 @@ final class TranslatorTest extends ApiRouteTestCase
                     ],
                 ],
             ],
-            'options' => self::pluginOptions($translateFn),
+            'options' => self::pluginOptions($strategy),
         ]);
     }
 
-    private static function colleagueEditingTranslateFn(): \Closure
+    private static function colleagueEditingStrategy(): \Closure
     {
         return static function (string $text): string {
             $app = App::instance();
@@ -184,7 +187,7 @@ final class TranslatorTest extends ApiRouteTestCase
         });
     }
 
-    private function appWithTranslateFn(): App
+    private function appWithStrategy(): App
     {
         return self::bootApp([
             'languages' => self::threeLanguages(),
@@ -384,6 +387,36 @@ final class TranslatorTest extends ApiRouteTestCase
         ]);
     }
 
+    /**
+     * @param 'blocks'|'layout' $fieldType
+     */
+    private function appWithBodyPage(string $fieldType): App
+    {
+        return self::bootApp([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'body' => ['type' => $fieldType, 'translate' => true],
+                        'teaser' => ['type' => 'text', 'translate' => true],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'home',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => ['body' => 'Hello world', 'teaser' => 'Teaser']],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+    }
+
     private function appWithFilterableFieldsPage(): App
     {
         return self::bootApp([
@@ -427,7 +460,7 @@ final class TranslatorTest extends ApiRouteTestCase
         ]);
     }
 
-    private function appWithKirbyTagsPage(\Closure|null $translateFn = null): App
+    private function appWithKirbyTagsPage(\Closure|null $strategy = null): App
     {
         return self::bootApp([
             'languages' => self::threeLanguages(),
@@ -463,7 +496,7 @@ final class TranslatorTest extends ApiRouteTestCase
                     ],
                 ],
             ],
-            'options' => self::pluginOptions($translateFn),
+            'options' => self::pluginOptions($strategy),
             'tags' => [
                 'link' => [
                     'attr' => ['text', 'title', 'class', 'rel', 'target', 'lang', 'role'],
@@ -487,7 +520,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('whitespaceTexts')]
     public function returns_whitespace_only_text_unchanged(string $text): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($text, Translator::translateText($text, 'de'));
     }
 
@@ -502,9 +535,9 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_text_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_text_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame("{$prefix}hello", Translator::translateText('hello', 'de', $sourceLanguage));
     }
 
@@ -523,14 +556,14 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('pureNumericValues')]
     public function keeps_pure_numeric_values_as_untranslatable_text(string $value): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($value, Translator::translateText($value, 'de'));
     }
 
     #[Test]
     public function translates_text_with_embedded_numbers(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame('[de]Product 123', Translator::translateText('Product 123', 'de'));
     }
 
@@ -547,34 +580,61 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('pureUrlValues')]
     public function keeps_pure_url_values_as_untranslatable_text(string $value): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame($value, Translator::translateText($value, 'de'));
     }
 
     #[Test]
     public function translates_text_with_embedded_url(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $this->assertSame('[de]Visit https://example.com today', Translator::translateText('Visit https://example.com today', 'de'));
     }
 
     #[Test]
-    public function copy_content_from_default_language_deletes_target_translation(): void
+    public function copy_content_from_the_default_language_writes_the_title_and_only_the_eligible_fields(): void
     {
-        $app = $this->appWithScalarFieldPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
+        $app = self::bootApp([
+            'languages' => self::threeLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => [
+                        'text' => ['type' => 'textarea'],
+                        'teaser' => ['type' => 'text'],
+                    ],
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => [
+                                'title' => 'About',
+                                'text' => 'Welcome',
+                                'teaser' => 'Teaser',
+                            ]],
+                            ['code' => 'de', 'slug' => 'ueber-uns', 'content' => [
+                                'title' => 'Über uns',
+                                'text' => 'Willkommen',
+                                'teaser' => 'Anreißer',
+                            ]],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(),
+        ]);
+
+        $translator = new Translator($app->page('about'), ['excludeFields' => ['teaser']]);
         $translator->copyContent('de', 'en');
 
-        $this->assertFalse($translator->model()->version()->exists('de'));
-        $this->assertSame(
-            'Welcome to our website',
-            $translator->model()->content('de')->get('text')->value()
-        );
-        $this->assertSame(
-            'Do not translate',
-            $translator->model()->content('de')->get('untranslatableText')->value()
-        );
+        $model = $translator->model();
+        $this->assertSame('ueber-uns', $model->slug('de'));
+        $this->assertSame('About', $model->content('de')->get('title')->value());
+        $this->assertSame('Anreißer', $model->content('de')->get('teaser')->value());
+        $this->assertSame('Welcome', $model->content('de')->get('text')->value());
     }
 
     #[Test]
@@ -592,23 +652,6 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $this->assertSame(
             'Bienvenue sur notre site',
-            $translator->model()->content('de')->get('text')->value()
-        );
-    }
-
-    #[Test]
-    public function translate_content_recreates_target_translation_when_prior_copy_cleared_it(): void
-    {
-        $app = $this->appWithScalarFieldPage();
-        $page = $app->page('home');
-        $translator = new Translator($page);
-
-        $translator->copyContent('de', 'en');
-        $this->assertFalse($translator->model()->version()->exists('de'));
-
-        $translator->translateContent('de', 'de', 'en');
-        $this->assertSame(
-            '[de:en]Welcome to our website',
             $translator->model()->content('de')->get('text')->value()
         );
     }
@@ -699,7 +742,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_content_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_content_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -714,7 +757,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
     #[Test]
     #[DataProvider('sourceLanguageVariants')]
-    public function translate_title_passes_source_language_to_translate_fn(string|null $sourceLanguage, string $prefix): void
+    public function translate_title_passes_source_language_to_the_strategy(string|null $sourceLanguage, string $prefix): void
     {
         $app = $this->appWithScalarFieldPage();
         $page = $app->page('home');
@@ -758,6 +801,40 @@ final class TranslatorTest extends ApiRouteTestCase
     }
 
     #[Test]
+    public function translate_title_leaves_a_file_with_a_title_field_untouched(): void
+    {
+        $translatedTexts = [];
+        $app = self::bootApp([
+            'languages' => self::threeLanguages(),
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'about',
+                        'files' => [
+                            [
+                                'filename' => 'cover.jpg',
+                                'translations' => [
+                                    ['code' => 'en', 'content' => ['title' => 'Cover image']],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'options' => self::pluginOptions(function (string $text) use (&$translatedTexts): string {
+                $translatedTexts[] = $text;
+                return "[de]$text";
+            }),
+        ]);
+
+        $translator = new Translator($app->file('about/cover.jpg'));
+        $translator->translateTitle('en', 'de');
+
+        $this->assertSame([], $translatedTexts);
+        $this->assertSame('Cover image', $translator->model()->content('en')->get('title')->value());
+    }
+
+    #[Test]
     public function translate_title_throws_LockedContentException_while_another_user_edits_a_different_language(): void
     {
         $app = $this->appWithColleague();
@@ -771,7 +848,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_title_throws_LockedContentException_when_another_user_starts_editing_during_the_strategy_call(): void
     {
-        $app = $this->appWithColleague(self::colleagueEditingTranslateFn());
+        $app = $this->appWithColleague(self::colleagueEditingStrategy());
 
         try {
             (new Translator($app->page('about')))->translateTitle('de', 'de', 'en');
@@ -875,7 +952,7 @@ final class TranslatorTest extends ApiRouteTestCase
         $this->assertSame(4, $result->translatableCount);
         $this->assertSame(3, $result->translatedCount);
         $this->assertCount(1, $result->rejections);
-        $this->assertSame('missing translation', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::MissingTranslation, $result->rejections[0]->reason);
         $this->assertSame('text', $result->rejections[0]->fieldKey);
     }
 
@@ -930,6 +1007,25 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $layout = Json::decode($content->get('layout')->value());
         $this->assertSame('[de]Layout block content', $layout[0]['columns'][0]['blocks'][0]['content']['text']);
+    }
+
+    #[Test]
+    #[TestWith(['blocks'])]
+    #[TestWith(['layout'])]
+    public function translate_content_throws_LogicException_for_a_field_that_holds_no_json(string $fieldType): void
+    {
+        $app = $this->appWithBodyPage($fieldType);
+        $strategy = self::recordingStrategy();
+
+        try {
+            (new Translator($app->page('home')))->translateContent('en', 'de', null, $strategy);
+            $this->fail('Expected a LogicException');
+        } catch (LogicException $exception) {
+            $this->assertSame('The ' . $fieldType . ' field "body" holds no JSON', $exception->getMessage());
+        }
+
+        $this->assertSame([], $strategy->calls);
+        $this->assertSame('Hello world', $app->page('home')->content('en')->get('body')->value());
     }
 
     #[Test]
@@ -1013,7 +1109,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_texts_sends_only_translatable_entries(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $strategy = self::recordingStrategy();
 
         $result = Translator::translateTexts(['', 'Hello', '2024', 'https://example.com'], 'de', null, $strategy);
@@ -1025,7 +1121,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_texts_calls_no_strategy_when_every_text_is_untranslatable(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
         $strategy = self::recordingStrategy();
 
         $result = Translator::translateTexts(['', '2024'], 'de', null, $strategy);
@@ -1050,7 +1146,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function keeps_source_text_when_a_translation_drops_a_placeholder(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $this->assertSame(
             ['Click <c0/> now', '[de]Hello'],
@@ -1078,7 +1174,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         Translator::translateTexts(['Click <c0/> now'], 'de', null, self::mangledPlaceholderStrategy());
 
-        $this->assertSame([['Click <c0/> now', 'placeholder mismatch', null]], $warnings);
+        $this->assertSame([['Click <c0/> now', TranslationRejectionReason::PlaceholderMismatch, null]], $warnings);
     }
 
     #[Test]
@@ -1124,13 +1220,13 @@ final class TranslatorTest extends ApiRouteTestCase
             }
         });
 
-        $this->assertSame([['World', 'missing translation', null]], $warnings);
+        $this->assertSame([['World', TranslationRejectionReason::MissingTranslation, null]], $warnings);
     }
 
     #[Test]
     public function translate_batch_reports_the_index_and_reason_of_a_unit_it_could_not_translate(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(
             ['Click <c0/> now', 'Hello'],
@@ -1142,13 +1238,13 @@ final class TranslatorTest extends ApiRouteTestCase
         $this->assertSame(['Click <c0/> now', '[de]Hello'], $result->texts);
         $this->assertCount(1, $result->rejections);
         $this->assertSame(0, $result->rejections[0]->index);
-        $this->assertSame('placeholder mismatch', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::PlaceholderMismatch, $result->rejections[0]->reason);
     }
 
     #[Test]
     public function translate_batch_records_the_placeholder_indexes_of_a_mismatch(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(['Read <c0/> and <c1/>'], 'de', null, new class () implements Strategy {
             public function execute(array $units, ExecutionOptions $options): array
@@ -1164,7 +1260,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function translate_batch_omits_an_untranslatable_text_from_rejections(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         // Never handed to the strategy, so it is untranslatable text rather than a rejection.
         $result = Translator::translateBatch(['2024'], 'de', null, self::recordingStrategy());
@@ -1190,7 +1286,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[DataProvider('rejectionCases')]
     public function translate_batch_names_the_rejection_reason(string $sourceText, string|int|null $translation, string $reason): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch([$sourceText], 'de', null, new class ($translation) implements Strategy {
             public function __construct(private string|int|null $translation)
@@ -1204,13 +1300,13 @@ final class TranslatorTest extends ApiRouteTestCase
         });
 
         $this->assertCount(1, $result->rejections);
-        $this->assertSame($reason, $result->rejections[0]->reason);
+        $this->assertSame($reason, $result->rejections[0]->reason->value);
     }
 
     #[Test]
     public function translate_batch_reports_a_unit_the_strategy_left_unanswered(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $result = Translator::translateBatch(['Hello'], 'de', null, new class () implements Strategy {
             public function execute(array $units, ExecutionOptions $options): array
@@ -1221,7 +1317,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         $this->assertSame(['Hello'], $result->texts);
         $this->assertCount(1, $result->rejections);
-        $this->assertSame('missing translation', $result->rejections[0]->reason);
+        $this->assertSame(TranslationRejectionReason::MissingTranslation, $result->rejections[0]->reason);
     }
 
     #[Test]
@@ -1243,7 +1339,7 @@ final class TranslatorTest extends ApiRouteTestCase
     #[Test]
     public function keeps_source_text_when_a_translation_is_only_whitespace(): void
     {
-        $this->appWithTranslateFn();
+        $this->appWithStrategy();
 
         $this->assertSame(
             ['Hello'],
@@ -1272,7 +1368,7 @@ final class TranslatorTest extends ApiRouteTestCase
 
         Translator::translateTexts(['Hello'], 'de', null, self::blankTranslationStrategy());
 
-        $this->assertSame([['Hello', 'empty translation', null]], $warnings);
+        $this->assertSame([['Hello', TranslationRejectionReason::EmptyTranslation, null]], $warnings);
     }
 
     #[Test]
@@ -1298,6 +1394,6 @@ final class TranslatorTest extends ApiRouteTestCase
         $result = Translator::translateTexts(['Hello', 'World'], 'de', null, $strategy);
 
         $this->assertSame(['Hello', 'Welt'], $result);
-        $this->assertSame([['Hello', 'non-string translation', null]], $warnings);
+        $this->assertSame([['Hello', TranslationRejectionReason::NonStringTranslation, null]], $warnings);
     }
 }

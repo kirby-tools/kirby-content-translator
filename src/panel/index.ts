@@ -1,26 +1,19 @@
-import { isKirby5 } from "kirbyuse";
-import ContentTranslator from "./components/Sections/ContentTranslator.vue";
-import ContentTranslatorDropdownButton from "./components/ViewButtons/ContentTranslatorDropdownButton.vue";
-import LanguagesViewWrapper from "./components/Views/LanguagesViewWrapper";
+import Field from "./components/Field.vue";
+import LanguagesView from "./components/LanguagesView";
+import ViewButton from "./components/ViewButton.vue";
 import { icons } from "./config/icons";
-import { legacyViewButtonMixin } from "./legacy";
 
 import "virtual:uno.css";
 
 window.panel.plugin("johannschopplich/content-translator", {
-  sections: {
-    "content-translator": ContentTranslator,
+  fields: {
+    "content-translator": Field,
   },
   viewButtons: {
-    "content-translator": ContentTranslatorDropdownButton,
+    "content-translator": ViewButton,
   },
   components: {
-    ...(isKirby5() && {
-      "k-languages-view": LanguagesViewWrapper,
-    }),
+    "k-languages-view": LanguagesView,
   },
   icons,
-  use: {
-    legacyViewButtonSupport: legacyViewButtonMixin,
-  },
 });

@@ -7,7 +7,7 @@ import type {
   TranslatorOptions,
   VariablesResponse,
 } from "../types";
-import { useHelpers, usePanel } from "kirbyuse";
+import { toIntlLocale, usePanel } from "kirbyuse";
 import pAll from "p-all";
 import {
   DEFAULT_BATCH_TRANSLATION_CONCURRENCY,
@@ -20,7 +20,7 @@ import {
   planVariableTranslation,
   translateVariables,
 } from "../translation/variables";
-import { formatList, translatePlural } from "../utils/i18n";
+import { translatePlural } from "../utils/i18n";
 import { createStrategy } from "../utils/strategy";
 import {
   resolveKirbyTagRules,
@@ -45,7 +45,6 @@ const VARIABLE_REJECTION_MESSAGE_KEYS = {
 
 export function useVariableTranslation(options: TranslatorOptions = {}) {
   const panel = usePanel();
-  const helpers = useHelpers();
   const { isTranslating } = useTranslationState();
   const {
     openTranslationDialog,
@@ -103,8 +102,8 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
           {
             count: pendingCount,
             total: plan.translatableKeys.length,
-            source: helpers.string.escapeHTML(defaultLanguage.name),
-            target: helpers.string.escapeHTML(targetLanguage.name),
+            source: defaultLanguage.name,
+            target: targetLanguage.name,
           },
           pendingCount,
         ),
@@ -168,7 +167,7 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
 
     const dialogResult = await openBatchTranslationDialog(
       panel.t("johannschopplich.content-translator.dialog.variablesBatchHelp", {
-        language: helpers.string.escapeHTML(defaultLanguage.name),
+        language: defaultLanguage.name,
       }),
     );
     if (!dialogResult) return;
@@ -360,22 +359,17 @@ export function useVariableTranslation(options: TranslatorOptions = {}) {
       : panel.t(
           "johannschopplich.content-translator.notification.variablesAllTranslated",
           {
-            target: formatList(
-              targetLanguages.map((language) => language.name),
-              panel.translation.code,
-            ),
+            target: new Intl.ListFormat(
+              toIntlLocale(panel.translation.code),
+            ).format(targetLanguages.map((language) => language.name)),
           },
         );
   }
 
   function fetchVariables() {
-    return panel.api.get<VariablesResponse>(
-      VARIABLES_API_ROUTE,
-      undefined,
-      undefined,
-      // Avoid showing Panel loading indicator.
-      true,
-    );
+    return panel.api.get<VariablesResponse>(VARIABLES_API_ROUTE, undefined, {
+      silent: true,
+    });
   }
 
   return {

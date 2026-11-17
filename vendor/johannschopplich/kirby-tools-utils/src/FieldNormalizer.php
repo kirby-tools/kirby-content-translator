@@ -2,49 +2,45 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\KirbyTools;
+namespace KirbyTools\Utils;
 
+use Kirby\Cms\App;
+use Kirby\Exception\InvalidArgumentException;
 use Kirby\Form\Field;
 
 final class FieldNormalizer
 {
-    private const SUPPORTED_TYPES = [
-        'blocks', 'checkboxes', 'color', 'date', 'email', 'entries', 'files',
-        'gap', 'headline', 'hidden', 'info', 'layout', 'line', 'link', 'list',
-        'markdown', 'multiselect', 'number', 'object', 'pages', 'password',
-        'radio', 'range', 'select', 'slug', 'stats', 'structure', 'tags', 'tel', 'text',
-        'textarea', 'time', 'toggle', 'toggles', 'url', 'users', 'writer',
-    ];
+    /** Field plugin types consumers branch on, so they never collapse to their core parent class. */
+    private const PLUGIN_BASE_TYPES = ['markdown'];
 
-    private const MAX_DEPTH = 10;
-
-    private static array|null $supportedTypesMap = null;
+    private static array|null $coreTypesByClass = null;
 
     /**
-     * Resolves a custom field type to its standard base type
-     * by following the `extends` chain.
+     * Resolves a field type to the type of the nearest core field class among
+     * its registered class and that class's parents; `PLUGIN_BASE_TYPES` and
+     * types without such a class come back as is.
      */
-    public static function resolveBaseType(string $type, int $depth = 0): string
+    public static function resolveBaseType(string $type): string
     {
-        self::$supportedTypesMap ??= array_flip(self::SUPPORTED_TYPES);
+        self::$coreTypesByClass ??= array_flip(App::instance()->core()->fields());
 
-        if (isset(self::$supportedTypesMap[$type]) || $depth >= self::MAX_DEPTH) {
+        if (in_array($type, self::PLUGIN_BASE_TYPES, true) || in_array($type, self::$coreTypesByClass, true)) {
             return $type;
         }
 
         try {
-            $definition = Field::load($type);
-        } catch (\Throwable) {
+            $class = Field::resolve($type);
+        } catch (InvalidArgumentException) {
             return $type;
         }
 
-        $extends = $definition['extends'] ?? null;
-
-        if (!is_string($extends) || $extends === '' || $extends === $type) {
-            return $type;
+        for ($ancestor = $class; $ancestor !== false; $ancestor = get_parent_class($ancestor)) {
+            if (isset(self::$coreTypesByClass[$ancestor])) {
+                return self::$coreTypesByClass[$ancestor];
+            }
         }
 
-        return self::resolveBaseType($extends, $depth + 1);
+        return $type;
     }
 
     /**

@@ -35,6 +35,38 @@ final class TreeCoverageTest extends TranslationCoverageTestCase
     }
 
     #[Test]
+    public function reports_99_percent_for_199_of_200_translated_fields(): void
+    {
+        $fieldNames = array_map(fn (int $number): string => "field$number", range(1, 200));
+        $sourceContent = array_fill_keys($fieldNames, 'English text');
+
+        $app = self::bootApp([
+            'languages' => self::twoLanguages(),
+            'blueprints' => [
+                'pages/default' => [
+                    'fields' => array_fill_keys($fieldNames, ['type' => 'text', 'translate' => true]),
+                ],
+            ],
+            'site' => [
+                'children' => [
+                    [
+                        'slug' => 'almost-translated',
+                        'template' => 'default',
+                        'translations' => [
+                            ['code' => 'en', 'content' => $sourceContent],
+                            ['code' => 'de', 'content' => array_slice($sourceContent, 0, 199)],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $coverage = new TranslationCoverage($app->site()->index());
+
+        $this->assertSame(99, $coverage->treeCoverage()['languages'][0]['percentage']);
+    }
+
+    #[Test]
     public function lists_incomplete_pages(): void
     {
         $app = $this->appWithMixedCoverageFixture();

@@ -6,7 +6,7 @@ Position: IT
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
@@ -14,7 +14,7 @@ Email: oscar@example.com
 
 ----
 
-Account:
+Account: 
 
 ----
 

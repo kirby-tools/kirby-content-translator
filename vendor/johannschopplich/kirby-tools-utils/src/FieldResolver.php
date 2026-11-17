@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace JohannSchopplich\KirbyTools;
+namespace KirbyTools\Utils;
 
 use Kirby\Cms\ModelWithContent;
 use Kirby\Form\Form;
@@ -10,23 +10,12 @@ use Kirby\Form\Form;
 final class FieldResolver
 {
     /**
-     * Resolves blueprint field definitions from a model, excluding
-     * `title` and `slug` fields and stripping field values.
+     * Resolves the props a model's blueprint fields export through Kirby's
+     * form, excluding `title` and `slug` and stripping field values.
      */
     public static function resolveModelFields(ModelWithContent $model): array
     {
-        $fields = $model->blueprint()->fields();
-        $languageCode = $model->kirby()->languageCode();
-        $content = $model->content($languageCode)->toArray();
-
-        $form = new Form([
-            'fields' => $fields,
-            'values' => $content,
-            'model' => $model,
-            'strict' => true
-        ]);
-
-        $fields = $form->fields()->toArray();
+        $fields = Form::for($model)->fields()->toArray();
         unset($fields['title'], $fields['slug']);
 
         foreach ($fields as $index => $props) {

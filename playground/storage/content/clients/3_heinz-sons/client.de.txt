@@ -10,11 +10,11 @@ Email: heinz@example.com
 
 ----
 
-Contact:
+Contact: 
 
 ----
 
-Notes:
+Notes: 
 
 ----
 
@@ -26,12 +26,12 @@ Vip: false
 
 ----
 
-Vatid:
+Vatid: 
 
 ----
 
-Phone:
+Phone: 
 
 ----
 
-Address:
+Address: 

@@ -29,9 +29,8 @@ final readonly class TranslationLanguage
         $kirby = App::instance();
 
         if ($kirby->languages()->find($code) === null && $kirby->multilang()) {
-            // TODO: Drop K4 compat in v4 – use the named argument `message:` once Kirby 5 is the floor.
             throw new InvalidArgumentException(
-                ['fallback' => 'Unknown language code "' . $code . '"; not registered in Kirby languages.'],
+                message: 'Unknown language code "' . $code . '"; not registered in Kirby languages.'
             );
         }
 

@@ -1,4 +1,4 @@
-import type { LicenseStatus } from "@kirby-tools/licensing";
+import type { PluginContext } from "@kirby-tools/licensing";
 import type { KirbyFieldProps } from "kirby-types";
 import type { STRATEGY_NAMES } from "./constants";
 
@@ -7,13 +7,14 @@ type BooleanInput = boolean | string | number | null;
 
 export type StrategyName = (typeof STRATEGY_NAMES)[number];
 
+export type Translate = (key: string, data?: Record<string, unknown>) => string;
+
 export interface PluginConfig {
   import?: boolean;
   importFrom?: string;
   batch?: boolean;
   title?: boolean;
   slug?: boolean;
-  confirm?: boolean;
   fieldTypes: string[];
   includeFields?: string[];
   excludeFields?: string[];
@@ -31,13 +32,12 @@ export interface PluginConfig {
   };
 }
 
-export interface PluginContextResponse {
+export interface PluginContextResponse extends PluginContext {
   config: PluginConfig;
   /** The registered KirbyTag types and aliases, lowercased. */
   kirbyTagTypes: string[];
   homePageId: string;
   errorPageId: string;
-  licenseStatus?: LicenseStatus;
 }
 
 export interface TranslateUnitsResponse {
@@ -102,25 +102,20 @@ export type VariablesResponse = Record<
   }
 >;
 
-/** Translator options from section/view button props. */
 export interface TranslatorOptions {
-  label?: string;
   import?: BooleanInput;
   importFrom?: string;
   batch?: BooleanInput;
   title?: BooleanInput;
   slug?: BooleanInput;
-  confirm?: BooleanInput;
   fieldTypes?: string[];
   includeFields?: string[];
   excludeFields?: string[];
   kirbyTags?: Record<string, string[]>;
   /** Queries for the models a run translates along with its host. */
   cascade?: string | string[];
-  /** System prompt for AI translation in place of the global `ai.systemPrompt`. Sections only – the view button does not declare it. */
+  /** Override of the global `ai.systemPrompt`; the view button has no such prop. */
   systemPrompt?: string;
-  /** Only available when passed from section computed props. */
-  fields?: Record<string, KirbyFieldProps>;
 }
 
 export interface TranslationLanguageCoverage {
@@ -128,6 +123,14 @@ export interface TranslationLanguageCoverage {
   name: string;
   percentage: number;
   incompletePageCount: number;
+}
+
+/** Labels already translated by the caller. */
+export interface CoverageLabels {
+  title: string;
+  pagesToTranslate: string;
+  allTranslated: string;
+  pagesIncomplete: (count: number) => string;
 }
 
 export interface TranslationTreeEntry {

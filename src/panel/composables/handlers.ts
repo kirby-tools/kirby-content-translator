@@ -1,23 +1,18 @@
 import type { PanelLanguageInfo } from "kirby-types";
 import type { useContentTranslator } from "./translation";
-import { useHelpers, usePanel } from "kirbyuse";
+import { usePanel } from "kirbyuse";
+import { createBatchTranslationHelp } from "../utils/dialog-fields";
 import { useTranslationDialogs } from "./dialogs";
 
-export function useTranslationActions(
-  {
-    shouldConfirm,
-    strategyName,
-    importModelContent,
-    translateModelContent,
-    batchTranslateModelContent,
-    getCascadeHelp,
-  }: ReturnType<typeof useContentTranslator>,
-  initialization: Promise<void> = Promise.resolve(),
-) {
+export function useTranslationHandlers({
+  strategyName,
+  importModelContent,
+  translateModelContent,
+  batchTranslateModelContent,
+  getCascadeHelp,
+}: ReturnType<typeof useContentTranslator>) {
   const panel = usePanel();
-  const helpers = useHelpers();
   const {
-    openConfirmableTextDialog,
     openTranslationDialog,
     openBatchTranslationDialog,
     showCopilotLicenseToastOnce,
@@ -32,19 +27,7 @@ export function useTranslationActions(
     const targetLanguage = panel.languages.find(
       (language) => language.code === panel.language.code,
     )!;
-    const text = panel.t(
-      "johannschopplich.content-translator.dialog.importConfirmation",
-      {
-        language: helpers.string.escapeHTML(
-          sourceLanguage?.name ?? defaultLanguage.name,
-        ),
-      },
-    );
-
-    await openConfirmableTextDialog(text, shouldConfirm.value, async () => {
-      await initialization;
-      await importModelContent(path, targetLanguage, sourceLanguage);
-    });
+    await importModelContent(path, targetLanguage, sourceLanguage);
   }
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
@@ -54,7 +37,6 @@ export function useTranslationActions(
     const targetLanguage = panel.languages.find(
       (language) => language.code === panel.language.code,
     )!;
-    await initialization;
     // A translation into the default language has no cascade.
     const result = await openTranslationDialog(
       targetLanguage.default ? undefined : await getCascadeHelp(path),
@@ -70,16 +52,12 @@ export function useTranslationActions(
 
   async function handleBatchTranslate() {
     const { path } = panel.view;
-    await initialization;
     const result = await openBatchTranslationDialog(
-      [
-        panel.t("johannschopplich.content-translator.dialog.batchHelp", {
-          language: helpers.string.escapeHTML(defaultLanguage.name),
-        }),
-        await getCascadeHelp(path),
-      ]
-        .filter(Boolean)
-        .join(" "),
+      createBatchTranslationHelp({
+        defaultLanguage,
+        cascadeHelp: await getCascadeHelp(path),
+        t: panel.t,
+      }),
     );
     if (result) {
       strategyName.value = result.strategyName;

@@ -14,7 +14,7 @@ Kirby Content Translator is a plugin for [Kirby CMS](https://getkirby.com) that 
 - 🏷️ **KirbyTags**: Tag attributes translated selectively, URLs and UUIDs preserved.
 - 🔤 **Language Variables**: Missing or untouched variables translated from a language's view, or into several languages at once from the default one.
 - 🔁 **Import from Source**: Copy default-language content without translating.
-- 🎛️ **Configurable Scope**: By field type, or include and exclude fields, globally or per section.
+- 🎛️ **Configurable Scope**: By field type, or include and exclude fields, globally or per blueprint.
 - ⚡ **PHP API**: Drive translations from CLI or custom workflows, with `before`, `after`, and `warning` hooks – see [PHP classes](https://kirby.tools/docs/content-translator/php-classes).
 - 🔌 **Pluggable Strategies**: DeepL, [AI via Copilot](https://kirby.tools/docs/content-translator/providers/ai-translation), or your own [custom strategy](https://kirby.tools/docs/content-translator/providers/custom-translator).
 
@@ -24,7 +24,7 @@ Kirby Content Translator is a commercial plugin that requires a license. You can
 
 ## Requirements
 
-- Kirby 4 or Kirby 5
+- Kirby 6
 
 ## Installation
 
@@ -36,7 +36,25 @@ composer require johannschopplich/kirby-content-translator
 
 ### Manual Installation
 
-Download and copy this repository to `/site/plugins/kirby-content-translator`.
+Download a [release](https://github.com/kirby-tools/kirby-content-translator/releases) and extract it to `/site/plugins/kirby-content-translator`.
+
+## Upgrading from Content Translator 3
+
+Content Translator 4 requires Kirby 6, which has no plugin sections, so the Content Translator section is a field now. Kirby shows `Invalid section type ("content-translator")` until you move it from `sections:` to `fields:`. Its options stay the same, except `confirm`, which Content Translator 4 drops:
+
+```yaml
+# Content Translator 3
+sections:
+  contentTranslator:
+    type: content-translator
+
+# Content Translator 4
+fields:
+  contentTranslator:
+    type: content-translator
+```
+
+The [migration guide](https://kirby.tools/docs/content-translator/getting-started/migration) lists the other breaking changes, among them the removed `translateFn` option, which now throws.
 
 ## Documentation
 
@@ -56,7 +74,7 @@ For the sake of reproducible bug reports, please include the following informati
 
 - Kirby & Kirby Content Translator version
 - Browser environment (name, version, operating system)
-- Global and section configuration (without any sensitive information)
+- Global and blueprint configuration (without any sensitive information)
 - Steps to reproduce the bug (if no reproduction is provided)
 - Screenshots or screen recordings if applicable
 

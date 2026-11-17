@@ -1,4 +1,4 @@
-import type { PanelLanguageInfo } from "kirby-types";
+import type { KirbyFieldProps, PanelLanguageInfo } from "kirby-types";
 import type { Mock } from "vitest";
 import type {
   BatchStatusResponse,
@@ -35,13 +35,15 @@ let batchWrite: Mock<
   (payload: Record<string, unknown>) => Promise<BatchWriteResponse>
 >;
 
-vi.mock("kirbyuse", async () => {
+vi.mock("kirbyuse", async (importOriginal) => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  const { createGlobalState, toIntlLocale } =
+    await importOriginal<typeof import("kirbyuse")>();
   return {
     ...baseKirbyuseMock(),
-    isKirby5: () => true,
+    createGlobalState,
+    toIntlLocale,
     usePanel: () => panel,
-    useApi: () => panel.api,
     useContent: () => ({ currentContent, update: updateContent }),
     useI18n: () => ({
       t: (value: unknown) => (typeof value === "string" ? value : undefined),
@@ -78,7 +80,7 @@ function createPanelStub() {
     view: {
       path: "pages/example",
       title: "Example",
-      props: { title: "Example" } as Record<string, unknown>,
+      props: { title: "Example", id: "example" } as Record<string, unknown>,
       isLoading: false,
       reload: vi.fn(),
     },
@@ -119,13 +121,17 @@ function createPluginContext(config: Partial<PluginConfig> = {}) {
  * leak between tests.
  */
 async function createContentTranslator(
-  options: TranslatorOptions = {},
+  {
+    fields = {},
+    ...options
+  }: TranslatorOptions & { fields?: Record<string, KirbyFieldProps> } = {},
   config: Partial<PluginConfig> = {},
 ) {
   const { useContentTranslator } =
     await import("../../../src/panel/composables/translation");
   const translator = useContentTranslator();
   await translator.initializeConfig(createPluginContext(config), options);
+  translator.fields.value = fields;
   return translator;
 }
 
@@ -189,7 +195,7 @@ describe("useContentTranslator", () => {
 
     panel = createPanelStub();
     currentContent = { value: { text: "Hello" } };
-    updateContent = vi.fn();
+    updateContent = vi.fn(async () => true);
 
     modelData = {
       id: "example",
@@ -282,7 +288,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Über uns" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -306,6 +312,7 @@ describe("useContentTranslator", () => {
     it("patches the slug in the language the import started in after the editor switches the language", async () => {
       updateContent.mockImplementation(async () => {
         Object.assign(panel.language, THIRD_LANGUAGE);
+        return true;
       });
       const translator = await createContentTranslator({
         title: false,
@@ -322,7 +329,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Example" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -467,6 +474,7 @@ describe("useContentTranslator", () => {
 
       expect(panel.api.patch).not.toHaveBeenCalled();
       expect(panel.notification.success).not.toHaveBeenCalled();
+      expect(panel.notification.close).toHaveBeenCalled();
     });
   });
 
@@ -507,7 +515,7 @@ describe("useContentTranslator", () => {
     it("translates the site's title, not its blueprint's", async () => {
       panel.view.path = "site";
       panel.view.title = "Playground";
-      panel.view.props = { title: "Kirby Tools" };
+      panel.view.props = { title: "Kirby Tools", id: "/" };
       const translator = await createContentTranslator({
         title: true,
         fields: { text: field({ type: "text", name: "text" }) },
@@ -518,7 +526,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "site/title",
         { title: "Kirby Tools (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
@@ -587,12 +595,12 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/slug",
         { slug: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
     });
 
     it("patches no slug on the home page", async () => {
-      modelData.id = "home";
+      panel.view.props.id = "home";
       const translator = await createContentTranslator({
         title: false,
         slug: true,
@@ -702,29 +710,6 @@ describe("useContentTranslator", () => {
         slug: "Example (translated)",
       });
       expect(panel.api.patch).not.toHaveBeenCalled();
-    });
-
-    it("translates the default language's current content after it changed elsewhere", async () => {
-      const translator = await createContentTranslator({
-        title: false,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-      // Kirby's `panel.view.reload()` would end the loading state.
-      panel.view.isLoading = false;
-
-      modelData = { ...modelData, content: { text: "Hello again" } };
-      await translator.batchTranslateModelContent("pages/example", [
-        SECONDARY_LANGUAGE,
-      ]);
-
-      expect(batchWrite).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          content: { text: "Hello again (translated)" },
-        }),
-      );
     });
 
     it("masks a KirbyTag of a type the context route registers", async () => {
@@ -1301,7 +1286,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/title",
         { title: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
       expect(translateBatch).toHaveBeenLastCalledWith(
         "__content-translator__/translate-units",
@@ -1343,7 +1328,7 @@ describe("useContentTranslator", () => {
       expect(panel.api.patch).toHaveBeenCalledWith(
         "pages/example/title",
         { title: "Example (translated)" },
-        { headers: { "x-language": "fr" } },
+        { language: "fr" },
       );
       expect(batchWrite).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1499,38 +1484,6 @@ describe("useContentTranslator", () => {
       expect(panel.api.get.mock.calls.map(([route]) => route)).not.toContain(
         "__content-translator__/cascade",
       );
-    });
-
-    it("never translates the cascade of a host another user edits in a single-language translation", async () => {
-      batchStatus.lockedBy = "Colleague";
-      cascadeIntroPage();
-      const translator = await createContentTranslator({
-        cascade: "page.children",
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(batchWrite).not.toHaveBeenCalled();
-    });
-
-    it("never translates the cascade of a host without the update permission in a single-language translation", async () => {
-      batchStatus.isUpdateAllowed = false;
-      cascadeIntroPage();
-      const translator = await createContentTranslator({
-        cascade: "page.children",
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent(
-        "pages/example",
-        SECONDARY_LANGUAGE,
-      );
-
-      expect(batchWrite).not.toHaveBeenCalled();
     });
 
     it("names only the cascade in the success notification for a host with nothing to translate", async () => {

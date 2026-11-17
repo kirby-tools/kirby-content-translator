@@ -35,8 +35,8 @@ final class BatchTranslation
     public static function status(ModelWithContent $model): array
     {
         return [
-            'isUpdateAllowed' => $model->permissions()->can('update'),
-            'isTitleChangeAllowed' => $model->permissions()->can('changeTitle'),
+            'isUpdateAllowed' => $model->guards()->isAvailable('update'),
+            'isTitleChangeAllowed' => $model->guards()->isAvailable('changeTitle'),
             'lockedBy' => self::lockingUsername($model),
             'languagesWithUnsavedChanges' => array_values(array_filter(
                 $model->kirby()->languages()->codes(),

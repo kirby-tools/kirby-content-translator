@@ -1,10 +1,12 @@
+import type { Translate } from "../types";
+
 /**
  * Resolves a Kirby plural translation (forms separated by ` | `) to the form
  * for `count`. The form is picked before the values go in, so a value holding
  * ` | ` cannot shift the pick.
  */
 export function translatePlural(
-  t: (key: string, data?: Record<string, unknown>) => string,
+  t: Translate,
   key: string,
   data: Record<string, unknown>,
   count: number,
@@ -27,12 +29,4 @@ export function translatePlural(
     /(\d+)/g,
     (_, index: string) => stringValues[Number(index)]!,
   );
-}
-
-/** Joins items as a list in the language of the Panel's interface. */
-export function formatList(items: string[], translationCode: string) {
-  // Kirby's `sr@latin` is not a BCP 47 tag.
-  return new Intl.ListFormat(
-    translationCode.replace("_", "-").replace("@latin", "-Latn"),
-  ).format(items);
 }

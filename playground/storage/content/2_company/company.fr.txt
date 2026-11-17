@@ -2,7 +2,7 @@ Title: Entreprise
 
 ----
 
-Cover: - file://c0y6qvusOYzuaylI
+Cover: - 'file://c0y6qvusOYzuaylI'
 
 ----
 

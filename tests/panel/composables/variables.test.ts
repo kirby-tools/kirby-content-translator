@@ -6,12 +6,10 @@ import type {
   VariablesResponse,
 } from "../../../src/panel/types";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PLUGIN_CONTEXT_API_ROUTE } from "../../../src/panel/constants";
 
 // Assigned in `beforeEach` and read lazily by the mocks below.
 let panel: ReturnType<typeof createPanelStub>;
 let openFieldsDialog: Mock<(options: any) => Promise<any>>;
-let escapeHTML: Mock<(text: string) => string>;
 let pluginConfig: Partial<PluginConfig>;
 let variablesResponses: VariablesResponse[];
 let translateTexts: (texts: string[], targetLanguage: string) => string[];
@@ -48,17 +46,25 @@ const TARGET_VARIABLES = {
   legacy: "Alt",
 };
 
-vi.mock("kirbyuse", async () => {
+vi.mock("kirbyuse", async (importOriginal) => {
   const { baseKirbyuseMock } = await import("../helpers/mock-kirbyuse");
+  const { createGlobalState, toIntlLocale } =
+    await importOriginal<typeof import("kirbyuse")>();
   return {
     ...baseKirbyuseMock(),
-    isLocalDev: () => true,
+    createGlobalState,
+    toIntlLocale,
     usePanel: () => panel,
-    useApi: () => panel.api,
     useDialog: () => ({ openFieldsDialog }),
-    useHelpers: () => ({ string: { escapeHTML } }),
   };
 });
+
+vi.mock("../../../src/panel/composables/plugin", () => ({
+  usePluginContext: async () => ({
+    config: { DeepL: { apiKey: true }, fieldTypes: [], ...pluginConfig },
+    kirbyTagTypes: ["link"],
+  }),
+}));
 
 function createPanelStub() {
   return {
@@ -71,18 +77,7 @@ function createPanelStub() {
     view: { path: "languages/de", isLoading: false, reload: vi.fn() },
     dialog: { open: vi.fn() },
     api: {
-      get: vi.fn(async (route: string) => {
-        if (route === PLUGIN_CONTEXT_API_ROUTE) {
-          return {
-            config: {
-              DeepL: { apiKey: true },
-              fieldTypes: [],
-              ...pluginConfig,
-            },
-            kirbyTagTypes: ["link"],
-          };
-        }
-
+      get: vi.fn(async (_route: string) => {
         // The last response stands for every later read.
         return variablesResponses.length > 1
           ? variablesResponses.shift()
@@ -168,17 +163,12 @@ describe("useVariableTranslation", () => {
   beforeEach(async () => {
     vi.resetModules();
     panel = createPanelStub();
-    // Vue reads `window.navigator` as it loads, so the composable loads first.
-    await import("../../../src/panel/composables/variables");
-    // `usePluginContext` requests the plugin context through `window.panel`.
-    vi.stubGlobal("window", { panel });
     const storage = new Map<string, string>();
     vi.stubGlobal("localStorage", {
       getItem: (key: string) => storage.get(key) ?? null,
       setItem: (key: string, value: string) => storage.set(key, value),
     });
     openFieldsDialog = vi.fn(async () => ({}));
-    escapeHTML = vi.fn((text: string) => text);
     pluginConfig = {};
     variablesResponses = [
       variables(SOURCE_VARIABLES, { de: TARGET_VARIABLES, fr: {} }),
@@ -220,13 +210,11 @@ describe("useVariableTranslation", () => {
       });
     });
 
-    it("opens the dialog with the count of pending variables and the escaped language names", async () => {
-      escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
+    it("opens the dialog with the count of pending variables and the language names", async () => {
       await translateLanguageVariables();
 
       expect(openFieldsDialog.mock.calls[0]![0].fields.help.text).toBe(
-        'johannschopplich.content-translator.dialog.variablesHelp {"count":4,"total":5,"source":"escaped(English)","target":"escaped(Deutsch)"}',
+        'johannschopplich.content-translator.dialog.variablesHelp {"count":4,"total":5,"source":"English","target":"Deutsch"}',
       );
     });
 
@@ -486,13 +474,11 @@ describe("useVariableTranslation", () => {
       openFieldsDialog = vi.fn(async () => ({ languages: ["de", "fr"] }));
     });
 
-    it("opens the batch dialog with the variablesBatchHelp and the escaped name of the default language", async () => {
-      escapeHTML.mockImplementation((text) => `escaped(${text})`);
-
+    it("opens the batch dialog with the variablesBatchHelp and the name of the default language", async () => {
       await batchTranslateLanguageVariables();
 
       expect(openFieldsDialog.mock.calls[0]![0].fields.languages.help).toBe(
-        'johannschopplich.content-translator.dialog.variablesBatchHelp {"language":"escaped(English)"}',
+        'johannschopplich.content-translator.dialog.variablesBatchHelp {"language":"English"}',
       );
     });
 
@@ -587,15 +573,7 @@ describe("useVariableTranslation", () => {
     });
 
     it("ends the loading state of the view after a failed read", async () => {
-      panel.api.get.mockImplementation(async (route: string) => {
-        if (route === PLUGIN_CONTEXT_API_ROUTE) {
-          return {
-            config: { DeepL: { apiKey: true }, fieldTypes: [] },
-            kirbyTagTypes: [],
-          };
-        }
-        throw new Error("The server is unreachable");
-      });
+      panel.api.get.mockRejectedValue(new Error("The server is unreachable"));
 
       await batchTranslateLanguageVariables();
 
@@ -605,8 +583,8 @@ describe("useVariableTranslation", () => {
       expect(panel.view.isLoading).toBe(false);
     });
 
-    it("lists the selected languages in the Panel's language when every variable has its own translation", async () => {
-      panel.translation.code = "de";
+    it("lists the selected languages in sr@latin (not a BCP 47 tag) when every variable has its own translation", async () => {
+      panel.translation.code = "sr@latin";
       variablesResponses = [
         variables(
           { footer: "Imprint" },
@@ -617,7 +595,7 @@ describe("useVariableTranslation", () => {
       await batchTranslateLanguageVariables();
 
       expect(lastNotification().message).toBe(
-        'johannschopplich.content-translator.notification.variablesAllTranslated {"target":"Deutsch und Français"}',
+        'johannschopplich.content-translator.notification.variablesAllTranslated {"target":"Deutsch i Français"}',
       );
     });
 

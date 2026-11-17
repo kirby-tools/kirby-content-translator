@@ -6,8 +6,8 @@ Subheading: Vierzig Schulen im ersten Halbjahr
 
 ----
 
-Phase: Launch
+Text: <p>Das Mikroskop wurde im März auf einer Lehrerkonferenz vorgestellt. Vierzig Schulen haben vor dem Sommer Klassensätze bestellt.</p><p>Die Rücksendungen blieben unter einem Prozent, und die meisten ließen sich mit dem Reparaturset lösen.</p>
 
 ----
 
-Text: <p>Das Mikroskop wurde im März auf einer Lehrerkonferenz vorgestellt. Vierzig Schulen haben vor dem Sommer Klassensätze bestellt.</p><p>Die Rücksendungen blieben unter einem Prozent, und die meisten ließen sich mit dem Reparaturset lösen.</p>
+Phase: Launch

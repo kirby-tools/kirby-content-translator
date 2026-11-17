@@ -6,7 +6,7 @@ Subheading: Grüne Blätter und so
 
 ----
 
-Cover: - file://Ub2B5ZA1r0i0biYS
+Cover: - 'file://Ub2B5ZA1r0i0biYS'
 
 ----
 
