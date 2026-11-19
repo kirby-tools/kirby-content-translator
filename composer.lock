@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f9e953383e15fd4efba28a1ea675e4a",
+    "content-hash": "9495e3d4495ab923dd0c234bbf3a8e27",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -55,16 +55,16 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "1.0.0-beta.1",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "f1814e0555aae86250054ce660d9b540c46b4328"
+                "reference": "4f2af382b346e78a88782dfed2b52aeb72f28b20"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/f1814e0555aae86250054ce660d9b540c46b4328",
-                "reference": "f1814e0555aae86250054ce660d9b540c46b4328",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/4f2af382b346e78a88782dfed2b52aeb72f28b20",
+                "reference": "4f2af382b346e78a88782dfed2b52aeb72f28b20",
                 "shasum": ""
             },
             "require": {
@@ -74,7 +74,7 @@
                 "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^6",
+                "getkirby/cms": "^6.0@beta",
                 "phpunit/phpunit": "^12"
             },
             "type": "library",
@@ -101,22 +101,23 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v1.0.0-beta.1"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v1.0.0"
             },
-            "time": "2026-10-28T12:16:49+00:00"
+            "time": "2026-11-19T09:53:52+00:00",
+            "published-time": "2026-11-19T09:55:44+00:00"
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
-            "version": "1.0.0-beta.1",
+            "version": "1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/utils.git",
-                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004"
+                "reference": "5e66a6fb0213f5c870f991afa76c5cb45f25d26a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/ea7c1096011f526d6e7f877c64bd7324945b7004",
-                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004",
+                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/5e66a6fb0213f5c870f991afa76c5cb45f25d26a",
+                "reference": "5e66a6fb0213f5c870f991afa76c5cb45f25d26a",
                 "shasum": ""
             },
             "require": {
@@ -126,7 +127,7 @@
                 "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^6",
+                "getkirby/cms": "^6.0@beta",
                 "phpunit/phpunit": "^12"
             },
             "type": "library",
@@ -150,12 +151,13 @@
                 }
             ],
             "description": "Shared utility classes for Kirby Tools plugins",
-            "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
+            "homepage": "https://github.com/kirby-tools/utils#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/utils/issues",
-                "source": "https://github.com/kirby-tools/utils/tree/v1.0.0-beta.1"
+                "source": "https://github.com/kirby-tools/utils/tree/v1.0.0"
             },
-            "time": "2026-10-27T15:53:15+00:00"
+            "time": "2026-11-19T09:53:35+00:00",
+            "published-time": "2026-11-19T09:55:44+00:00"
         }
     ],
     "packages-dev": [
@@ -4298,8 +4300,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "getkirby/cms": 10,
-        "johannschopplich/kirby-tools-licensing": 10,
-        "johannschopplich/kirby-tools-utils": 10,
         "medienbaecker/kirby-modules": 5
     },
     "prefer-stable": false,
