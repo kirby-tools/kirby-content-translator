@@ -1,6 +1,6 @@
 import type { PanelLanguageInfo } from "kirby-types";
 import type { useContentTranslator } from "./translation";
-import { usePanel } from "kirbyuse";
+import { useContent, usePanel } from "kirbyuse";
 import { createBatchTranslationHelp } from "../utils/dialog-fields";
 import { useTranslationDialogs } from "./dialogs";
 
@@ -12,6 +12,7 @@ export function useTranslationHandlers({
   getCascadeHelp,
 }: ReturnType<typeof useContentTranslator>) {
   const panel = usePanel();
+  const { modelPath } = useContent();
   const {
     openTranslationDialog,
     openBatchTranslationDialog,
@@ -21,7 +22,7 @@ export function useTranslationHandlers({
   const defaultLanguage = panel.languages.find((language) => language.default)!;
 
   async function handleImport(sourceLanguage?: PanelLanguageInfo) {
-    const { path } = panel.view;
+    const path = modelPath.value!;
     // Kirby switches the language by mutating `panel.language` in place, never
     // its `panel.languages` entry.
     const targetLanguage = panel.languages.find(
@@ -31,7 +32,7 @@ export function useTranslationHandlers({
   }
 
   async function handleTranslate(sourceLanguage?: PanelLanguageInfo) {
-    const { path } = panel.view;
+    const path = modelPath.value!;
     // Kirby switches the language by mutating `panel.language` in place, never
     // its `panel.languages` entry.
     const targetLanguage = panel.languages.find(
@@ -51,7 +52,7 @@ export function useTranslationHandlers({
   }
 
   async function handleBatchTranslate() {
-    const { path } = panel.view;
+    const path = modelPath.value!;
     const result = await openBatchTranslationDialog(
       createBatchTranslationHelp({
         defaultLanguage,

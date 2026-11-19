@@ -7,7 +7,7 @@ import { useTranslationHandlers } from "../../../src/panel/composables/handlers"
 // Assigned per test and read lazily by the mocks below.
 let openFieldsDialog: ReturnType<typeof vi.fn>;
 let panelLanguage: PanelLanguageInfo;
-let panelView: { path: string };
+let modelPath: { value: string };
 
 const ENGLISH = {
   code: "en",
@@ -39,12 +39,10 @@ vi.mock("kirbyuse", async () => {
       get language() {
         return panelLanguage;
       },
-      get view() {
-        return panelView;
-      },
       languages: [ENGLISH, FRENCH, GERMAN],
       plugins: { thirdParty: {} },
     }),
+    useContent: () => ({ modelPath }),
     useDialog: () => ({ openFieldsDialog }),
   };
 });
@@ -68,7 +66,7 @@ describe("useTranslationHandlers", () => {
     });
     openFieldsDialog = vi.fn(async () => ({ languages: ["de"] }));
     panelLanguage = FRENCH;
-    panelView = { path: "pages/example" };
+    modelPath = { value: "pages/example" };
   });
 
   afterEach(() => {
@@ -91,7 +89,7 @@ describe("useTranslationHandlers", () => {
     const translator = createTranslator();
     panelLanguage = { ...FRENCH };
     openFieldsDialog = vi.fn(async () => {
-      panelView.path = "pages/other";
+      modelPath.value = "pages/other";
       // Kirby switches the language by mutating `panel.language` in place.
       Object.assign(panelLanguage, GERMAN);
       return {};
@@ -158,7 +156,7 @@ describe("useTranslationHandlers", () => {
   it("handleBatchTranslate translates the view of the click after the editor opens another view during the dialog", async () => {
     const translator = createTranslator();
     openFieldsDialog = vi.fn(async () => {
-      panelView.path = "pages/other";
+      modelPath.value = "pages/other";
       return { languages: ["de"] };
     });
 

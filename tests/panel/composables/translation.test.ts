@@ -14,6 +14,7 @@ import { blocksField, field } from "../utils";
 // Assigned in `beforeEach` and read lazily by the `kirbyuse` mock below.
 let panel: ReturnType<typeof createPanelStub>;
 let currentContent: { value: Record<string, unknown> };
+let modelPath: { value: string };
 let updateContent: ReturnType<typeof vi.fn>;
 let modelData: {
   id: string;
@@ -44,7 +45,7 @@ vi.mock("kirbyuse", async (importOriginal) => {
     createGlobalState,
     toIntlLocale,
     usePanel: () => panel,
-    useContent: () => ({ currentContent, update: updateContent }),
+    useContent: () => ({ currentContent, modelPath, update: updateContent }),
     useI18n: () => ({
       t: (value: unknown) => (typeof value === "string" ? value : undefined),
     }),
@@ -78,9 +79,11 @@ function createPanelStub() {
     languages: [DEFAULT_LANGUAGE, SECONDARY_LANGUAGE],
     translation: { code: "en" },
     view: {
-      path: "pages/example",
-      title: "Example",
-      props: { title: "Example", id: "example" } as Record<string, unknown>,
+      title: "Example | Preview",
+      props: { title: "Example | Preview", id: "example" } as Record<
+        string,
+        unknown
+      >,
       isLoading: false,
       reload: vi.fn(),
     },
@@ -194,7 +197,8 @@ describe("useContentTranslator", () => {
     vi.clearAllMocks();
 
     panel = createPanelStub();
-    currentContent = { value: { text: "Hello" } };
+    currentContent = { value: { text: "Hello", title: "Example" } };
+    modelPath = { value: "pages/example" };
     updateContent = vi.fn(async () => true);
 
     modelData = {
@@ -336,7 +340,7 @@ describe("useContentTranslator", () => {
     it("writes nothing when the editor opens another view before the source content arrives", async () => {
       const get = panel.api.get.getMockImplementation()!;
       panel.api.get.mockImplementationOnce(async (path: string) => {
-        panel.view.path = "pages/other";
+        modelPath.value = "pages/other";
         return get(path);
       });
       const translator = await createContentTranslator({
@@ -390,7 +394,7 @@ describe("useContentTranslator", () => {
     });
 
     it("writes nothing when the editor opens another view before the import starts", async () => {
-      panel.view.path = "pages/other";
+      modelPath.value = "pages/other";
       const translator = await createContentTranslator({
         slug: true,
         fields: { text: field({ type: "text", name: "text" }) },
@@ -415,7 +419,7 @@ describe("useContentTranslator", () => {
 
     it("reports error.viewChanged rather than nothingToImport when the editor opens another view before the import starts", async () => {
       modelData.content = { untracked: "Hello" };
-      panel.view.path = "pages/other";
+      modelPath.value = "pages/other";
       const translator = await createContentTranslator({
         title: false,
         slug: false,
@@ -512,26 +516,8 @@ describe("useContentTranslator", () => {
       );
     });
 
-    it("translates the site's title, not its blueprint's", async () => {
-      panel.view.path = "site";
-      panel.view.title = "Playground";
-      panel.view.props = { title: "Kirby Tools", id: "/" };
-      const translator = await createContentTranslator({
-        title: true,
-        fields: { text: field({ type: "text", name: "text" }) },
-      });
-
-      await translator.translateModelContent("site", SECONDARY_LANGUAGE);
-
-      expect(panel.api.patch).toHaveBeenCalledWith(
-        "site/title",
-        { title: "Kirby Tools (translated)" },
-        { language: "fr" },
-      );
-    });
-
     it("requests no translation and writes nothing when the editor opens another view before the translation starts", async () => {
-      panel.view.path = "pages/other";
+      modelPath.value = "pages/other";
       const translator = await createContentTranslator({
         title: true,
         fields: { text: field({ type: "text", name: "text" }) },
@@ -730,7 +716,7 @@ describe("useContentTranslator", () => {
     });
 
     it("translates and saves nothing when the editor opens another view before the batch translation starts", async () => {
-      panel.view.path = "pages/other";
+      modelPath.value = "pages/other";
       const translator = await createContentTranslator({
         title: true,
         fields: { text: field({ type: "text", name: "text" }) },
@@ -1103,6 +1089,26 @@ describe("useContentTranslator", () => {
       ]);
     });
 
+    it("labels a host without a content title by panel.view.title", async () => {
+      currentContent = { value: { text: "Hello" } };
+      panel.view.title = "cover.jpg";
+      batchStatus.languagesWithUnsavedChanges = ["fr"];
+      cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });
+      const translator = await createContentTranslator({
+        cascade: "page.children",
+        fields: { text: field({ type: "text", name: "text" }) },
+      });
+
+      await translator.batchTranslateModelContent("pages/example", [
+        SECONDARY_LANGUAGE,
+      ]);
+
+      expect(reportDialog().details.map(({ label }) => label)).toEqual([
+        "cover.jpg – Français",
+        "Intro – Français",
+      ]);
+    });
+
     it("reports unsaved changes in the default language of a cascaded model", async () => {
       cascadeIntroPage({ languagesWithUnsavedChanges: ["en"] });
       const translator = await createContentTranslator({
@@ -1185,6 +1191,7 @@ describe("useContentTranslator", () => {
 
       expect(updateContent).toHaveBeenCalledWith({
         text: "Hello (translated)",
+        title: "Example",
       });
       expect(batchWrite.mock.calls.map(([request]) => request)).toEqual([
         expect.objectContaining({
@@ -1200,7 +1207,7 @@ describe("useContentTranslator", () => {
       cascadeIntroPage();
       translateBatch.mockImplementationOnce(
         async (_route: string, payload: { texts: string[] }) => {
-          panel.view.path = "pages/other";
+          modelPath.value = "pages/other";
           return { texts: payload.texts.map((text) => `${text} (translated)`) };
         },
       );
@@ -1306,7 +1313,7 @@ describe("useContentTranslator", () => {
       translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {
           if (++call === 2) {
-            panel.view.path = "pages/other";
+            modelPath.value = "pages/other";
           }
           return { texts: payload.texts.map((text) => `${text} (translated)`) };
         },
@@ -2126,7 +2133,6 @@ describe("useContentTranslator", () => {
     });
 
     it("reports the title as untranslated when its translation throws", async () => {
-      currentContent = { value: { text: "Hello" } };
       let call = 0;
       translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {
@@ -2159,7 +2165,6 @@ describe("useContentTranslator", () => {
 
     it("keeps the target slug when the title translation fails", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-      currentContent = { value: { text: "Hello" } };
       let call = 0;
       translateBatch.mockImplementation(
         async (_route: string, payload: { texts: string[] }) => {

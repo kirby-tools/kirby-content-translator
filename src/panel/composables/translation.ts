@@ -57,6 +57,7 @@ export function useContentTranslator() {
   const {
     currentContent,
     isEditable: isContentEditable,
+    modelPath,
     update: updateContent,
   } = useContent();
   const { getModelData } = useModel();
@@ -299,14 +300,13 @@ export function useContentTranslator() {
     if (panel.view.isLoading || isTranslating.value) return;
     if (!(await hasResolvedBlueprint(path))) return;
 
-    // Checked before the view's title and form are read.
     if (!isViewOpen(path, targetLanguage.code)) {
       notifyViewChanged();
       return;
     }
 
-    // On the site view, `panel.view.title` can be the blueprint's title.
-    const title: string | undefined = panel.view.props.title || undefined;
+    // Kirby's preview view titles itself "… | Preview".
+    const title: string | undefined = currentContent.value.title || undefined;
     const id: string = panel.view.props.id;
     panel.view.isLoading = true;
     isTranslating.value = true;
@@ -363,14 +363,14 @@ export function useContentTranslator() {
         isTitleTranslationEnabled: isTitleTranslationEnabled.value === true,
         isSlugTranslationEnabled: isSlugTranslationEnabled.value === true,
         isTargetLanguageDefault: targetLanguage.default === true,
-        hasViewTitle: Boolean(title),
+        hasTitle: Boolean(title),
       });
 
       const languageResults = [contentResult];
 
       if (plan.shouldRequestTitleTranslation) {
         const translatedTitle = await translateTitle(
-          // Non-null: the plan requests a title translation only when the view has one.
+          // Non-null: the plan requests a title translation only when the content has one.
           title!,
           { strategy, targetLanguage, sourceLanguage },
         );
@@ -499,16 +499,16 @@ export function useContentTranslator() {
     if (panel.view.isLoading || isTranslating.value) return;
     if (!(await hasResolvedBlueprint(path))) return;
 
-    // Checked before the view's title is read. The run names every language it
-    // reads or writes, so the language the view is open in does not matter.
-    if (panel.view.path !== path) {
+    // The run names every language it reads or writes, so the language the view
+    // is open in does not matter.
+    if (modelPath.value !== path) {
       notifyViewChanged();
       return;
     }
 
-    // On the site view, `panel.view.title` can be the blueprint's title.
+    // Files and users have no built-in title.
     const title: string | undefined =
-      panel.view.props.title || panel.view.title;
+      currentContent.value.title || panel.view.title;
     panel.view.isLoading = true;
     isTranslating.value = true;
 
@@ -773,7 +773,7 @@ export function useContentTranslator() {
 
   /** `currentContent` and `updateContent` read and write the form of whichever view is open. */
   function isViewOpen(path: string, languageCode: string) {
-    return panel.view.path === path && panel.language.code === languageCode;
+    return modelPath.value === path && panel.language.code === languageCode;
   }
 
   return {

@@ -1,7 +1,7 @@
 import type { KirbyFieldProps } from "kirby-types";
 import type { PluginContextResponse, TranslatorOptions } from "../types";
 import type { TranslatorAction } from "../utils/actions";
-import { usePanel } from "kirbyuse";
+import { useContent, usePanel } from "kirbyuse";
 import { computed, ref } from "vue";
 import { MODEL_FIELDS_API_ROUTE } from "../constants";
 import { resolveTranslatorActions } from "../utils/actions";
@@ -15,6 +15,7 @@ import { useVariableTranslation } from "./variables";
 /** Offers the actions for a model view, empty until `initialize()` resolves. */
 export function useContentTranslatorActions(options: TranslatorOptions) {
   const panel = usePanel();
+  const { modelPath } = useContent();
   const { getModelData } = useModel();
   const { isTranslating } = useTranslationState();
   const translator = useContentTranslator();
@@ -70,7 +71,7 @@ export function useContentTranslatorActions(options: TranslatorOptions) {
   // Fetched rather than computed by the PHP `ContentTranslatorField` class: its
   // getter would build the form that holds the field and recurse.
   async function initializeFields() {
-    const { id } = await getModelData(panel.view.path);
+    const { id } = await getModelData(modelPath.value!);
     fields.value = await panel.api.get<Record<string, KirbyFieldProps>>(
       MODEL_FIELDS_API_ROUTE,
       { id: id ?? "site" },

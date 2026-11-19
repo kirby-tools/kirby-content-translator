@@ -66,7 +66,7 @@ describe("planSingleTranslation", () => {
       isTitleTranslationEnabled: false,
       isSlugTranslationEnabled: true,
       isTargetLanguageDefault: false,
-      hasViewTitle: true,
+      hasTitle: true,
     });
 
     expect(plan.shouldRequestTitleTranslation).toBe(true);
@@ -74,13 +74,13 @@ describe("planSingleTranslation", () => {
     expect(plan.shouldPatchSlug).toBe(true);
   });
 
-  it("skips title and slug when the view has no title", () => {
+  it("skips title and slug when the content has no title", () => {
     const plan = planSingleTranslation({
       ...TRANSLATABLE_MODEL,
       isTitleTranslationEnabled: true,
       isSlugTranslationEnabled: true,
       isTargetLanguageDefault: false,
-      hasViewTitle: false,
+      hasTitle: false,
     });
 
     expect(plan.shouldRequestTitleTranslation).toBe(false);
@@ -95,7 +95,7 @@ describe("planSingleTranslation", () => {
       isTitleTranslationEnabled: true,
       isSlugTranslationEnabled: true,
       isTargetLanguageDefault: false,
-      hasViewTitle: true,
+      hasTitle: true,
     });
 
     expect(plan.shouldRequestTitleTranslation).toBe(false);
@@ -109,7 +109,7 @@ describe("planSingleTranslation", () => {
       isTitleTranslationEnabled: false,
       isSlugTranslationEnabled: true,
       isTargetLanguageDefault: true,
-      hasViewTitle: true,
+      hasTitle: true,
     });
 
     expect(plan.shouldRequestTitleTranslation).toBe(false);
