@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { shallowMount } from "@vue/test-utils";
+import { mount } from "@vue/test-utils";
 import { expect, it, vi } from "vitest";
 import { ref } from "vue";
 import Field from "../../../src/panel/components/Field.vue";
@@ -32,17 +32,17 @@ vi.mock("../../../src/panel/composables/translator-actions", () => ({
   }),
 }));
 
-it("keeps disabled off k-field", () => {
-  const wrapper = shallowMount(Field, {
+it("passes disabled on to k-field", () => {
+  const wrapper = mount(Field, {
     props: {
       name: "translator",
       label: "Content Translator",
       licenseStatus: "active",
       licenseDialog: "",
+      disabled: true,
     },
-    attrs: { disabled: true },
-    global: { stubs: { "k-box": true, "k-text": true } },
+    global: { stubs: { "k-field": true, "k-box": true, "k-text": true } },
   });
 
-  expect(wrapper.attributes("disabled")).toBeUndefined();
+  expect(wrapper.find("k-field-stub").attributes("disabled")).toBe("true");
 });

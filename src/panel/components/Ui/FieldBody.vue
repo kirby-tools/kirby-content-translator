@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import {
+  disabled as disabledProp,
   help as helpProp,
   id as idProp,
   name as nameProp,
 } from "kirbyuse/props";
 
 defineProps({
+  ...disabledProp,
   ...helpProp,
   ...idProp,
   ...nameProp,
@@ -19,6 +21,7 @@ defineProps({
 <template>
   <k-field
     :id="id"
+    :disabled="disabled"
     :help="help"
     :input="false"
     :label="label"

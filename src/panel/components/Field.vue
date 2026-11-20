@@ -17,7 +17,6 @@ import ActionButtons from "./Ui/ActionButtons.vue";
 import FieldBody from "./Ui/FieldBody.vue";
 
 const props = defineProps({
-  // Declared to keep `disabled` off `k-field`, so the field never looks disabled.
   ...disabledProp,
   ...helpProp,
   ...idProp,
@@ -83,7 +82,13 @@ if (panel.multilang) {
 </script>
 
 <template>
-  <FieldBody :id="id" :help="help" :label="label" :name="name">
+  <FieldBody
+    :id="id"
+    :disabled="disabled"
+    :help="help"
+    :label="label"
+    :name="name"
+  >
     <template v-if="hasLicenseButtons" #options>
       <LicensingButtonGroup
         :dialog="licenseDialog"
