@@ -114,7 +114,7 @@ final class Translator
      *
      * @return 'ai'|'custom'|'deepl'
      *
-     * @throws LogicException When the `strategy` option names an unknown strategy
+     * @throws LogicException When the `strategy` option holds an unknown strategy
      */
     public static function resolveStrategyName(): string
     {
@@ -492,7 +492,7 @@ final class Translator
     /**
      * @return 'ai'|'deepl'|Closure|Strategy
      *
-     * @throws LogicException When the `strategy` option names an unknown strategy
+     * @throws LogicException When the `strategy` option holds an unknown strategy
      */
     private static function resolveStrategySource(): string|Closure|Strategy
     {
@@ -508,6 +508,10 @@ final class Translator
                 'deepl', 'ai' => $strategyOption,
                 default => throw new LogicException('Unknown strategy "' . $strategyOption . '"'),
             };
+        }
+
+        if ($strategyOption !== null) {
+            throw new LogicException('Unknown strategy of type ' . get_debug_type($strategyOption) . ', pass "deepl", "ai", a Closure or a Strategy');
         }
 
         // TODO: Remove the `translateFn` fallback in v4 – use the `strategy` option instead.
