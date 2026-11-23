@@ -128,21 +128,6 @@ final class Translator
     public function copyContent(string $toLanguageCode, string $fromLanguageCode): void
     {
         $this->writeUnlocked(function () use ($toLanguageCode, $fromLanguageCode) {
-            $defaultLanguage = $this->kirby->defaultLanguage();
-
-            // Deleting the secondary language's content lets Kirby inherit it
-            // from the default language.
-            // TODO: Drop K4 compat in v4 – remove the `method_exists` check once Kirby 5 is the floor.
-            if (
-                $defaultLanguage !== null &&
-                $defaultLanguage->code() === $fromLanguageCode &&
-                $defaultLanguage->code() !== $toLanguageCode &&
-                method_exists($this->model, 'version')
-            ) {
-                $this->model->version()->delete($toLanguageCode);
-                return;
-            }
-
             $content = [];
 
             foreach ($this->fields as $field => $props) {
