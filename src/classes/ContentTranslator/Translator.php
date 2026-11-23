@@ -208,6 +208,10 @@ final class Translator
      */
     public function translateTitle(string $contentLanguageCode, string $toLanguageCode, string|null $fromLanguageCode = null): void
     {
+        if ($this->model::CLASS_ALIAS === 'file') {
+            return;
+        }
+
         $this->ensureUnlocked();
 
         $translatedTitle = $this->kirby->impersonate('kirby', function () use ($contentLanguageCode, $toLanguageCode, $fromLanguageCode): string|null {
