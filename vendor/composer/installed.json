@@ -22,6 +22,7 @@
                 "composer/composer": "^1.8 || ^2.0"
             },
             "time": "2020-12-28T12:54:39+00:00",
+            "published-time": "2020-12-28T15:05:43+00:00",
             "type": "composer-plugin",
             "extra": {
                 "class": "Kirby\\ComposerInstaller\\Plugin"
@@ -52,17 +53,17 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "1.0.0-beta.1",
-            "version_normalized": "1.0.0.0-beta1",
+            "version": "1.1.0",
+            "version_normalized": "1.1.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "f1814e0555aae86250054ce660d9b540c46b4328"
+                "reference": "9b0eae3bc718acb7287251ff5ffe192f75b12689"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/f1814e0555aae86250054ce660d9b540c46b4328",
-                "reference": "f1814e0555aae86250054ce660d9b540c46b4328",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/9b0eae3bc718acb7287251ff5ffe192f75b12689",
+                "reference": "9b0eae3bc718acb7287251ff5ffe192f75b12689",
                 "shasum": ""
             },
             "require": {
@@ -72,10 +73,11 @@
                 "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^6",
+                "getkirby/cms": "^6.0",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-10-28T12:16:49+00:00",
+            "time": "2026-11-24T09:43:20+00:00",
+            "published-time": "2026-11-24T09:45:02+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -101,23 +103,23 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v1.0.0-beta.1"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v1.1.0"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         },
         {
             "name": "johannschopplich/kirby-tools-utils",
-            "version": "1.0.0-beta.1",
-            "version_normalized": "1.0.0.0-beta1",
+            "version": "1.0.0",
+            "version_normalized": "1.0.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/utils.git",
-                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004"
+                "reference": "5e66a6fb0213f5c870f991afa76c5cb45f25d26a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/ea7c1096011f526d6e7f877c64bd7324945b7004",
-                "reference": "ea7c1096011f526d6e7f877c64bd7324945b7004",
+                "url": "https://api.github.com/repos/kirby-tools/utils/zipball/5e66a6fb0213f5c870f991afa76c5cb45f25d26a",
+                "reference": "5e66a6fb0213f5c870f991afa76c5cb45f25d26a",
                 "shasum": ""
             },
             "require": {
@@ -127,10 +129,11 @@
                 "getkirby/cms": "<6"
             },
             "require-dev": {
-                "getkirby/cms": "^6",
+                "getkirby/cms": "^6.0@beta",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-10-27T15:53:15+00:00",
+            "time": "2026-11-19T09:53:35+00:00",
+            "published-time": "2026-11-19T09:55:44+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -153,10 +156,10 @@
                 }
             ],
             "description": "Shared utility classes for Kirby Tools plugins",
-            "homepage": "https://github.com/kirby-tools/kirby-tools-utils#readme",
+            "homepage": "https://github.com/kirby-tools/utils#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/utils/issues",
-                "source": "https://github.com/kirby-tools/utils/tree/v1.0.0-beta.1"
+                "source": "https://github.com/kirby-tools/utils/tree/v1.0.0"
             },
             "install-path": "../johannschopplich/kirby-tools-utils"
         }

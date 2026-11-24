@@ -65,36 +65,26 @@ final class CopilotField extends DisplayField
 }
 ```
 
-On success, the dialog shows a toast, emits `kirby-tools.license.activate` and `kirby-tools.license.activate.{pluginId}` with `package` and `status` in the payload, and reloads the current view. A failure reaches the Panel translated from its `ActivationOutcome`.
+On success, the dialog shows a toast, emits `kirby-tools.license.activate` and `kirby-tools.license.activate.{pluginId}` with `package` and `status` in the payload, and reloads the current view. On failure, the dialog shows a translated error message.
 
 ## Classes
 
-The licensing classes handle:
-
-- **License Activation**: Confirms email and license key with the license server
-- **Plugin Integration**: Seamlessly integrates with Kirby's native plugin license system
-- **Compatibility Constraint**: Checks the installed plugin version against the constraint the license carries, using semantic versioning
-- **License Management**: Handles license activation, storage, and status reporting
-- **Automatic Updates**: Refreshes license data when plugin versions change
-
 ### `Licenses`
 
-The main licensing engine that:
+Reading a license refreshes it when the plugin version has changed, and `getStatus()` returns `active`, `inactive`, `invalid`, `incompatible`, or `upgradeable`.
 
-- Reads and writes license data to `.kirby-tools-licenses` file
-- Communicates with the Kirby Tools API at `https://repo.kirby.tools/api`
-- Checks license keys against the pattern `KT{generation}-{hash}-{hash}`
-- Manages license status: `active`, `inactive`, `invalid`, `incompatible`, `upgradeable`
-- Handles license activation via email and license key
+Activation sends the email and the license key, of the form `KT{generation}-{hash}-{hash}`, to the Kirby Tools API at `https://repo.kirby.tools/api` and stores the license in the `.kirby-tools-licenses` file.
 
 ### `PluginLicense`
 
-Kirby integration adapter that:
+`PluginLicense` extends Kirby's [`License`](https://getkirby.com/docs/reference/objects/plugin/license) class and maps the status to [Kirby's license status system](https://getkirby.com/releases/5/plugin-license) for the Panel.
 
-- Extends Kirby's native [`License`](https://getkirby.com/docs/reference/objects/plugin/license) class
-- Maps internal license statuses to [Kirby's license status system](https://getkirby.com/releases/5/plugin-license)
-- Provides standardized license display in the Kirby Panel
-- Integrates with Kirby's plugin management interface
+## Used By
+
+- [kirby-copilot](https://kirby.tools/copilot)
+- [kirby-content-translator](https://kirby.tools/content-translator)
+- [kirby-live-preview](https://kirby.tools/live-preview)
+- [kirby-seo-audit](https://kirby.tools/seo-audit)
 
 ## License
 

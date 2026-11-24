@@ -49,7 +49,6 @@ return array(
     'KirbyTools\\Utils\\FieldNormalizer' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
     'KirbyTools\\Utils\\FieldResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
     'KirbyTools\\Utils\\ModelResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
-    'KirbyTools\\Utils\\QueryResolver' => $vendorDir . '/johannschopplich/kirby-tools-utils/src/QueryResolver.php',
     'Kirby\\ComposerInstaller\\CmsInstaller' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
     'Kirby\\ComposerInstaller\\Installer' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',
     'Kirby\\ComposerInstaller\\Plugin' => $vendorDir . '/getkirby/composer-installer/src/ComposerInstaller/Plugin.php',

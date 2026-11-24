@@ -4,9 +4,12 @@ declare(strict_types = 1);
 
 namespace KirbyTools\Licensing;
 
+use Closure;
 use Exception;
 use Kirby\Cms\App;
+use Kirby\Data\Data;
 use Kirby\Data\Json;
+use Kirby\Filesystem\F;
 use Throwable;
 
 /**
@@ -36,13 +39,12 @@ final class LicenseRepository
             return $this->cache;
         }
 
-        // A directory in place of the file holds no licenses either.
         if (is_file($this->licenseFile) === false) {
             return $this->cache = [];
         }
 
         try {
-            $this->cache = Json::read($this->licenseFile);
+            $this->cache = $this->readFile();
         } catch (Throwable $e) {
             $this->readError = $e->getMessage();
             $this->cache = [];
@@ -81,43 +83,68 @@ final class LicenseRepository
 
     public function save(string $packageName, array $license, string|null $pluginVersion): void
     {
-        $licenses = $this->readAll();
+        $this->update(function (array $licenses) use ($packageName, $license, $pluginVersion): array {
+            // `licenseCompatibility` is the compatibility constraint under the name the
+            // licensing API sends and every installed license file stores.
+            $licenses[$packageName] = [
+                'licenseKey' => $license['licenseKey'],
+                'licenseCompatibility' => $license['licenseCompatibility'],
+                'pluginVersion' => $pluginVersion,
+                'createdAt' => $license['order']['createdAt']
+            ];
 
-        // `licenseCompatibility` is the compatibility constraint under the name the
-        // licensing API sends and every installed license file stores.
-        $licenses[$packageName] = [
-            'licenseKey' => $license['licenseKey'],
-            'licenseCompatibility' => $license['licenseCompatibility'],
-            'pluginVersion' => $pluginVersion,
-            'createdAt' => $license['order']['createdAt']
-        ];
+            return $licenses;
+        });
 
-        $this->write($licenses);
-
-        $this->cache = $licenses;
         $this->readError = null;
     }
 
     public function remove(string $packageName): void
     {
-        $licenses = $this->readAll();
-        unset($licenses[$packageName]);
+        $this->update(function (array $licenses) use ($packageName): array {
+            unset($licenses[$packageName]);
 
-        $this->write($licenses);
-
-        $this->cache = $licenses;
+            return $licenses;
+        });
     }
 
     /**
-     * @throws Exception When the license file cannot be written, the same
-     *                   exception `F::write()` throws for a read-only file
+     * Reads the license file under a shared lock, so that a write in progress,
+     * which truncates the file first, never reads as an empty file.
      */
-    private function write(array $licenses): void
+    private function readFile(): array
     {
-        // Kirby only checks the permissions; any other failure, like a
-        // directory in place of the file, ends in a PHP warning and `false`.
-        if (@Json::write($this->licenseFile, $licenses) === false) {
+        $handle = @fopen($this->licenseFile, 'r');
+
+        if ($handle === false) {
+            throw new Exception('The file "' . $this->licenseFile . '" cannot be read');
+        }
+
+        try {
+            flock($handle, LOCK_SH);
+            return Json::decode(stream_get_contents($handle));
+        } finally {
+            fclose($handle);
+        }
+    }
+
+    /**
+     * Rewrites the license file from its current contents rather than the
+     * cache, so that a license another request stored meanwhile stays. A file
+     * that cannot be parsed starts over.
+     */
+    private function update(Closure $modify): void
+    {
+        $licenses = [];
+        $isWritten = F::update($this->licenseFile, function (string $contents) use ($modify, &$licenses): string {
+            $licenses = $modify(Data::decode($contents, 'json', fail: false));
+            return Json::encode($licenses);
+        });
+
+        if ($isWritten === false) {
             throw new Exception('The file "' . $this->licenseFile . '" is not writable');
         }
+
+        $this->cache = $licenses;
     }
 }

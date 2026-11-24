@@ -36,12 +36,6 @@ Resolves blueprint fields from Kirby models:
 
 - **`resolveModelFields`**: Creates a Kirby Form from the model's blueprint fields and returns the exported field properties (excluding `title`, `slug`, and field values), keyed by the lowercased field name. Custom blueprint keys such as `copilot` are not exported; read them from `$model->blueprint()->fields()`, whose keys keep the field name's casing
 
-### `QueryResolver`
-
-Resolves Kirby queries written into blueprint values:
-
-- **`resolve`**: Replaces every `{{ ... }}` placeholder in a string with its query result against the model, and returns any non-string value untouched
-
 ### `FieldNormalizer`
 
 Normalizes blueprint field definitions to their base types:
@@ -53,8 +47,7 @@ Normalizes blueprint field definitions to their base types:
 
 - [kirby-copilot](https://kirby.tools/copilot)
 - [kirby-content-translator](https://kirby.tools/content-translator)
-- [kirby-seo-audit](https://kirby.tools/seo-audit)
-- [kirby-serp-preview](https://kirby.tools/serp-preview)
+- [kirby-lingohub](https://github.com/johannschopplich/kirby-lingohub)
 
 ## License
 

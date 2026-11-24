@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022
+class ComposerStaticInitb3d094b725cce2fcc787ae73163da0be
 {
     public static $prefixLengthsPsr4 = array (
         'K' =>
@@ -82,7 +82,6 @@ class ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022
         'KirbyTools\\Utils\\FieldNormalizer' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldNormalizer.php',
         'KirbyTools\\Utils\\FieldResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/FieldResolver.php',
         'KirbyTools\\Utils\\ModelResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/ModelResolver.php',
-        'KirbyTools\\Utils\\QueryResolver' => __DIR__ . '/..' . '/johannschopplich/kirby-tools-utils/src/QueryResolver.php',
         'Kirby\\ComposerInstaller\\CmsInstaller' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/CmsInstaller.php',
         'Kirby\\ComposerInstaller\\Installer' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/Installer.php',
         'Kirby\\ComposerInstaller\\Plugin' => __DIR__ . '/..' . '/getkirby/composer-installer/src/ComposerInstaller/Plugin.php',
@@ -92,9 +91,9 @@ class ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit80c7c3e4a4b0c3c6ed700ae0868b0022::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitb3d094b725cce2fcc787ae73163da0be::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitb3d094b725cce2fcc787ae73163da0be::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitb3d094b725cce2fcc787ae73163da0be::$classMap;
 
         }, null, ClassLoader::class);
     }

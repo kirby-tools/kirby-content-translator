@@ -80,7 +80,7 @@ final class LicensePanel
                             'icon' => 'open',
                             'text' => I18n::translate('kirby-tools.license.info.upgrade'),
                             'theme' => 'love',
-                            'link' => 'https://kirby.tools/' . $pluginId . '/buy',
+                            'link' => 'https://hub.kirby.tools',
                             'target' => '_blank'
                         ] : [
                             'icon' => 'open',
@@ -89,6 +89,14 @@ final class LicensePanel
                             'link' => 'https://hub.kirby.tools',
                             'target' => '_blank'
                         ];
+
+                    // The upgrade issues a new key, which replaces this one.
+                    $cancelButton = $status === LicenseStatus::Upgradeable ?
+                        [
+                            'icon' => 'key',
+                            'text' => I18n::translate('kirby-tools.license.activate.submit'),
+                            'dialog' => LicenseUtils::toActivationDialog($packageName)
+                        ] : true;
 
                     $pluginVersion = LicenseUtils::getPluginVersion($packageName) ?? '–';
 
@@ -120,6 +128,7 @@ final class LicensePanel
                                     ]
                                 ]
                             ],
+                            'cancelButton' => $cancelButton,
                             'submitButton' => $submitButton
                         ]
                     ];
