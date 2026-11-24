@@ -101,7 +101,7 @@ tabs:
               - "4"
 
   modules:
-    sections:
+    fields:
       modules:
         type: modules
 
