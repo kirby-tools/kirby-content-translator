@@ -7,3 +7,13 @@ fields:
   tagline:
     type: textarea
     size: small
+
+# Kirby Modules' default buttons, which a blueprint's own list replaces, plus the translator
+buttons:
+  - open
+  - preview
+  - "-"
+  - settings
+  - content-translator
+  - languages
+  - modules.visibility

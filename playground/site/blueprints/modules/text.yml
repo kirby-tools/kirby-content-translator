@@ -6,3 +6,13 @@ fields:
     type: text
   text:
     type: writer
+
+# Kirby Modules' default buttons, which a blueprint's own list replaces, plus the translator
+buttons:
+  - open
+  - preview
+  - "-"
+  - settings
+  - content-translator
+  - languages
+  - modules.visibility
