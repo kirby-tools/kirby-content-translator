@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b3d094b725cce2fcc787ae73163da0be",
+    "content-hash": "2d7cf721b3fc2d1a4bd5c2dc6d45b2d0",
     "packages": [
         {
             "name": "getkirby/composer-installer",
@@ -1349,16 +1349,16 @@
         },
         {
             "name": "medienbaecker/kirby-modules",
-            "version": "6.0.0-rc.8",
+            "version": "6.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/medienbaecker/kirby-modules.git",
-                "reference": "2e42cece8f567fe9381d846b3ab7158a7b333530"
+                "reference": "a9189263e567869ad64f3b466430f60ccf1f67d7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/medienbaecker/kirby-modules/zipball/2e42cece8f567fe9381d846b3ab7158a7b333530",
-                "reference": "2e42cece8f567fe9381d846b3ab7158a7b333530",
+                "url": "https://api.github.com/repos/medienbaecker/kirby-modules/zipball/a9189263e567869ad64f3b466430f60ccf1f67d7",
+                "reference": "a9189263e567869ad64f3b466430f60ccf1f67d7",
                 "shasum": ""
             },
             "require": {
@@ -1397,10 +1397,10 @@
             ],
             "support": {
                 "issues": "https://github.com/medienbaecker/kirby-modules/issues",
-                "source": "https://github.com/medienbaecker/kirby-modules/tree/6.0.0-rc.8"
+                "source": "https://github.com/medienbaecker/kirby-modules/tree/6.0.2"
             },
-            "time": "2026-11-20T13:43:27+00:00",
-            "published-time": "2026-11-20T13:43:40+00:00"
+            "time": "2026-11-25T10:40:49+00:00",
+            "published-time": "2026-11-25T10:40:55+00:00"
         },
         {
             "name": "michelf/php-smartypants",
@@ -4339,9 +4339,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "medienbaecker/kirby-modules": 5
-    },
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
