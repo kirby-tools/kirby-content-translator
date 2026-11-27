@@ -8,6 +8,7 @@
   display: none;
 }
 
-.k-page-view-preview {
+.k-open-view-button,
+.k-preview-view-button {
   display: none;
 }
