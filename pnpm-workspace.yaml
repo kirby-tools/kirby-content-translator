@@ -11,6 +11,9 @@ trustPolicyExclude:
   - semver@6.3.1
 
 shellEmulator: true
+overrides:
+  # TODO: Drop once vue-tsc ships the fix for `//` in a static template attribute (vuejs/language-tools#6322).
+  vue-tsc: 3.3.13
 allowBuilds:
   "@parcel/watcher": true
   esbuild: true
