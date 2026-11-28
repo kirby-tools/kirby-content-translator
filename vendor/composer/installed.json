@@ -22,6 +22,7 @@
                 "composer/composer": "^1.8 || ^2.0"
             },
             "time": "2020-12-28T12:54:39+00:00",
+            "published-time": "2020-12-28T15:05:43+00:00",
             "type": "composer-plugin",
             "extra": {
                 "class": "Kirby\\ComposerInstaller\\Plugin"
@@ -52,17 +53,17 @@
         },
         {
             "name": "johannschopplich/kirby-tools-licensing",
-            "version": "0.9.5",
-            "version_normalized": "0.9.5.0",
+            "version": "0.9.6",
+            "version_normalized": "0.9.6.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kirby-tools/licensing-backend.git",
-                "reference": "18ce762ee7f296a0c7ed37eeb9fa09159c50a73d"
+                "reference": "9386e8756c6d3a89a08899a28ca9d1311d6b427d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/18ce762ee7f296a0c7ed37eeb9fa09159c50a73d",
-                "reference": "18ce762ee7f296a0c7ed37eeb9fa09159c50a73d",
+                "url": "https://api.github.com/repos/kirby-tools/licensing-backend/zipball/9386e8756c6d3a89a08899a28ca9d1311d6b427d",
+                "reference": "9386e8756c6d3a89a08899a28ca9d1311d6b427d",
                 "shasum": ""
             },
             "require": {
@@ -72,7 +73,8 @@
                 "getkirby/cms": "^5",
                 "phpunit/phpunit": "^12"
             },
-            "time": "2026-09-20T19:09:02+00:00",
+            "time": "2026-11-23T17:39:48+00:00",
+            "published-time": "2026-11-23T17:40:29+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false
@@ -98,7 +100,7 @@
             "homepage": "https://github.com/kirby-tools/licensing-backend#readme",
             "support": {
                 "issues": "https://github.com/kirby-tools/licensing-backend/issues",
-                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.9.5"
+                "source": "https://github.com/kirby-tools/licensing-backend/tree/v0.9.6"
             },
             "install-path": "../johannschopplich/kirby-tools-licensing"
         },
@@ -125,6 +127,7 @@
                 "phpunit/phpunit": "^12"
             },
             "time": "2026-09-07T07:05:05+00:00",
+            "published-time": "2026-09-07T07:06:47+00:00",
             "type": "library",
             "extra": {
                 "kirby-cms-path": false

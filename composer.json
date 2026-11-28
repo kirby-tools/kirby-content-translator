@@ -2,7 +2,7 @@
   "name": "johannschopplich/kirby-content-translator",
   "description": "One click translates a whole page, nested blocks included",
   "type": "kirby-plugin",
-  "version": "3.18.0",
+  "version": "3.18.1",
   "keywords": [
     "kirby",
     "kirby-cms",
