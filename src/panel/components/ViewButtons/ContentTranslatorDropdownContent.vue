@@ -1,11 +1,13 @@
 <script lang="ts">
 import type { PropType } from "vue";
-import type { useContentTranslator } from "../../composables/translation";
 import type { PluginContextResponse, TranslatorOptions } from "../../types";
-import { usePanel } from "kirbyuse";
+import { isKirby5, usePanel } from "kirbyuse";
 import { useTranslationActions } from "../../composables/actions";
 import { useModel } from "../../composables/model";
-import { useTranslationState } from "../../composables/translation";
+import {
+  useContentTranslator,
+  useTranslationState,
+} from "../../composables/translation";
 import { MODEL_FIELDS_API_ROUTE } from "../../constants";
 
 export default {
@@ -39,7 +41,9 @@ const { isTranslating } = useTranslationState();
 
 const defaultLanguage = panel.languages.find((language) => language.default)!;
 
-const translator = props.translator;
+// Kirby 4 keeps the button, and with it the translator, from one page to the
+// next.
+const translator = isKirby5() ? props.translator : useContentTranslator();
 const {
   isImportEnabled,
   importFrom,

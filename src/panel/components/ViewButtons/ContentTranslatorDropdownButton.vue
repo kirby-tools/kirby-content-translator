@@ -2,7 +2,7 @@
 import type { PropType } from "vue";
 import type { PluginContextResponse } from "../../types";
 import { LicensingDropdownItems } from "@kirby-tools/licensing/components";
-import { computed, ref, usePanel } from "kirbyuse";
+import { computed, isKirby5, ref, usePanel } from "kirbyuse";
 import {
   resolveLicenseStatus,
   usePluginContext,
@@ -98,8 +98,13 @@ function toggle() {
 }
 
 // Kirby renders the dropdown content only while it is open, so the content
-// would otherwise set itself up on every open.
+// would otherwise set itself up on every open. Kirby 4 keeps the button from
+// one page to the next.
 function initializeOnce<T>(initialize: () => Promise<T>) {
+  if (!isKirby5()) {
+    return initialize();
+  }
+
   actionsInitialization ??= initialize().catch((error) => {
     actionsInitialization = undefined;
     throw error;
